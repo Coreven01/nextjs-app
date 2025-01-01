@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="149mm"
+   height="151mm"
+   viewBox="0 0 149 151"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="box2.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.0610059"
+     inkscape:cx="212.06291"
+     inkscape:cy="268.14177"
+     inkscape:window-width="2560"
+     inkscape:window-height="1472"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1">
+    <filter
+       x="-0.28705823"
+       width="1.5741165"
+       y="-0.90192246"
+       height="2.8038449"
+       style="color-interpolation-filters:sRGB"
+       inkscape:label="Cross Blur"
+       id="filter376">
+      <feGaussianBlur
+         stdDeviation="7.31526 25.4823"
+         result="blur"
+         id="feGaussianBlur373" />
+      <feComposite
+         in="SourceGraphic"
+         in2="blur"
+         operator="atop"
+         result="composite1"
+         id="feComposite373" />
+      <feComposite
+         in2="composite1"
+         operator="in"
+         result="composite2"
+         id="feComposite374" />
+      <feComposite
+         in2="composite2"
+         operator="in"
+         result="composite3"
+         id="feComposite375" />
+      <feTurbulence
+         type="fractalNoise"
+         numOctaves="2"
+         seed="37"
+         baseFrequency="0.125915 0.788101"
+         result="turbulence"
+         id="feTurbulence375" />
+      <feDisplacementMap
+         in="composite3"
+         in2="turbulence"
+         xChannelSelector="R"
+         scale="100"
+         yChannelSelector="G"
+         result="map"
+         id="feDisplacementMap375" />
+      <feColorMatrix
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 47.351 -31.1258 "
+         result="colormatrix"
+         id="feColorMatrix375" />
+      <feComposite
+         in="composite3"
+         in2="colormatrix"
+         operator="atop"
+         result="fbSourceGraphic"
+         id="feComposite376" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix425" />
+      <feColorMatrix
+         id="feColorMatrix426"
+         in="fbSourceGraphic"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -0.2125 -0.7154 -0.0721 1 0 "
+         result="colormatrix" />
+      <feComposite
+         id="feComposite426"
+         in="fbSourceGraphic"
+         in2="colormatrix"
+         operator="arithmetic"
+         k2="1"
+         k3="1.1859"
+         k4="0.0434783"
+         result="composite"
+         k1="0" />
+      <feGaussianBlur
+         id="feGaussianBlur426"
+         stdDeviation="6.0967 0.01"
+         result="blur1" />
+      <feGaussianBlur
+         id="feGaussianBlur427"
+         in="composite"
+         stdDeviation="0.01 15.8354"
+         result="blur2" />
+      <feBlend
+         id="feBlend427"
+         in="blur2"
+         in2="blur1"
+         mode="multiply"
+         result="blend" />
+    </filter>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(2.9924433,66.332494)">
+    <ellipse
+       style="display:inline;fill:#000000;stroke-width:0.264583;filter:url(#filter376)"
+       id="path1"
+       cx="85.783379"
+       cy="98.625938"
+       rx="56.108311"
+       ry="54.986145"
+       transform="matrix(1,0,0,1.0847526,-12.219143,-99.503636)" />
+  </g>
+</svg>
