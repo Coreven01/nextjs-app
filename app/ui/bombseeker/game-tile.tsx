@@ -9,8 +9,8 @@ type Props = {
     highlight: boolean,
     onTileClick: MouseEventHandler<HTMLButtonElement> | undefined,
     onTileRightClick: MouseEventHandler<HTMLButtonElement> | undefined,
-    onDoubleMouseUp: MouseEventHandler<HTMLButtonElement> | undefined,
-    onDoubleMouseDown: MouseEventHandler<HTMLButtonElement> | undefined,
+    onMouseUp: MouseEventHandler<HTMLButtonElement> | undefined,
+    onMouseDown: MouseEventHandler<HTMLButtonElement> | undefined,
     onMouseLeave: MouseEventHandler<HTMLButtonElement> | undefined,
 }
 
@@ -33,7 +33,7 @@ export type TileValue = {
  * @returns 
  */
 export default function GameTile({ id, displayValue, exposed, disabled, highlight, 
-    onTileClick, onTileRightClick, onDoubleMouseUp, onDoubleMouseDown, onMouseLeave }: Props) {
+    onTileClick, onTileRightClick, onMouseUp, onMouseDown, onMouseLeave }: Props) {
 
     const defaultClass = `${styles.tile} ${styles.tileExposed}`;
 
@@ -75,8 +75,8 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
         className={classValue}
         onClick={onTileClick} 
         onContextMenu={onTileRightClick} 
-        onMouseUp={onDoubleMouseUp}
-        onMouseDown={onDoubleMouseDown}
+        onMouseUp={onMouseUp}
+        onMouseDown={onMouseDown}
         onMouseLeave={onMouseLeave}
         disabled={disabled}>
             {displayValue.value}

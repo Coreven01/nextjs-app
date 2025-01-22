@@ -9,7 +9,7 @@ import { TileValue } from './game-tile';
  * 
  * @returns 
  */
-export default function Game() {
+export default function BombSeeker() {
 
     /** Number of columns on the bomb map. */
     const [columns, setColumns] = useState<number>(10);
@@ -50,20 +50,20 @@ export default function Game() {
         setGameCreated(false);
     }
 
-    function handleUpdate(rows: number, columns: number, bombCount: number) {
-        setColumns(columns);
-        setRows(rows);
-        setBombCount(bombCount);
-        setGameCreated(false);
-    }
-
     const handleMouseDown: MouseEventHandler<HTMLButtonElement> = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
         const newEvents = [...doubleMouseDownEvents, event];
         setDoubleMouseDownEvent(newEvents);
     }
 
     function handleMouseUp() {
-        setDoubleMouseDownEvent([]);
+        if (doubleMouseDownEvents.length > 1)
+        {
+            const newEvents = [...doubleMouseDownEvents].slice(0, doubleMouseDownEvents.length - 2);
+            setDoubleMouseDownEvent(newEvents);
+        } else 
+        {
+            setDoubleMouseDownEvent([]);
+        }
     }
 
     function handleSetAdjacentTiles(tiles: number[][]) {
@@ -75,7 +75,7 @@ export default function Game() {
             <div className={`relative mx-auto flex w-full flex-col`}>
                 <Board rows={rows} columns={columns} bombCount={bombCount} bombMap={bombMap}
                     exposedMap={exposedMap} adjacentTiles={adjacentTiles}
-                    onPlay={handlePlay} onNewGame={handleNewGame} onUpdateMap={handleUpdate}
+                    onPlay={handlePlay} onNewGame={handleNewGame}
                     onMouseDown={handleMouseDown} onMouseUp={handleMouseUp}
                     mouseEvents={doubleMouseDownEvents} onSetAdjacentTiles={handleSetAdjacentTiles} />
             </div>

@@ -16,7 +16,7 @@ export default function Home() {
 
 function GetSectionSelfImage()
 {
-  return (<Image className="md:border-r contain" quality={100} src={"/photo.png"} layout="responsive" width={600} height={748} alt="Photo" />);
+  return (<Image className="md:border-r contain" quality={100} src={"/photo.png"} width={600} height={748} alt="Photo" />);
 }
 
 function GetSectionSelfDescription()
