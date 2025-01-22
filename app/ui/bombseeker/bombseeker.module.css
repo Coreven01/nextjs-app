@@ -1,0 +1,97 @@
+
+  .tile {
+    background: lightgray;
+    border: 1px solid #999;
+    float: left;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 28px;
+    height: 28px;
+    margin-right: 1px;
+    margin-top: 1px;
+    padding: 0;
+    text-align: center;
+    width: 28px;
+    box-shadow: 1px 1px 1px black;
+    user-select: none; /* Standard syntax */
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+  }
+  
+  .tileExposed {
+    background-color: snow;
+    box-shadow: -1px -1px -1px black;
+  }
+  
+  .boardRow {
+    clear: both;
+    content: '';
+    display: table;
+    margin: auto;
+  }
+  
+  .gameNew {
+    width: 100px;
+    height: 40px;
+    margin: auto;
+    display: block;
+    border: 1px solid white;
+  }
+  
+  .gameStatus {
+    color: red;
+  }
+  
+  .gameInfo {
+    margin-left: 20px;
+  }
+  
+  .game {
+    width: 800px;
+    margin: auto;
+  }
+
+  .gameBoard {
+    background-color: inherit; 
+  }
+  
+  .tileBomb {
+    background-color: lightcoral;
+  }
+  
+  .tileDark {
+    background-color: darkgray;
+  }
+  
+  .tileOne {
+    color: darkblue;
+  }
+  
+  .tileTwo {
+    color: green;
+  }
+  
+  .tileThree {
+    color: firebrick;
+  }
+  
+  .tileFour {
+    color: orange;
+  }
+  
+  .tileFive {
+    color: royalblue;
+  }
+  
+  .tileSix {
+    color: aqua;
+  }
+  
+  .tileSeven {
+    color: saddlebrown;
+  }
+  
+  .tileEight {
+    color: yellowgreen;
+  }
