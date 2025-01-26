@@ -1,4 +1,4 @@
-import { MouseEventHandler, useRef, useState } from 'react';
+import { MouseEventHandler, RefObject, useRef, useState } from 'react';
 import { TileValue } from './game-tile';
 import { useDoubleMouseEvents, useTimer } from '@/app/lib/bombseeker/actions';
 import { validateAndClickAjacentTiles, getDirectAdjacentTiles, getNewExposedMap, isGameWon, getBombsRemaining, isGameLost } from '@/app/lib/bombseeker/game';
@@ -6,6 +6,7 @@ import { validateAndClickAjacentTiles, getDirectAdjacentTiles, getNewExposedMap,
 import GameOver from './game-over';
 import GameBoardTiles from './game-board-tiles';
 import GameInfo from './game-info';
+import GameSettings from './game-settings';
 
 type Props = {
 
@@ -24,7 +25,7 @@ type Props = {
     /** 2D array of values of which tiles have been exposed by the user. Dimensions should match the rows, columns. */
     exposedMap: TileValue[][],
 
-    /** Update the bomb map based on which tiles have been exposed */
+    /** Update the game tiles based on which tiles have been exposed */
     onPlay: (exposedMap: TileValue[][]) => void,
 
     /** Create a new game with the given number of rows/columns/bomb count */
@@ -43,8 +44,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
     const newRowValue = useRef<HTMLInputElement>(null);
     const newColumnValue = useRef<HTMLInputElement>(null);
 
-    const [bombHit, setBombHit] = useState<TileValue | undefined>(undefined)
-    const [incorrectFlags, setIncorrectFlags] = useState<number[][]>([]);
+    const [showGameOverScreen, setShowGameOverScreen] = useState<boolean>(true);
 
     /** Used to determine if more than one mouse button is pressed. */
     const [doubleMouseDownEvents, setDoubleMouseDownEvent] = useState<React.MouseEvent<HTMLButtonElement, MouseEvent>[]>([]);
@@ -196,6 +196,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         resetMouseClicks();
         pauseTimer();
         resetTimer();
+        setShowGameOverScreen(true);
     }
 
     const addMouseDownEvent: MouseEventHandler<HTMLButtonElement> = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -203,90 +204,42 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         setDoubleMouseDownEvent(newEvents);
     }
 
-    function popMouseDownEvent() {
-        if (doubleMouseDownEvents.length > 1)
-        {
+    const popMouseDownEvent = () => {
+        if (doubleMouseDownEvents.length > 1) {
             const newEvents = [...doubleMouseDownEvents].slice(0, doubleMouseDownEvents.length - 2);
             setDoubleMouseDownEvent(newEvents);
-        } else 
-        {
+        } else {
             setDoubleMouseDownEvent([]);
         }
     }
 
+    const handleGameOverScreenClick = () =>
+    {
+        setShowGameOverScreen(false);
+    }
+
     const gameLost = isGameLost(rows, columns, bombMap, exposedMap);
     const gameWon = !gameLost.gameLost && isGameWon(rows, columns, bombMap, exposedMap);
-    const showGameOver = gameLost.gameLost || gameWon;
+    const showGameOver = (gameLost.gameLost || gameWon) && showGameOverScreen;
     const bombsRemaining = getBombsRemaining(rows, columns, bombCount, exposedMap);
 
-    const inputClass = "max-w-16 rounded p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
-    const labelClass = "block font-medium my-2 dark:text-white";
     const cellClass = "bg-zinc-200 dark:bg-neutral-900 dark:text-white border mx-4 my-2 p-4";
     const message = gameLost.gameLost ? "Game Over" : gameWon ? "You're Winner!" : "Error...";
-    
+
     if (showGameOver)
         pauseTimer();
 
     return (
         <>
             <div className={cellClass}>
-                <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-                    <div className="min-w-32 items-center">
-                        <label
-                            htmlFor="rowCount"
-                            className={labelClass}
-                        >Row Count</label>
-                        <div className='flex flex-row'>
-                            <input className={inputClass}
-                                id='rowCount'
-                                type='number'
-                                required
-                                max={20}
-                                ref={newRowValue}
-                                defaultValue={rows}
-                                placeholder='Row Count'></input>
-                            <div className='flex flex-col'>
-                                <button>^</button>
-                                <button>{"<"}</button>
-                            </div>
-                        </div>
-
-                    </div>
-                    <div className="min-w-32">
-                        <label
-                            htmlFor="colCount"
-                            className={labelClass}
-                        >Column Count</label>
-                        <input className={inputClass}
-                            id='colCount'
-                            type='number'
-                            required
-                            max={20}
-                            ref={newColumnValue}
-                            defaultValue={columns}
-                            placeholder='Column Count'></input>
-                    </div>
-                    <div className="min-w-32">
-                        <label
-                            htmlFor="bombValue"
-                            className={labelClass}
-                        >Bomb Count</label>
-                        <input className={inputClass}
-                            id='bombValue'
-                            type='number'
-                            required
-                            max={20}
-                            ref={newBombValue}
-                            defaultValue={bombCount}
-                            placeholder='Bomb Count'></input>
-                    </div>
-                    <div className='my-2 p-2'>
-                        <button
-                            className={`border rounded block m-auto justify-center dark:border-white font-medium dark:text-white p-2 dark:bg-neutral-800 bg-zinc-200`}
-                            onClick={handleNewGameClick}>New Game</button>
-                    </div>
-                </div>
-
+                <GameSettings
+                    defaultRow={rows}
+                    newRows={newRowValue}
+                    defaultColumns={columns}
+                    newColumns={newColumnValue}
+                    defaultBombCount={bombCount}
+                    newBombCount={newBombValue}
+                    onNewGame={handleNewGameClick}/>
             </div>
             <div className={`${cellClass} flex items-center justify-center`}>
                 <GameInfo seconds={time} bombsLeft={bombsRemaining} />
@@ -298,6 +251,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
                     exposedMap={exposedMap}
                     gameLost={gameLost}
                     adjacentTiles={adjacentTiles}
+                    disabled={gameLost.gameLost || gameWon}
                     onClick={handleTileClick}
                     onRightClick={handleTileRightClick}
                     onMouseUp={handleTileMouseUp}
@@ -306,7 +260,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
                 <GameOver gameLost={gameLost.gameLost}
                     showGameOver={showGameOver}
                     message={message}
-                    onGameOverClick={() => null} />
+                    onGameOverClick={handleGameOverScreenClick} />
             </div>
         </>
     );

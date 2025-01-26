@@ -1,12 +1,12 @@
 'use client';
 
-import { MouseEventHandler, useState } from 'react';
+import { useState } from 'react';
 import GameMap from "./game-map"
 import { TileValue } from './game-tile';
 import { create2DArray, createBombMap } from '@/app/lib/bombseeker/game';
 
 /**
- * 
+ * Create a bomb seeker game.
  * @returns 
  */
 export default function BombSeeker() {
@@ -32,6 +32,10 @@ export default function BombSeeker() {
     };
 
     const handleNewGame = (rows: number, columns: number, bombCount: number) => {
+
+        if (rows < 10 || rows > 50)
+            rows = 10;
+
         setColumns(columns);
         setRows(rows);
         setBombCount(bombCount);
@@ -45,7 +49,7 @@ export default function BombSeeker() {
     }
 
     return (
-        <div className={``} onContextMenu={(event) => event.preventDefault()}>
+        <div onContextMenu={(event) => event.preventDefault()}>
             <div className={`relative mx-auto flex w-full flex-col`}>
                 <GameMap rows={totalRows}
                     columns={totalColumns}

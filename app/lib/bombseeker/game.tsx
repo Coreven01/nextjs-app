@@ -1,5 +1,10 @@
 import GameTile, { TileValue } from "@/app/ui/bombseeker/game-tile";
 
+function deepCopyTileValueArray(array: TileValue[][]): TileValue[][]
+{
+    return [...array.map(e => [...e.map(t => { const r: TileValue = { value: t.value}; return r; })])];
+}
+
 /**
      * Return the new exposed map of tiles that were exposed from clicking on the row/column value for a tile.
      * All adjacent tiles will be exposed if the user clicked on a blank tile in the bomb map.
@@ -17,11 +22,11 @@ export function getNewExposedMap(
     exposedMap: TileValue[][],
     assignValue: TileValue) {
 
-    const newExposedMap = [...exposedMap.slice(0)];
-    const emptyAdjacentTiles: number[][] = [[row, column]];
+    const newExposedMap: TileValue[][] = deepCopyTileValueArray(exposedMap);
+    let emptyAdjacentTiles: number[][] = [[row, column]];
 
     if (assignValue.value === 'E') {
-        getEmptyAdjacentTiles(row, column, totalRows, totalColumns, bombMap, exposedMap, emptyAdjacentTiles);
+        emptyAdjacentTiles = getEmptyAdjacentTiles(row, column, totalRows, totalColumns, bombMap, exposedMap, emptyAdjacentTiles);
 
         for (const emptyTile of emptyAdjacentTiles)
             if (!newExposedMap[emptyTile[0]][emptyTile[1]].value)
@@ -43,36 +48,46 @@ export function getNewExposedMap(
  * @returns 2D array of row/column values of empty tiles adjacent to the given row/column.
  */
 export function getEmptyAdjacentTiles(row: number, column: number, totalRows: number, totalColumns: number,
-    bombMap: TileValue[][], exposedMap: TileValue[][], emptyTiles: number[][]) {
+    bombMap: TileValue[][], exposedMap: TileValue[][], emptyTiles: number[][]): number[][] {
+
+    let newEmptyTiles = [...emptyTiles.map(e => [...e])];
 
     // exit if the bomb map contains a value.
     if (bombMap[row][column].value)
-        return;
+        return newEmptyTiles;
 
+    // tiles directly adjacent to the given row and column.
     const adj: number[][] = [[row - 1, column], [row + 1, column], [row, column - 1], [row, column + 1],
     [row - 1, column - 1], [row + 1, column - 1], [row + 1, column + 1], [row - 1, column + 1]];
 
-    // iterate through the 8 adjacent tiles directly top, bottom, left, right, and diagnols.
+    // iterate through the 8 adjacent tiles directly top, bottom, left, right, and diagnals.
     for (let i = 0; i < 8; i++) {
-        let current = adj[i];
-        if (current[0] >= 0 && current[0] < totalRows && current[1] >= 0 && current[1] < totalColumns) {
-            if (!exposedMap[current[0]][current[1]].value) {
-                let found = false;
-                for (const emptyTile of emptyTiles)
-                    if (emptyTile[0] === current[0] && emptyTile[1] === current[1]) {
-                        found = true;
-                        break;
-                    }
+        const current = adj[i];
 
-                if (!found) {
-                    emptyTiles.push(current);
+        // check to make sure the tile exists in the grid and the tile is not yet exposed.
+        const tileIsValid = current[0] >= 0 && current[0] < totalRows && current[1] >= 0 && current[1] < totalColumns && !exposedMap[current[0]][current[1]].value;
 
-                    // recursively find all the next adjacent tiles for the found empty tile.
-                    getEmptyAdjacentTiles(current[0], current[1], totalRows, totalColumns, bombMap, exposedMap, emptyTiles);
+        if (tileIsValid) {
+
+            let found = false;
+            // check to make sure the current tile has not yet been tested. if already in the empty tile list, then skip the current tile.
+            for (const emptyTile of newEmptyTiles)
+                if (emptyTile[0] === current[0] && emptyTile[1] === current[1]) {
+                    found = true;
+                    break;
                 }
+
+            if (!found) {
+                newEmptyTiles.push(current);
+
+                // recursively find all the next adjacent tiles for the found empty tile.
+                newEmptyTiles = getEmptyAdjacentTiles(current[0], current[1], totalRows, totalColumns, bombMap, exposedMap, newEmptyTiles);
             }
+
         }
     }
+
+    return newEmptyTiles;
 }
 
 /**
@@ -83,8 +98,8 @@ export function getEmptyAdjacentTiles(row: number, column: number, totalRows: nu
  * @returns 
  */
 export function getDirectAdjacentTiles(row: number, column: number, totalRows: number, totalColumns: number, bombMap: TileValue[][]): number[][] {
-    const adjacentTiles: number[][] = [];
 
+    const adjacentTiles: number[][] = [];
     const currentValue = parseInt(bombMap[row][column]?.value?.toString() ?? '-1', 10);
 
     if (currentValue >= 1 && currentValue <= 9) {
@@ -118,58 +133,51 @@ export function getDirectAdjacentTiles(row: number, column: number, totalRows: n
  * @returns 
  */
 export function validateAndClickAjacentTiles(bombTileValue: number, row: number, column: number, totalRows: number, totalColumns: number,
-    bombMap: TileValue[][], exposedMap: TileValue[][]): TileValue[][] | undefined {
+    bombMap: TileValue[][], exposedMap: TileValue[][]): TileValue[][] {
 
     const directAdjacentTiles = getDirectAdjacentTiles(row, column, totalRows, totalColumns, bombMap);
     let questionMarkFound = false;
     let flaggedCount = 0;
-    let bombFound = false;
-    let retval = undefined;
+    let newExposedMap: TileValue[][] = deepCopyTileValueArray(exposedMap);
 
     // the feature should only work if the number value of the bomb tile matches the number of flagged adjacent tiles.
     // should also only work if no adjacent tile is set to 'Unknown' (?)
     // ends the game if there's a bomb adjacent to the clicked tile that hasn't been flagged.
-    
+
     for (const adjTile of directAdjacentTiles) {
         const rowVal = adjTile[0];
         const colVal = adjTile[1];
 
-        if (exposedMap[rowVal][colVal].value === "?")
+        if (newExposedMap[rowVal][colVal].value === "?")
             questionMarkFound = true;
 
-        if (exposedMap[rowVal][colVal].value === "F")
+        if (newExposedMap[rowVal][colVal].value === "F")
             flaggedCount++;
-
-        if (exposedMap[rowVal][colVal].value === undefined && bombMap[rowVal][colVal].value === "X")
-            bombFound = true;
     }
 
-    if (!questionMarkFound && flaggedCount === bombTileValue && bombFound)
-        retval = []; // set the exposed map to an empty array if game over.
-    else if (!questionMarkFound && flaggedCount == bombTileValue) {
-        let newExposedMap: TileValue[][] = exposedMap;
+    if (!questionMarkFound && flaggedCount == bombTileValue) {
+        
 
         for (const adjTile of directAdjacentTiles) {
             const rowVal = adjTile[0];
             const colVal = adjTile[1];
 
-            if (exposedMap[rowVal][colVal].value === undefined)
-                newExposedMap = getNewExposedMap(rowVal, colVal, totalRows, totalColumns, bombMap, exposedMap, { value: 'E' })
+            if (newExposedMap[rowVal][colVal].value === undefined)
+                newExposedMap = getNewExposedMap(rowVal, colVal, totalRows, totalColumns, bombMap, newExposedMap, { value: 'E' });
         }
-        retval = newExposedMap;
-    }
+    } 
 
-    return retval;
+    return newExposedMap;
 }
 
 export function isGameWon(totalRows: number, totalColumns: number, bombMap: TileValue[][], exposedMap: TileValue[][]): boolean {
 
     let retval = true;
 
-    for (let r = 0; r < totalRows; r++) {
-        for (let c = 0; c < totalColumns; c++) {
-            const exposedTile = exposedMap[r][c];
-            const bombTile = bombMap[r][c];
+    for (let row = 0; row < totalRows; row++) {
+        for (let col = 0; col < totalColumns; col++) {
+            const exposedTile = exposedMap[row][col];
+            const bombTile = bombMap[row][col];
 
             if (exposedTile.value === '?')
                 return false;
@@ -187,7 +195,7 @@ export function isGameWon(totalRows: number, totalColumns: number, bombMap: Tile
 
 export type GameLostProps = {
     gameLost: boolean,
-    bombTile: number[] | undefined, 
+    bombTile: number[] | undefined,
     incorrectTiles: number[][]
 }
 
@@ -195,18 +203,18 @@ export function isGameLost(totalRows: number, totalColumns: number, bombMap: Til
 
     const retval: GameLostProps = { gameLost: false, bombTile: undefined, incorrectTiles: [] };
 
-    for (let r = 0; r < totalRows; r++) {
-        for (let c = 0; c < totalColumns; c++) {
-            const exposedTile = exposedMap[r][c];
-            const bombTile = bombMap[r][c];
+    for (let row = 0; row < totalRows; row++) {
+        for (let col = 0; col < totalColumns; col++) {
+            const exposedTile = exposedMap[row][col];
+            const bombTile = bombMap[row][col];
 
-            if (exposedTile.value === 'E' && bombTile.value === 'X'){
+            if (exposedTile.value === 'E' && bombTile.value === 'X') {
                 retval.gameLost = true;
-                retval.bombTile = [r, c];
+                retval.bombTile = [row, col];
             }
 
             if (exposedTile.value === 'F' && bombTile.value !== 'X')
-                retval.incorrectTiles.push([r, c]);
+                retval.incorrectTiles.push([row, col]);
         }
     }
 
@@ -232,28 +240,73 @@ export function getBombsRemaining(totalRows: number, totalColumns: number, total
     return retval;
 }
 
+/**
+ * 
+ * @param totalRows 
+ * @param totalColumns 
+ * @param bombMap 
+ * @param exposedMap 
+ * @param gameLost 
+ * @param adjacentTiles 
+ * @param onClickEvent 
+ * @param onRightClickEvent 
+ * @param onMouseUpEvent 
+ * @param onMouseDownEvent 
+ * @param onMouseLeave 
+ * @returns 
+ */
 export function createGameTiles(totalRows: number,
     totalColumns: number,
     bombMap: TileValue[][],
     exposedMap: TileValue[][],
     gameLost: GameLostProps,
     adjacentTiles: number[][],
+    disabled: boolean,
     onClickEvent: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
     onRightClickEvent: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
     onMouseUpEvent: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
     onMouseDownEvent: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
     onMouseLeave: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void) {
 
-    const rowCells = []; // array of react elements to display
+    const rowCells = []; // array of jsx GameTile to display
 
     for (let row = 0; row < totalRows; row++) {
         const tileCells = [];
 
         for (let col = 0; col < totalColumns; col++) {
+            const exposedTile: TileValue = exposedMap[row][col];
+            const bombTile: TileValue = bombMap[row][col];
+
             const keyVal = (row * totalColumns) + col;
-            const isExposed = (exposedMap && exposedMap.length > 0 && exposedMap[row][col].value === 'E') || gameLost.gameLost;
-            const isFlagged = exposedMap && exposedMap.length > 0 && (exposedMap[row][col].value === 'F' || exposedMap[row][col].value === '?');
-            const displayValue: TileValue = isExposed ? bombMap[row][col] : (isFlagged ? exposedMap[row][col] : { value: undefined });
+            const isExposed = exposedTile.value === 'E' && bombTile.value !== "X";
+            const isFlagged = exposedTile.value === 'F' || exposedTile.value === '?';
+            const isGameOverBomb = gameLost.gameLost && bombTile.value === 'X' && gameLost.bombTile && gameLost.bombTile[0] === row && gameLost.bombTile[1] === col;
+            const clickedBomb = gameLost.gameLost && gameLost.bombTile && gameLost.bombTile[0] === row && gameLost.bombTile[1] === col
+
+            let incorrectFlag = false;
+            const displayValue: TileValue = { value: undefined };
+
+            if (gameLost.gameLost && gameLost.incorrectTiles?.length) {
+                for (const tile of gameLost.incorrectTiles)
+                    if (tile[0] === row && tile[1] === col)
+                        incorrectFlag = true;
+            }
+
+            if (incorrectFlag)
+                displayValue.value = "I" ;
+            else if (clickedBomb)
+                displayValue.value = "T" ;
+            else if (isGameOverBomb)
+                displayValue.value = "T";
+            else if (isExposed)
+                displayValue.value = bombTile.value;
+            else if (isFlagged)
+                displayValue.value = exposedTile.value;
+            else if (gameLost.gameLost && bombTile.value === "X")
+                displayValue.value = "X";
+
+            //isExposed ? bombTile : (isFlagged ? exposedTile : { value: undefined });
+
             let isAdjacentTileHighlight = false;
 
             if (adjacentTiles.length) {
@@ -279,8 +332,8 @@ export function createGameTiles(totalRows: number,
                 onMouseUp={(event) => onMouseUpEvent(event, row, col)}
                 onMouseDown={(event) => onMouseDownEvent(event, row, col)}
                 onMouseLeave={(event) => onMouseLeave(event)}
-                disabled={false}>
-            </GameTile>)
+                disabled={disabled}>
+            </GameTile>);
         }
 
         rowCells.push(<div key={-1 - row} className="flex items-center justify-center">{tileCells}</div>);

@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { MouseEventHandler } from "react";
-import { FlagIcon, FireIcon } from '@heroicons/react/16/solid';
+import { FlagIcon, FireIcon, XMarkIcon } from '@heroicons/react/16/solid';
 
 type Props = {
     id: number,
@@ -23,9 +23,10 @@ export type TileValue = {
      *  E: button/space is exposed. user clicked on the button and doesn't contain a bomb.
      *  X: button/space is a bomb.
      *  ?: User flagged the button as unknown and not to auto click.
-     *  I: Tile is flagged as bomb but is empty.
+     *  I: Tile is flagged incorrectly as bomb but is empty.
+     *  T: Bomb tile that triggered game lost.
     */
-    value: undefined | "X" | "F" | "E" | "?" | "I" | number
+    value: undefined | "X" | "F" | "E" | "?" | "I" | "T" | number,
 }
 
 /**
@@ -43,7 +44,8 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
         const tileBgColor = "bg-zinc-300";
         const tileDefault = "border border-black text-xl font-bold h-8 w-8 p-0 text-center select-none";
         const tileExposed = "bg-white";
-        const tileBomb = "bg-red-100";
+        const tileBomb = "bg-white";
+        const tileTriggered = "bg-red-600";
         const tileUnknown = "bg-yellow-200 text-black";
         const tileDark = "bg-zinc-400";
         const tile1 = "text-blue-500 ";
@@ -59,8 +61,10 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
         switch (tileValue?.value) {
             case "X":
                 return `${tileDefault} ${tileBomb}`;
+            case "T":
+                return `${tileDefault} ${tileTriggered}`;
             case "F":
-                return `${tileDefault} ${tileBomb}`;
+                return `${tileDefault} ${tileBgColor}`;
             case "?":
                 return `${tileDefault} ${tileUnknown}`;
             case 1:
@@ -86,7 +90,21 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
 
     // const tileSvg = " bg-[url('/tile.svg')] bg-no-repeat bg-center bg-[length:1.75rem]";
     const classValue = getTileClass(displayValue, highlight, exposed);
-    const value = displayValue.value === "F" ? <FlagIcon className='w-5 h-5 m-auto text-red-500' /> : displayValue.value;
+    let value: any = undefined;
+
+    if (displayValue.value === "F")
+        value = <FlagIcon className='w-5 h-5 m-auto text-rose-500' />;
+    else if (displayValue.value === "X" || displayValue.value === "T")
+        value = <FireIcon className='w-5 h-5 m-auto text-neutral-800' />;
+    else if (displayValue.value === "I")
+        value = (
+            <>
+                <FlagIcon className='absolute top-1 left-1 w-5 h-5 m-auto text-rose-500' />
+            </>
+        );
+    else
+        value = displayValue.value;
+
     return (
         <button
             key={id}

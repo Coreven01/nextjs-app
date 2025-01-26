@@ -9,6 +9,7 @@ type Props = {
     exposedMap: TileValue[][],
     gameLost: GameLostProps,
     adjacentTiles: number[][],
+    disabled: boolean,
     onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
     onRightClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
     onMouseUp: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
@@ -16,10 +17,39 @@ type Props = {
     onMouseLeave: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void,
 }
 
-export default function GameBoardTiles({ totalRows, totalColumns, bombMap, exposedMap, gameLost, adjacentTiles, onClick, onRightClick, onMouseUp, onMouseDown, onMouseLeave }: Props) {
+/**
+ * Create the game board tiles with the correct color, number, icon based on the given information.
+ * @param param0 
+ * @returns 
+ */
+export default function GameBoardTiles({ 
+    totalRows, 
+    totalColumns, 
+    bombMap, 
+    exposedMap, 
+    gameLost, 
+    adjacentTiles, 
+    disabled,
+    onClick, 
+    onRightClick, 
+    onMouseUp, 
+    onMouseDown, 
+    onMouseLeave }: Props) {
 
     const tiles = useMemo(
-        () => createGameTiles(totalRows, totalColumns, bombMap, exposedMap, gameLost, adjacentTiles, onClick, onRightClick, onMouseUp, onMouseDown, onMouseLeave),
+        () => createGameTiles(
+            totalRows, 
+            totalColumns, 
+            bombMap, 
+            exposedMap,
+            gameLost, 
+            adjacentTiles, 
+            disabled,
+            onClick, 
+            onRightClick, 
+            onMouseUp, 
+            onMouseDown, 
+            onMouseLeave),
         [totalRows, totalColumns, bombMap, exposedMap, gameLost, adjacentTiles, onClick, onRightClick, onMouseUp, onMouseDown, onMouseLeave]
       );
 
