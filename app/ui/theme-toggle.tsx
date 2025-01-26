@@ -15,7 +15,7 @@ const ThemeToggle = () => {
     }
   }, []);
 
-  const toggleDarkMode = () => {
+  const onToggleDarkMode = () => {
     // Toggle dark mode on the <html> element
     const newMode = !isDark;
     setIsDark(newMode);
@@ -31,7 +31,7 @@ const ThemeToggle = () => {
   return (
     <>
     <button
-      onClick={toggleDarkMode}
+      onClick={onToggleDarkMode}
       className="p-1 h-9 w-9 border border-black dark:border-white bg-zinc-200 dark:bg-neutral-900 dark:bg-opacity-10 text-black dark:text-white rounded-md"
     >
       {isDark ? <SunIcon /> : <MoonIcon />}

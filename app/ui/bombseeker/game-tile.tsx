@@ -1,5 +1,6 @@
-import styles from "@/app/ui/bombseeker/bombseeker.module.css"
+import clsx from 'clsx';
 import { MouseEventHandler } from "react";
+import { FlagIcon, FireIcon } from '@heroicons/react/16/solid';
 
 type Props = {
     id: number,
@@ -22,8 +23,9 @@ export type TileValue = {
      *  E: button/space is exposed. user clicked on the button and doesn't contain a bomb.
      *  X: button/space is a bomb.
      *  ?: User flagged the button as unknown and not to auto click.
+     *  I: Tile is flagged as bomb but is empty.
     */
-    value: undefined | "X" | "F" | "E" | "?" | number
+    value: undefined | "X" | "F" | "E" | "?" | "I" | number
 }
 
 /**
@@ -32,54 +34,70 @@ export type TileValue = {
  * @param {*} param0 
  * @returns 
  */
-export default function GameTile({ id, displayValue, exposed, disabled, highlight, 
+export default function GameTile({ id, displayValue, exposed, disabled, highlight,
     onTileClick, onTileRightClick, onMouseUp, onMouseDown, onMouseLeave }: Props) {
 
-    const defaultClass = `${styles.tile} ${styles.tileExposed}`;
+    function getTileClass(tileValue: TileValue, highlight: boolean, exposed: boolean) {
 
-    function getTileClass(tileValue: TileValue) {
-        switch(tileValue?.value)
-        {
+        //const tileSvg = " bg-[url('/tile.svg')] bg-no-repeat bg-center bg-contain";
+        const tileBgColor = "bg-zinc-300";
+        const tileDefault = "border border-black text-xl font-bold h-8 w-8 p-0 text-center select-none";
+        const tileExposed = "bg-white";
+        const tileBomb = "bg-red-100";
+        const tileUnknown = "bg-yellow-200 text-black";
+        const tileDark = "bg-zinc-400";
+        const tile1 = "text-blue-500 ";
+        const tile2 = "text-green-500 ";
+        const tile3 = "text-red-500 ";
+        const tile4 = "text-blue-800 ";
+        const tile5 = "text-purple-700 ";
+        const tile6 = "text-teal-500 ";
+        const tile7 = "text-black ";
+        const tile8 = "text-gray-500 ";
+        const defaultExposed = `${tileExposed} ${tileDefault}`;
+
+        switch (tileValue?.value) {
             case "X":
-                return `${styles.tile} ${styles.tileBomb}`;
+                return `${tileDefault} ${tileBomb}`;
             case "F":
-                return `${styles.tile} ${styles.tileBomb}`;
+                return `${tileDefault} ${tileBomb}`;
+            case "?":
+                return `${tileDefault} ${tileUnknown}`;
             case 1:
-                return defaultClass + ` ${styles.tileOne}`;
+                return defaultExposed + ` ${tile1}`;
             case 2:
-                return defaultClass + ` ${styles.tileTwo}`;
+                return defaultExposed + ` ${tile2}`;
             case 3:
-                return defaultClass + ` ${styles.tileThree}`;
+                return defaultExposed + ` ${tile3}`;
             case 4:
-                return defaultClass + ` ${styles.tileFour}`;
+                return defaultExposed + ` ${tile4}`;
             case 5:
-                return defaultClass + ` ${styles.tileFive}`;
+                return defaultExposed + ` ${tile5}`;
             case 6:
-                return defaultClass + ` ${styles.tileSix}`;
+                return defaultExposed + ` ${tile6}`;
             case 7:
-                return defaultClass + ` ${styles.tileSeven}`;
+                return defaultExposed + ` ${tile7}`;
             case 8:
-                return defaultClass + ` ${styles.tileEight}`;
+                return defaultExposed + ` ${tile8}`;
             default:
-                return ` ${styles.tile}`
+                return `${(highlight ? ` ${tileDark}` : exposed ? `${tileExposed}` : `${tileBgColor}`)} ${tileDefault}`
         }
     }
 
-    let classValue = exposed ? `${styles.tileExposed} ` +  getTileClass(displayValue) : getTileClass(displayValue);
-    classValue = classValue + (highlight ? ` ${styles.tileDark}` : "");
-
+    // const tileSvg = " bg-[url('/tile.svg')] bg-no-repeat bg-center bg-[length:1.75rem]";
+    const classValue = getTileClass(displayValue, highlight, exposed);
+    const value = displayValue.value === "F" ? <FlagIcon className='w-5 h-5 m-auto text-red-500' /> : displayValue.value;
     return (
-      <button 
-        key={id} 
-        data-key={id} 
-        className={classValue}
-        onClick={onTileClick} 
-        onContextMenu={onTileRightClick} 
-        onMouseUp={onMouseUp}
-        onMouseDown={onMouseDown}
-        onMouseLeave={onMouseLeave}
-        disabled={disabled}>
-            {displayValue.value}
-      </button>
+        <button
+            key={id}
+            className={classValue}
+            onClick={onTileClick}
+            onContextMenu={onTileRightClick}
+            onMouseUp={onMouseUp}
+            onMouseDown={onMouseDown}
+            onMouseLeave={onMouseLeave}
+            disabled={disabled}>
+            {value}
+        </button>
     );
-  }
+}

@@ -1,22 +1,23 @@
 'use client';
 
 import { TileValue } from '@/app/ui/bombseeker/game-tile';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 type DoubleMouseEventsType = {
-    shouldHandleDoubleMouseUp: boolean, 
-    shouldHandleClick: boolean, 
-    shouldHandleRightClick: boolean,
+    shouldHandleDoubleMouseUp: boolean,
+    shouldHandleMouseClick: boolean,
+    shouldHandleMouseRightClick: boolean,
     handleDoubleMouseDown: () => void,
-    handleDoubleMouseUp:() => void, 
-    handledClick: () => void, 
-    handledRightClick: () => void,
+    handleDoubleMouseUp: () => void,
+    handledMouseClick: () => void,
+    handledMouseRightClick: () => void,
+    resetMouseClicks: () => void,
 }
 
-export default function useDoubleMouseEvents(): DoubleMouseEventsType {
+export function useDoubleMouseEvents(): DoubleMouseEventsType {
     const [shouldHandleDoubleMouseUp, setShouldHandleDoubleMouseUp] = useState(false);
-    const [shouldHandleClick, setShouldHandleClick] = useState(true);
-    const [shouldHandleRightClick, setShouldHandleRightClick] = useState(true);
+    const [shouldHandleMouseClick, setShouldHandleClick] = useState(true);
+    const [shouldHandleMouseRightClick, setShouldHandleRightClick] = useState(true);
 
     const handleDoubleMouseDown = () => {
         setShouldHandleDoubleMouseUp(true);
@@ -28,15 +29,79 @@ export default function useDoubleMouseEvents(): DoubleMouseEventsType {
         setShouldHandleDoubleMouseUp(false);
     };
 
-    const handledClick = () => {
+    const handledMouseClick = () => {
         setShouldHandleClick(true);
     };
 
-    const handledRightClick = () => {
+    const handledMouseRightClick = () => {
         setShouldHandleRightClick(true);
     };
 
-    return { shouldHandleDoubleMouseUp, shouldHandleClick, shouldHandleRightClick, handleDoubleMouseDown, handleDoubleMouseUp, handledClick, handledRightClick };
+    const resetMouseClicks = () => {
+        setShouldHandleDoubleMouseUp(false);
+        setShouldHandleClick(true);
+        setShouldHandleRightClick(true);
+    }
+
+    return {
+        shouldHandleDoubleMouseUp, shouldHandleMouseClick, shouldHandleMouseRightClick, handleDoubleMouseDown,
+        handleDoubleMouseUp, handledMouseClick, handledMouseRightClick, resetMouseClicks
+    };
+}
+
+type TimerEventType = {
+    time: number,
+    startTimer: () => void,
+    pauseTimer: () => void,
+    resetTimer: () => void,
+}
+
+export function useTimer(): TimerEventType {
+
+    const [time, setTime] = useState<number>(0); // Tracks the elapsed time
+    const [isRunning, setIsRunning] = useState(false); // Tracks if the timer is running
+    const [intervalId, setIntervalId] = useState<NodeJS.Timeout | undefined>(undefined); // Holds the interval ID for cleanup
+
+    useEffect(() => {
+        // Cleanup interval on unmount
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
+    }, [intervalId]);
+
+    const startTimer = () => {
+
+        if (isRunning) return; // Prevent starting if already running
+
+        // Create a new interval to update the time every second
+        const newIntervalId = setInterval(() => {
+            setTime((prevTime) => {
+                if (prevTime < 1000)
+                    return prevTime + 1
+                else 
+                    return prevTime;
+                }); // Increment time every second
+        }, 1000);
+        setIntervalId(newIntervalId); // Store interval ID
+        setIsRunning(true); // Set running state to true
+    };
+
+    const pauseTimer = () => {
+        if (!isRunning) return; // Prevent pausing if it's already paused
+
+        clearInterval(intervalId); // Clear the interval to stop updating time
+        setIsRunning(false); // Set running state to false
+    };
+
+    const resetTimer = () => {
+        clearInterval(intervalId); // Clear the current interval
+        setTime(0); // Reset time to 0
+        setIsRunning(false); // Set running state to false
+    }
+
+    return { time, startTimer, pauseTimer, resetTimer }
 }
 
 type ClickProps = {
@@ -45,4 +110,44 @@ type ClickProps = {
     column: number,
     id: number,
     exposedMap: TileValue[][]
+}
+
+const Timer = () => {
+    const [time, setTime] = useState<number>(0); // Tracks the elapsed time
+    const [isRunning, setIsRunning] = useState(false); // Tracks if the timer is running
+    const [intervalId, setIntervalId] = useState<NodeJS.Timeout | undefined>(undefined); // Holds the interval ID for cleanup
+
+    useEffect(() => {
+        // Cleanup interval on unmount
+        return () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+            }
+        };
+    }, [intervalId]);
+
+    const startTimer = () => {
+        if (isRunning) return; // Prevent starting if already running
+
+        // Create a new interval to update the time every second
+        const newIntervalId = setInterval(() => {
+            setTime(prevTime => prevTime + 1); // Increment time every second
+        }, 1000);
+        setIntervalId(newIntervalId); // Store interval ID
+        setIsRunning(true); // Set running state to true
+    };
+
+    const pauseTimer = () => {
+        if (!isRunning) return; // Prevent pausing if it's already paused
+
+        clearInterval(intervalId); // Clear the interval to stop updating time
+        setIsRunning(false); // Set running state to false
+    };
+
+    const resetTimer = () => {
+        clearInterval(intervalId); // Clear the current interval
+        setTime(0); // Reset time to 0
+        setIsRunning(false); // Set running state to false
+    }
+
 }

@@ -12,6 +12,7 @@ export default {
       animation: {
         slideInRight: 'slideInRight 0.15s ease-out',
         slideInLeft: 'slideInLeft 0.15s ease-out',
+        slideInTop: 'slideInTop 0.75s ease-out',
       },
       keyframes: {
         slideInRight: {
@@ -21,6 +22,13 @@ export default {
         slideInLeft: {
           '0%': { transform: 'translateX(-200px)' },
           '100%': { transform: 'translateX(0px)' },
+        },
+        slideInTop: {
+          '0%': { transform: 'translateY(-40px)' },
+          '25%': { transform: 'translateY(-20px)' },
+          '50%': { transform: 'translateY(-8px)' },
+          '75%': { transform: 'translateY(-3px)' },
+          '100%': { transform: 'translateY(0px)' },
         },
       },
       colors: {
