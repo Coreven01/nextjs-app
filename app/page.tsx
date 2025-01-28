@@ -31,7 +31,7 @@ function GetSectionSelfDescription()
     Experienced in engineering, maintaining, and testing code using .NET framework and .NET core. 
     I've honed my skills over the years by using best practices, test-driven design, and SOLID principles.
     <br /><br />
-    I can be reached at LinkedIn: <a href="https://www.linkedin.com/in/nolanappel/">Nolan Appel - LinkedIn</a>
+    I can be reached at LinkedIn: <a className="underline text-black hover:text-blue-500 dark:text-yellow-200 dark:hover:text-red-200" href="https://www.linkedin.com/in/nolanappel/">Nolan Appel - LinkedIn</a>
   </div>);
 
 }

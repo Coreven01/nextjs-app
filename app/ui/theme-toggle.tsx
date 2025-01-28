@@ -3,7 +3,11 @@
 import { useEffect, useState } from "react";
 import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
 
-const ThemeToggle = () => {
+type Props = {
+  useMobile: boolean
+}
+
+const ThemeToggle = ({useMobile} : Props) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {

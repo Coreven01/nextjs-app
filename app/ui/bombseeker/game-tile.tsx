@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { MouseEventHandler } from "react";
-import { FlagIcon, FireIcon, XMarkIcon } from '@heroicons/react/16/solid';
+import { FlagIcon, FireIcon } from '@heroicons/react/16/solid';
+import { XMarkIcon } from '@heroicons/react/24/outline';
 
 type Props = {
     id: number,
@@ -42,7 +43,7 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
 
         //const tileSvg = " bg-[url('/tile.svg')] bg-no-repeat bg-center bg-contain";
         const tileBgColor = "bg-zinc-300";
-        const tileDefault = "border border-black text-xl font-bold h-8 w-8 p-0 text-center select-none";
+        const tileDefault = "border border-black text-xl font-bold h-7 w-7 p-0 text-center";
         const tileExposed = "bg-white";
         const tileBomb = "bg-white";
         const tileTriggered = "bg-red-600";
@@ -93,13 +94,16 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
     let value: any = undefined;
 
     if (displayValue.value === "F")
-        value = <FlagIcon className='w-5 h-5 m-auto text-rose-500' />;
+        value = <FlagIcon className='w-5 h-5 m-auto text-rose-500 scale-115' />;
     else if (displayValue.value === "X" || displayValue.value === "T")
-        value = <FireIcon className='w-5 h-5 m-auto text-neutral-800' />;
+        value = <FireIcon className='w-5 h-5 m-auto text-neutral-800 scale-115' />;
     else if (displayValue.value === "I")
         value = (
             <>
-                <FlagIcon className='absolute top-1 left-1 w-5 h-5 m-auto text-rose-500' />
+            <span className='relative'>
+                <FlagIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-rose-500 scale-115' />
+                <XMarkIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-black scale-[2]' />
+            </span>
             </>
         );
     else

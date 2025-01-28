@@ -9,6 +9,10 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      boxShadow: {
+        'custom-gray': '2px 2px 1px darkgray',
+        'custom-black': '2px 2px 1px black',
+      },
       animation: {
         slideInRight: 'slideInRight 0.15s ease-out',
         slideInLeft: 'slideInLeft 0.15s ease-out',

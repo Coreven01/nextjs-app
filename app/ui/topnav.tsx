@@ -7,9 +7,13 @@ const chakraPetch = Chakra_Petch({
   weight: "400"
 });
 
-export default function TopNav() {
+type Props = {
+  className: string
+}
+
+export default function TopNav({className} : Props) {
     return (
-      <div className="flex flex-row p-2 border-b bg-zinc-300 dark:bg-neutral-900 bg-opacity-100 sticky top-0">
+      <div className={`p-2 border-b bg-zinc-300 dark:bg-neutral-900 bg-opacity-100 ${className}`}>
         <div className="md:w-28">
           <Link href={"/"}>
             <Image src="/guitar_corner1.png"
@@ -23,7 +27,7 @@ export default function TopNav() {
           Nolan Appel - .NET Developer
         </div>
         <div className="hidden flex-none md:block">
-          <ThemeToggle />
+          <ThemeToggle useMobile={false}/>
         </div>
       </div>);
 }

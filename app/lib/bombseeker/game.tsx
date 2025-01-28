@@ -1,8 +1,7 @@
 import GameTile, { TileValue } from "@/app/ui/bombseeker/game-tile";
 
-function deepCopyTileValueArray(array: TileValue[][]): TileValue[][]
-{
-    return [...array.map(e => [...e.map(t => { const r: TileValue = { value: t.value}; return r; })])];
+function deepCopyTileValueArray(array: TileValue[][]): TileValue[][] {
+    return [...array.map(e => [...e.map(t => { const r: TileValue = { value: t.value }; return r; })])];
 }
 
 /**
@@ -33,7 +32,7 @@ export function getNewExposedMap(
                 newExposedMap[emptyTile[0]][emptyTile[1]].value = 'E';
     }
 
-    newExposedMap[row][column] = assignValue;
+    newExposedMap[row][column].value = assignValue.value;
 
     return newExposedMap;
 }
@@ -102,7 +101,7 @@ export function getDirectAdjacentTiles(row: number, column: number, totalRows: n
     const adjacentTiles: number[][] = [];
     const currentValue = parseInt(bombMap[row][column]?.value?.toString() ?? '-1', 10);
 
-    if (currentValue >= 1 && currentValue <= 9) {
+    if (currentValue >= 1 && currentValue <= 8) {
 
         const adj: number[][] = [[row - 1, column], [row + 1, column], [row, column - 1], [row, column + 1],
         [row - 1, column - 1], [row + 1, column - 1], [row + 1, column + 1], [row - 1, column + 1]];
@@ -156,8 +155,6 @@ export function validateAndClickAjacentTiles(bombTileValue: number, row: number,
     }
 
     if (!questionMarkFound && flaggedCount == bombTileValue) {
-        
-
         for (const adjTile of directAdjacentTiles) {
             const rowVal = adjTile[0];
             const colVal = adjTile[1];
@@ -165,7 +162,7 @@ export function validateAndClickAjacentTiles(bombTileValue: number, row: number,
             if (newExposedMap[rowVal][colVal].value === undefined)
                 newExposedMap = getNewExposedMap(rowVal, colVal, totalRows, totalColumns, bombMap, newExposedMap, { value: 'E' });
         }
-    } 
+    }
 
     return newExposedMap;
 }
@@ -293,9 +290,9 @@ export function createGameTiles(totalRows: number,
             }
 
             if (incorrectFlag)
-                displayValue.value = "I" ;
+                displayValue.value = "I";
             else if (clickedBomb)
-                displayValue.value = "T" ;
+                displayValue.value = "T";
             else if (isGameOverBomb)
                 displayValue.value = "T";
             else if (isExposed)
@@ -351,30 +348,41 @@ export function createGameTiles(totalRows: number,
  * @returns 
  */
 export function createBombMap(rowNum: number, colNum: number, bombCount: number): TileValue[][] {
-    const gridCount = rowNum * colNum;
-    if (gridCount <= bombCount)
+    const maxBombCount = rowNum * colNum;
+    if (maxBombCount <= bombCount)
         throw new Error();
 
-    const bombMap = create2DArray(rowNum, colNum);
+    const percentBombCover = Math.round(bombCount * 100 / maxBombCount);
+    const randomSetValue: TileValue = { value: 'X' };
+    const baseValue: TileValue = { value: undefined };
+    let randomCounter = bombCount;
+
+    let bombMap = create2DArray(rowNum, colNum);
     const randomNumbers = new Set();
 
-    while (randomNumbers.size < bombCount) {
-        const num = Math.floor((Math.random() * gridCount)) + 1;
-        randomNumbers.add(num);
+    if (percentBombCover > 80){
+        randomCounter = maxBombCount - bombCount;
+        randomSetValue.value = undefined;
+        baseValue.value = 'X';
     }
 
-    for (let i = 0; i < rowNum; i++) {
-        const rowVal = i * colNum;
-        for (let j = 0; j < colNum; j++) {
-            const temp = rowVal + j;
+    while (randomNumbers.size < randomCounter) {
+        const randomNum = Math.floor((Math.random() * maxBombCount));
+        randomNumbers.add(randomNum);
+    }
+
+    for (let row = 0; row < rowNum; row++) {
+        const rowVal = row * colNum;
+        for (let col = 0; col < colNum; col++) {
+            const temp = rowVal + col;
             if (randomNumbers.has(temp))
-                bombMap[i][j].value = 'X';
+                bombMap[row][col].value = randomSetValue.value;
             else
-                bombMap[i][j].value = undefined;
+                bombMap[row][col].value = baseValue.value;
         }
     }
 
-    setNumberValues(rowNum, colNum, bombMap);
+    bombMap = setNumberValues(rowNum, colNum, bombMap);
 
     return bombMap;
 }
@@ -389,22 +397,24 @@ export function createBombMap(rowNum: number, colNum: number, bombCount: number)
  */
 export function setNumberValues(rowNum: number, colNum: number, bombMap: TileValue[][]): TileValue[][] {
 
-    for (let r = 0; r < rowNum; r++) {
-        const rows = [r - 1, r, r + 1];
-        for (let c = 0; c < colNum; c++) {
-            if (bombMap[r][c].value === 'X')
+    const newBombMap = deepCopyTileValueArray(bombMap);
+
+    for (let row = 0; row < rowNum; row++) {
+        const rows = [row - 1, row, row + 1];
+        for (let col = 0; col < colNum; col++) {
+            if (newBombMap[row][col].value === 'X')
                 continue;
 
-            const cols = [c - 1, c, c + 1];
+            const cols = [col - 1, col, col + 1];
             let counter = 0;
 
             for (let rowRange = 0; rowRange < 3; rowRange++) {
                 for (let colRange = 0; colRange < 3; colRange++) {
-                    const row = rows[rowRange];
-                    const col = cols[colRange];
+                    const rowVal = rows[rowRange];
+                    const colVal = cols[colRange];
 
-                    if (row >= 0 && row < rowNum && col >= 0 && col < colNum) {
-                        if (bombMap[row][col].value === 'X') {
+                    if (rowVal >= 0 && rowVal < rowNum && colVal >= 0 && colVal < colNum) {
+                        if (newBombMap[rowVal][colVal].value === 'X') {
                             counter++;
                         }
                     }
@@ -412,13 +422,13 @@ export function setNumberValues(rowNum: number, colNum: number, bombMap: TileVal
             }
 
             if (counter)
-                bombMap[r][c].value = counter;
+                newBombMap[row][col].value = counter;
             else
-                bombMap[r][c].value = undefined;
+            newBombMap[row][col].value = undefined;
         }
     }
 
-    return bombMap;
+    return newBombMap;
 }
 
 /**
@@ -432,10 +442,10 @@ export function setNumberValues(rowNum: number, colNum: number, bombMap: TileVal
 export function create2DArray(rowNum: number, colNum: number): TileValue[][] {
     const array2D: TileValue[][] = [];
 
-    for (let r = 0; r < rowNum; r++) {
-        array2D[r] = [];
-        for (let c = 0; c < colNum; c++) {
-            array2D[r][c] = { value: undefined };
+    for (let row = 0; row < rowNum; row++) {
+        array2D[row] = [];
+        for (let col = 0; col < colNum; col++) {
+            array2D[row][col] = { value: undefined };
         }
     }
 
