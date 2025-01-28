@@ -106,10 +106,35 @@ export default function GameSettings({ defaultRow,
 
     const handleLevelChangeUp = () => {
 
+        if (selectedLevel.current === null)
+            return;
+
+        const selectedValue: string = selectedLevel.current.value;
+
+        if (selectedValue === 'b')
+            selectedLevel.current.value = 'i';
+        else if (selectedValue === 'i')
+            selectedLevel.current.value = 'e';
+        else if (selectedValue === 'e')
+            selectedLevel.current.value = 'c';
+
+        handleLevelChange();
     }
 
     const handleLevelChangeDown = () => {
+        if (selectedLevel.current === null)
+            return;
 
+        const selectedValue: string = selectedLevel.current.value;
+
+        if (selectedValue === 'c')
+            selectedLevel.current.value = 'e';
+        else if (selectedValue === 'e')
+            selectedLevel.current.value = 'i';
+        else if (selectedValue === 'i')
+            selectedLevel.current.value = 'b';
+
+        handleLevelChange();
     }
 
     const handleLevelChange = () => {
@@ -148,10 +173,10 @@ export default function GameSettings({ defaultRow,
                         onChange={handleLevelChange}
                         ref={selectedLevel}
                         defaultValue={'b'}>
-                        <option value={'b'}>Beginner</option>
-                        <option value={'i'}>Intermediate</option>
-                        <option value={'e'}>Expert</option>
                         <option value={'c'}>Custom</option>
+                        <option value={'e'}>Expert</option>
+                        <option value={'i'}>Intermediate</option>
+                        <option value={'b'}>Beginner</option>
                     </select>
                     <div className='flex flex-col'>
                         <button onClick={handleLevelChangeUp}><ChevronUpIcon className="w-4 h-4 border dark:border-white" /></button>

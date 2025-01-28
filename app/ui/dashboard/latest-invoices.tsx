@@ -4,16 +4,20 @@ import Image from 'next/image';
 import { lusitana } from '@/app/ui/fonts';
 // import { LatestInvoice } from '@/app/lib/definitions';
 import { fetchLatestInvoices } from '@/app/lib/data';
-export default async function LatestInvoices() {
-  const latestInvoices = await fetchLatestInvoices();
+
+type DelayProps = {
+  msDelay: number
+};
+
+export default async function LatestInvoices({msDelay}: DelayProps) {
+  const latestInvoices = await fetchLatestInvoices(msDelay);
   
   return (
     <div className="flex w-full flex-col md:col-span-4">
       <h2 className={`${lusitana.className} mb-4 text-xl md:text-2xl`}>
         Latest Invoices
       </h2>
-      <div className="flex grow flex-col justify-between rounded-xl bg-gray-50 p-4">
-        {/* NOTE: Uncomment this code in Chapter 7 */}
+      <div className="flex grow flex-col justify-between rounded-xl bg-gray-50 p-4 dark:bg-zinc-300">
 
         <div className="bg-white px-6">
           {latestInvoices.map((invoice, i) => {
@@ -45,7 +49,7 @@ export default async function LatestInvoices() {
                   </div>
                 </div>
                 <p
-                  className={`${lusitana.className} truncate text-sm font-medium md:text-base`}
+                  className={`${lusitana.className} truncate text-sm font-medium md:text-base text-black`}
                 >
                   {invoice.amount}
                 </p>

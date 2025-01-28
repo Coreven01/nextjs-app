@@ -13,7 +13,7 @@ export default function HomeDescription({orientation, src, element}: Orientation
     <div className={`flex flex-col md:flex-row md:m-4 mx-2 my-4 ${sectionStyle}`}>
       {orientation === "left" ? 
         <>
-          <div className="flex-grow md:min-w-80">
+          <div className="flex-grow md:min-w-80 m-auto">
             {src}
           </div>
           {element}

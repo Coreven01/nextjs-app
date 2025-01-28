@@ -1,7 +1,8 @@
 import { Orbitron } from "next/font/google";
 
 const orbitron = Orbitron({
-    weight: "400"
+    weight: "400",
+    subsets: ["latin"]
 });
 
 type Props = {

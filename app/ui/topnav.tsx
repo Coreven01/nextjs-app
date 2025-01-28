@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from 'next/link';
 
 const chakraPetch = Chakra_Petch({
-  weight: "400"
+  weight: "400",
+  subsets: ["latin"]
 });
 
 type Props = {

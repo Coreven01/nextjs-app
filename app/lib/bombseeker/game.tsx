@@ -108,7 +108,7 @@ export function getDirectAdjacentTiles(row: number, column: number, totalRows: n
 
         // iterate through the 8 adjacent tiles directly top, bottom, left, right, and diagnals.
         for (let i = 0; i < 8; i++) {
-            let current: number[] = adj[i];
+            const current: number[] = adj[i];
             if (current[0] >= 0 && current[0] < totalRows && current[1] >= 0 && current[1] < totalColumns) {
                 adjacentTiles.push(current);
             }
@@ -169,8 +169,6 @@ export function validateAndClickAjacentTiles(bombTileValue: number, row: number,
 
 export function isGameWon(totalRows: number, totalColumns: number, bombMap: TileValue[][], exposedMap: TileValue[][]): boolean {
 
-    let retval = true;
-
     for (let row = 0; row < totalRows; row++) {
         for (let col = 0; col < totalColumns; col++) {
             const exposedTile = exposedMap[row][col];
@@ -187,7 +185,7 @@ export function isGameWon(totalRows: number, totalColumns: number, bombMap: Tile
         }
     }
 
-    return retval;
+    return true;
 }
 
 export type GameLostProps = {

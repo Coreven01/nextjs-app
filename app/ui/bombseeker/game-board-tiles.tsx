@@ -50,7 +50,7 @@ export default function GameBoardTiles({
             onMouseUp, 
             onMouseDown, 
             onMouseLeave),
-        [totalRows, totalColumns, bombMap, exposedMap, gameLost, adjacentTiles, onClick, onRightClick, onMouseUp, onMouseDown, onMouseLeave]
+        [totalRows, totalColumns, bombMap, exposedMap, gameLost, adjacentTiles, disabled, onClick, onRightClick, onMouseUp, onMouseDown, onMouseLeave]
       );
 
     return (

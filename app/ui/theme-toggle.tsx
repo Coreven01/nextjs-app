@@ -7,15 +7,22 @@ type Props = {
   useMobile: boolean
 }
 
-const ThemeToggle = ({useMobile} : Props) => {
+const ThemeToggle = ({ useMobile }: Props) => {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     // Check if dark mode is already enabled in localStorage
     const savedMode = localStorage.getItem('darkMode');
-    if (savedMode === 'enabled') {
+    if (savedMode && savedMode === 'enabled') {
       setIsDark(true);
       document.documentElement.classList.add('dark');
+    } else {
+      // If not found in local storage, check browser settings to see if user perfers dark mode.
+      const preferDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (preferDarkMode) {
+        setIsDark(true);
+        document.documentElement.classList.add('dark');
+      }
     }
   }, []);
 
@@ -34,12 +41,12 @@ const ThemeToggle = ({useMobile} : Props) => {
 
   return (
     <>
-    <button
-      onClick={onToggleDarkMode}
-      className="p-1 h-9 w-9 border border-black dark:border-white bg-zinc-200 dark:bg-neutral-900 dark:bg-opacity-10 text-black dark:text-white rounded-md"
-    >
-      {isDark ? <SunIcon /> : <MoonIcon />}
-    </button>
+      <button
+        onClick={onToggleDarkMode}
+        className="p-1 h-9 w-9 border border-black dark:border-white bg-zinc-200 dark:bg-neutral-900 dark:bg-opacity-10 text-black dark:text-white rounded-md"
+      >
+        {isDark ? <SunIcon /> : <MoonIcon />}
+      </button>
     </>
   );
 };

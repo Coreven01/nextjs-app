@@ -1,8 +1,4 @@
 
-type Props = {
-    
-}
-
 function GameValue() {
-
+    return <></>;
 }

@@ -9,6 +9,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      gridTemplateColumns: {
+        '13': 'repeat(13, minmax(0, 1fr))',
+      },
       boxShadow: {
         'custom-gray': '2px 2px 1px darkgray',
         'custom-black': '2px 2px 1px black',
@@ -34,6 +37,11 @@ export default {
           '75%': { transform: 'translateY(-3px)' },
           '100%': { transform: 'translateY(0px)' },
         },
+        shimmer: {
+          '100%': {
+            transform: 'translateX(100%)',
+          },
+        },
       },
       colors: {
         background: "var(--background)",
@@ -41,5 +49,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/forms')],
 } satisfies Config;

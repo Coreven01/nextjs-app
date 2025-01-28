@@ -2,10 +2,21 @@ import type { Metadata } from "next";
 import '@/app/ui/global.css'
 import SideNav from "./ui/sidenav";
 import TopNav from "./ui/topnav";
+import AppLink from "./ui/link";
 
 export const metadata: Metadata = {
-  title: "Nolan Appel | .NET Developer",
-  description: "Portfolio",
+  title: 'Nolan Appel | .NET Developer',
+  description: 'Application and web development portfolio.',
+  keywords: 'web development, next.js, seo, react, .net, application development, software development, developer, michigan, west michigan',
+  openGraph: {
+    title: 'Nolan Appel | .NET Developer',
+    description: 'Application and web development portfolio.',
+    url: 'https://app.nolanappel.dev'
+  },
+  twitter: {
+    title: 'Nolan Appel | .NET Developerv',
+    description: 'Application and web development portfolio.'
+  },
 };
 
 export default function RootLayout({
@@ -32,9 +43,9 @@ export default function RootLayout({
               {children}
             </main>
             <footer className="flex justify-center border-t border-b text-black dark:text-white bg-green-100 dark:bg-neutral-900">
-              <div className="m-1">LinkedIn</div>
+              <div className="m-1"><AppLink link="https://www.linkedin.com/in/nolanappel/" text="LinkedIn"/></div>
               <div>|</div>
-              <div className="m-1">Github</div>
+              <div className="m-1"><AppLink link="https://github.com/Coreven01" text="Github"/></div>
             </footer>
           </div>
         </div>

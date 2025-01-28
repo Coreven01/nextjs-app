@@ -97,7 +97,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
 
         startTimer();
 
-        let newVal: TileValue = { value: undefined };
+        const newVal: TileValue = { value: undefined };
         if (!exposedMap[row][column].value)
             newVal.value = 'F';
         else if (exposedMap[row][column].value === 'F')
