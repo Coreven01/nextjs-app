@@ -43,7 +43,7 @@ type Props = {
  */
 export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap, gameCreated, onPlay, onNewGame }: Props) {
 
-    
+
 
     const [showGameOverScreen, setShowGameOverScreen] = useState<boolean>(true);
 
@@ -214,17 +214,15 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         }
     }
 
-    const handleGameOverScreenClick = () =>
-    {
+    const handleGameOverScreenClick = () => {
         setShowGameOverScreen(false);
     }
 
-    const cellClass = `${sectionStyle} mx-4 my-2 p-4` ;
+    const cellClass = `${sectionStyle} mx-4 my-2 p-4`;
     let gameBoard = <></>;
 
     // create game board if user selects to start a new game.
-    if (gameCreated)
-    {
+    if (gameCreated) {
         const gameLost = isGameLost(rows, columns, bombMap, exposedMap);
         const gameWon = !gameLost.gameLost && isGameWon(rows, columns, bombMap, exposedMap);
         const showGameOver = (gameLost.gameLost || gameWon) && showGameOverScreen;
@@ -235,7 +233,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
             pauseTimer();
 
         gameBoard = <>
-        <div className={`${cellClass} flex flex-col items-center justify-center md:flex-row`}>
+            <div className={`${cellClass} flex flex-col items-center justify-center md:flex-row`}>
                 <GameInfo seconds={time} bombsLeft={bombsRemaining} />
             </div>
             <div className={`${cellClass} overflow-x-auto relative shadow-md shadow-white`}>
@@ -267,7 +265,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
                     defaultColumns={columns}
                     defaultBombCount={bombCount}
                     gameCreated={gameCreated}
-                    onNewGame={handleNewGameClick}/>
+                    onNewGame={handleNewGameClick} />
             </div>
             {gameBoard}
         </>

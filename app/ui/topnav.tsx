@@ -14,7 +14,7 @@ type Props = {
 
 export default function TopNav({className} : Props) {
     return (
-      <div className={`p-2 border-b bg-zinc-300 dark:bg-neutral-900 bg-opacity-100 ${className}`}>
+      <div className={`p-2 border-b bg-zinc-300 dark:bg-neutral-900 bg-opacity-100 z-10 ${className}`}>
         <div className="md:w-28">
           <Link href={"/"}>
             <Image src="/guitar_corner1.png"

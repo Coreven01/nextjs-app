@@ -1,5 +1,4 @@
-import clsx from 'clsx';
-import { JSX, MouseEventHandler } from "react";
+import { MouseEventHandler } from "react";
 import { FlagIcon, FireIcon } from '@heroicons/react/16/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -89,9 +88,8 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
         }
     }
 
-    // const tileSvg = " bg-[url('/tile.svg')] bg-no-repeat bg-center bg-[length:1.75rem]";
     const classValue = getTileClass(displayValue, highlight, exposed);
-    let value: JSX.Element | string | undefined = undefined;
+    let value: React.ReactNode;
 
     if (displayValue.value === "F")
         value = <FlagIcon className='w-5 h-5 m-auto text-rose-500 scale-115' />;

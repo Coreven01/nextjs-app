@@ -2,6 +2,22 @@
 import HomeDescription from "./ui/home/home-description";
 import Image from "next/image";
 import AppLink from "./ui/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: 'Nolan Appel | .NET Developer',
+  description: 'Application and web development portfolio.',
+  keywords: 'web development, next.js, seo, react, .net, application development, software development, developer, michigan, west michigan',
+  openGraph: {
+    title: 'Nolan Appel | .NET Developer',
+    description: 'Application and web development portfolio.',
+    url: 'https://app.nolanappel.dev'
+  },
+  twitter: {
+    title: 'Nolan Appel | .NET Developerv',
+    description: 'Application and web development portfolio.'
+  },
+};
 
 export default function Home() {
 

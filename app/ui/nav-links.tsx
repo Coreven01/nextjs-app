@@ -24,6 +24,11 @@ const links = [
     href: '/bombseeker',
     icon: ExclamationCircleIcon,
   },
+  {
+    name: 'Euchre',
+    href: '/euchre',
+    icon: ExclamationCircleIcon,
+  },
 ];
 
 type Props = {

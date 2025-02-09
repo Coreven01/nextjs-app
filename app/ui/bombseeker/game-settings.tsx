@@ -29,7 +29,7 @@ export default function GameSettings({ defaultRow,
     const [disableSelection, setDisableSelection] = useState(true);
 
     const inputClass = "max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
-    const selectClass = "max-w-32 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
+    const selectClass = "min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
     const labelClass = "block font-medium my-2 dark:text-white";
     const maxRows = 40;
     const minRows = 9;
@@ -162,12 +162,12 @@ export default function GameSettings({ defaultRow,
 
     return (
         <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-            <div className="min-w-32 items-center md:mr-5">
+            <div className="min-w-48 items-center md:mr-5">
                 <label
                     htmlFor="selectLevel"
                     className={labelClass}
                 >Level</label>
-                <div className='flex flex-row max-h-[32px]'>
+                <div className='flex flex-row flex-grow max-h-[32px]'>
                     <select className={selectClass}
                         id='selectLevel'
                         onChange={handleLevelChange}

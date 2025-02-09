@@ -1,5 +1,6 @@
 import GameTile, { TileValue } from "@/app/ui/bombseeker/game-tile";
 
+/** Create a deep copy of the array of tile value arrays */
 function deepCopyTileValueArray(array: TileValue[][]): TileValue[][] {
     return [...array.map(e => [...e.map(t => { const r: TileValue = { value: t.value }; return r; })])];
 }
