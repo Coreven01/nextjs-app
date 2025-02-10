@@ -49,7 +49,10 @@ export function usePlayCard(): TimerEventType {
                 }
 
                 src.style.transform = transformation;
-                console.log(destRect.left, srcRect.left, transformation);
+                console.log('transformation:', destRect.left, srcRect.left, transformation);
+            } else {
+                console.error('transformation error:',source, destination, src, srcRect, destRect);
+                throw Error('Unable to translate card.');      
             }
         }
     };

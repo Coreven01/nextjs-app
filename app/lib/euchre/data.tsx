@@ -37,6 +37,7 @@ export class EuchrePlayer {
     playedCards: Card[] = [];
     playerNumber: 1 | 2 | 3 | 4;
     team: 1 | 2 = 1;
+    human: boolean = false;
 
     constructor(name: string, hand: Card[], playerNumber: 1 | 2 | 3 | 4) {
         this.name = name;

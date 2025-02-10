@@ -34,7 +34,7 @@ export default function EuchreGame() {
         const newGame = playGameCard(number, index, game);
         await new Promise((resolve) => setTimeout(resolve, 500));
         setPaused(false);
-        console.log('card played');
+        console.log('card played - src:', src, ' dest:', dest, ' player:', player);
     }
 
     // check game won
@@ -51,7 +51,7 @@ export default function EuchreGame() {
                 </div>
                 <div className="col-span-1">
                     02
-                    <PlayerCenter player={game.player2} onCardClick={() => null} />
+                    <PlayerCenter player={game.player2} onCardClick={playCard} />
                     <div>
                         <button onClick={createDeck}>Create Deck</button>
                     </div>
@@ -65,7 +65,7 @@ export default function EuchreGame() {
                     </div>
                 </div>
                 <div className="col-span-1 ">
-                    <PlayerCenter player={game.player1} onCardClick={() => null} />
+                    <PlayerCenter player={game.player1} onCardClick={playCard} />
                 </div>
 
                 <div className="row-span-4 min-w-32">

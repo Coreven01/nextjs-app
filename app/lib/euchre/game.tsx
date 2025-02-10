@@ -7,6 +7,7 @@ export function createEuchreGame(): EuchreGameInstance {
     const player3 = new EuchrePlayer("George", [], 3);
     const player4 = new EuchrePlayer("Elaine", [], 4);
 
+    player1.human = true;
     player3.team = 2;
     player4.team = 2;
 
