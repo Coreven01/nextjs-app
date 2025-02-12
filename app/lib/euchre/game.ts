@@ -11,16 +11,24 @@ export function createEuchreGame(): EuchreGameInstance {
     player3.team = 2;
     player4.team = 2;
 
-    const newGame = new EuchreGameInstance(player1, player2, player3, player4);
-    newGame.dealer = player1;
+    let newGame = new EuchreGameInstance(player1, player2, player3, player4);
+    newGame.currentTricks.push(new EuchreTrick());
+    newGame = dealCards(newGame);
+
+    return newGame;
+}
+
+export function dealCards(game: EuchreGameInstance): EuchreGameInstance {
+    const newGame = game.shallowCopy();
+    const players: EuchrePlayer[] = getPlayerRotation(newGame);
+
     newGame.deck = createShuffledDeck(3);
 
-    const players = [player1, player2, player3, player4];
     const randomNum = Math.floor((Math.random() * 3)) + 1;
 
     for (let i = 0; i < 8; i++) {
         let numberOfCards = 0;
-        const currentPlayer = players[(i + 1) % 4];
+        const currentPlayer = players[i % 4];
         const round2 = i > 3;
 
         if (i % 2)
@@ -45,10 +53,24 @@ export function createEuchreGame(): EuchreGameInstance {
         newGame.kitty.push(newGame.deck.pop() ?? new Card({ suit: "♠", color: "B" }, { value: "?" }));
     }
 
-    newGame.dealer = player1;
-    newGame.currentTricks.push(new EuchreTrick());
-
     return newGame;
+}
+
+export function getPlayerRotation(game: EuchreGameInstance): EuchrePlayer[] {
+
+    const playerRotation = [1, 3, 2, 4];
+    const availablePlayers = [game.player1, game.player2, game.player3, game.player4]
+    const players: EuchrePlayer[] = [];
+    const indexOffset = (playerRotation.indexOf(game.dealer?.playerNumber ?? 1) + 1) % 4;
+
+    for (let i = 0; i < 4; i++) {
+        const playerNumber = playerRotation[(i + indexOffset) % 4];
+        const player = availablePlayers.filter(p => p.playerNumber === playerNumber);
+        if (player?.length)
+            players.push(player[0]);
+    }
+
+    return players;
 }
 
 export function createShuffledDeck(shuffleCount: number) {
@@ -163,7 +185,7 @@ export function playGameCard(playerNumber: number, cardIndex: number, game: Euch
     trick.cardsPlayed.push(card);
     trick.playerWon = determineTrickWon(newGame.trump, trick);
     newGame.currentTricks.push(trick);
-    
+
     return newGame;
 }
 

@@ -18,6 +18,8 @@ type DelayProps = {
   msDelay: number
 };
 
+export const revalidate = 1800;
+
 export default async function CardWrapper({msDelay} : DelayProps) {
   const {
     numberOfInvoices,

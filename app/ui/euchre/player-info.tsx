@@ -7,7 +7,7 @@ type Props = {
 
 export default function PlayerInfo({ player, game }: Props) {
 
-    const dealerInfo: React.ReactNode = player === game.dealer ? <div className="text-yellow">Dealer</div> : <div></div>
+    const dealerInfo: React.ReactNode = player === game.dealer ? <div className="text-yellow-500">Dealer</div> : <div></div>
     const tricksTaken = game.gameTricks.filter((t) => t.filter((t2) => t2.playerWon === player)).length;
 
     return (
@@ -20,10 +20,6 @@ export default function PlayerInfo({ player, game }: Props) {
                     Tricks {tricksTaken}/10
                 </div>
                 {dealerInfo}
-            </div>
-            <div className="bg-white">{player.hand.map(card => {
-                return <span className={card.suit.color === "B" ? "text-black" : "text-red-500"} key={card.index}>{card.value.value} - {card.suit.suit} | </span>
-            })}
             </div>
         </>
     );

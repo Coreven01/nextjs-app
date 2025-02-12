@@ -61,13 +61,17 @@ export class PlayerHand {
 
 }
 
+export type EuchreSettings = {
+
+}
+
 export class EuchreGameInstance {
 
     player1: EuchrePlayer;
     player2: EuchrePlayer;
     player3: EuchrePlayer;
     player4: EuchrePlayer;
-
+    
     deck: Card[] = [];
     kitty: Card[] = [];
     dealer: EuchrePlayer | undefined;
@@ -76,6 +80,9 @@ export class EuchreGameInstance {
     currentPlayer: EuchrePlayer | undefined;
     loner: boolean = false;
     trump: Suit | undefined;
+    bidNumber: 1 | 2 = 1
+    orderedCard: Card | undefined;
+    discard: Card | undefined;
 
     constructor(player1: EuchrePlayer, player2: EuchrePlayer, player3: EuchrePlayer, player4: EuchrePlayer) {
         this.player1 = player1;
@@ -93,6 +100,9 @@ export class EuchreGameInstance {
         game.currentPlayer = this.currentPlayer;
         game.loner = this.loner;
         game.trump = this.trump;
+        game.bidNumber = this.bidNumber;
+        game.orderedCard = this.orderedCard;
+        game.discard = this.discard;
 
         return game;
     }
@@ -112,5 +122,3 @@ export class EuchreCard {
         this.card = card;
     }
 }
-
-//export function CreateEuchrePlayers(): 

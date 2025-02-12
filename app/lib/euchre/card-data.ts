@@ -137,7 +137,7 @@ const svgCardColors = new Map<string, string>([
  * @param location 
  * @returns 
  */
-export function getCardSvg(card: Card, location: "center" | "side"): string {
+function getCardSvg(card: Card, location: "center" | "side"): string {
 
    let retval = baseCard;
    const textValues = [];
@@ -167,6 +167,14 @@ export function getCardSvg(card: Card, location: "center" | "side"): string {
    retval += '</svg>';
 
    return retval;
+}
+
+export function getEncodedCardSvg(card: Card, location: "center" | "side") {
+
+   const cardSvg = getCardSvg(card, location);
+   const dynamicSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cardSvg)}`;
+
+   return dynamicSvg;
 }
 
 /** Get text element for svg for a card value.
