@@ -142,7 +142,7 @@ function getCardSvg(card: Card, location: "center" | "side"): string {
    let retval = baseCard;
    const textValues = [];
    const imageKeys = cardSvgValues.get(card.value.value) ?? [];
-   const imageColor = svgCardColors.get(card.suit.color) ?? "#000";
+   const imageColor = svgCardColors.get(card.color) ?? "#000";
 
    for (const text of imageKeys) {
       let imageLocation: TextData | undefined;

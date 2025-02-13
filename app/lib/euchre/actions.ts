@@ -71,7 +71,7 @@ export function usePlayCard(): Props {
 }
 
 type DealProps = {
-    setDealElements: (source: string, destination: string, player: number, card: Card) => Promise<void>,
+    setDealElements: (msDelay:number, source: string, destination: string, player: number, card: Card) => Promise<void>,
 }
 
 export function useDealCard(): DealProps {
@@ -80,20 +80,19 @@ export function useDealCard(): DealProps {
     const [destination, setDestination] = useState<string>("");
     const [player, setPlayer] = useState<number>(0);
     const [currentCard, setCurrentCart] = useState<Card | undefined>();
-    const delay = 500;
 
     useEffect(() => {
         dealCard();
     }, [source, destination]);
 
-    const setDealElements = async (source: string, destination: string, player: number, card: Card) => {
-
-        await new Promise((resolve) => setTimeout(resolve, delay));
+    const setDealElements = async (msDelay:number, source: string, destination: string, player: number, card: Card) => {
 
         setSource(source);
         setDestination(destination);
         setPlayer(player);
         setCurrentCart(card);
+
+        await new Promise((resolve) => setTimeout(resolve, msDelay));
     };
 
     const dealCard = () => {
@@ -118,7 +117,7 @@ export function useDealCard(): DealProps {
 
                 switch (player) {
                     case 1:
-                        //transformation = `translate(${destRect.left - srcRect.left + widthOffset / 2}px, ${destRect.top - srcRect.top - 10}px)`;
+                        transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.bottom - srcRect.bottom}px)`;
                         break;
                     case 2:
                         transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.top - srcRect.top}px)`;
@@ -127,9 +126,9 @@ export function useDealCard(): DealProps {
                         transformation = `translate(${destRect.right - srcRect.left + (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) rotate(90deg)`;
                         break;
                     case 4:
-                    transformation = `translate(${destRect.left - srcRect.right - (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) rotate(-90deg) `;
+                    transformation = `translate(${destRect.left - srcRect.right - (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) rotate(90deg) `;
                 }
-                //src.style.transform.
+   
                 src.style.transform = transformation;
 
                 if (currentCard)

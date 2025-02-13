@@ -3,14 +3,15 @@ import Image from "next/image";
 
 type Props = {
     deck: Card[],
+    location: "center" | "side"
 }
 
-export default function GameDeck({ deck }: Props) {
+export default function GameDeck({ deck, location }: Props) {
 
     const images: React.ReactNode[] = [];
-    const width = 75;
-    const height = 112.5;
-    const cardBackSvg = "/card-back.svg";
+    const width = location === "center" ? 75 : 112.5;
+    const height = location === "center" ? 112.5 : 75;
+    const cardBackSvg = location === "center" ? "/card-back.svg": "/card-back-side.svg";
 
     const dummyCard = <Image
         key={`deal-dummy`}
@@ -27,8 +28,6 @@ export default function GameDeck({ deck }: Props) {
     let index = 0;
 
     for (const card of deck) {
-
-
 
         images.push(
             <Image

@@ -13,7 +13,8 @@ export function createEuchreGame(): EuchreGameInstance {
 
     let newGame = new EuchreGameInstance(player1, player2, player3, player4);
     newGame.currentTricks.push(new EuchreTrick());
-    newGame = dealCards(newGame);
+    newGame.deck = [];
+    
 
     return newGame;
 }
@@ -45,12 +46,12 @@ export function dealCards(game: EuchreGameInstance): EuchreGameInstance {
             }
 
         for (let j = 0; j < numberOfCards; j++) {
-            currentPlayer.hand.push(newGame.deck.pop() ?? new Card({ suit: "♠", color: "B" }, { value: "?" }));
+            currentPlayer.hand.push(newGame.deck.pop() ?? new Card({ suit: "♠" }, { value: "?" }));
         }
     }
 
     while (newGame.deck.length) {
-        newGame.kitty.push(newGame.deck.pop() ?? new Card({ suit: "♠", color: "B" }, { value: "?" }));
+        newGame.kitty.push(newGame.deck.pop() ?? new Card({ suit: "♠" }, { value: "?" }));
     }
 
     return newGame;
@@ -89,7 +90,7 @@ export function createEuchreDeck(): Card[] {
 
     const availableCards: CardValue[] = [{ value: "9" }, { value: "10" }, { value: "J" }, { value: "Q" }, { value: "K" }, { value: "A" },]
     const deck: Card[] = [];
-    const suits: Suit[] = [{ suit: "♠", color: "B" }, { suit: "♥", color: "R" }, { suit: "♦", color: "R" }, { suit: "♣", color: "B" }];
+    const suits: Suit[] = [{ suit: "♠" }, { suit: "♥" }, { suit: "♦" }, { suit: "♣" }];
 
     for (let card = 0; card < availableCards.length; card++) {
         for (let suit = 0; suit < suits.length; suit++) {
@@ -98,6 +99,14 @@ export function createEuchreDeck(): Card[] {
     }
 
     return deck;
+}
+
+export function createDummyCards() {
+    const retval: Card[] = [];
+    for (let i = 0; i < 5; i++)
+        retval.push(new Card({ suit: "♠" }, { value: "2" }));
+
+    return retval;
 }
 
 export function shuffleDeck(deck: Card[]): Card[] {
@@ -189,7 +198,7 @@ export function playGameCard(playerNumber: number, cardIndex: number, game: Euch
     return newGame;
 }
 
-function determineTrickWon(trump: Suit | undefined, trick: EuchreTrick): EuchrePlayer | undefined {
+function determineTrickWon(trump: Card | undefined, trick: EuchreTrick): EuchrePlayer | undefined {
 
     if (trick.cardsPlayed.length < 4 || !trump)
         return undefined;
@@ -207,13 +216,13 @@ function determineTrickWon(trump: Suit | undefined, trick: EuchreTrick): EuchreP
     return winningCard?.player;
 }
 
-function getCardValue(card: EuchreCard, trump: Suit): number {
+function getCardValue(card: EuchreCard, trump: Card): number {
 
     let retval = 0;
 
-    if (card.card.suit.suit === trump.suit) {
+    if (card.card.suit.suit === trump.suit.suit) {
         retval = trumpValues.get(card.card.value) ?? 0;
-    } else if (card.card.value.value === "J" && card.card.suit.color === trump.color) {
+    } else if (card.card.value.value === "J" && card.card.color === trump.color) {
         retval = (offsuitValues.get(card.card.value) ?? 0) + 200;
     } else {
         retval = (offsuitValues.get(card.card.value) ?? 0);
