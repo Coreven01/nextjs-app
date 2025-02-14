@@ -1,12 +1,10 @@
 import { useMemo } from 'react';
 import { TileValue } from "./game-tile";
 import { createGameTiles, GameLostProps } from '@/app/lib/bombseeker/game';
+import { GameState } from '@/app/lib/bombseeker/gameStateReducer';
 
 type Props = {
-    totalRows: number,
-    totalColumns: number,
-    bombMap: TileValue[][],
-    exposedMap: TileValue[][],
+    state: GameState,
     gameLost: GameLostProps,
     adjacentTiles: number[][],
     disabled: boolean,
@@ -22,41 +20,45 @@ type Props = {
  * @param param0 
  * @returns 
  */
-export default function GameBoardTiles({ 
-    totalRows, 
-    totalColumns, 
-    bombMap, 
-    exposedMap, 
-    gameLost, 
-    adjacentTiles, 
+export default function GameBoardTiles({
+    state,
+    gameLost,
+    adjacentTiles,
     disabled,
-    onClick, 
-    onRightClick, 
-    onMouseUp, 
-    onMouseDown, 
+    onClick,
+    onRightClick,
+    onMouseUp,
+    onMouseDown,
     onMouseLeave }: Props) {
 
     const tiles = useMemo(
         () => createGameTiles(
-            totalRows, 
-            totalColumns, 
-            bombMap, 
-            exposedMap,
-            gameLost, 
-            adjacentTiles, 
+            state,
+            gameLost,
+            adjacentTiles,
             disabled,
-            onClick, 
-            onRightClick, 
-            onMouseUp, 
-            onMouseDown, 
+            onClick,
+            onRightClick,
+            onMouseUp,
+            onMouseDown,
             onMouseLeave),
-        [totalRows, totalColumns, bombMap, exposedMap, gameLost, adjacentTiles, disabled, onClick, onRightClick, onMouseUp, onMouseDown, onMouseLeave]
-      );
+        [
+            state,
+            gameLost,
+            adjacentTiles,
+            disabled,
+            onClick,
+            onRightClick,
+            onMouseUp,
+            onMouseDown,
+            onMouseLeave
+        ]
+    );
 
     return (
         <>
             {tiles}
         </>
-    );   
+    );
 }
 

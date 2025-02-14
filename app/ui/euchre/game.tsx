@@ -5,9 +5,10 @@ import PlayerGameDeck from "./players-game-deck";
 import { EuchreGameInstance, EuchreSettings } from "@/app/lib/euchre/data";
 import { sectionStyle } from "../home/home-description";
 import { useDealCard, usePlayCard, useRemoveTransformations, useRemoveElement } from "@/app/lib/euchre/actions";
-import { createEuchreGame, createShuffledDeck, getPlayerAndCard, getPlayerRotation, playGameCard, shuffleDeck } from "@/app/lib/euchre/game";
+import { createEuchreGame, createShuffledDeck, dealCards, getPlayerAndCard, getPlayerRotation, playGameCard, shuffleDeck } from "@/app/lib/euchre/game";
 import GameSettings from "./game-settings";
 import { GameInfo } from "./game-info";
+import CenterInfo from "./center-info";
 
 
 export default function EuchreGame() {
@@ -78,17 +79,32 @@ export default function EuchreGame() {
         const newGame = game.shallowCopy();
         const gameDeck = newGame.deck;
         const rotation = getPlayerRotation(newGame);
+        const orgDealerNumber = newGame.dealer?.playerNumber ?? 0;
+        let newDealerNumber = 0;
 
+        // deal until the first jack is dealt
         for (const card of gameDeck) {
             const playerNumber = rotation[counter % 4].playerNumber;
             const src = `deal-${counter}`;
             const dest = `game-base-${playerNumber}`;
 
-            await setDealElements(500, src, dest, playerNumber, card);
+            await setDealElements(
+                {
+                    sourceId: src,
+                    destinationId: dest,
+                    sourcePlayerNumber: orgDealerNumber,
+                    destinationPlayerNumber: playerNumber
+                },
+                {
+                    msDelay: 500,
+                    displayCardValue: true,
+                    card: card
+                });
 
             if (card.value.value === "J") {
                 newDealerIndex = (counter % 4);
                 newGame.dealer = rotation[newDealerIndex];
+                newDealerNumber = newGame.dealer.playerNumber;
                 break;
             }
 
@@ -99,32 +115,108 @@ export default function EuchreGame() {
             throw Error("Unable to determine dealer");
 
         // notify user that dealing the first jack will be the new dealer.
+        // animation to return the cards to the deck.
         await new Promise((resolve) => setTimeout(resolve, 2000)).then(() => {
             setElementsForTransformation(gameDeck.map((_, index) => `deal-${index}`));
-            setGameCenterInfo(<div>New Dealer: </div>);
+            //setGameCenterInfo(<div>New Dealer: </div>);
         });
 
         counter = 0;
         const dealDest = `player-base-${newGame.dealer?.playerNumber}`;
 
-        await new Promise((resolve) => setTimeout(resolve, 2000)).then(async () => {
-        for (const card of gameDeck) {
-            const src = `deal-${counter}`;
-            await setDealElements(10, src, dealDest, newGame.dealer?.playerNumber ?? 1, card);
-            counter++;
-        }
-    })
-
-        // notify user that dealing the first jack will be the new dealer.
-        // await new Promise((resolve) => setTimeout(resolve, 2000)).then(() => {
-        //     setGame(newGame);
-        //     setDealingCards(false);
-        //     setShowDeck(false);
-        // });
+        await new Promise((resolve) => setTimeout(resolve, 2000))
+            .then(async () => {
+                // animation to hand cards to the dealer.
+                for (const card of gameDeck) {
+                    const src = `deal-${counter}`;
+                    await setDealElements({
+                        sourceId: src,
+                        destinationId: dealDest,
+                        sourcePlayerNumber: orgDealerNumber,
+                        destinationPlayerNumber: newDealerNumber
+                    },
+                        {
+                            msDelay: 15,
+                            displayCardValue: true,
+                            card: card
+                        });
+                    counter++;
+                }
+                await setDealElements({
+                    sourceId: 'deal-dummy',
+                    destinationId: dealDest,
+                    sourcePlayerNumber: orgDealerNumber,
+                    destinationPlayerNumber: newDealerNumber
+                },
+                    {
+                        msDelay: 500,
+                        displayCardValue: true,
+                        card: undefined
+                    });
+            }).then(async () => {
+                await new Promise((resolve) => setTimeout(resolve, 500));
+            }).then(() => {
+                setGame(newGame);
+                setDealingCards(false);
+                setShowDeck(false);
+            });
     }
 
-    const shuffleAndDealHand = () => {
+    const shuffleAndDealHand = async () => {
 
+        if (!game)
+            throw Error("Game deck not found.");
+
+        // reset variables to prevent user interaction.
+        setDealingCards(true);
+        setShowDeck(true);
+
+        let newGame = game.shallowCopy();
+        newGame = dealCards(newGame);
+        setGame(newGame);
+
+        // pause for animation to finish.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        let counter = 0;
+        const dealerNumber = newGame.dealer?.playerNumber ?? 0;
+
+        // animation deal cards to users.
+        for (let i = 0; i < 8; i++) {
+            const rotation = getPlayerRotation(newGame);
+            const player = rotation[i % 4]
+            const playerNumber = player.playerNumber;
+            const dest = `game-base-${playerNumber}`;
+            const firstRound = i < 4;
+            let cardCount: number = 0;
+            cardCount = firstRound ? newGame.cardDealCount[i % 2] : newGame.cardDealCount[(i + 1) % 2];
+
+            for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
+                const src = `deal-${counter}`;
+                const card = player.hand[firstRound ? cardIndex : (5 - cardCount) + cardIndex];
+                await setDealElements({
+                    sourceId: src,
+                    destinationId: dest,
+                    sourcePlayerNumber: dealerNumber,
+                    destinationPlayerNumber: playerNumber
+                },
+                    {
+                        msDelay: 50,
+                        displayCardValue: false,
+                        card: card
+                    });
+
+                counter++;
+            }
+        }
+
+        // pause for animation to finish.
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        
+        setDealingCards(false);
+        setBidding(true);
+        setCardsDealt(true);
+        setShowDeck(false);
     }
 
     const playCard = async (src: string, dest: string, player: number) => {
@@ -134,7 +226,7 @@ export default function EuchreGame() {
 
         setPaused(true);
         alert(src + dest);
-        setPlayElements(src, dest, player);
+        //setPlayElements(src, dest, player);
 
         const { number, index } = getPlayerAndCard(src);
 
@@ -221,7 +313,7 @@ export default function EuchreGame() {
                     </div>
                     <div className="col-span-1 row-span-2">
                         <GameInfo
-                            centerInfo={undefined}
+                            centerInfo={<CenterInfo content={gameCenterInfo} />}
                             player1Info={undefined}
                             player2Info={undefined}
                             player3Info={undefined}

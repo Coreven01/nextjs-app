@@ -6,33 +6,11 @@ const baseCard: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
    height="150"
    version="1.1"
    id="svg4"
-   sodipodi:docname="card-base.svg"
-   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs4" />
-  <sodipodi:namedview
-     id="namedview4"
-     pagecolor="#ffffff"
-     bordercolor="#000000"
-     borderopacity="0.25"
-     inkscape:showpageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
-     inkscape:deskcolor="#d1d1d1"
-     inkscape:zoom="7.94"
-     inkscape:cx="49.874055"
-     inkscape:cy="72.229219"
-     inkscape:window-width="2560"
-     inkscape:window-height="1472"
-     inkscape:window-x="-11"
-     inkscape:window-y="-11"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg4"
-     showgrid="false" />
   <rect
      width="97.771812"
      height="147.51994"
@@ -52,6 +30,7 @@ type TextData = {
    style: string
 }
 
+/** Map of svg values that should be used when rendering a card. Keyed on values where the first number is the column and second number is the row. */
 const centerSvgVals = new Map<string, TextData>(
    [
       ["s1-1", { x: 21.09375, y: 42.234375, fontsize: "32px", transform: "", style: "display:inline" }],
@@ -73,36 +52,37 @@ const centerSvgVals = new Map<string, TextData>(
    ]
 );
 
-const sideSvgVals = new Map<string, TextData>(
-   [
-      ["s1-1", { x: 22.598301, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s3-2", { x: 69.30864, y: 51.879185, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s1-2", { x: 22.598301, y: 52.126293, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s3-6", { x: -87.5177, y: -88.442505, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s2-4", { x: 46.144886, y: 79.056786, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s2-2", { x: 46.144886, y: 52.53109, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s2-3", { x: 46.144886, y: 63.469906, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s2-5", { x: -63.933369, y: -73.728767, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s2-7", { x: -63.933369, y: -104.54948, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s2-1", { x: 46.144886, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s1-4", { x: 22.598301, y: 78.546082, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s1-3", { x: 22.598301, y: 62.959206, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s1-5", { x: -40.386784, y: -73.218063, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s1-7", { x: -40.386784, y: -104.03879, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s-b", { x: -96.953743, y: -119.16161, fontsize: "17.8577px", transform: "scale(-0.97918076,-1.0212619)", style: "stroke-width:0.51022" }],
-      ["v-b", { x: -94.352135, y: -134.91064, fontsize: "16.7383px", transform: "scale(-1.0040591,-0.99595731)", style: "stroke-width:0.836917" }],
-      ["v-t", { x: 3.0543571, y: 18.051723, fontsize: "16.7383px", transform: "scale(1.0646857,0.93924431)", style: "stroke-width:0.836917" }],
-      ["s-t", { x: 3.8648531, y: 29.276762, fontsize: "17.8577px", transform: "scale(0.97918076,1.0212619)", style: "stroke-width:0.51022" }],
-      ["s3-4", { x: 69.30056, y: 78.021263, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s3-3", { x: 69.30056, y: 62.434391, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s3-5", { x: -87.089043, y: -72.693245, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s3-7", { x: -87.089043, y: -103.51397, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s3-1", { x: 69.691467, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-      ["s2-6", { x: -63.933369, y: -88.934372, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-      ["s1-6", { x: -40.386784, y: -88.892014, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-   ]
-);
+// const sideSvgVals = new Map<string, TextData>(
+//    [
+//       ["s1-1", { x: 22.598301, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s3-2", { x: 69.30864, y: 51.879185, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s1-2", { x: 22.598301, y: 52.126293, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s3-6", { x: -87.5177, y: -88.442505, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s2-4", { x: 46.144886, y: 79.056786, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s2-2", { x: 46.144886, y: 52.53109, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s2-3", { x: 46.144886, y: 63.469906, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s2-5", { x: -63.933369, y: -73.728767, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s2-7", { x: -63.933369, y: -104.54948, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s2-1", { x: 46.144886, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s1-4", { x: 22.598301, y: 78.546082, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s1-3", { x: 22.598301, y: 62.959206, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s1-5", { x: -40.386784, y: -73.218063, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s1-7", { x: -40.386784, y: -104.03879, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s-b", { x: -96.953743, y: -119.16161, fontsize: "17.8577px", transform: "scale(-0.97918076,-1.0212619)", style: "stroke-width:0.51022" }],
+//       ["v-b", { x: -94.352135, y: -134.91064, fontsize: "16.7383px", transform: "scale(-1.0040591,-0.99595731)", style: "stroke-width:0.836917" }],
+//       ["v-t", { x: 3.0543571, y: 18.051723, fontsize: "16.7383px", transform: "scale(1.0646857,0.93924431)", style: "stroke-width:0.836917" }],
+//       ["s-t", { x: 3.8648531, y: 29.276762, fontsize: "17.8577px", transform: "scale(0.97918076,1.0212619)", style: "stroke-width:0.51022" }],
+//       ["s3-4", { x: 69.30056, y: 78.021263, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s3-3", { x: 69.30056, y: 62.434391, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s3-5", { x: -87.089043, y: -72.693245, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s3-7", { x: -87.089043, y: -103.51397, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s3-1", { x: 69.691467, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s2-6", { x: -63.933369, y: -88.934372, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//       ["s1-6", { x: -40.386784, y: -88.892014, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
+//    ]
+// );
 
+/** Map of locations which should be displayed on a card. Keyed on card value. */
 const cardSvgValues: Map<string, string[]> = new Map([
    ["2", ["s2-1", "s2-5"]],
    ["3", ["s2-1", "s2-5", "s2-3"]],
@@ -156,7 +136,10 @@ function getCardSvg(card: Card, location: "center" | "side"): string {
 
    for (const imageLocation of svgCenterCardValues) {
       if (imageLocation) {
-         const xml = getCardText(imageLocation[1], imageColor, imageLocation[0].charAt(0) === "s" ? card.suit.suit : card.value.value);
+         let displayValue;
+         const xml = getCardText(imageLocation[1],
+            imageColor,
+            imageLocation[0].charAt(0) === "s" ? card.suit.suit : card.value.value);
          textValues.push(xml);
       }
    }

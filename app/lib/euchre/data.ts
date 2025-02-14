@@ -89,7 +89,7 @@ export class EuchreGameInstance {
     trump: Card | undefined;
     bidNumber: 1 | 2 = 1
     discard: Card | undefined;
-    cardDealCount: (1 |2 | 3 |4)[] = [];
+    cardDealCount: number[] = [];
 
     constructor(player1: EuchrePlayer, player2: EuchrePlayer, player3: EuchrePlayer, player4: EuchrePlayer) {
         this.player1 = player1;

@@ -1,4 +1,5 @@
 import GameTile, { TileValue } from "@/app/ui/bombseeker/game-tile";
+import { GameState } from "./gameStateReducer";
 
 /** Create a deep copy of the array of tile value arrays */
 function deepCopyTileValueArray(array: TileValue[][]): TileValue[][] {
@@ -9,31 +10,30 @@ function deepCopyTileValueArray(array: TileValue[][]): TileValue[][] {
      * Return the new exposed map of tiles that were exposed from clicking on the row/column value for a tile.
      * All adjacent tiles will be exposed if the user clicked on a blank tile in the bomb map.
      * 
-     * @param {*} row 
-     * @param {*} column 
+     * @param {*} selectedRow 
+     * @param {*} selectedColumn 
      * @param {*} bombMap 
      * @param {*} exposedMap 
      * @returns 
      */
 export function getNewExposedMap(
-    row: number, column: number,
-    totalRows: number, totalColumns: number,
-    bombMap: TileValue[][],
-    exposedMap: TileValue[][],
+    selectedRow: number,
+    selectedColumn: number,
+    state: GameState,
     assignValue: TileValue) {
 
-    const newExposedMap: TileValue[][] = deepCopyTileValueArray(exposedMap);
-    let emptyAdjacentTiles: number[][] = [[row, column]];
+    const newExposedMap: TileValue[][] = deepCopyTileValueArray(state.exposedMap);
+    let emptyAdjacentTiles: number[][] = [[selectedRow, selectedColumn]];
 
     if (assignValue.value === 'E') {
-        emptyAdjacentTiles = getEmptyAdjacentTiles(row, column, totalRows, totalColumns, bombMap, exposedMap, emptyAdjacentTiles);
+        emptyAdjacentTiles = getEmptyAdjacentTiles(selectedRow, selectedColumn, state, emptyAdjacentTiles);
 
         for (const emptyTile of emptyAdjacentTiles)
             if (!newExposedMap[emptyTile[0]][emptyTile[1]].value)
                 newExposedMap[emptyTile[0]][emptyTile[1]].value = 'E';
     }
 
-    newExposedMap[row][column].value = assignValue.value;
+    newExposedMap[selectedRow][selectedColumn].value = assignValue.value;
 
     return newExposedMap;
 }
@@ -41,35 +41,47 @@ export function getNewExposedMap(
 /**
  * Get all the empty tiles adjacent to the given row/column. This will return all empty tiles connected to the clicked tile.
  * 
- * @param row 
- * @param column 
+ * @param selectedRow 
+ * @param selectedColumn 
  * @param bombMap 
  * @param emptyTiles 
  * @returns 2D array of row/column values of empty tiles adjacent to the given row/column.
  */
-export function getEmptyAdjacentTiles(row: number, column: number, totalRows: number, totalColumns: number,
-    bombMap: TileValue[][], exposedMap: TileValue[][], emptyTiles: number[][]): number[][] {
+export function getEmptyAdjacentTiles(selectedRow: number, selectedColumn: number, state: GameState, emptyTiles: number[][]): number[][] {
 
     let newEmptyTiles = [...emptyTiles.map(e => [...e])];
 
     // exit if the bomb map contains a value.
-    if (bombMap[row][column].value)
+    if (state.bombMap[selectedRow][selectedColumn].value)
         return newEmptyTiles;
 
     // tiles directly adjacent to the given row and column.
-    const adj: number[][] = [[row - 1, column], [row + 1, column], [row, column - 1], [row, column + 1],
-    [row - 1, column - 1], [row + 1, column - 1], [row + 1, column + 1], [row - 1, column + 1]];
+    const adj: number[][] = [
+        [selectedRow - 1, selectedColumn],
+        [selectedRow + 1, selectedColumn],
+        [selectedRow, selectedColumn - 1],
+        [selectedRow, selectedColumn + 1],
+        [selectedRow - 1, selectedColumn - 1],
+        [selectedRow + 1, selectedColumn - 1],
+        [selectedRow + 1, selectedColumn + 1],
+        [selectedRow - 1, selectedColumn + 1]
+    ];
 
     // iterate through the 8 adjacent tiles directly top, bottom, left, right, and diagnals.
     for (let i = 0; i < 8; i++) {
         const current = adj[i];
 
         // check to make sure the tile exists in the grid and the tile is not yet exposed.
-        const tileIsValid = current[0] >= 0 && current[0] < totalRows && current[1] >= 0 && current[1] < totalColumns && !exposedMap[current[0]][current[1]].value;
+        const tileIsValid = current[0] >= 0 &&
+            current[0] < state.rowCount &&
+            current[1] >= 0 &&
+            current[1] < state.columnCount &&
+            !state.exposedMap[current[0]][current[1]].value;
 
         if (tileIsValid) {
 
             let found = false;
+
             // check to make sure the current tile has not yet been tested. if already in the empty tile list, then skip the current tile.
             for (const emptyTile of newEmptyTiles)
                 if (emptyTile[0] === current[0] && emptyTile[1] === current[1]) {
@@ -81,7 +93,7 @@ export function getEmptyAdjacentTiles(row: number, column: number, totalRows: nu
                 newEmptyTiles.push(current);
 
                 // recursively find all the next adjacent tiles for the found empty tile.
-                newEmptyTiles = getEmptyAdjacentTiles(current[0], current[1], totalRows, totalColumns, bombMap, exposedMap, newEmptyTiles);
+                newEmptyTiles = getEmptyAdjacentTiles(current[0], current[1], state, newEmptyTiles);
             }
 
         }
@@ -97,20 +109,29 @@ export function getEmptyAdjacentTiles(row: number, column: number, totalRows: nu
  * @param column Column value to find the adjacent tiles.
  * @returns 
  */
-export function getDirectAdjacentTiles(row: number, column: number, totalRows: number, totalColumns: number, bombMap: TileValue[][]): number[][] {
+export function getDirectAdjacentTiles(row: number, column: number, state: GameState): number[][] {
 
     const adjacentTiles: number[][] = [];
-    const currentValue = parseInt(bombMap[row][column]?.value?.toString() ?? '-1', 10);
+    const tileValue = parseInt(state.bombMap[row][column].value?.toString() ?? '-1', 10);
 
-    if (currentValue >= 1 && currentValue <= 8) {
+    if (tileValue >= 1 && tileValue <= 8) {
 
-        const adj: number[][] = [[row - 1, column], [row + 1, column], [row, column - 1], [row, column + 1],
-        [row - 1, column - 1], [row + 1, column - 1], [row + 1, column + 1], [row - 1, column + 1]];
+        // 8 adjacent tiles next to the given row/column.
+        const adj: number[][] = [
+            [row - 1, column],
+            [row + 1, column],
+            [row, column - 1],
+            [row, column + 1],
+            [row - 1, column - 1],
+            [row + 1, column - 1],
+            [row + 1, column + 1],
+            [row - 1, column + 1]
+        ];
 
         // iterate through the 8 adjacent tiles directly top, bottom, left, right, and diagnals.
         for (let i = 0; i < 8; i++) {
             const current: number[] = adj[i];
-            if (current[0] >= 0 && current[0] < totalRows && current[1] >= 0 && current[1] < totalColumns) {
+            if (current[0] >= 0 && current[0] < state.rowCount && current[1] >= 0 && current[1] < state.columnCount) {
                 adjacentTiles.push(current);
             }
         }
@@ -132,13 +153,12 @@ export function getDirectAdjacentTiles(row: number, column: number, totalRows: n
  * @param exposedMap 
  * @returns 
  */
-export function validateAndClickAjacentTiles(bombTileValue: number, row: number, column: number, totalRows: number, totalColumns: number,
-    bombMap: TileValue[][], exposedMap: TileValue[][]): TileValue[][] {
+export function validateAndClickAjacentTiles(bombTileValue: number, row: number, column: number, state: GameState): TileValue[][] {
 
-    const directAdjacentTiles = getDirectAdjacentTiles(row, column, totalRows, totalColumns, bombMap);
+    const directAdjacentTiles = getDirectAdjacentTiles(row, column, state);
     let questionMarkFound = false;
     let flaggedCount = 0;
-    let newExposedMap: TileValue[][] = deepCopyTileValueArray(exposedMap);
+    let newExposedMap: TileValue[][] = deepCopyTileValueArray(state.exposedMap);
 
     // the feature should only work if the number value of the bomb tile matches the number of flagged adjacent tiles.
     // should also only work if no adjacent tile is set to 'Unknown' (?)
@@ -161,19 +181,19 @@ export function validateAndClickAjacentTiles(bombTileValue: number, row: number,
             const colVal = adjTile[1];
 
             if (newExposedMap[rowVal][colVal].value === undefined)
-                newExposedMap = getNewExposedMap(rowVal, colVal, totalRows, totalColumns, bombMap, newExposedMap, { value: 'E' });
+                newExposedMap = getNewExposedMap(rowVal, colVal, state, { value: 'E' });
         }
     }
 
     return newExposedMap;
 }
 
-export function isGameWon(totalRows: number, totalColumns: number, bombMap: TileValue[][], exposedMap: TileValue[][]): boolean {
+export function isGameWon(state: GameState): boolean {
 
-    for (let row = 0; row < totalRows; row++) {
-        for (let col = 0; col < totalColumns; col++) {
-            const exposedTile = exposedMap[row][col];
-            const bombTile = bombMap[row][col];
+    for (let row = 0; row < state.rowCount; row++) {
+        for (let col = 0; col < state.columnCount; col++) {
+            const exposedTile = state.exposedMap[row][col];
+            const bombTile = state.bombMap[row][col];
 
             if (exposedTile.value === '?')
                 return false;
@@ -195,14 +215,14 @@ export type GameLostProps = {
     incorrectTiles: number[][]
 }
 
-export function isGameLost(totalRows: number, totalColumns: number, bombMap: TileValue[][], exposedMap: TileValue[][]): GameLostProps {
+export function isGameLost(state: GameState): GameLostProps {
 
     const retval: GameLostProps = { gameLost: false, bombTile: undefined, incorrectTiles: [] };
 
-    for (let row = 0; row < totalRows; row++) {
-        for (let col = 0; col < totalColumns; col++) {
-            const exposedTile = exposedMap[row][col];
-            const bombTile = bombMap[row][col];
+    for (let row = 0; row < state.rowCount; row++) {
+        for (let col = 0; col < state.columnCount; col++) {
+            const exposedTile = state.exposedMap[row][col];
+            const bombTile = state.bombMap[row][col];
 
             if (exposedTile.value === 'E' && bombTile.value === 'X') {
                 retval.gameLost = true;
@@ -217,44 +237,28 @@ export function isGameLost(totalRows: number, totalColumns: number, bombMap: Til
     return retval;
 }
 
-export function getBombsRemaining(totalRows: number, totalColumns: number, totalBombs: number, exposedMap: TileValue[][]): number {
+export function getBombsRemaining(state: GameState): number {
 
     let retval = 0;
     let counter = 0;
 
-    for (let row = 0; row < totalRows; row++) {
-        for (let col = 0; col < totalColumns; col++) {
-            const exposedTile = exposedMap[row][col];
+    for (let row = 0; row < state.rowCount; row++) {
+        for (let col = 0; col < state.columnCount; col++) {
+            const exposedTile = state.exposedMap[row][col];
 
             if (exposedTile.value === 'F')
                 counter++;
         }
     }
 
-    retval = totalBombs - counter;
+    retval = state.bombCount - counter;
 
     return retval;
 }
 
-/**
- * 
- * @param totalRows 
- * @param totalColumns 
- * @param bombMap 
- * @param exposedMap 
- * @param gameLost 
- * @param adjacentTiles 
- * @param onClickEvent 
- * @param onRightClickEvent 
- * @param onMouseUpEvent 
- * @param onMouseDownEvent 
- * @param onMouseLeave 
- * @returns 
- */
-export function createGameTiles(totalRows: number,
-    totalColumns: number,
-    bombMap: TileValue[][],
-    exposedMap: TileValue[][],
+
+export function createGameTiles(
+    state: GameState,
     gameLost: GameLostProps,
     adjacentTiles: number[][],
     disabled: boolean,
@@ -266,14 +270,14 @@ export function createGameTiles(totalRows: number,
 
     const rowCells = []; // array of jsx GameTile to display
 
-    for (let row = 0; row < totalRows; row++) {
+    for (let row = 0; row < state.rowCount; row++) {
         const tileCells = [];
 
-        for (let col = 0; col < totalColumns; col++) {
-            const exposedTile: TileValue = exposedMap[row][col];
-            const bombTile: TileValue = bombMap[row][col];
+        for (let col = 0; col < state.columnCount; col++) {
+            const exposedTile: TileValue = state.exposedMap[row][col];
+            const bombTile: TileValue = state.bombMap[row][col];
 
-            const keyVal = (row * totalColumns) + col;
+            const keyVal = (row * state.columnCount) + col;
             const isExposed = exposedTile.value === 'E' && bombTile.value !== "X";
             const isFlagged = exposedTile.value === 'F' || exposedTile.value === '?';
             const isGameOverBomb = gameLost.gameLost && bombTile.value === 'X' && gameLost.bombTile && gameLost.bombTile[0] === row && gameLost.bombTile[1] === col;
@@ -301,13 +305,11 @@ export function createGameTiles(totalRows: number,
             else if (gameLost.gameLost && bombTile.value === "X")
                 displayValue.value = "X";
 
-            //isExposed ? bombTile : (isFlagged ? exposedTile : { value: undefined });
-
             let isAdjacentTileHighlight = false;
 
             if (adjacentTiles.length) {
                 for (const tile of adjacentTiles) {
-                    if (tile[0] === row && tile[1] === col && !exposedMap[row][col].value) {
+                    if (tile[0] === row && tile[1] === col && !state.exposedMap[row][col].value) {
                         isAdjacentTileHighlight = true;
                         break;
                     }
@@ -346,8 +348,13 @@ export function createGameTiles(totalRows: number,
  * @param {number} bombCount 
  * @returns 
  */
-export function createBombMap(rowNum: number, colNum: number, bombCount: number): TileValue[][] {
-    const maxBombCount = rowNum * colNum;
+export function createBombMap(state: GameState): TileValue[][] {
+
+    const rowCount = state.rowCount;
+    const columnCount = state.columnCount;
+    const bombCount = state.bombCount;
+
+    const maxBombCount = rowCount * columnCount;
     if (maxBombCount <= bombCount)
         throw new Error();
 
@@ -356,10 +363,10 @@ export function createBombMap(rowNum: number, colNum: number, bombCount: number)
     const baseValue: TileValue = { value: undefined };
     let randomCounter = bombCount;
 
-    let bombMap = create2DArray(rowNum, colNum);
+    let bombMap = create2DArray(rowCount, columnCount);
     const randomNumbers = new Set();
 
-    if (percentBombCover > 80){
+    if (percentBombCover > 80) {
         randomCounter = maxBombCount - bombCount;
         randomSetValue.value = undefined;
         baseValue.value = 'X';
@@ -370,9 +377,9 @@ export function createBombMap(rowNum: number, colNum: number, bombCount: number)
         randomNumbers.add(randomNum);
     }
 
-    for (let row = 0; row < rowNum; row++) {
-        const rowVal = row * colNum;
-        for (let col = 0; col < colNum; col++) {
+    for (let row = 0; row < rowCount; row++) {
+        const rowVal = row * columnCount;
+        for (let col = 0; col < columnCount; col++) {
             const temp = rowVal + col;
             if (randomNumbers.has(temp))
                 bombMap[row][col].value = randomSetValue.value;
@@ -381,7 +388,7 @@ export function createBombMap(rowNum: number, colNum: number, bombCount: number)
         }
     }
 
-    bombMap = setNumberValues(rowNum, colNum, bombMap);
+    bombMap = setNumberValues(state);
 
     return bombMap;
 }
@@ -394,13 +401,13 @@ export function createBombMap(rowNum: number, colNum: number, bombCount: number)
  * @param {*} area 
  * @returns 
  */
-export function setNumberValues(rowNum: number, colNum: number, bombMap: TileValue[][]): TileValue[][] {
+export function setNumberValues(state: GameState): TileValue[][] {
 
-    const newBombMap = deepCopyTileValueArray(bombMap);
+    const newBombMap = deepCopyTileValueArray(state.bombMap);
 
-    for (let row = 0; row < rowNum; row++) {
+    for (let row = 0; row < state.rowCount; row++) {
         const rows = [row - 1, row, row + 1];
-        for (let col = 0; col < colNum; col++) {
+        for (let col = 0; col < state.columnCount; col++) {
             if (newBombMap[row][col].value === 'X')
                 continue;
 
@@ -412,7 +419,7 @@ export function setNumberValues(rowNum: number, colNum: number, bombMap: TileVal
                     const rowVal = rows[rowRange];
                     const colVal = cols[colRange];
 
-                    if (rowVal >= 0 && rowVal < rowNum && colVal >= 0 && colVal < colNum) {
+                    if (rowVal >= 0 && rowVal < state.rowCount && colVal >= 0 && colVal < state.columnCount) {
                         if (newBombMap[rowVal][colVal].value === 'X') {
                             counter++;
                         }
@@ -423,7 +430,7 @@ export function setNumberValues(rowNum: number, colNum: number, bombMap: TileVal
             if (counter)
                 newBombMap[row][col].value = counter;
             else
-            newBombMap[row][col].value = undefined;
+                newBombMap[row][col].value = undefined;
         }
     }
 

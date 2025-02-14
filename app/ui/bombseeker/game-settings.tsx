@@ -1,12 +1,10 @@
 import { useRef, useState } from "react";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/16/solid";
+import { GameState } from "@/app/lib/bombseeker/gameStateReducer";
 
 type Props = {
-    defaultRow: number,
-    defaultColumns: number,
-    defaultBombCount: number,
-    gameCreated: boolean | undefined,
-    onNewGame: (rowCount: number, columnCount: number, bombCount: number) => void,
+    state: GameState,
+    onNewGame: (state: GameState) => void,
 }
 
 type GameLevel = {
@@ -16,11 +14,7 @@ type GameLevel = {
     bombs: number,
 }
 
-export default function GameSettings({ defaultRow,
-    defaultColumns,
-    defaultBombCount,
-    gameCreated,
-    onNewGame }: Props) {
+export default function GameSettings({ state, onNewGame }: Props) {
 
     const selectedLevel = useRef<HTMLSelectElement>(null);
     const newBombCount = useRef<HTMLInputElement>(null);
@@ -156,7 +150,11 @@ export default function GameSettings({ defaultRow,
 
     const handleNewGame = () => {
         if (newBombCount.current && newRows.current && newColumns.current) {
-            onNewGame(newRows.current.valueAsNumber, newColumns.current.valueAsNumber, newBombCount.current.valueAsNumber);
+            onNewGame({ ...state, 
+                rowCount: newRows.current.valueAsNumber, 
+                columnCount: newColumns.current.valueAsNumber, 
+                bombCount: newBombCount.current.valueAsNumber
+            });
         }
     }
 
@@ -198,7 +196,7 @@ export default function GameSettings({ defaultRow,
                         max={maxRows}
                         min={minRows}
                         ref={newRows}
-                        defaultValue={defaultRow}
+                        defaultValue={state.rowCount}
                         onBlur={handleRowCountLeave}
                         placeholder='Row Count'></input>
                     <div className='flex flex-col'>

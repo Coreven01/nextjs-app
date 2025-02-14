@@ -8,31 +8,17 @@ import GameBoardTiles from './game-board-tiles';
 import GameInfo from './game-info';
 import GameSettings from './game-settings';
 import { sectionStyle } from '../home/home-description';
+import { GameState } from '@/app/lib/bombseeker/gameStateReducer';
 
 type Props = {
 
-    /** Number of rows in the bomb map */
-    rows: number,
-
-    /** Number of columns in the bomb map */
-    columns: number,
-
-    /** Number of total bombs on the map */
-    bombCount: number,
-
-    /** 2D array of values in the bomb map. Dimensions should match the rows, columns. */
-    bombMap: TileValue[][],
-
-    /** 2D array of values of which tiles have been exposed by the user. Dimensions should match the rows, columns. */
-    exposedMap: TileValue[][],
-
-    gameCreated: boolean | undefined,
+    state: GameState,
 
     /** Update the game tiles based on which tiles have been exposed */
     onPlay: (exposedMap: TileValue[][]) => void,
 
     /** Create a new game with the given number of rows/columns/bomb count */
-    onNewGame: (rows: number, columns: number, bombCount: number) => void,
+    onNewGame: (state: GameState) => void,
 }
 
 /**
@@ -41,9 +27,7 @@ type Props = {
  * @param {*} param0 
  * @returns 
  */
-export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap, gameCreated, onPlay, onNewGame }: Props) {
-
-
+export default function GameMap({ state, onPlay, onNewGame }: Props) {
 
     const [showGameOverScreen, setShowGameOverScreen] = useState<boolean>(true);
 
@@ -53,10 +37,23 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
     /** Used to determine what tiles to highlight when pressing double mouse down. */
     const [adjacentTiles, setAdjacentTiles] = useState<number[][]>([]);
 
-    const { shouldHandleDoubleMouseUp, shouldHandleMouseClick, shouldHandleMouseRightClick, handleDoubleMouseDown,
-        handleDoubleMouseUp, handledMouseClick, handledMouseRightClick, resetMouseClicks } = useDoubleMouseEvents();
+    const {
+        shouldHandleDoubleMouseUp,
+        shouldHandleMouseClick,
+        shouldHandleMouseRightClick,
+        handleDoubleMouseDown,
+        handleDoubleMouseUp,
+        handledMouseClick,
+        handledMouseRightClick,
+        resetMouseClicks
+    } = useDoubleMouseEvents();
 
-    const { time, startTimer, pauseTimer, resetTimer } = useTimer();
+    const {
+        time,
+        startTimer,
+        pauseTimer,
+        resetTimer
+    } = useTimer();
 
     /**
      * Handle left click of a tile. Exposes the tile and adjacent empty tiles if the tile is empty. If the tile is a bomb, then game over.
@@ -68,7 +65,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
      */
     const handleTileClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => {
 
-        const exposedTile: TileValue | undefined = exposedMap.length ? exposedMap[row][column] : undefined;
+        const exposedTile: TileValue | undefined = state.exposedMap.length ? state.exposedMap[row][column] : undefined;
 
         if (!shouldHandleMouseClick || exposedTile === undefined || exposedTile.value === 'E' || exposedTile.value === 'F' || exposedTile.value === "?") {
             event.preventDefault();
@@ -77,7 +74,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         }
 
         startTimer();
-        onPlay(getNewExposedMap(row, column, rows, columns, bombMap, exposedMap, { value: 'E' }));
+        onPlay(getNewExposedMap(row, column, state, { value: 'E' }));
         handledMouseClick();
     };
 
@@ -90,7 +87,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
      */
     const handleTileRightClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => {
 
-        if (!shouldHandleMouseRightClick || exposedMap[row][column].value === 'E') {
+        if (!shouldHandleMouseRightClick || state.exposedMap[row][column].value === 'E') {
             handledMouseRightClick();
             return;
         }
@@ -98,12 +95,12 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         startTimer();
 
         const newVal: TileValue = { value: undefined };
-        if (!exposedMap[row][column].value)
+        if (!state.exposedMap[row][column].value)
             newVal.value = 'F';
-        else if (exposedMap[row][column].value === 'F')
+        else if (state.exposedMap[row][column].value === 'F')
             newVal.value = '?';
 
-        onPlay(getNewExposedMap(row, column, rows, columns, bombMap, exposedMap, newVal));
+        onPlay(getNewExposedMap(row, column, state, newVal));
         handledMouseRightClick();
     }
 
@@ -131,9 +128,9 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
 
         if (shouldHandleDoubleMouseUp && doubleMouseDownEvents.length > 1) {
 
-            const bombTileValue: number = parseInt(bombMap[row][column].value?.toString() ?? "0", 10);
+            const bombTileValue: number = parseInt(state.bombMap[row][column].value?.toString() ?? "0", 10);
             if (bombTileValue) {
-                const newExposedMap = validateAndClickAjacentTiles(bombTileValue, row, column, rows, columns, bombMap, exposedMap);
+                const newExposedMap = validateAndClickAjacentTiles(bombTileValue, row, column, state);
                 if (newExposedMap)
                     onPlay(newExposedMap);
             }
@@ -166,21 +163,21 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         if (doubleMouseDownEvents.length >= 1) {
 
             handleDoubleMouseDown();
-            const exposedValue: TileValue = exposedMap[row][column];
+            const exposedValue: TileValue = state.exposedMap[row][column];
 
             // if the current tile is not yet exposed then ignore the double mouse down event.
             if (exposedValue.value !== 'E')
                 return;
 
-            const currentValue: TileValue = bombMap[row][column];
+            const currentValue: TileValue = state.bombMap[row][column];
             const tempValue = parseInt(currentValue.value?.toString() ?? "0", 10);
 
             if (tempValue >= 1 && tempValue <= 9) {
-                const adjacentTiles = getDirectAdjacentTiles(row, column, rows, columns, bombMap);
+                const adjacentTiles = getDirectAdjacentTiles(row, column, state);
                 const adjacentTilesToHighlight: number[][] = [];
                 if (adjacentTiles.length) {
                     for (const tile of adjacentTiles) {
-                        const adjacentValue = exposedMap[tile[0]][tile[1]];
+                        const adjacentValue = state.exposedMap[tile[0]][tile[1]];
                         if (adjacentValue.value === undefined || adjacentValue.value === 'F') {
                             adjacentTilesToHighlight.push(tile);
                         }
@@ -192,8 +189,8 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         }
     }
 
-    const handleNewGameClick = (rowCount: number, columnCount: number, bombCount: number) => {
-        onNewGame(rowCount, columnCount, bombCount);
+    const handleNewGameClick = (state: GameState) => {
+        onNewGame(state);
         resetMouseClicks();
         pauseTimer();
         resetTimer();
@@ -222,11 +219,11 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
     let gameBoard = <></>;
 
     // create game board if user selects to start a new game.
-    if (gameCreated) {
-        const gameLost = isGameLost(rows, columns, bombMap, exposedMap);
-        const gameWon = !gameLost.gameLost && isGameWon(rows, columns, bombMap, exposedMap);
+    if (state.gameCreated) {
+        const gameLost = isGameLost(state);
+        const gameWon = !gameLost.gameLost && isGameWon(state);
         const showGameOver = (gameLost.gameLost || gameWon) && showGameOverScreen;
-        const bombsRemaining = getBombsRemaining(rows, columns, bombCount, exposedMap);
+        const bombsRemaining = getBombsRemaining(state);
         const message = gameLost.gameLost ? "Game Over" : gameWon ? "Win!" : "Error...";
 
         if (showGameOver)
@@ -237,10 +234,8 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
                 <GameInfo seconds={time} bombsLeft={bombsRemaining} />
             </div>
             <div className={`${cellClass} overflow-x-auto relative shadow-md shadow-white`}>
-                <GameBoardTiles totalRows={rows}
-                    totalColumns={columns}
-                    bombMap={bombMap}
-                    exposedMap={exposedMap}
+                <GameBoardTiles
+                    state={state}
                     gameLost={gameLost}
                     adjacentTiles={adjacentTiles}
                     disabled={gameLost.gameLost || gameWon}
@@ -249,7 +244,8 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
                     onMouseUp={handleTileMouseUp}
                     onMouseDown={handleTileMouseDown}
                     onMouseLeave={handleTileMouseLeave} />
-                <GameOver gameLost={gameLost.gameLost}
+                <GameOver 
+                gameLost={gameLost.gameLost}
                     showGameOver={showGameOver}
                     message={message}
                     onGameOverClick={handleGameOverScreenClick} />
@@ -261,10 +257,7 @@ export default function GameMap({ rows, columns, bombCount, bombMap, exposedMap,
         <>
             <div className={cellClass}>
                 <GameSettings
-                    defaultRow={rows}
-                    defaultColumns={columns}
-                    defaultBombCount={bombCount}
-                    gameCreated={gameCreated}
+                    state={state}
                     onNewGame={handleNewGameClick} />
             </div>
             {gameBoard}

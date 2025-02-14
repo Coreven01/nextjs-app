@@ -21,9 +21,7 @@ export function GameInfo({ centerInfo, player1Info, player2Info, player3Info, pl
                 {player3Info}
             </div>
             <div id="game-info" className="bg-white col-span-1 col-start-2 row-start-2 relative bg-opacity-50 min-h-32 flex justify-center">
-                <div className={`${sectionStyle} flex`}>
-                    {centerInfo}
-                </div>
+                {centerInfo}
             </div>
             <div id="player4-region" className="bg-white col-span-1 col-start-3 row-start-2 relative bg-opacity-50 flex items-center">
                 <div id={`game-base-4`} className={`absolute top-auto right-0`}>X</div>
