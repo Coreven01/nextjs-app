@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/16/solid";
 import { GameState } from "@/app/lib/bombseeker/gameStateReducer";
+import { GameMapState } from "@/app/lib/bombseeker/gameMapReducer";
 
 type Props = {
     state: GameState,
@@ -219,7 +220,7 @@ export default function GameSettings({ state, onNewGame }: Props) {
                         max={maxColumns}
                         min={minColumns}
                         ref={newColumns}
-                        defaultValue={defaultColumns}
+                        defaultValue={state.columnCount}
                         onBlur={handleColumnCountLeave}
                         placeholder='column Count'></input>
                     <div className='flex flex-col'>
@@ -240,7 +241,7 @@ export default function GameSettings({ state, onNewGame }: Props) {
                         required
                         disabled={disableSelection}
                         ref={newBombCount}
-                        defaultValue={defaultBombCount}
+                        defaultValue={state.bombCount}
                         onBlur={handleBombCountLeave}
                         placeholder='Bomb Count'></input>
                     <div className='flex flex-col'>

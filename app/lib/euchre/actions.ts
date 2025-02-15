@@ -15,6 +15,8 @@ interface CardTransformOptions {
     card: Card | undefined,
     displayCardValue: boolean | undefined,
     msDelay: number | undefined,
+    cardOffsetVertical: number,
+    cardOffsetHorizontal: number,
 }
 
 type Props = {
@@ -70,7 +72,12 @@ export function usePlayCard(): Props {
                 src.style.transform = transformation;
                 console.log('transformation:', destRect.left, srcRect.left, transformation);
             } else {
-                console.error('transformation error:', values?.sourceId, values?.destinationId, src, srcRect, destRect);
+                console.error('Transformation error | Source ID: ', values?.sourceId, 
+                    'Destination ID: ', values?.destinationId,
+                    'Source Element: ', src, 
+                    'Destination Element: ', dest, 
+                    'Source Rect: ', srcRect,
+                    'Destination Rect: ', destRect);
                 throw Error('Unable to translate card.');
             }
         }
@@ -150,10 +157,14 @@ export function useDealCard(): DealProps {
                     if (options.card)
                         src.src = getEncodedCardSvg(options.card, "side");
                 }
-
-                console.log('transformation:', destRect.left, srcRect.left, transformation);
             } else {
-                console.error('transformation error:', values?.sourceId, values?.destinationId, src, srcRect, destRect);
+                console.error('Transformation error | Source ID: ', values?.sourceId, 
+                    'Destination ID: ', values?.destinationId,
+                    'Source Element: ', src, 
+                    'Destination Element: ', dest, 
+                    'Source Rect: ', srcRect,
+                    'Destination Rect: ', destRect);
+
                 throw Error('Unable to translate card.');
             }
         }
@@ -199,4 +210,25 @@ export function useRemoveTransformations() {
     };
 
     return { setElementsForTransformation };
+}
+
+export function useFadeOut() {
+    const [element, setElement] = useState<string>('');
+
+    useEffect(() => {
+        const ele = document.getElementById(element);
+        const classList = ["transition-opacity", "delay-[3s]", "opacity-0", "ease-in-out", "duration-[2s]"];
+
+        if (ele)
+        {
+            ele.classList.add(...classList);
+            //ele.classList.remove(...classList);
+        }
+    }, [element]);
+
+    const setElementForFadeOut = (id:string) => {
+        setElement(id);
+    }
+
+    return { setElementForFadeOut };
 }

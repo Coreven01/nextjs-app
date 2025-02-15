@@ -33,7 +33,7 @@ export default function GameDeck({ deck, location }: Props) {
             <Image
                 id={`deal-${index}`}
                 key={index}
-                className={`contain absolute top-0 left-0 transition duration-500 ease-in-out`}
+                className={`contain absolute top-0 left-0 transition duration-500 ease-in-out h-full`}
                 quality={100}
                 width={width}
                 height={height}
