@@ -1,4 +1,4 @@
-import { createDummyCards } from "./game";
+import { createDummyCards, getPlayerRotation } from "./game";
 
 export const spade: string = "♠";
 export const heart: string = "♥";
@@ -46,6 +46,18 @@ export class EuchrePlayer {
         this.playerNumber = playerNumber;
         this.placeholder = createDummyCards();
     }
+
+    get innerPlayerBaseId(): string {
+        return `game-base-${this.playerNumber}-inner`;
+    }
+
+    get outerPlayerBaseId(): string {
+        return `game-base-${this.playerNumber}`;
+    }
+
+    get playerBase(): string {
+        return `player-base-${this.playerNumber}`;
+    }
 }
 
 export class Card {
@@ -60,6 +72,10 @@ export class Card {
 
     get color(): "R" | "B" {
         return this.suit.suit === "♠" || this.suit.suit === "♣" ? "B" : "R";
+    }
+
+    get dealId(): string {
+        return `deal-${this.index}`;
     }
 }
 
@@ -77,7 +93,7 @@ export class EuchreGameInstance {
     player2: EuchrePlayer;
     player3: EuchrePlayer;
     player4: EuchrePlayer;
-    
+
     deck: Card[] = [];
     kitty: Card[] = [];
     dealer: EuchrePlayer | undefined;
@@ -132,6 +148,36 @@ export class EuchreGameInstance {
         game.cardDealCount = this.cardDealCount;
 
         return game;
+    }
+
+    dealCards() {
+        const currentGame: EuchreGameInstance = this;
+        const players: EuchrePlayer[] = getPlayerRotation(currentGame);
+
+        const randomNum = Math.floor((Math.random() * 3)) + 1;
+        let counter = 0;
+        currentGame.cardDealCount = [randomNum, 5 - randomNum];
+
+        for (let i = 0; i < 8; i++) {
+            let numberOfCards = 0;
+            const currentPlayer = players[i % 4];
+            const firstRound = i < 4;
+
+            if (firstRound)
+                numberOfCards = i % 2 ? randomNum : 5 - randomNum;
+            else
+                numberOfCards = i % 2 ? 5 - randomNum : randomNum;
+
+            for (let j = 0; j < numberOfCards; j++) {
+                currentPlayer.hand.push(currentGame.deck[counter] ?? new Card({ suit: "♠" }, { value: "?" }));
+                counter++;
+            }
+        }
+
+        while (counter < currentGame.deck.length) {
+            currentGame.kitty.push(currentGame.deck[counter] ?? new Card({ suit: "♠" }, { value: "?" }));
+            counter++;
+        }
     }
 }
 

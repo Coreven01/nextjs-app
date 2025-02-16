@@ -7,9 +7,9 @@ type Props = {
 
 export function GameInfo({ playerInfoState }: Props) {
 
-    console.log("Player state: ", playerInfoState);
+    //console.log("Player state: ", playerInfoState);
     return (
-        <div className="grid grid-flow-col grid-rows-3 h-full w-full text-black grid-cols-[1fr,175px,1fr]">
+        <div className="grid grid-flow-col grid-rows-3 gap-1 h-full w-full text-black grid-cols-[1fr,175px,1fr]">
             <div id="player2-region" className="bg-white col-span-1 col-start-2 bg-opacity-50 relative flex justify-center">
                 <div id={`game-base-2`} className={`absolute`}>X</div>
                 <div id={`game-base-2-inner`} className={`absolute bottom-0`}>X</div>

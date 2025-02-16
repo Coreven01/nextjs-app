@@ -13,41 +13,8 @@ export function createEuchreGame(): EuchreGameInstance {
 
     let newGame = new EuchreGameInstance(player1, player2, player3, player4);
     newGame.currentTricks.push(new EuchreTrick());
-    newGame.deck = [];
-
-
-    return newGame;
-}
-
-export function dealCards(game: EuchreGameInstance): EuchreGameInstance {
-    const newGame = game.shallowCopy();
-    const players: EuchrePlayer[] = getPlayerRotation(newGame);
-
     newGame.deck = createShuffledDeck(3);
-    const randomNum = Math.floor((Math.random() * 3)) + 1;
-    let counter = 0;
-    newGame.cardDealCount = [randomNum, 5 - randomNum];
-
-    for (let i = 0; i < 8; i++) {
-        let numberOfCards = 0;
-        const currentPlayer = players[i % 4];
-        const firstRound = i < 4;
-
-        if (firstRound)
-            numberOfCards = i % 2 ? randomNum : 5 - randomNum;
-        else
-            numberOfCards = i % 2 ? 5 - randomNum : randomNum;
-
-        for (let j = 0; j < numberOfCards; j++) {
-            currentPlayer.hand.push(newGame.deck[counter] ?? new Card({ suit: "♠" }, { value: "?" }));
-            counter++;
-        }
-    }
-
-    while (counter < newGame.deck.length) {
-        newGame.kitty.push(newGame.deck[counter] ?? new Card({ suit: "♠" }, { value: "?" }));
-        counter++;
-    }
+    newGame.dealer = player1;
 
     return newGame;
 }
