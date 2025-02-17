@@ -1,4 +1,4 @@
-import { Card } from "./data";
+import { Card, CardValue } from "./data";
 
 const baseCard: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
@@ -83,7 +83,7 @@ const centerSvgVals = new Map<string, TextData>(
 // );
 
 /** Map of locations which should be displayed on a card. Keyed on card value. */
-const cardSvgValues: Map<string, string[]> = new Map([
+const cardSvgValues: Map<CardValue, string[]> = new Map([
    ["2", ["s2-1", "s2-5"]],
    ["3", ["s2-1", "s2-5", "s2-3"]],
    ["4", ["s1-1", "s3-1", "s1-5", "s3-5"]],
@@ -121,7 +121,7 @@ function getCardSvg(card: Card, location: "center" | "side"): string {
 
    let retval = baseCard;
    const textValues = [];
-   const imageKeys = cardSvgValues.get(card.value.value) ?? [];
+   const imageKeys = cardSvgValues.get(card.value) ?? [];
    const imageColor = svgCardColors.get(card.color) ?? "#000";
 
    for (const text of imageKeys) {
@@ -129,7 +129,7 @@ function getCardSvg(card: Card, location: "center" | "side"): string {
       imageLocation = location ? centerSvgVals.get(text) : centerSvgVals.get(text);
 
       if (imageLocation) {
-         const xml = getCardText(imageLocation, imageColor, card.suit.suit);
+         const xml = getCardText(imageLocation, imageColor, card.suit);
          textValues.push(xml);
       }
    }
@@ -139,7 +139,7 @@ function getCardSvg(card: Card, location: "center" | "side"): string {
          let displayValue;
          const xml = getCardText(imageLocation[1],
             imageColor,
-            imageLocation[0].charAt(0) === "s" ? card.suit.suit : card.value.value);
+            imageLocation[0].charAt(0) === "s" ? card.suit : card.value);
          textValues.push(xml);
       }
    }

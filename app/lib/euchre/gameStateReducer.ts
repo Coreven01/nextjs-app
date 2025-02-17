@@ -2,12 +2,10 @@ export interface GameState {
 
     /** Boolean value to identify if a game has yet been created. */
     hasGameStarted: boolean,
-    isAwaitingAnimation: boolean,
     isAwaitingPlayerTurn: boolean,
     isGameBidding: boolean,
     hasFirstBiddingPassed: boolean,
     hasSecondBiddingPassed: boolean,
-    isGamePlaying: boolean,
     isDetermineDealer: boolean,
     shouldShowDeck: boolean,
     areCardsDealt: boolean,
@@ -24,11 +22,9 @@ export enum GameActionType {
 
 export const initialGameState: GameState = {
     hasGameStarted: false,
-    isAwaitingAnimation: false,
-    isAwaitingPlayerTurn: true,
+    isAwaitingPlayerTurn: false,
     isGameBidding: false,
-    isGamePlaying: false,
-    isDetermineDealer: true,
+    isDetermineDealer: false,
     shouldShowDeck: false,
     areCardsDealt: false,
     hasSecondBiddingPassed: false,

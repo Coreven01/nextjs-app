@@ -1,5 +1,5 @@
 import { PlayerInfoState } from "@/app/lib/euchre/playerInfoReducer";
-import { sectionStyle } from "../home/home-description";
+import Image from 'next/image'
 
 type Props = {
     playerInfoState: PlayerInfoState
@@ -20,7 +20,8 @@ export function GameInfo({ playerInfoState }: Props) {
                 <div id={`game-base-3-inner`} className={`absolute top-auto right-0`}>X</div>
                 {undefined}
             </div>
-            <div id="game-info" className="bg-white col-span-1 col-start-2 row-start-2 relative bg-opacity-50 flex justify-center h-32">
+            <div id="game-info" className="bg-white col-span-1 col-start-2 row-start-2 relative bg-opacity-50 flex justify-center h-32 items-center">
+                <div id={`game-center`} className={`absolute top-auto`}>X</div>
                 {playerInfoState.centerInfo}
             </div>
             <div id="player4-region" className="bg-white col-span-1 col-start-3 row-start-2 relative bg-opacity-50 flex items-center">

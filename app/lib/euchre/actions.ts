@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import { Card } from "./data";
 
 
 // type Props = {
@@ -91,6 +90,7 @@ export function useRemoveElement() {
     return { setElementToRemove };
 }
 
+/** Effect to remove transformation for the given element IDs */
 export function useRemoveTransformations() {
     const [elements, setElements] = useState<string[]>([]);
 

@@ -37,7 +37,9 @@ export default function PlayerGameDeck({ player, game, cardsVisible, dealDeck, d
                     playerNum={playerNumber}
                     cardsVisible={cardsVisible}
                     onCardClick={onValidClick} />
-                <div id={`player-base-${playerNumber}`} className={position}>X</div>
+                <div id={`player-base-${playerNumber}`} className={position}>
+                    X
+                </div>
                 {gameDeck}
                 <div className={playerInfoClass}>
                     <PlayerInfo game={game} player={player} />

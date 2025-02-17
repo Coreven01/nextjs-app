@@ -1,5 +1,3 @@
-import { TileValue } from "@/app/ui/bombseeker/game-tile";
-
 export interface GameState {
 
     /** Number of total bombs on the map */

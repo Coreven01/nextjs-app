@@ -9,6 +9,7 @@ export interface CardTransformation {
     destinationId: string,
     sourcePlayerNumber: number,
     destinationPlayerNumber: number,
+    location: "inner" | "outer",
     options: CardTransformOptions | undefined,
 }
 
@@ -46,7 +47,12 @@ export function useMoveCard(): DealAnimation {
 
     const setCardsToMove = useCallback(async (transformValues: CardTransformation[]) => {
         setValues(transformValues);
-        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        const msOptions = transformValues.map(transform => transform?.options?.msDelay ? transform.options.msDelay : 0);
+        const totalMs = msOptions.reduce((accumulator, current) => accumulator + current);
+
+        if (totalMs > 0)
+            await new Promise((resolve) => setTimeout(resolve, totalMs));
     }, []);
 
     return { setCardsToMove }
@@ -85,12 +91,31 @@ const animateCardMove = (transform: CardTransformation) => {
 };
 
 const getTransformationValue = (transform: CardTransformation, srcRect: DOMRect, destRect: DOMRect) => {
+
+    const sidePlayers = [3, 4];
+    const centerPlayers = [1, 2];
+
+    if (centerPlayers.find(num => num === transform.sourcePlayerNumber))
+        return getTransformationForCenter(transform, srcRect, destRect);
+    else
+        return getTransformationForSide(transform, srcRect, destRect);
+
+}
+
+function getTransformationForCenter(transform: CardTransformation, srcRect: DOMRect, destRect: DOMRect) {
+
     let widthOffset = 0;
+    let heightOffset = 0;
 
     if (srcRect?.width > destRect?.width)
         widthOffset = srcRect.width - destRect.width;
     else
         widthOffset = destRect.width - srcRect.width;
+
+    if (srcRect?.width > destRect?.height)
+        heightOffset = srcRect.width - destRect.height;
+    else
+        heightOffset = destRect.width - srcRect.height;
 
     const sidePlayers = [3, 4];
     const centerPlayers = [1, 2];
@@ -103,19 +128,95 @@ const getTransformationValue = (transform: CardTransformation, srcRect: DOMRect,
 
     let transformation = '';
 
-    switch (transform.destinationPlayerNumber) {
-        case 1:
-            transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.bottom - srcRect.bottom}px) ${transformationRotation}`;
-            break;
-        case 2:
-            transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.top - srcRect.top}px) ${transformationRotation}`;
-            break;
-        case 3:
-            transformation = `translate(${destRect.right - srcRect.left + (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) ${transformationRotation}`;
-            break;
-        case 4:
-            transformation = `translate(${destRect.left - srcRect.right - (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) ${transformationRotation}`;
+    if (transform.location === "outer") {
+        switch (transform.destinationPlayerNumber) {
+            case 1:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.bottom - srcRect.bottom}px) ${transformationRotation}`;
+                break;
+            case 2:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.top - srcRect.top }px) ${transformationRotation}`;
+                break;
+            case 3:
+                transformation = `translate(${destRect.right - srcRect.left + (destRect.width / 2)}px, ${destRect.top - srcRect.top - (heightOffset / 2)}px) ${transformationRotation}`;
+                break;
+            case 4:
+                transformation = `translate(${destRect.left - srcRect.right - (destRect.width / 2)}px, ${destRect.top - srcRect.top - (heightOffset / 2)}px) ${transformationRotation}`;
+        }
+    } else {
+        switch (transform.destinationPlayerNumber) {
+            case 1:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.top - srcRect.top}px) ${transformationRotation}`;
+                break;
+            case 2:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.bottom - srcRect.bottom}px) ${transformationRotation}`;
+                break;
+            case 3:
+                transformation = `translate(${destRect.left - srcRect.right - (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.height / 2)}px) ${transformationRotation}`;
+                break;
+            case 4:
+                transformation = `translate(${destRect.right - srcRect.left + (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.height / 2)}px) ${transformationRotation}`;
+        }
     }
 
     return transformation;
+}
+
+function getTransformationForSide(transform: CardTransformation, srcRect: DOMRect, destRect: DOMRect) {
+
+    let widthOffset = 0;
+    let heightOffset = 0;
+
+    if (srcRect?.width > destRect?.width)
+        widthOffset = srcRect.width - destRect.width;
+    else
+        widthOffset = destRect.width - srcRect.width;
+
+    if (srcRect?.height > destRect?.height)
+        heightOffset = srcRect.height - destRect.height;
+    else
+        heightOffset = destRect.height - srcRect.height;
+
+    const sidePlayers = [3, 4];
+    const centerPlayers = [1, 2];
+    const rotate90 = centerPlayers.find((val) => val === transform.sourcePlayerNumber) &&
+        sidePlayers.find((val) => val === transform.destinationPlayerNumber) ||
+        sidePlayers.find((val) => val === transform.sourcePlayerNumber) &&
+        centerPlayers.find((val) => val === transform.destinationPlayerNumber);
+
+    const transformationRotation = rotate90 ? "rotate(90deg)" : "rotate(180deg)";
+
+    let transformation = '';
+
+    if (transform.location === "outer") {
+        switch (transform.destinationPlayerNumber) {
+            case 1:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.bottom - srcRect.bottom}px) ${transformationRotation}`;
+                break;
+            case 2:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.top - srcRect.top}px) ${transformationRotation}`;
+                break;
+            case 3:
+                transformation = `translate(${destRect.right - srcRect.left + (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) ${transformationRotation}`;
+                break;
+            case 4:
+                transformation = `translate(${destRect.left - srcRect.right - (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) ${transformationRotation}`;
+        }
+    } else {
+        switch (transform.destinationPlayerNumber) {
+            case 1:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.top - srcRect.top}px) ${transformationRotation}`;
+                break;
+            case 2:
+                transformation = `translate(${destRect.left - srcRect.left - widthOffset / 2}px, ${destRect.bottom - srcRect.bottom}px) ${transformationRotation}`;
+                break;
+            case 3:
+                transformation = `translate(${destRect.left - srcRect.right - (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) ${transformationRotation}`;
+                break;
+            case 4:
+                transformation = `translate(${destRect.right - srcRect.left + (destRect.width / 2)}px, ${destRect.top - srcRect.top - (srcRect.width / 2)}px) ${transformationRotation}`;
+        }
+    }
+
+    return transformation;
+
 }

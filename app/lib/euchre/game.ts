@@ -13,7 +13,7 @@ export function createEuchreGame(): EuchreGameInstance {
 
     let newGame = new EuchreGameInstance(player1, player2, player3, player4);
     newGame.currentTricks.push(new EuchreTrick());
-    newGame.deck = createShuffledDeck(3);
+    newGame.deck = createDummyCards(24);
     newGame.dealer = player1;
 
     return newGame;
@@ -24,7 +24,7 @@ export function getPlayerRotation(game: EuchreGameInstance): EuchrePlayer[] {
     const playerRotation = [1, 3, 2, 4];
     const availablePlayers = [game.player1, game.player2, game.player3, game.player4]
     const players: EuchrePlayer[] = [];
-    const indexOffset = (playerRotation.indexOf(game.dealer?.playerNumber ?? 1) + 1) % 4;
+    const indexOffset = (playerRotation.indexOf(game.currentPlayer?.playerNumber ?? 1) + 1) % 4;
 
     for (let i = 0; i < 4; i++) {
         const playerNumber = playerRotation[(i + indexOffset) % 4];
@@ -50,9 +50,9 @@ export function createShuffledDeck(shuffleCount: number) {
 
 export function createEuchreDeck(): Card[] {
 
-    const availableCards: CardValue[] = [{ value: "9" }, { value: "10" }, { value: "J" }, { value: "Q" }, { value: "K" }, { value: "A" },]
+    const availableCards: CardValue[] = ["9", "10", "J", "Q", "K", "A"];
     const deck: Card[] = [];
-    const suits: Suit[] = [{ suit: "♠" }, { suit: "♥" }, { suit: "♦" }, { suit: "♣" }];
+    const suits: Suit[] = ["♠", "♥", "♦", "♣"];
 
     for (let card = 0; card < availableCards.length; card++) {
         for (let suit = 0; suit < suits.length; suit++) {
@@ -63,10 +63,10 @@ export function createEuchreDeck(): Card[] {
     return deck;
 }
 
-export function createDummyCards() {
+export function createDummyCards(deckSize: number) {
     const retval: Card[] = [];
-    for (let i = 0; i < 5; i++)
-        retval.push(new Card({ suit: "♠" }, { value: "2" }));
+    for (let i = 0; i < deckSize; i++)
+        retval.push(new Card("♠", "2"));
 
     return retval;
 }
@@ -182,9 +182,9 @@ function getCardValue(card: EuchreCard, trump: Card): number {
 
     let retval = 0;
 
-    if (card.card.suit.suit === trump.suit.suit) {
+    if (card.card.suit === trump.suit) {
         retval = trumpValues.get(card.card.value) ?? 0;
-    } else if (card.card.value.value === "J" && card.card.color === trump.color) {
+    } else if (card.card.value === "J" && card.card.color === trump.color) {
         retval = (offsuitValues.get(card.card.value) ?? 0) + 200;
     } else {
         retval = (offsuitValues.get(card.card.value) ?? 0);
@@ -199,8 +199,4 @@ export function getPlayerAndCard(playerInfo: string): { number: number, index: n
 
     const retval = { number: parseInt(playerInfo.charAt(5)), index: parseInt(playerInfo.charAt(6)) };
     return retval;
-}
-
-export function determineCardToPlay() {
-
 }

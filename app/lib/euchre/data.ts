@@ -1,34 +1,24 @@
 import { createDummyCards, getPlayerRotation } from "./game";
 
-export const spade: string = "♠";
-export const heart: string = "♥";
-export const diamond: string = "♦";
-export const club: string = "♣";
-
-export type Suit = {
-    suit: "♠" | "♥" | "♦" | "♣",
-}
-
-export type CardValue = {
-    value: "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "?",
-}
+export type Suit = "♠" | "♥" | "♦" | "♣";
+export type CardValue = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "?";
 
 export const offsuitValues: Map<CardValue, number> = new Map([
-    [{ value: "9" }, 10],
-    [{ value: "10" }, 20],
-    [{ value: "J" }, 30],
-    [{ value: "Q" }, 40],
-    [{ value: "K" }, 50],
-    [{ value: "A" }, 60],
+    ["9", 10],
+    ["10", 20],
+    ["J", 30],
+    ["Q", 40],
+    ["K", 50],
+    ["A", 60],
 ]);
 
 export const trumpValues: Map<CardValue, number> = new Map([
-    [{ value: "9" }, 110],
-    [{ value: "10" }, 120],
-    [{ value: "J" }, 400],
-    [{ value: "Q" }, 130],
-    [{ value: "K" }, 140],
-    [{ value: "A" }, 150],
+    ["9", 110],
+    ["10", 120],
+    ["J", 400],
+    ["Q", 130],
+    ["K", 140],
+    ["A", 150],
 ]);
 
 export class EuchrePlayer {
@@ -44,7 +34,7 @@ export class EuchrePlayer {
         this.name = name;
         this.hand = hand;
         this.playerNumber = playerNumber;
-        this.placeholder = createDummyCards();
+        this.placeholder = createDummyCards(5);
     }
 
     get innerPlayerBaseId(): string {
@@ -58,6 +48,17 @@ export class EuchrePlayer {
     get playerBase(): string {
         return `player-base-${this.playerNumber}`;
     }
+
+    determineCardToPlay(flipCard: Card): BidResult {
+
+        return { orderTrump: false, loner:false, calledSuit: "♠"};
+    }
+}
+
+export interface BidResult {
+    orderTrump: boolean,
+    loner: boolean,
+    calledSuit: Suit | undefined,
 }
 
 export class Card {
@@ -71,7 +72,7 @@ export class Card {
     }
 
     get color(): "R" | "B" {
-        return this.suit.suit === "♠" || this.suit.suit === "♣" ? "B" : "R";
+        return this.suit === "♠" || this.suit === "♣" ? "B" : "R";
     }
 
     get dealId(): string {
@@ -84,7 +85,7 @@ export class PlayerHand {
 }
 
 export type EuchreSettings = {
-
+    shouldAnimate:boolean,
 }
 
 export class EuchreGameInstance {
@@ -117,12 +118,13 @@ export class EuchreGameInstance {
     resetForNewGame() {
         this.gameTricks = [];
         this.dealer = undefined;
+        this.deck = createDummyCards(24);
         this.resetForNewDeal();
     }
 
     resetForNewDeal() {
-        this.deck = [];
         this.kitty = [];
+        this.deck = createDummyCards(24);
         this.currentTricks = [];
         this.currentPlayer = undefined;
         this.maker = undefined;
@@ -169,13 +171,13 @@ export class EuchreGameInstance {
                 numberOfCards = i % 2 ? 5 - randomNum : randomNum;
 
             for (let j = 0; j < numberOfCards; j++) {
-                currentPlayer.hand.push(currentGame.deck[counter] ?? new Card({ suit: "♠" }, { value: "?" }));
+                currentPlayer.hand.push(currentGame.deck[counter] ?? new Card("♠", "?"));
                 counter++;
             }
         }
 
         while (counter < currentGame.deck.length) {
-            currentGame.kitty.push(currentGame.deck[counter] ?? new Card({ suit: "♠" }, { value: "?" }));
+            currentGame.kitty.push(currentGame.deck[counter] ?? new Card("♠", "?"));
             counter++;
         }
     }
