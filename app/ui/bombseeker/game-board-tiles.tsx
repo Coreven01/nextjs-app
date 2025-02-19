@@ -83,13 +83,13 @@ export default function GameBoardTiles({
                 const bombTile: TileValue = mapState.bombMap[row][col];
 
                 const keyVal = (row * state.columnCount) + col;
-                const isExposed = exposedTile.value === 'E' && bombTile.value !== "X";
-                const isFlagged = exposedTile.value === 'F' || exposedTile.value === '?';
-                const isGameOverBomb = gameLost.gameLost && bombTile.value === 'X' && gameLost.bombTile && gameLost.bombTile[0] === row && gameLost.bombTile[1] === col;
+                const isExposed = exposedTile === 'E' && bombTile !== "X";
+                const isFlagged = exposedTile === 'F' || exposedTile === '?';
+                const isGameOverBomb = gameLost.gameLost && bombTile === 'X' && gameLost.bombTile && gameLost.bombTile[0] === row && gameLost.bombTile[1] === col;
                 const clickedBomb = gameLost.gameLost && gameLost.bombTile && gameLost.bombTile[0] === row && gameLost.bombTile[1] === col
 
                 let incorrectFlag = false;
-                const displayValue: TileValue = { value: undefined };
+                let displayValue: TileValue = undefined;
 
                 if (gameLost.gameLost && gameLost.incorrectTiles?.length) {
                     for (const tile of gameLost.incorrectTiles)
@@ -98,23 +98,23 @@ export default function GameBoardTiles({
                 }
 
                 if (incorrectFlag)
-                    displayValue.value = "I";
+                    displayValue = "I";
                 else if (clickedBomb)
-                    displayValue.value = "T";
+                    displayValue = "T";
                 else if (isGameOverBomb)
-                    displayValue.value = "T";
+                    displayValue = "T";
                 else if (isExposed)
-                    displayValue.value = bombTile.value;
+                    displayValue = bombTile;
                 else if (isFlagged)
-                    displayValue.value = exposedTile.value;
-                else if (gameLost.gameLost && bombTile.value === "X")
-                    displayValue.value = "X";
+                    displayValue = exposedTile;
+                else if (gameLost.gameLost && bombTile === "X")
+                    displayValue = "X";
 
                 let isAdjacentTileHighlight = false;
 
                 if (adjacentTiles.length) {
                     for (const tile of adjacentTiles) {
-                        if (tile[0] === row && tile[1] === col && !mapState.exposedMap[row][col].value) {
+                        if (tile[0] === row && tile[1] === col && !mapState.exposedMap[row][col]) {
                             isAdjacentTileHighlight = true;
                             break;
                         }

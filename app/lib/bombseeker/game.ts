@@ -14,7 +14,7 @@ import { GameMapState } from "./gameMapReducer";
 
 /** Create a deep copy of the array of tile value arrays */
 function deepCopyTileValueArray(array: TileValue[][]): TileValue[][] {
-    return [...array.map(e => [...e.map(t => { const r: TileValue = { value: t.value }; return r; })])];
+    return [...array.map(e => [...e.map(t => { const r: TileValue = t; return r; })])];
 }
 
 /**
@@ -31,15 +31,15 @@ export function getNewExposedMap(
     const newExposedMap: TileValue[][] = deepCopyTileValueArray(mapState.exposedMap);
     let emptyAdjacentTiles: number[][] = [[selectedRow, selectedColumn]];
 
-    if (assignValue.value === 'E') {
+    if (assignValue === 'E') {
         emptyAdjacentTiles = getEmptyAdjacentTiles(selectedRow, selectedColumn, state, mapState, emptyAdjacentTiles);
 
         for (const emptyTile of emptyAdjacentTiles)
-            if (!newExposedMap[emptyTile[0]][emptyTile[1]].value)
-                newExposedMap[emptyTile[0]][emptyTile[1]].value = 'E';
+            if (!newExposedMap[emptyTile[0]][emptyTile[1]])
+                newExposedMap[emptyTile[0]][emptyTile[1]] = 'E';
     }
 
-    newExposedMap[selectedRow][selectedColumn].value = assignValue.value;
+    newExposedMap[selectedRow][selectedColumn] = assignValue;
 
     return newExposedMap;
 }
@@ -58,7 +58,7 @@ export function getEmptyAdjacentTiles(
     let newEmptyTiles = [...emptyTiles.map(e => [...e])];
 
     // exit if the bomb map contains a value.
-    if (mapState.bombMap[selectedRow][selectedColumn].value)
+    if (mapState.bombMap[selectedRow][selectedColumn])
         return newEmptyTiles;
 
     // tiles directly adjacent to the given row and column.
@@ -82,7 +82,7 @@ export function getEmptyAdjacentTiles(
             current[0] < state.rowCount &&
             current[1] >= 0 &&
             current[1] < state.columnCount &&
-            !mapState.exposedMap[current[0]][current[1]].value;
+            !mapState.exposedMap[current[0]][current[1]];
 
         if (tileIsValid) {
 
@@ -114,7 +114,7 @@ export function getEmptyAdjacentTiles(
 export function getDirectAdjacentTiles(row: number, column: number, state: GameState, mapState: GameMapState): number[][] {
 
     const adjacentTiles: number[][] = [];
-    const tileValue = parseInt(mapState.bombMap[row][column].value?.toString() ?? '-1', 10);
+    const tileValue = parseInt(mapState.bombMap[row][column]?.toString() ?? '-1', 10);
 
     if (tileValue >= 1 && tileValue <= 8) {
 
@@ -166,10 +166,10 @@ export function validateAndClickAjacentTiles(
         const rowVal = adjTile[0];
         const colVal = adjTile[1];
 
-        if (newExposedMap[rowVal][colVal].value === "?")
+        if (newExposedMap[rowVal][colVal] === "?")
             questionMarkFound = true;
 
-        if (newExposedMap[rowVal][colVal].value === "F")
+        if (newExposedMap[rowVal][colVal] === "F")
             flaggedCount++;
     }
 
@@ -178,8 +178,8 @@ export function validateAndClickAjacentTiles(
             const rowVal = adjTile[0];
             const colVal = adjTile[1];
 
-            if (newExposedMap[rowVal][colVal].value === undefined)
-                newExposedMap = getNewExposedMap(rowVal, colVal, state, { ...mapState, exposedMap: newExposedMap }, { value: 'E' });
+            if (newExposedMap[rowVal][colVal] === undefined)
+                newExposedMap = getNewExposedMap(rowVal, colVal, state, { ...mapState, exposedMap: newExposedMap }, 'E');
         }
     }
 
@@ -194,13 +194,13 @@ export function isGameWon(state: GameState, mapState: GameMapState): boolean {
             const exposedTile = mapState.exposedMap[row][col];
             const bombTile = mapState.bombMap[row][col];
 
-            if (exposedTile.value === '?')
+            if (exposedTile === '?')
                 return false;
 
-            if (exposedTile.value !== 'E' && exposedTile.value !== 'F')
+            if (exposedTile !== 'E' && exposedTile !== 'F')
                 return false;
 
-            if (exposedTile.value === 'F' && bombTile.value !== 'X')
+            if (exposedTile === 'F' && bombTile !== 'X')
                 return false;
         }
     }
@@ -226,12 +226,12 @@ export function isGameLost(state: GameState, mapState: GameMapState): GameLostPr
             const exposedTile = mapState.exposedMap[row][col];
             const bombTile = mapState.bombMap[row][col];
 
-            if (exposedTile.value === 'E' && bombTile.value === 'X') {
+            if (exposedTile === 'E' && bombTile === 'X') {
                 retval.gameLost = true;
                 retval.bombTile = [row, col];
             }
 
-            if (exposedTile.value === 'F' && bombTile.value !== 'X')
+            if (exposedTile === 'F' && bombTile !== 'X')
                 retval.incorrectTiles.push([row, col]);
         }
     }
@@ -249,7 +249,7 @@ export function getBombsRemaining(state: GameState, mapState: GameMapState): num
         for (let col = 0; col < state.columnCount; col++) {
             const exposedTile = mapState.exposedMap[row][col];
 
-            if (exposedTile.value === 'F')
+            if (exposedTile === 'F')
                 counter++;
         }
     }
@@ -272,8 +272,8 @@ export function createBombMap(state: GameState): TileValue[][] {
         throw new Error();
 
     const percentBombCover = Math.round(bombCount * 100 / maxBombCount);
-    const randomSetValue: TileValue = { value: 'X' };
-    const baseValue: TileValue = { value: undefined };
+    let randomSetValue: TileValue = 'X';
+    let baseValue: TileValue = undefined;
     let randomCounter = bombCount;
 
     let bombMap = create2DArray(rowCount, columnCount);
@@ -281,8 +281,8 @@ export function createBombMap(state: GameState): TileValue[][] {
 
     if (percentBombCover > 80) {
         randomCounter = maxBombCount - bombCount;
-        randomSetValue.value = undefined;
-        baseValue.value = 'X';
+        randomSetValue = undefined;
+        baseValue = 'X';
     }
 
     while (randomNumbers.size < randomCounter) {
@@ -295,9 +295,9 @@ export function createBombMap(state: GameState): TileValue[][] {
         for (let col = 0; col < columnCount; col++) {
             const temp = rowVal + col;
             if (randomNumbers.has(temp))
-                bombMap[row][col].value = randomSetValue.value;
+                bombMap[row][col] = randomSetValue;
             else
-                bombMap[row][col].value = baseValue.value;
+                bombMap[row][col] = baseValue;
         }
     }
 
@@ -316,7 +316,7 @@ export function setNumberValues(state: GameState, bombMap: TileValue[][]): TileV
     for (let row = 0; row < state.rowCount; row++) {
         const rows = [row - 1, row, row + 1];
         for (let col = 0; col < state.columnCount; col++) {
-            if (newBombMap[row][col].value === 'X')
+            if (newBombMap[row][col] === 'X')
                 continue;
 
             const cols = [col - 1, col, col + 1];
@@ -328,7 +328,7 @@ export function setNumberValues(state: GameState, bombMap: TileValue[][]): TileV
                     const colVal = cols[colRange];
 
                     if (rowVal >= 0 && rowVal < state.rowCount && colVal >= 0 && colVal < state.columnCount) {
-                        if (newBombMap[rowVal][colVal].value === 'X') {
+                        if (newBombMap[rowVal][colVal] === 'X') {
                             counter++;
                         }
                     }
@@ -336,9 +336,9 @@ export function setNumberValues(state: GameState, bombMap: TileValue[][]): TileV
             }
 
             if (counter)
-                newBombMap[row][col].value = counter;
+                newBombMap[row][col] = counter;
             else
-                newBombMap[row][col].value = undefined;
+                newBombMap[row][col] = undefined;
         }
     }
 
@@ -356,7 +356,7 @@ export function create2DArray(totalRows: number, totalColumns: number): TileValu
     for (let row = 0; row < totalRows; row++) {
         array2D[row] = [];
         for (let col = 0; col < totalColumns; col++) {
-            array2D[row][col] = { value: undefined };
+            array2D[row][col] = undefined;
         }
     }
 

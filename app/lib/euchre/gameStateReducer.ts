@@ -1,13 +1,25 @@
+import { EuchrePlayer } from "./data";
+
+interface PlayerValue {
+    player: EuchrePlayer,
+    value: boolean,
+}
+
 export interface GameState {
 
     /** Boolean value to identify if a game has yet been created. */
     hasGameStarted: boolean,
-    isAwaitingPlayerTurn: boolean,
-    isGameBidding: boolean,
     hasFirstBiddingPassed: boolean,
     hasSecondBiddingPassed: boolean,
-    isDetermineDealer: boolean,
-    shouldShowDeck: boolean,
+
+    /** Should show the game deck. Shown when animating dealing cards to users. */
+    shouldShowDeckImages: PlayerValue[],
+
+    /** Should show the images for cards for the player. This does not show the value of the cards, but the back of the card. */
+    shouldShowHandImages: PlayerValue[],
+
+    /** Should show the cards face up. */
+    shouldShowHandValues: PlayerValue[],
     areCardsDealt: boolean,
 }
 
@@ -22,10 +34,9 @@ export enum GameActionType {
 
 export const initialGameState: GameState = {
     hasGameStarted: false,
-    isAwaitingPlayerTurn: false,
-    isGameBidding: false,
-    isDetermineDealer: false,
-    shouldShowDeck: false,
+    shouldShowDeckImages: [],
+    shouldShowHandImages: [],
+    shouldShowHandValues: [],
     areCardsDealt: false,
     hasSecondBiddingPassed: false,
     hasFirstBiddingPassed: false,

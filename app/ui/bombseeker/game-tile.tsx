@@ -15,19 +15,16 @@ type Props = {
     onMouseLeave: MouseEventHandler<HTMLButtonElement> | undefined,
 }
 
-/** Represents a value for a button on the bomb map */
-export type TileValue = {
-
-    /** undefined: no value 
+/** Represents a value for a button on the bomb map 
+        * undefined: no value 
      *  F: button is flagged by the user.
      *  E: button/space is exposed. user clicked on the button and doesn't contain a bomb.
      *  X: button/space is a bomb.
      *  ?: User flagged the button as unknown and not to auto click.
      *  I: Tile is flagged incorrectly as bomb but is empty.
      *  T: Bomb tile that triggered game lost.
-    */
-    value: undefined | "X" | "F" | "E" | "?" | "I" | "T" | number,
-}
+*/
+export type TileValue = undefined | "X" | "F" | "E" | "?" | "I" | "T" | number;
 
 /**
  * Button associated with a bomb tile.
@@ -40,7 +37,6 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
 
     function getTileClass(tileValue: TileValue, highlight: boolean, exposed: boolean) {
 
-        //const tileSvg = " bg-[url('/tile.svg')] bg-no-repeat bg-center bg-contain";
         const tileBgColor = "bg-zinc-300";
         const tileDefault = "border border-black text-xl font-bold h-7 w-7 p-0 text-center";
         const tileExposed = "bg-white";
@@ -58,7 +54,7 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
         const tile8 = "text-gray-500 ";
         const defaultExposed = `${tileExposed} ${tileDefault}`;
 
-        switch (tileValue?.value) {
+        switch (tileValue) {
             case "X":
                 return `${tileDefault} ${tileBomb}`;
             case "T":
@@ -91,21 +87,21 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
     const classValue = getTileClass(displayValue, highlight, exposed);
     let value: React.ReactNode;
 
-    if (displayValue.value === "F")
+    if (displayValue === "F")
         value = <FlagIcon className='w-5 h-5 m-auto text-rose-500 scale-115' />;
-    else if (displayValue.value === "X" || displayValue.value === "T")
+    else if (displayValue === "X" || displayValue === "T")
         value = <FireIcon className='w-5 h-5 m-auto text-neutral-800 scale-115' />;
-    else if (displayValue.value === "I")
+    else if (displayValue === "I")
         value = (
             <>
-            <span className='relative'>
-                <FlagIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-rose-500 scale-115' />
-                <XMarkIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-black scale-[2]' />
-            </span>
+                <span className='relative'>
+                    <FlagIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-rose-500 scale-115' />
+                    <XMarkIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-black scale-[2]' />
+                </span>
             </>
         );
     else
-        value = displayValue.value?.toString();
+        value = displayValue?.toString();
 
     return (
         <button

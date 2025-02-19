@@ -9,7 +9,7 @@ export interface PlayerInfoState {
     centerInfo: React.ReactNode | undefined,
 }
 
-interface PlayerInfoAction {
+export interface PlayerInfoAction {
     type: PlayerInfoActionType,
     payload: PlayerInfoState,
 }

@@ -7,8 +7,8 @@ type Props = {
 
 export default function PlayerInfo({ player, game }: Props) {
 
-    const dealerInfo: React.ReactNode = player === game.dealer ? <div className="text-yellow-500">Dealer</div> : <div></div>
-    const tricksTaken = game.gameTricks.filter((t) => t.filter((t2) => t2.playerWon === player)).length;
+    const dealerInfo: React.ReactNode = player === game.dealer ? <div className="text-yellow-500">Dealer</div> : <div className="invisible">X</div>
+    //const tricksTaken = game.gameTricks.filter((t) => t.filter((t2) => t2.playerWon === player)).length;
 
     return (
         <>
@@ -17,7 +17,7 @@ export default function PlayerInfo({ player, game }: Props) {
                     {player.name} - Team: {player.team}
                 </div>
                 <div>
-                    Tricks {tricksTaken}/10
+                    Tricks {0}/10
                 </div>
                 {dealerInfo}
             </div>

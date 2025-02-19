@@ -22,7 +22,7 @@ export interface CardTransformOptions {
 }
 
 export type DealAnimation = {
-    setCardsToMove: (transformValues: CardTransformation[]) => void,
+    setCardsToMove: (transformValues: CardTransformation[]) => Promise<void>,
 }
 
 /** Effect to animate dealing a card. */

@@ -22,6 +22,29 @@ const baseCard: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
      x="1.2400337"
      y="1.3659784" />`;
 
+const baseCardSide: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="150"
+   height="100"
+   version="1.1"
+   id="svg4"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs4" />
+  <rect
+     width="97.771812"
+     height="147.51994"
+     rx="7"
+     fill="#ffffff"
+     stroke="#000000"
+     stroke-width="1.96118"
+     id="rect1"
+     x="1.3030159"
+     y="-148.4451"
+     transform="rotate(90)" />`;
+
 type TextData = {
    x: number,
    y: number,
@@ -52,35 +75,26 @@ const centerSvgVals = new Map<string, TextData>(
    ]
 );
 
-// const sideSvgVals = new Map<string, TextData>(
-//    [
-//       ["s1-1", { x: 22.598301, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s3-2", { x: 69.30864, y: 51.879185, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s1-2", { x: 22.598301, y: 52.126293, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s3-6", { x: -87.5177, y: -88.442505, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s2-4", { x: 46.144886, y: 79.056786, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s2-2", { x: 46.144886, y: 52.53109, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s2-3", { x: 46.144886, y: 63.469906, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s2-5", { x: -63.933369, y: -73.728767, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s2-7", { x: -63.933369, y: -104.54948, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s2-1", { x: 46.144886, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s1-4", { x: 22.598301, y: 78.546082, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s1-3", { x: 22.598301, y: 62.959206, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s1-5", { x: -40.386784, y: -73.218063, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s1-7", { x: -40.386784, y: -104.03879, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s-b", { x: -96.953743, y: -119.16161, fontsize: "17.8577px", transform: "scale(-0.97918076,-1.0212619)", style: "stroke-width:0.51022" }],
-//       ["v-b", { x: -94.352135, y: -134.91064, fontsize: "16.7383px", transform: "scale(-1.0040591,-0.99595731)", style: "stroke-width:0.836917" }],
-//       ["v-t", { x: 3.0543571, y: 18.051723, fontsize: "16.7383px", transform: "scale(1.0646857,0.93924431)", style: "stroke-width:0.836917" }],
-//       ["s-t", { x: 3.8648531, y: 29.276762, fontsize: "17.8577px", transform: "scale(0.97918076,1.0212619)", style: "stroke-width:0.51022" }],
-//       ["s3-4", { x: 69.30056, y: 78.021263, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s3-3", { x: 69.30056, y: 62.434391, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s3-5", { x: -87.089043, y: -72.693245, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s3-7", { x: -87.089043, y: -103.51397, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s3-1", { x: 69.691467, y: 33.860966, fontsize: "33.4842px", transform: "scale(0.93431809,1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s2-6", { x: -63.933369, y: -88.934372, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//       ["s1-6", { x: -40.386784, y: -88.892014, fontsize: "33.4842px", transform: "scale(-0.93431809,-1.0702993)", style: "stroke-width:0.956693" }],
-//    ]
-// );
+const sideSvgVals = new Map<string, TextData>(
+   [
+      ["s1-1", { x: 21.156734, y: -107.57671, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s1-2", { x: 21.156734, y: -78.576706, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s1-3", { x: 21.156734, y: -65.576706, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s1-4", { x: -38.156734, y: 67.811081, fontsize: "32px", transform: "rotate(-90)", style: "display:inline" }],
+      ["s1-5", { x: -38.156734, y: 39.811085, fontsize: "32px", transform: "rotate(-90)", style: "display:inline" }],
+      ["s2-1", { x: 43.156731, y: -107.57671, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s2-2", { x: 43.156731, y: -90.576714, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s2-3", { x: 43.181923, y: -63.012474, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s2-4", { x: -60.156731, y: 56.811081, fontsize: "32px", transform: "rotate(-90)", style: "display:inline" }],
+      ["s2-5", { x: -60.156731, y: 39.811085, fontsize: "32px", transform: "rotate(-90)", style: "display:inline" }],
+      ["s2-b", { x: 35.994072, y: -50.272022, fontsize: "72px", transform: "rotate(90)", style: "display:inline" }],
+      ["s3-1", { x: 65.156731, y: -107.57671, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s3-2", { x: 65.156731, y: -78.576706, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s3-3", { x: 65.156731, y: -65.576706, fontsize: "32px", transform: "rotate(90)", style: "display:inline" }],
+      ["s3-4", { x: -82.156731, y: 67.811081, fontsize: "32px", transform: "rotate(-90)", style: "display:inline" }],
+      ["s3-5", { x: -82.156731, y: 39.811085, fontsize: "32px", transform: "rotate(-90)", style: "display:inline" }],
+   ]
+);
 
 /** Map of locations which should be displayed on a card. Keyed on card value. */
 const cardSvgValues: Map<CardValue, string[]> = new Map([
@@ -104,12 +118,19 @@ const svgCenterCardValues: Map<string, TextData> = new Map([
    ["s-t", { x: 6.3028178, y: 33.939663, fontsize: "14px", transform: "", style: "display:inline" }],
    ["v-b", { x: -109.70619, y: -112.38538, fontsize: "20px", transform: "scale(-0.865,-1.155)", style: "display:inline;stroke-width:0.86509" }],
    ["v-t", { x: 5.433156, y: 18.29949, fontsize: "20px", transform: "scale(0.865,1.155)", style: "display:inline;stroke-width:0.86509" }],
-])
+]);
+
+const svgSideCardValues: Map<string, TextData> = new Map([
+   ["s-b", { x: -93.524651, y: 31.100758, fontsize: "14px", transform: "rotate(-90)", style: "display:inline" }],
+   ["s-t", { x: 6.3657999, y: -115.87142, fontsize: "14px", transform: "rotate(90)", style: "display:inline" }],
+   ["v-b", { x: -109.72823, y: 17.313169, fontsize: "19.9907px", transform: "matrix(0,-0.86540032,1.1555346,0,0,0)", style: "display:inline;stroke-width:0.86469" }],
+   ["v-t", { x: 5.5034223, y: -111.35554, fontsize: "19.9907px", transform: "matrix(0,0.86540032,-1.1555346,0,0,0)", style: "display:inline;stroke-width:0.86469" }],
+]);
 
 const svgCardColors = new Map<string, string>([
    ["R", "#EF4444"],
    ["B", "#000"],
-])
+]);
 
 /** Get dynamic svg for a playing card.
  * 
@@ -119,14 +140,15 @@ const svgCardColors = new Map<string, string>([
  */
 function getCardSvg(card: Card, location: "center" | "side"): string {
 
-   let retval = baseCard;
+   let retval = location === "center" ? baseCard : baseCardSide;
    const textValues = [];
    const imageKeys = cardSvgValues.get(card.value) ?? [];
    const imageColor = svgCardColors.get(card.color) ?? "#000";
+   const cardValues = location === "center" ? svgCenterCardValues : svgSideCardValues;
 
    for (const text of imageKeys) {
       let imageLocation: TextData | undefined;
-      imageLocation = location ? centerSvgVals.get(text) : centerSvgVals.get(text);
+      imageLocation = location === "center" ? centerSvgVals.get(text) : sideSvgVals.get(text);
 
       if (imageLocation) {
          const xml = getCardText(imageLocation, imageColor, card.suit);
@@ -134,10 +156,10 @@ function getCardSvg(card: Card, location: "center" | "side"): string {
       }
    }
 
-   for (const imageLocation of svgCenterCardValues) {
+   for (const imageLocation of cardValues) {
       if (imageLocation) {
-         let displayValue;
-         const xml = getCardText(imageLocation[1],
+         const xml = getCardText(
+            imageLocation[1],
             imageColor,
             imageLocation[0].charAt(0) === "s" ? card.suit : card.value);
          textValues.push(xml);

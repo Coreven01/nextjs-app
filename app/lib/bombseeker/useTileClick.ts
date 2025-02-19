@@ -58,7 +58,7 @@ export default function useTileClick(
         const exposedTile: TileValue | undefined = mapState.exposedMap.length ? mapState.exposedMap[row][column] : undefined;
 
         // prevent duplicate events from firing. Also prevent from being clicked if already flagged/exposed.
-        if (!shouldHandleMouseClick || exposedTile === undefined || exposedTile.value === 'E' || exposedTile.value === 'F' || exposedTile.value === "?") {
+        if (!shouldHandleMouseClick || exposedTile === 'E' || exposedTile === 'F' || exposedTile === "?") {
             event.preventDefault();
             handledMouseClick();
 
@@ -66,7 +66,7 @@ export default function useTileClick(
         }
 
         startTimer();
-        onPlay(getNewExposedMap(row, column, state, mapState, { value: 'E' }));
+        onPlay(getNewExposedMap(row, column, state, mapState, 'E'));
         handledMouseClick();
     };
 
@@ -76,19 +76,19 @@ export default function useTileClick(
     const handleTileRightClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => {
 
         // prevent duplicate events from firing. Prevent clicking if already exposed.
-        if (!shouldHandleMouseRightClick || mapState.exposedMap[row][column].value === 'E') {
+        if (!shouldHandleMouseRightClick || mapState.exposedMap[row][column] === 'E') {
             handledMouseRightClick();
             return;
         }
 
         startTimer();
 
-        const newVal: TileValue = { value: undefined };
+        let newVal: TileValue = undefined;
 
-        if (!mapState.exposedMap[row][column].value)
-            newVal.value = 'F';
-        else if (mapState.exposedMap[row][column].value === 'F')
-            newVal.value = '?';
+        if (!mapState.exposedMap[row][column])
+            newVal = 'F';
+        else if (mapState.exposedMap[row][column] === 'F')
+            newVal = '?';
 
         onPlay(getNewExposedMap(row, column, state, mapState, newVal));
         handledMouseRightClick();
@@ -116,7 +116,7 @@ export default function useTileClick(
 
         if (shouldHandleDoubleMouseUp && doubleMouseDownEvents.length > 1) {
 
-            const bombTileValue: number = parseInt(mapState.bombMap[row][column].value?.toString() ?? "0", 10);
+            const bombTileValue: number = parseInt(mapState.bombMap[row][column]?.toString() ?? "0", 10);
             if (bombTileValue) {
                 const newExposedMap = validateAndClickAjacentTiles(bombTileValue, row, column, state, mapState);
                 if (newExposedMap)
@@ -150,11 +150,11 @@ export default function useTileClick(
             const exposedValue: TileValue = mapState.exposedMap[row][column];
 
             // if the current tile is not yet exposed then ignore the double mouse down event.
-            if (exposedValue.value !== 'E')
+            if (exposedValue !== 'E')
                 return;
 
             const currentValue: TileValue = mapState.bombMap[row][column];
-            const tempValue = parseInt(currentValue.value?.toString() ?? "0", 10);
+            const tempValue = parseInt(currentValue?.toString() ?? "0", 10);
 
             if (tempValue >= 1 && tempValue <= 9) {
                 const adjacentTiles = getDirectAdjacentTiles(row, column, state, mapState);
@@ -162,7 +162,7 @@ export default function useTileClick(
                 if (adjacentTiles.length) {
                     for (const tile of adjacentTiles) {
                         const adjacentValue = mapState.exposedMap[tile[0]][tile[1]];
-                        if (adjacentValue.value === undefined || adjacentValue.value === 'F') {
+                        if (adjacentValue === undefined || adjacentValue === 'F') {
                             adjacentTilesToHighlight.push(tile);
                         }
                     }

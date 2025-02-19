@@ -1,25 +1,8 @@
 import { createDummyCards, getPlayerRotation } from "./game";
+import { determineBidLogic, determineCardToPlayLogic } from "./game-logic";
 
 export type Suit = "♠" | "♥" | "♦" | "♣";
 export type CardValue = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "?";
-
-export const offsuitValues: Map<CardValue, number> = new Map([
-    ["9", 10],
-    ["10", 20],
-    ["J", 30],
-    ["Q", 40],
-    ["K", 50],
-    ["A", 60],
-]);
-
-export const trumpValues: Map<CardValue, number> = new Map([
-    ["9", 110],
-    ["10", 120],
-    ["J", 400],
-    ["Q", 130],
-    ["K", 140],
-    ["A", 150],
-]);
 
 export class EuchrePlayer {
     name: string;
@@ -49,9 +32,15 @@ export class EuchrePlayer {
         return `player-base-${this.playerNumber}`;
     }
 
-    determineCardToPlay(flipCard: Card): BidResult {
+    determineBid(game: EuchreGameInstance, flipCard: Card, canNameSuit: boolean): BidResult {
 
-        return { orderTrump: false, loner:false, calledSuit: "♠"};
+        const result = determineBidLogic(game, flipCard, canNameSuit);
+        return result;
+    }
+
+    determineCardToPlay(game: EuchreGameInstance): Card {
+
+        return determineCardToPlayLogic(game);
     }
 }
 
@@ -84,8 +73,12 @@ export class PlayerHand {
 
 }
 
+export const initialGameSettings: EuchreSettings = {
+    shouldAnimate: true
+}
+
 export type EuchreSettings = {
-    shouldAnimate:boolean,
+    shouldAnimate: boolean,
 }
 
 export class EuchreGameInstance {
@@ -98,8 +91,9 @@ export class EuchreGameInstance {
     deck: Card[] = [];
     kitty: Card[] = [];
     dealer: EuchrePlayer | undefined;
-    currentTricks: EuchreTrick[] = [];
-    gameTricks: EuchreTrick[][] = [];
+    currentTrick: EuchreTrick = new EuchreTrick();
+    handTricks: EuchreTrick[] = [];
+    gameTricks: EuchreTrick[] = [];
     currentPlayer: EuchrePlayer | undefined;
     maker: EuchrePlayer | undefined;
     loner: boolean = false;
@@ -115,6 +109,10 @@ export class EuchreGameInstance {
         this.player4 = player4;
     }
 
+    get gamePlayers(): EuchrePlayer[] {
+        return [this.player1, this.player2, this.player3, this.player4];
+    }
+
     resetForNewGame() {
         this.gameTricks = [];
         this.dealer = undefined;
@@ -125,7 +123,7 @@ export class EuchreGameInstance {
     resetForNewDeal() {
         this.kitty = [];
         this.deck = createDummyCards(24);
-        this.currentTricks = [];
+        this.currentTrick = new EuchreTrick();
         this.currentPlayer = undefined;
         this.maker = undefined;
         this.loner = false;
@@ -133,6 +131,14 @@ export class EuchreGameInstance {
         this.bidNumber = 1;
         this.discard = undefined;
         this.cardDealCount = [];
+
+        const players = [this.player1, this.player2, this.player3, this.player4];
+
+        for (const player of players) {
+            player.hand = [];
+            player.playedCards = [];
+            player.placeholder = createDummyCards(5);
+        }
     }
 
     shallowCopy() {
@@ -140,7 +146,7 @@ export class EuchreGameInstance {
         game.deck = this.deck;
         game.kitty = this.kitty;
         game.dealer = this.dealer;
-        game.currentTricks = this.currentTricks;
+        game.currentTrick = this.currentTrick;
         game.currentPlayer = this.currentPlayer;
         game.loner = this.loner;
         game.trump = this.trump;
@@ -153,8 +159,13 @@ export class EuchreGameInstance {
     }
 
     dealCards() {
+
         const currentGame: EuchreGameInstance = this;
-        const players: EuchrePlayer[] = getPlayerRotation(currentGame);
+
+        if (!currentGame.dealer)
+            throw Error("Unable to deal cards. Dealer not found.");
+
+        const players: EuchrePlayer[] = getPlayerRotation(currentGame.gamePlayers, currentGame.dealer);
 
         const randomNum = Math.floor((Math.random() * 3)) + 1;
         let counter = 0;
@@ -186,6 +197,7 @@ export class EuchreGameInstance {
 export class EuchreTrick {
     playerWon: EuchrePlayer | undefined;
     cardsPlayed: EuchreCard[] = [];
+    round: number = 0
 }
 
 export class EuchreCard {
