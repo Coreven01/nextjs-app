@@ -1,12 +1,20 @@
+import { FadeOutProps } from "./useFadeOut";
 
+export interface PlayerInfoStateDetail {
+    id: string | undefined,
+    detail: React.ReactNode,
+    fadeOutId: string | undefined,
+    fadeOutDelay: 0 | 1 | 2 | 3 | 4 | 5,
+    fadeOutDuration: 0 | 1 | 2 | 3 | 4 | 5
+}
 export interface PlayerInfoState {
 
-    /** Boolean value to identify if a game has yet been created. */
-    player1Info: React.ReactNode | undefined,
-    player2Info: React.ReactNode | undefined,
-    player3Info: React.ReactNode | undefined,
-    player4Info: React.ReactNode | undefined,
-    centerInfo: React.ReactNode | undefined,
+    /** Values used to identify what information is dynamically shown in the center of the game. */
+    player1Info: PlayerInfoStateDetail,
+    player2Info: PlayerInfoStateDetail,
+    player3Info: PlayerInfoStateDetail,
+    player4Info: PlayerInfoStateDetail,
+    centerInfo: PlayerInfoStateDetail,
 }
 
 export interface PlayerInfoAction {
@@ -20,34 +28,38 @@ export enum PlayerInfoActionType {
     UPDATE_PLAYER3,
     UPDATE_PLAYER4,
     UPDATE_CENTER,
-    RESET_ALL,
+    SET_ALL,
 }
 
 export const initialPlayerInfoState: PlayerInfoState = {
-    player1Info: undefined,
-    player2Info: undefined,
-    player3Info: undefined,
-    player4Info: undefined,
-    centerInfo: undefined,
+    player1Info: { id: "state-1", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
+    player2Info: { id: "state-2", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
+    player3Info: { id: "state-3", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
+    player4Info: { id: "state=4", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
+    centerInfo: { id: "state-center", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
 };
 
-export function playerInfoStateReducer(state: PlayerInfoState, action: PlayerInfoAction) {
+export function playerInfoStateReducer(state: PlayerInfoState, action: PlayerInfoAction): PlayerInfoState {
 
     if (action.type === PlayerInfoActionType.UPDATE_PLAYER1) {
-        return { ...state, player1Info: action.payload.player1Info, };
+        return { ...state, player1Info: action.payload.player1Info };
     } else if (action.type === PlayerInfoActionType.UPDATE_PLAYER2) {
-        return { ...state, player2Info: action.payload.player2Info, };
-    } else if
-        (action.type === PlayerInfoActionType.UPDATE_PLAYER3) {
-        return { ...state, player3Info: action.payload.player3Info, };
-    } else if
-        (action.type === PlayerInfoActionType.UPDATE_PLAYER4) {
-        return { ...state, player4Info: action.payload.player4Info, };
-    } else if
-        (action.type === PlayerInfoActionType.UPDATE_CENTER) {
-        return { ...state, centerInfo: action.payload.centerInfo, };
-    } else if (action.type === PlayerInfoActionType.RESET_ALL) {
-        return { player1Info: undefined, player2Info: undefined, player3Info: undefined, player4Info: undefined, centerInfo: undefined };
+        return { ...state, player2Info: action.payload.player2Info };
+    } else if (action.type === PlayerInfoActionType.UPDATE_PLAYER3) {
+        return { ...state, player3Info: action.payload.player3Info };
+    } else if (action.type === PlayerInfoActionType.UPDATE_PLAYER4) {
+        return { ...state, player4Info: action.payload.player4Info };
+    } else if (action.type === PlayerInfoActionType.UPDATE_CENTER) {
+        return { ...state, centerInfo: action.payload.centerInfo };
+    } else if (action.type === PlayerInfoActionType.SET_ALL) {
+        return {
+            ...state
+            , player1Info: { ...action.payload.player1Info }
+            , player2Info: { ...action.payload.player2Info }
+            , player3Info: { ...action.payload.player3Info }
+            , player4Info: { ...action.payload.player4Info }
+            , centerInfo: { ...action.payload.centerInfo }
+        };
     }
     else {
         throw Error('Unknown action: ' + action.type);

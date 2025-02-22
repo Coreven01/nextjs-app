@@ -37,7 +37,7 @@ export default function EuchreGame() {
 
     // console.log("Euchre Game Render - Game state: ", gameState);
     // console.log("Euchre Game Render - Game settings: ", gameSettings);
-    console.log('players: ', game?.gamePlayers);
+    //console.log('players: ', game?.gamePlayers);
     return (
         <>
             {!game ?

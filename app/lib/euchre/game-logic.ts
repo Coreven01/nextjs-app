@@ -140,13 +140,26 @@ function getBidResultForSecondRound(game: EuchreGameInstance, flipCard: Card, ga
     if (!game?.currentPlayer)
         throw Error("Invalid player to determine card to play.");
 
+    let highScore = 0;
+    let bestSuit: Suit | undefined;
     let score = 0;
     const retval = { ...gameLogic };
+    const suits: Suit[] = ["♠", "♥", "♦", "♣"];
+    
+    for (const suit of suits.filter(s => s !== flipCard.suit)) {
+        const tempCard = new Card(suit, "2");
+        for (const card of game.currentPlayer.hand)
+            score += getCardValue(card, tempCard);
 
-    for (const card of game.currentPlayer.hand)
-        score += getCardValue(card, flipCard);
+        if (score > highScore)
+        {
+            highScore = score;
+            bestSuit = suit;
+        }
+    }
 
-    retval.handScore = 0;
+    retval.handScore = highScore;
+    retval.suitToCall = bestSuit;
 
     return retval;
 }
@@ -172,12 +185,16 @@ function determineTrickWon(trump: Card | undefined, trick: EuchreTrick): EuchreP
 }
 
 function getCardValue(card: Card, trump: Card): number {
+    return getCardValueBySuit(card, trump.suit, trump.color);
+}
+
+function getCardValueBySuit(card: Card, trumpSuit: Suit, trumpColor: "R" | "B") {
 
     let retval = 0;
 
-    if (card.suit === trump.suit) {
+    if (card.suit === trumpSuit) {
         retval = trumpValues.get(card.value) ?? 0;
-    } else if (card.value === "J" && card.color === trump.color) {
+    } else if (card.value === "J" && card.color === trumpColor) {
         retval = LEFT_BOWER_VALUE;
     } else {
         retval = (offsuitValues.get(card.value) ?? 0);
@@ -185,6 +202,7 @@ function getCardValue(card: Card, trump: Card): number {
 
     return retval;
 }
+
 
 function getQualifyingScore() {
     return 600;
@@ -223,16 +241,3 @@ export function determineCardToPlayLogic(game: EuchreGameInstance): Card {
 
 //     return
 // }
-
-export function logBidResult(game: EuchreGameInstance, result: BidResult) {
-
-    const logValue = {
-        dealer: game.dealer?.name,
-        currentPlayer: game.currentPlayer?.name,
-        playerHand: game.currentPlayer?.hand.map(c => `${c.value} - ${c.suit}`),
-        flipCard: `${game.trump?.value} - ${game.trump?.suit}`,
-        bidResult: result
-    }
-
-    console.table(logValue);
-}

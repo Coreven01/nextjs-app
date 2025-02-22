@@ -2,16 +2,21 @@
 
 import CenterInfo from "@/app/ui/euchre/center-info";
 import UserInfo from "@/app/ui/euchre/user-info";
+import Image from 'next/image';
 import { useEffect, useReducer, useState } from "react";
 import { BidResult, Card, EuchreGameInstance, EuchrePlayer, EuchreSettings, initialGameSettings } from "./data";
-import { initialPlayerInfoState, PlayerInfoAction, PlayerInfoActionType, PlayerInfoState, playerInfoStateReducer } from "./playerInfoReducer";
+import { initialPlayerInfoState, PlayerInfoAction, PlayerInfoActionType, PlayerInfoState, PlayerInfoStateDetail, playerInfoStateReducer } from "./playerInfoReducer";
 import { GameActionType, GameState, gameStateReducer, initialGameState } from "./gameStateReducer";
 import { CardTransformation, DealAnimation, useMoveCard } from "./useMoveCard";
 import { createEuchreGame, createShuffledDeck, dealCardsForNewDealer, getPlayerAndCard, getPlayerRotation, playGameCard } from "./game";
 import { TIMEOUT_MODIFIER } from "./constants";
 import { useRemoveTransformations } from "./actions";
+import { getEncodedCardSvg } from "./card-data";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
 import { useFadeOut } from "./useFadeOut";
-import { logBidResult } from "./game-logic";
+import { logBidResult, logConsole } from "./util";
+
+const FLIPPED_CARD_ID = 'flipped-card';
 
 export function useEuchreGame() {
 
@@ -70,6 +75,8 @@ export function useEuchreGame() {
     }, [shouldBeginPlay]);
     //#endregion
 
+    //#region Game Initiallization
+
     /** Reset game and state to defaults. */
     const reset = (resetGameState: boolean) => {
 
@@ -86,8 +93,7 @@ export function useEuchreGame() {
                 });
         }
 
-        dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.RESET_ALL, payload: initialPlayerInfoState });
-        setElementForFadeOut('');
+        dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerInfoState });
         setShouldPromptBid(false);
         setShouldPromptDiscard(false);
     }
@@ -108,8 +114,6 @@ export function useEuchreGame() {
     /** Initialize the game with shuffled deck and set player 1 for deal. */
     const initDeckForInitialDeal = () => {
 
-        console.info("Begin initDeckForInitialDeal");
-
         const newGame = game?.shallowCopy();
 
         if (!newGame)
@@ -119,27 +123,20 @@ export function useEuchreGame() {
         newGame.currentPlayer = newGame.player1;
         newGame.deck = createShuffledDeck(5);
 
-        const newGameState: GameState = { 
-            ...gameState, 
-            hasGameStarted: true, 
-            shouldShowDeckImages: gameSettings.shouldAnimate ? [ {player: newGame.player1, value: true}] : [], 
-            shouldShowHandImages: !gameSettings.shouldAnimate ? newGame.gamePlayers.map(p => { return {player: p, value: true }}) : [],
-            shouldShowHandValues: []
-        };
+        const newGameState: GameState = getGameStateForInitialDeal(gameState, gameSettings, newGame);
 
         dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: newGameState });
-        //setGame(newGame);
-
-        //setShouldDealForDealer((prev) => !prev);
+        setGame(newGame);
+        setShouldDealForDealer((prev) => !prev);
     }
+
+    //#endregion
 
     /**
      * Deal cards to determine who the initial dealer is for a new game.
      * First Jack dealt will be the dealer of the game.
      */
     const beginDealCardsForDealer = async () => {
-
-        console.info("Begin beginDealCardsForDealer");
 
         if (!game?.deck)
             throw Error("Game deck not found.");
@@ -157,20 +154,18 @@ export function useEuchreGame() {
         newGame.dealer = newDealerResult.newDealer;
         newGame.currentPlayer = newDealerResult.newDealer;
 
+        // animate cards being dealt to users.
         if (gameSettings.shouldAnimate && originalDealer && !shouldCancelGame)
             await animateForInitialDeal(newDealerResult.transformations, newGame, originalDealer);
 
-        // const newGameState: GameState = { ...gameState, hasGameStarted: true, shouldShowDeckImages: false };
-        // newGame.gamePlayers.filter(p => p.human).length === 0 ?  newGame.gamePlayers.map(p => { return {player: p, value: true }}) : [],
-        // setGame(newGame);
-        // dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: newGameState });
-        // setShouldDealHand((prev) => !prev);
+        setGame(newGame);
+        setShouldDealHand((prev) => !prev);
     }
 
-    /** Shuffle and deal cards for regular game play. */
+    /** Shuffle and deal cards for regular game play. Starts the bidding process to determine trump. */
     const shuffleAndDealHand = async () => {
 
-        console.info("Begin shuffleAndDealHand");
+        logConsole("Begin shuffleAndDealHand");
 
         const newGame = game?.shallowCopy();
 
@@ -178,44 +173,36 @@ export function useEuchreGame() {
             throw Error("Game not found.");
 
         if (!newGame.dealer)
-            throw Error("Game not found.");
-
-        const newGameState = { ...gameState, shouldShowDeck: true };
-
-        // reset variables to prevent user interaction.
-        dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: { ...newGameState } });
+            throw Error("Dealer not found.");
 
         const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
-        newGame.deck = createShuffledDeck(3);
+        newGame.deck = createShuffledDeck(5);
         newGame.dealCards();
+        newGame.verifyDealtCards();
         newGame.currentPlayer = rotation[0];
         newGame.trump = newGame.kitty[0];
 
         if (gameSettings.shouldAnimate) {
             await animateDealCardsForHand(newGame, { setCardsToMove });
-
-            // pause for animation to finish.
-            await new Promise((resolve) => setTimeout(resolve, 500 * TIMEOUT_MODIFIER));
+            await new Promise((resolve) => setTimeout(resolve, 500));     // pause for animation to finish.
         }
 
-        // dispatchUpdateGameState(
-        //     {
-        //         type: GameActionType.UPDATE_ALL,
-        //         payload: {
-        //             ...newGameState,
-        //             shouldShowDeckImages: false,
-        //             areCardsDealt: true,
-        //             hasFirstBiddingPassed: false,
-        //             hasSecondBiddingPassed: false
-        //         }
-        //     });
+        // used for debugging 
+        const showAllCards = newGame.gamePlayers.filter(p => !p.human).length === 4;
+        const newGameState: GameState = {
+            ...gameState,
+            areCardsDealt: true,
+            hasFirstBiddingPassed: false,
+            hasSecondBiddingPassed: false,
+            shouldShowHandValues: showAllCards ? newGame.gamePlayers.map(p => { return { player: p, value: true } }) : [],
+        };
 
+        playerInfoState.centerInfo.detail = getFaceUpCard(FLIPPED_CARD_ID, newGame.trump); // display trump card for bidding in the center of the table.
+        dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: newGameState });
         setGame(newGame);
         dispatchUpdatePlayerInfoState({
             type: PlayerInfoActionType.UPDATE_CENTER,
-            payload: {
-                ...playerInfoState, centerInfo: <CenterInfo id={'test'} > {`display face up jack.`}</CenterInfo>
-            }
+            payload: { ...playerInfoState }
         });
 
         setShouldBeginBid((prev) => !prev);
@@ -224,7 +211,7 @@ export function useEuchreGame() {
     /** Prompt each player if they choose to order trump/pick suit after initial deal. */
     const bidForTrump = async () => {
 
-        //console.info("Begin bidForTrump - Player: ", game?.currentPlayer);
+        logConsole("Begin bidForTrump - Player: ", game?.currentPlayer);
 
         const newGame = game?.shallowCopy();
 
@@ -243,26 +230,26 @@ export function useEuchreGame() {
         }
 
         if (newGame.currentPlayer?.human) {
-            // Show prompt window for choosing trump or passing for human player.
-            setShouldPromptBid(true);
+            setShouldPromptBid(true); // Show prompt window for choosing trump or passing for human player.
         } else {
             const computerChoice = newGame.currentPlayer.determineBid(newGame, newGame.trump, gameState.hasFirstBiddingPassed);
             logBidResult(newGame, computerChoice);
-            await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
+            await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER)); // short delay to indicate the computer is making a decision.
 
             handleBidResult(computerChoice);
         }
     }
 
-    /** */
+    /** Submit the resulting bid from user input. */
     const handleBidSubmit = (result: BidResult) => {
         handleBidResult(result);
         setShouldPromptBid(false);
     }
 
+    /** Modify the game state depending on if the user named trump or passed. */
     const handleBidResult = (result: BidResult) => {
 
-        //console.info("Begin handleBidResult - Player: ", game?.currentPlayer, " State: ", gameState);
+        logConsole("Begin handleBidResult - Player: ", game?.currentPlayer, " State: ", gameState);
 
         const newGame = game?.shallowCopy();
 
@@ -276,9 +263,9 @@ export function useEuchreGame() {
         const roundFinished = newGame.dealer === newGame.currentPlayer;
         const firstRound = !newGameState.hasFirstBiddingPassed;
 
-        if (result.orderTrump && firstRound) {
-            console.log('todo: ordered trump');
-        } else if (result.calledSuit && !firstRound) {
+        if (result.orderTrump && firstRound) { // player indicated that the dealer should pick up the flipped card for trump.
+            orderTrumpByCard(newGame.currentPlayer, result)
+        } else if (result.calledSuit && !firstRound) { // player named trump by suit.
             orderTrumpBySuit(newGame.currentPlayer, result);
         } else { // player passed
             if (roundFinished) {
@@ -286,50 +273,25 @@ export function useEuchreGame() {
                 newGameState.hasSecondBiddingPassed = !firstRound;
             }
 
-            const newPlayerInfoState = getUserStateFromInfo("id-pass", newGame.currentPlayer, "Pass")
+            const playerElementId = `player-${newGame.currentPlayer.playerNumber}-bid-${firstRound ? 1 : 2}`;
+            const newPlayerInfoState = getPlayerStateForBidding(playerElementId, newGame.currentPlayer, "p", playerInfoState)
             const rotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
             newGame.currentPlayer = rotation[0];
+
+            if (roundFinished) {
+                setElementForFadeOut(FLIPPED_CARD_ID, 1, 2); // hide the flipped card if all users passed the first round.
+            }
 
             dispatchUpdatePlayerInfoState(newPlayerInfoState);
             dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: { ...newGameState } });
             setGame(newGame);
-            setShouldBeginBid(prev => !prev);
+            setShouldBeginBid(prev => !prev); // begin the bidding process again for the next user in the rotation.
         }
     }
 
-    const getUserStateFromInfo = (id: string, player: EuchrePlayer, info: string): PlayerInfoAction => {
-
-        let actionType: PlayerInfoActionType = PlayerInfoActionType.UPDATE_CENTER;
-        let payload: PlayerInfoState;
-
-        switch (player.playerNumber) {
-            case 1:
-                actionType = PlayerInfoActionType.UPDATE_PLAYER1;
-                payload = { ...playerInfoState, player1Info: <UserInfo id={id} >{info}</UserInfo> }
-                break;
-            case 2:
-                actionType = PlayerInfoActionType.UPDATE_PLAYER2;
-                payload = { ...playerInfoState, player2Info: <UserInfo id={id} >{info}</UserInfo> }
-                break;
-            case 3:
-                actionType = PlayerInfoActionType.UPDATE_PLAYER3;
-                payload = { ...playerInfoState, player3Info: <UserInfo id={id} >{info}</UserInfo> }
-                break;
-            case 4:
-                actionType = PlayerInfoActionType.UPDATE_PLAYER4;
-                payload = { ...playerInfoState, player4Info: <UserInfo id={id} >{info}</UserInfo> }
-                break;
-        }
-        const newState = {
-            type: actionType,
-            payload: payload
-        }
-
-        return newState;
-    }
-
+    /** All players passed during the bidding process. Re-initialize for deal for the next user in the rotation.  */
     const handlePassDeal = () => {
-        console.log("all passed. deal passed.");
+        logConsole("All players passed first and second round. Update state to pass the deal to the next user.");
 
         const newGame = game?.shallowCopy();
 
@@ -342,26 +304,45 @@ export function useEuchreGame() {
 
         reset(false);
         setGame(newGame);
-        // dispatchUpdateGameState(
-        //     {
-        //         type: GameActionType.UPDATE_ALL,
-        //         payload: {
-        //             ...gameState,
-        //             shouldShowDeckImages: false,
-        //             hasFirstBiddingPassed: false,
-        //             hasSecondBiddingPassed: false,
-        //             areCardsDealt: false,
-        //         }
-        //     });
+        dispatchUpdateGameState(
+            {
+                type: GameActionType.UPDATE_ALL,
+                payload: getGameStateForInitialDeal(gameState, gameSettings, newGame)
+            });
 
         setShouldDealHand((prev) => !prev);
     }
 
+    /** Prompt the user for discard if the flipped card is ordered up. */
     const promptForDiscard = () => {
 
     }
 
+    /** Player declared trump by suit during the second round of bidding. Update the state and begin play for tricks. */
+    const orderTrumpByCard = (maker: EuchrePlayer, result: BidResult) => {
+
+        logConsole('todo: ordered trump by flip card.', ' maker: ', maker.name);
+
+        const newGame = game?.shallowCopy();
+
+        if (!newGame)
+            throw Error("Game not found - Order Trump.");
+
+        if (!newGame.dealer)
+            throw Error("Dealer not found - Order Trump.");
+
+        newGame.maker = maker;
+        const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
+
+        newGame.currentPlayer = rotation[0];
+        setGame(newGame);
+        setShouldBeginPlay(prev => !prev);
+    }
+
+    /** Player declared trump by suit during the second round of bidding. Update the state and begin play for tricks. */
     const orderTrumpBySuit = (maker: EuchrePlayer, result: BidResult) => {
+
+        logConsole('todo: ordered trump by suit. suit:', result.calledSuit, ' maker: ', maker.name);
 
         const newGame = game?.shallowCopy();
 
@@ -384,20 +365,14 @@ export function useEuchreGame() {
         setShouldBeginPlay(prev => !prev);
     }
 
-    const displayFlippedCard = () => {
+    const orderTrump = (maker: EuchrePlayer, trumpCard: Card, loner:boolean, namedBySuit: boolean) => {
 
-        // if (!game?.dealer)
-        //     throw Error("Game not found.");
-
-        // const info = <CenterInfo>Test</CenterInfo>;
-        // const dealerPlayerNumber = game.dealer.playerNumber ?? 0;
-
-        // dispatchUpdatePlayerInfo({ type: PlayerInfoActionType.UPDATE_PLAYER1, payload: { ...playerInfoState, player1Info: info } });
     }
 
+    /** Regualr play for the game for winning tricks. Each player will play a card to determine the winner of the trick. */
     const playGame = async () => {
 
-        console.info("Begin playGame - Player: ", game?.currentPlayer);
+        logConsole("Begin playGame - Player: ", game?.currentPlayer);
 
         const newGame = game?.shallowCopy();
 
@@ -419,37 +394,37 @@ export function useEuchreGame() {
         }
 
         if (newGame.currentPlayer?.human) {
-            // Show prompt window for choosing trump or passing for human player.
-            //setShouldPromptBid(true);
-            // wait for player selection
+ 
         } else {
-            const computerChoice = newGame.currentPlayer.determineCardToPlay(newGame);
-            await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
-            newGame.currentTrick.cardsPlayed
+            //const computerChoice = newGame.currentPlayer.determineCardToPlay(newGame);
+            //await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
+            //newGame.currentTrick.cardsPlayed
         }
-
     }
 
-    const handlePlayCard = async (src: string, dest: string, player: number) => {
+    const handlePlayCard = async (src: string, dest: string, card:Card) => {
 
-         if (!game)
+        if (!game)
             throw Error("Game not found - Play card.");
 
         // setPaused(true);
         // alert(src + dest);
         // //setPlayElements(src, dest, player);
 
-         const { playerNumber, index } = getPlayerAndCard(src);
+        const { playerNumber, index } = getPlayerAndCard(src);
 
-         const newGame = playGameCard(playerNumber, index, game);
+        const newGame = playGameCard(playerNumber, index, game);
 
-         if (!newGame)
+        if (!newGame)
             alert('unable to play card.');
         // await new Promise((resolve) => setTimeout(resolve, 500));
 
         // setPaused(false);
     }
 
+    //#region Animation - can be enabled/disabled by game settings.
+
+    /** */
     const animateForInitialDeal = async (transformations: CardTransformation[][], game: EuchreGameInstance, originalDealer: EuchrePlayer) => {
 
         //#region Animation to return cards to dealer, then pass cards to new dealer.
@@ -471,14 +446,14 @@ export function useEuchreGame() {
         await new Promise((resolve) => setTimeout(resolve, 50 * TIMEOUT_MODIFIER));
         const centerElementName = 'center-info-div'
 
-        dispatchUpdatePlayerInfoState({
-            type: PlayerInfoActionType.UPDATE_CENTER,
-            payload: {
-                ...playerInfoState, centerInfo: <CenterInfo id={centerElementName} > {`Dealer: ${game.currentPlayer?.name}`}</CenterInfo>
-            }
-        });
+        // dispatchUpdatePlayerInfoState({
+        //     type: PlayerInfoActionType.UPDATE_CENTER,
+        //     payload: {
+        //         ...playerInfoState, centerInfo: <CenterInfo id={centerElementName} > {`Dealer: ${game.currentPlayer?.name}`}</CenterInfo>
+        //     }
+        // });
 
-        setElementForFadeOut(centerElementName);
+        // setElementForFadeOut(centerElementName, 2, 2);
         if (shouldCancelGame) return;
 
         await new Promise((resolve) => setTimeout(resolve, 750 * TIMEOUT_MODIFIER));
@@ -528,6 +503,9 @@ export function useEuchreGame() {
 
         await setCardsToMove(transformValues);
     }
+
+    //#endregion
+
 
     const handleSettingsChange = (settings: EuchreSettings) => {
         setSettings(settings);
@@ -615,13 +593,72 @@ const animateDealCardsForHand = async (game: EuchreGameInstance, animate: DealAn
     await animate.setCardsToMove(transformations);
 }
 
-// const getFaceUpCard = (card: Card) => {
-//     return (<Image
-//         id={`trump-bid`}
-//         className={`contain absolute left-auto`}
-//         quality={100}
-//         width={75}
-//         height={112}
-//         src={getEncodedCardSvg(card, "center")}
-//         alt="Game Card" />);
-// }
+const getFaceUpCard = (id: string, card: Card) => {
+    return (
+        <CenterInfo id={id} className="flex items-center justify-center" >
+            <Image
+                className={`contain`}
+                quality={100}
+                width={75}
+                height={112.5}
+                src={getEncodedCardSvg(card, "center")}
+                alt="Game Card" />
+        </CenterInfo>);
+}
+
+/** Return a new state to provide a visual element that the user either passed or ordered trump. */
+const getPlayerStateForBidding = (id: string, player: EuchrePlayer, info: "p" | "o", playerInfoState: PlayerInfoState): PlayerInfoAction => {
+
+    let detail: PlayerInfoStateDetail;
+    const newAction: PlayerInfoAction = { type: PlayerInfoActionType.UPDATE_PLAYER1, payload: { ...playerInfoState } };
+    const icon: React.ReactNode = info === "p" ? <XCircleIcon className="max-w-8 max-h-8 min-h-6" /> : <CheckCircleIcon className="max-w-8 max-h-8 min-h-6" />;
+    const messageDetail = info === "p" ? "Pass" : "Pick Up";
+    const infoDetail = <UserInfo><div className="flex gap-2 items-center">{icon}{messageDetail}</div></UserInfo>;
+
+    switch (player.playerNumber) {
+        case 1:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER1;
+            detail = newAction.payload.player1Info
+            break;
+        case 2:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER2;
+            detail = newAction.payload.player2Info
+            break;
+        case 3:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER3;
+            detail = newAction.payload.player3Info
+            break;
+        case 4:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER4;
+            detail = newAction.payload.player4Info
+            break;
+    }
+
+    if (detail) {
+        detail.id = id;
+        detail.detail = infoDetail;
+        detail.fadeOutId = id;
+        detail.fadeOutDelay = 1;
+        detail.fadeOutDuration = 1;
+
+        return newAction;
+    }
+
+    throw Error("Unable to update player info state");
+}
+
+const getGameStateForInitialDeal = (gameState: GameState, settings: EuchreSettings, game: EuchreGameInstance) => {
+
+    const newGameState: GameState = {
+        ...gameState,
+        hasGameStarted: true,
+        shouldShowDeckImages: settings.shouldAnimate ? [{ player: game.player1, value: true }] : [],
+        shouldShowHandImages: !settings.shouldAnimate ? game.gamePlayers.map(p => { return { player: p, value: true } }) : [],
+        shouldShowHandValues: [],
+        hasFirstBiddingPassed: false,
+        hasSecondBiddingPassed: false,
+        areCardsDealt: false,
+    };
+
+    return newGameState;
+}

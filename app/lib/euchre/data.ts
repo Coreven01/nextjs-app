@@ -32,6 +32,7 @@ export class EuchrePlayer {
         return `player-base-${this.playerNumber}`;
     }
 
+    /** Routine to determine if the computer should indicate if the flipped card should be picked up, or should name suit. */ 
     determineBid(game: EuchreGameInstance, flipCard: Card, canNameSuit: boolean): BidResult {
 
         const result = determineBidLogic(game, flipCard, canNameSuit);
@@ -191,6 +192,19 @@ export class EuchreGameInstance {
             currentGame.kitty.push(currentGame.deck[counter] ?? new Card("♠", "?"));
             counter++;
         }
+    }
+
+    verifyDealtCards() {
+
+        const allCardsDealt = [this.player1.hand, this.player2.hand, this.player3.hand, this.player4.hand, this.kitty].flat();
+
+        if (allCardsDealt.length != 24)
+            throw Error ("Verify failed. Invalid card count");
+
+        const tempSet = new Set<string>([ ...allCardsDealt.map(c => `${c.value}${c.suit}`)]);
+
+        if (tempSet.size != 24)
+            throw Error ("Verify failed. Invalid card count");
     }
 }
 

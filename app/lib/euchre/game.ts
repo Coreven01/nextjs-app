@@ -24,14 +24,16 @@ export function createEuchreGame(): EuchreGameInstance {
     return newGame;
 }
 
+/** Get the rotation of players relative to the given player. */
 export function getPlayerRotation(players: EuchrePlayer[], relativePlayer: EuchrePlayer): EuchrePlayer[] {
 
+    const playerCount = players.length;
     const playerRotation = [1, 3, 2, 4];
     const returnRotation: EuchrePlayer[] = [];
-    const indexOffset = (playerRotation.indexOf(relativePlayer.playerNumber) + 1) % 4;
+    const indexOffset = (playerRotation.indexOf(relativePlayer.playerNumber) + 1) % playerCount;
 
-    for (let i = 0; i < 4; i++) {
-        const playerNumber = playerRotation[(i + indexOffset) % 4];
+    for (let i = 0; i < playerCount; i++) {
+        const playerNumber = playerRotation[(i + indexOffset) % playerCount];
         const player = players.filter(p => p.playerNumber === playerNumber);
         if (player?.length)
             returnRotation.push(player[0]);
@@ -90,8 +92,12 @@ export function shuffleDeck(deck: Card[]): Card[] {
         if (randomNumbers.length > deckSize - 5) {
             const remainingIndexes = validIndexes.filter(val => !randomNumbers.includes(val));
 
-            if (remainingIndexes.length === 1)
-                randomNumbers.push(remainingIndexes[0]);
+            if (remainingIndexes.length === 2)
+            {
+                const lastTwoIndexes = [randomNum % 2, (randomNum + 1) % 2];
+                randomNumbers.push(remainingIndexes[lastTwoIndexes[0]]);
+                randomNumbers.push(remainingIndexes[lastTwoIndexes[1]]);
+            }
             else {
                 randomNum = Math.floor(Math.random() * (remainingIndexes.length - 1));
                 randomNumbers.push(remainingIndexes[randomNum]);

@@ -1,0 +1,23 @@
+import { BidResult, EuchreGameInstance } from "./data";
+
+const ENABLE_LOGGING = true;
+
+export function logBidResult(game: EuchreGameInstance, result: BidResult) {
+
+    if (!ENABLE_LOGGING) return;
+
+    const logValue = {
+        dealer: game.dealer?.name,
+        currentPlayer: game.currentPlayer?.name,
+        playerHand: game.currentPlayer?.hand.map(c => `${c.value} - ${c.suit}`),
+        flipCard: `${game.trump?.value} - ${game.trump?.suit}`,
+        bidResult: result
+    }
+
+    console.table(logValue);
+}
+
+export function logConsole(message: any, ...params: any[]) {
+    if (!ENABLE_LOGGING) return;
+    console.log(message, params);
+}
