@@ -61,47 +61,31 @@ export function getEmptyAdjacentTiles(
     if (mapState.bombMap[selectedRow][selectedColumn])
         return newEmptyTiles;
 
-    // tiles directly adjacent to the given row and column.
-    const adj: number[][] = [
-        [selectedRow - 1, selectedColumn],
-        [selectedRow + 1, selectedColumn],
-        [selectedRow, selectedColumn - 1],
-        [selectedRow, selectedColumn + 1],
-        [selectedRow - 1, selectedColumn - 1],
-        [selectedRow + 1, selectedColumn - 1],
-        [selectedRow + 1, selectedColumn + 1],
-        [selectedRow - 1, selectedColumn + 1]
-    ];
+    // tiles directly adjacent to the given row and column, excluding the given row/column tile.
+    const adjTiles: number[][] = getAdjacentTilesArray(selectedRow, selectedColumn, state);
 
-    // iterate through the 8 adjacent tiles directly top, bottom, left, right, and diagnals.
-    for (let i = 0; i < 8; i++) {
-        const current = adj[i];
+    // iterate through the adjacent tiles.
+    for (let i = 0; i < adjTiles.length; i++) {
+        const currentTile = adjTiles[i];
 
-        // check to make sure the tile exists in the grid and the tile is not yet exposed.
-        const tileIsValid = current[0] >= 0 &&
-            current[0] < state.rowCount &&
-            current[1] >= 0 &&
-            current[1] < state.columnCount &&
-            !mapState.exposedMap[current[0]][current[1]];
+        // check to make sure the tile is not yet exposed/flagged.
+        const tileIsValid = !mapState.exposedMap[currentTile[0]][currentTile[1]];
 
         if (tileIsValid) {
-
             let found = false;
 
             // check to make sure the current tile has not yet been tested. if already in the empty tile list, then skip the current tile.
-            for (const emptyTile of newEmptyTiles)
-                if (emptyTile[0] === current[0] && emptyTile[1] === current[1]) {
-                    found = true;
-                    break;
-                }
-
-            if (!found) {
-                newEmptyTiles.push(current);
-
-                // recursively find all the next adjacent tiles for the found empty tile.
-                newEmptyTiles = getEmptyAdjacentTiles(current[0], current[1], state, mapState, newEmptyTiles);
+            const foundTile = newEmptyTiles.find(emptyTile => emptyTile[0] === currentTile[0] && emptyTile[1] === currentTile[1]);
+            if (foundTile) {
+                found = true;
             }
 
+            if (!found) {
+                newEmptyTiles.push(currentTile);
+
+                // recursively find all the next adjacent tiles for the found empty tile.
+                newEmptyTiles = getEmptyAdjacentTiles(currentTile[0], currentTile[1], state, mapState, newEmptyTiles);
+            }
         }
     }
 
@@ -113,33 +97,14 @@ export function getEmptyAdjacentTiles(
  */
 export function getDirectAdjacentTiles(row: number, column: number, state: GameState, mapState: GameMapState): number[][] {
 
-    const adjacentTiles: number[][] = [];
     const tileValue = parseInt(mapState.bombMap[row][column]?.toString() ?? '-1', 10);
 
+    // verify between 1 and 8 because the tile value should not be more than adjacent 8 tile.
     if (tileValue >= 1 && tileValue <= 8) {
-
-        // 8 adjacent tiles next to the given row/column.
-        const adj: number[][] = [
-            [row - 1, column],
-            [row + 1, column],
-            [row, column - 1],
-            [row, column + 1],
-            [row - 1, column - 1],
-            [row + 1, column - 1],
-            [row + 1, column + 1],
-            [row - 1, column + 1]
-        ];
-
-        // iterate through the 8 adjacent tiles directly top, bottom, left, right, and diagnals.
-        for (let i = 0; i < 8; i++) {
-            const current: number[] = adj[i];
-            if (current[0] >= 0 && current[0] < state.rowCount && current[1] >= 0 && current[1] < state.columnCount) {
-                adjacentTiles.push(current);
-            }
-        }
+        return getAdjacentTilesArray(row, column, state);
+    } else {
+        throw Error("Invalid tile value.");
     }
-
-    return adjacentTiles;
 }
 
 /**
@@ -158,7 +123,7 @@ export function validateAndClickAjacentTiles(
     let flaggedCount = 0;
     let newExposedMap: TileValue[][] = deepCopyTileValueArray(mapState.exposedMap);
 
-    // the feature should only work if the number value of the bomb tile matches the number of flagged adjacent tiles.
+    // the function (game feature) should only work if the number value of the bomb tile matches the number of flagged adjacent tiles.
     // should also only work if no adjacent tile is set to 'Unknown' (?)
     // ends the game if there's a bomb adjacent to the clicked tile that hasn't been flagged.
 
@@ -188,6 +153,9 @@ export function validateAndClickAjacentTiles(
 
 /** Determine if the game was won. */
 export function isGameWon(state: GameState, mapState: GameMapState): boolean {
+
+    if (mapState.exposedMap.find(tile => tile === undefined))
+        return false;
 
     for (let row = 0; row < state.rowCount; row++) {
         for (let col = 0; col < state.columnCount; col++) {
@@ -307,7 +275,7 @@ export function createBombMap(state: GameState): TileValue[][] {
 }
 
 /**
- * Set the number of bombs adjacent to the current tile for each tile in the bomb map.
+ * This is used to initialize the bomb map with the number of bombs adjacent to each tile in the bomb map.
  */
 export function setNumberValues(state: GameState, bombMap: TileValue[][]): TileValue[][] {
 
@@ -361,4 +329,19 @@ export function create2DArray(totalRows: number, totalColumns: number): TileValu
     }
 
     return array2D;
+}
+
+/** 8 adjacent tiles next to the given row/column. */
+function getAdjacentTilesArray(row: number, column: number, state: GameState) {
+    // get valid row and column values.
+    const adjacentRows = [row - 1, row, row + 1].filter(r => r >= 0 && r < state.rowCount);
+    const adjacentColumns = [column - 1, column, column + 1].filter(c => c >= 0 && c < state.columnCount);
+
+    // tiles directly adjacent to the given row and column, excluding the given row/column tile.
+    const adjTiles: number[][] = adjacentRows
+        .map(row => adjacentColumns.map(col => [row, col]))
+        .flat()
+        .filter(val => val[0] !== row || val[1] !== column);
+
+    return adjTiles;
 }

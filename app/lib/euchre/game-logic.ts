@@ -145,17 +145,18 @@ function getBidResultForSecondRound(game: EuchreGameInstance, flipCard: Card, ga
     let score = 0;
     const retval = { ...gameLogic };
     const suits: Suit[] = ["♠", "♥", "♦", "♣"];
-    
+
     for (const suit of suits.filter(s => s !== flipCard.suit)) {
         const tempCard = new Card(suit, "2");
         for (const card of game.currentPlayer.hand)
             score += getCardValue(card, tempCard);
 
-        if (score > highScore)
-        {
+        if (score > highScore) {
             highScore = score;
             bestSuit = suit;
         }
+
+        score = 0;
     }
 
     retval.handScore = highScore;
@@ -236,7 +237,29 @@ export function determineCardToPlayLogic(game: EuchreGameInstance): Card {
     return card;
 }
 
+export function determineDiscard(game: EuchreGameInstance, player: EuchrePlayer): Card {
 
+    if (!game.trump)
+        throw Error("Unable to determine discard. Trump card not found.");
+
+    //const gameLogicResult = getGameLogic(game, game.trump, false);
+
+    let lowestScore = 10000;
+    let lowCard: Card | undefined;
+
+    for (const card of [...player.hand, game.trump]) {
+        const tempScore = getCardValue(card, game.trump);
+        if (tempScore < lowestScore) {
+            lowestScore = tempScore;
+            lowCard = card;
+        }
+    }
+
+    if (!lowCard)
+        throw Error("Unable to determine discard.");
+
+    return lowCard;
+}
 // function determinCardFromScore(game: EuchreGameInstance): Card {
 
 //     return

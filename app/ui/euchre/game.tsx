@@ -46,51 +46,54 @@ export default function EuchreGame() {
                 </div>) : <></>}
             {game ?
                 <>
-                    <div className={`m-2 p-2 ${sectionStyle} max-w-[980px] mx-auto relative`}>
-                        <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[150px,1fr,150px] gap-4 h-full">
-                            <div className="row-span-4 min-w-32">
-                                <PlayerGameDeck
-                                    player={game.player3}
-                                    game={game}
-                                    gameState={gameState}
-                                    onCardClick={handlePlayCard}
-                                    dealDeck={game.deck}
-                                    location="side" />
+                    <div className="flex relative">
+                        <div className="bg-white w-32 absolute h-full"> Testing</div>
+                        <div className={`m-2 p-2 ${sectionStyle} max-w-[980px] mx-auto relative`}>
+                            <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[150px,1fr,150px] gap-4 h-full">
+                                <div className="row-span-4 min-w-32">
+                                    <PlayerGameDeck
+                                        player={game.player3}
+                                        game={game}
+                                        gameState={gameState}
+                                        onCardClick={handlePlayCard}
+                                        dealDeck={game.deck}
+                                        location="side" />
+                                </div>
+                                <div className="col-span-1">
+                                    <PlayerGameDeck
+                                        player={game.player2}
+                                        game={game}
+                                        gameState={gameState}
+                                        onCardClick={handlePlayCard}
+                                        dealDeck={game.deck}
+                                        location="center" />
+                                </div>
+                                <div className="col-span-1 row-span-2">
+                                    <GameInfo playerInfoState={playerInfoState} />
+                                </div>
+                                <div className="col-span-1 ">
+                                    <PlayerGameDeck
+                                        player={game.player1}
+                                        game={game}
+                                        gameState={gameState}
+                                        onCardClick={handlePlayCard}
+                                        dealDeck={game.deck}
+                                        location="center" />
+                                </div>
+                                <div className="row-span-4 min-w-32">
+                                    <PlayerGameDeck
+                                        player={game.player4}
+                                        game={game}
+                                        gameState={gameState}
+                                        onCardClick={handlePlayCard}
+                                        dealDeck={game.deck}
+                                        location="side" />
+                                </div>
                             </div>
-                            <div className="col-span-1">
-                                <PlayerGameDeck
-                                    player={game.player2}
-                                    game={game}
-                                    gameState={gameState}
-                                    onCardClick={handlePlayCard}
-                                    dealDeck={game.deck}
-                                    location="center" />
-                            </div>
-                            <div className="col-span-1 row-span-2">
-                                <GameInfo playerInfoState={playerInfoState} />
-                            </div>
-                            <div className="col-span-1 ">
-                                <PlayerGameDeck
-                                    player={game.player1}
-                                    game={game}
-                                    gameState={gameState}
-                                    onCardClick={handlePlayCard}
-                                    dealDeck={game.deck}
-                                    location="center" />
-                            </div>
-                            <div className="row-span-4 min-w-32">
-                                <PlayerGameDeck
-                                    player={game.player4}
-                                    game={game}
-                                    gameState={gameState}
-                                    onCardClick={handlePlayCard}
-                                    dealDeck={game.deck}
-                                    location="side"/>
-                            </div>
+                            {shouldPromptBid && game.trump ? <OrderTrump firstRound={!gameState.hasFirstBiddingPassed} flipCard={game.trump} onBidSubmit={handleBidSubmit} /> : <></>}
                         </div>
-                        {shouldPromptBid && game.trump ? <OrderTrump firstRound={!gameState.hasFirstBiddingPassed} flipCard={game.trump} onBidSubmit={handleBidSubmit} /> : <></>}
                     </div>
-                    <div className={sectionStyle}>
+                    <div className={`${sectionStyle} m-2`}>
                         <div>
                             <button onClick={handleResetGame}>Go to Settings</button>
                         </div>

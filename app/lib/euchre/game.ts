@@ -25,7 +25,7 @@ export function createEuchreGame(): EuchreGameInstance {
 }
 
 /** Get the rotation of players relative to the given player. */
-export function getPlayerRotation(players: EuchrePlayer[], relativePlayer: EuchrePlayer): EuchrePlayer[] {
+export function getPlayerRotation(players: EuchrePlayer[], relativePlayer: EuchrePlayer, playerSittingOut: EuchrePlayer | undefined = undefined): EuchrePlayer[] {
 
     const playerCount = players.length;
     const playerRotation = [1, 3, 2, 4];
@@ -34,6 +34,10 @@ export function getPlayerRotation(players: EuchrePlayer[], relativePlayer: Euchr
 
     for (let i = 0; i < playerCount; i++) {
         const playerNumber = playerRotation[(i + indexOffset) % playerCount];
+
+        if (playerSittingOut?.playerNumber === playerNumber)
+            continue;
+
         const player = players.filter(p => p.playerNumber === playerNumber);
         if (player?.length)
             returnRotation.push(player[0]);

@@ -7,7 +7,7 @@ type Props = {
     gameState: GameState
     player: EuchrePlayer,
     location: "center" | "side",
-    onCardClick: (src: string, dest: string, player: number) => void,
+    onCardClick: (src: string, dest: string, card: Card) => void,
 }
 
 export default function PlayerHand({ gameState, player, location, onCardClick }: Props) {
@@ -36,7 +36,7 @@ export default function PlayerHand({ gameState, player, location, onCardClick }:
             <div className={`relative ${hidden}`} key={keyval}>
                 <Image
                     id={cardval}
-                    onClick={() => onCardClick(cardval, `player${player.playerNumber}-region`, player.playerNumber)}
+                    onClick={() => onCardClick(cardval, `player${player.playerNumber}-region`, player.hand[0])}
                     className={`contain relative transition duration-300 ease-in-out ${activeClasses}`}
                     quality={100}
                     width={width}

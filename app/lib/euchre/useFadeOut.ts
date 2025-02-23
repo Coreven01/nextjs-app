@@ -43,9 +43,9 @@ export function useFadeOut() {
             if (totalDuration > 0)
                 setTimeout(() => { e.classList.remove(...classList); }, totalDuration * 950);
 
-            console.log(`Fade out triggered: ${fadeOutElementId}`, e);
+            //console.log(`Fade out triggered: ${fadeOutElementId}`, e);
         } else {
-            console.log(`Fade out element not found ${fadeOutElementId}`, e);
+            //console.log(`Fade out element not found ${fadeOutElementId}`, e);
         }
 
     }, [fadeOutElementId]);
@@ -65,7 +65,7 @@ export function useFadeOut() {
             setFadeOutElement(id); // Only set the element ID if it's different from the current value
         }
 
-        console.log("Add element for fade out: ", id, delay, duration);
+        //console.log("Add element for fade out: ", id, delay, duration);
     }
 
     return { setElementForFadeOut };

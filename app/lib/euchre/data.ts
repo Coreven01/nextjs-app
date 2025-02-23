@@ -1,5 +1,5 @@
 import { createDummyCards, getPlayerRotation } from "./game";
-import { determineBidLogic, determineCardToPlayLogic } from "./game-logic";
+import { determineBidLogic, determineCardToPlayLogic, determineDiscard } from "./game-logic";
 
 export type Suit = "♠" | "♥" | "♦" | "♣";
 export type CardValue = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "?";
@@ -32,7 +32,7 @@ export class EuchrePlayer {
         return `player-base-${this.playerNumber}`;
     }
 
-    /** Routine to determine if the computer should indicate if the flipped card should be picked up, or should name suit. */ 
+    /** Routine to determine if the computer should indicate if the flipped card should be picked up, or should name suit. */
     determineBid(game: EuchreGameInstance, flipCard: Card, canNameSuit: boolean): BidResult {
 
         const result = determineBidLogic(game, flipCard, canNameSuit);
@@ -42,6 +42,14 @@ export class EuchrePlayer {
     determineCardToPlay(game: EuchreGameInstance): Card {
 
         return determineCardToPlayLogic(game);
+    }
+
+    discard(game: EuchreGameInstance) {
+        const cardToDiscard = determineDiscard(game, this);
+
+        if (this.hand.find(c => c === cardToDiscard) && game.trump) {
+            this.hand = [...this.hand.filter(c => c !== cardToDiscard), game.trump];
+        }
     }
 }
 
@@ -112,6 +120,13 @@ export class EuchreGameInstance {
 
     get gamePlayers(): EuchrePlayer[] {
         return [this.player1, this.player2, this.player3, this.player4];
+    }
+
+    get playerSittingOut(): EuchrePlayer | undefined {
+        if (this.maker && this.loner)
+            return this.gamePlayers.find(p => p.team === this.maker?.team && p.playerNumber !== this.maker.playerNumber);
+
+        return undefined;
     }
 
     resetForNewGame() {
@@ -199,12 +214,12 @@ export class EuchreGameInstance {
         const allCardsDealt = [this.player1.hand, this.player2.hand, this.player3.hand, this.player4.hand, this.kitty].flat();
 
         if (allCardsDealt.length != 24)
-            throw Error ("Verify failed. Invalid card count");
+            throw Error("Verify failed. Invalid card count");
 
-        const tempSet = new Set<string>([ ...allCardsDealt.map(c => `${c.value}${c.suit}`)]);
+        const tempSet = new Set<string>([...allCardsDealt.map(c => `${c.value}${c.suit}`)]);
 
         if (tempSet.size != 24)
-            throw Error ("Verify failed. Invalid card count");
+            throw Error("Verify failed. Invalid card count");
     }
 }
 

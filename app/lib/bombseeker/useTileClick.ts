@@ -144,6 +144,7 @@ export default function useTileClick(
         // used to determine if the user is using the double mouse down/up feature.
         addMouseDownEvent(event);
 
+        // this should only trigger when the user pushes both mouse buttons down.
         if (doubleMouseDownEvents.length >= 1) {
 
             handleDoubleMouseDown();
@@ -154,19 +155,17 @@ export default function useTileClick(
                 return;
 
             const currentValue: TileValue = mapState.bombMap[row][column];
-            const tempValue = parseInt(currentValue?.toString() ?? "0", 10);
+            const exposedTileValue = parseInt(currentValue?.toString() ?? "0", 10);
 
-            if (tempValue >= 1 && tempValue <= 9) {
-                const adjacentTiles = getDirectAdjacentTiles(row, column, state, mapState);
+            if (exposedTileValue >= 1 && exposedTileValue <= 8) {
                 const adjacentTilesToHighlight: number[][] = [];
-                if (adjacentTiles.length) {
-                    for (const tile of adjacentTiles) {
-                        const adjacentValue = mapState.exposedMap[tile[0]][tile[1]];
-                        if (adjacentValue === undefined || adjacentValue === 'F') {
+                getDirectAdjacentTiles(row, column, state, mapState)
+                    .map(tile => {
+                        const adjacentExposedVal = mapState.exposedMap[tile[0]][tile[1]];
+                        if (adjacentExposedVal === undefined || adjacentExposedVal === 'F') {
                             adjacentTilesToHighlight.push(tile);
                         }
-                    }
-                }
+                    });
 
                 setAdjacentTiles(adjacentTilesToHighlight);
             }

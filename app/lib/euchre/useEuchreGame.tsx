@@ -264,9 +264,9 @@ export function useEuchreGame() {
         const firstRound = !newGameState.hasFirstBiddingPassed;
 
         if (result.orderTrump && firstRound) { // player indicated that the dealer should pick up the flipped card for trump.
-            orderTrumpByCard(newGame.currentPlayer, result)
+            orderTrump(newGame.currentPlayer, result.loner, result.calledSuit !== undefined);
         } else if (result.calledSuit && !firstRound) { // player named trump by suit.
-            orderTrumpBySuit(newGame.currentPlayer, result);
+            orderTrump(newGame.currentPlayer, result.loner, result.calledSuit !== undefined);
         } else { // player passed
             if (roundFinished) {
                 newGameState.hasFirstBiddingPassed = firstRound || newGameState.hasFirstBiddingPassed;
@@ -313,15 +313,15 @@ export function useEuchreGame() {
         setShouldDealHand((prev) => !prev);
     }
 
-    /** Prompt the user for discard if the flipped card is ordered up. */
-    const promptForDiscard = () => {
-
+    /** Submit the resulting discard from user input. */
+    const handleDiscardSubmit = (result: BidResult) => {
+        handleBidResult(result);
+        setShouldPromptBid(false);
     }
 
-    /** Player declared trump by suit during the second round of bidding. Update the state and begin play for tricks. */
-    const orderTrumpByCard = (maker: EuchrePlayer, result: BidResult) => {
+    const orderTrump = (maker: EuchrePlayer, loner: boolean, namedBySuit: boolean) => {
 
-        logConsole('todo: ordered trump by flip card.', ' maker: ', maker.name);
+        logConsole("Trump ordered up.");
 
         const newGame = game?.shallowCopy();
 
@@ -332,41 +332,35 @@ export function useEuchreGame() {
             throw Error("Dealer not found - Order Trump.");
 
         newGame.maker = maker;
-        const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
+        newGame.loner = loner;
+
+        const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, newGame.playerSittingOut);
+        const playerElementId = `player-${maker.playerNumber}-bid-${3}`;
+        const newPlayerInfoState = getPlayerStateForBidding(playerElementId, maker, "o", playerInfoState);
+        dispatchUpdatePlayerInfoState(newPlayerInfoState);
+
+        newPlayerInfoState.type = PlayerInfoActionType.UPDATE_CENTER;
+        newPlayerInfoState.payload.centerInfo.detail = undefined;
+        dispatchUpdatePlayerInfoState(newPlayerInfoState);
 
         newGame.currentPlayer = rotation[0];
-        setGame(newGame);
-        setShouldBeginPlay(prev => !prev);
-    }
 
-    /** Player declared trump by suit during the second round of bidding. Update the state and begin play for tricks. */
-    const orderTrumpBySuit = (maker: EuchrePlayer, result: BidResult) => {
+        if (namedBySuit) {
+            setGame(newGame);
+            setShouldBeginPlay(prev => !prev);
+        }
 
-        logConsole('todo: ordered trump by suit. suit:', result.calledSuit, ' maker: ', maker.name);
+        else if (newGame.dealer.human) {
+            setGame(newGame);
+            setShouldPromptDiscard(true);
+        }
 
-        const newGame = game?.shallowCopy();
-
-        if (!newGame)
-            throw Error("Game not found - Order Trump.");
-
-        if (!newGame.dealer)
-            throw Error("Dealer not found - Order Trump.");
-
-        if (!result.calledSuit)
-            throw Error("Invalid suit - Order Trump.");
-
-        newGame.maker = maker;
-        newGame.trump = new Card(result.calledSuit, "2");
-
-        const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
-
-        newGame.currentPlayer = rotation[0];
-        setGame(newGame);
-        setShouldBeginPlay(prev => !prev);
-    }
-
-    const orderTrump = (maker: EuchrePlayer, trumpCard: Card, loner:boolean, namedBySuit: boolean) => {
-
+        else {
+            newGame.dealer.discard(newGame);
+            setGame(newGame);
+            // determin AI discard then begin game
+            setShouldBeginPlay(prev => !prev);
+        }
     }
 
     /** Regualr play for the game for winning tricks. Each player will play a card to determine the winner of the trick. */
@@ -394,7 +388,7 @@ export function useEuchreGame() {
         }
 
         if (newGame.currentPlayer?.human) {
- 
+
         } else {
             //const computerChoice = newGame.currentPlayer.determineCardToPlay(newGame);
             //await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
@@ -402,7 +396,7 @@ export function useEuchreGame() {
         }
     }
 
-    const handlePlayCard = async (src: string, dest: string, card:Card) => {
+    const handlePlayCard = async (src: string, dest: string, card: Card) => {
 
         if (!game)
             throw Error("Game not found - Play card.");
