@@ -1,5 +1,23 @@
 import { Card, CardValue } from "./data";
 
+export const offsuitValues: Map<CardValue, number> = new Map([
+    ["9", 10],
+    ["10", 15],
+    ["J", 20],
+    ["Q", 25],
+    ["K", 30],
+    ["A", 90],
+]);
+
+export const trumpValues: Map<CardValue, number> = new Map([
+    ["9", 100],
+    ["10", 110],
+    ["Q", 120],
+    ["K", 130],
+    ["A", 150],
+    ["J", 300],
+]);
+
 const baseCard: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="100"

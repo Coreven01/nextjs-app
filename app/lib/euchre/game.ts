@@ -1,5 +1,6 @@
-import { TIMEOUT_MODIFIER } from "./constants";
-import { Card, CardValue, EuchreGameInstance, EuchrePlayer, Suit } from "./data";
+import { offsuitValues, trumpValues } from "./card-data";
+import { LEFT_BOWER_VALUE, TIMEOUT_MODIFIER } from "./constants";
+import { Card, CardValue, EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreTrick, Suit } from "./data";
 import { CardTransformation } from "./useMoveCard";
 
 interface InitDealResult {
@@ -96,8 +97,7 @@ export function shuffleDeck(deck: Card[]): Card[] {
         if (randomNumbers.length > deckSize - 5) {
             const remainingIndexes = validIndexes.filter(val => !randomNumbers.includes(val));
 
-            if (remainingIndexes.length === 2)
-            {
+            if (remainingIndexes.length === 2) {
                 const lastTwoIndexes = [randomNum % 2, (randomNum + 1) % 2];
                 randomNumbers.push(remainingIndexes[lastTwoIndexes[0]]);
                 randomNumbers.push(remainingIndexes[lastTwoIndexes[1]]);
@@ -139,35 +139,21 @@ export function isGameWon() {
 
 }
 
-export function playGameCard(playerNumber: number, cardIndex: number, game: EuchreGameInstance): EuchreGameInstance | undefined {
+export function playGameCard(player: EuchrePlayer, card: Card, game: EuchreGameInstance): EuchreGameInstance {
 
-    let player: EuchrePlayer | undefined;
     const newGame = game.shallowCopy();
 
-    switch (playerNumber) {
-        case 1: player = newGame.player1; break;
-        case 2: player = newGame.player2; break;
-        case 3: player = newGame.player3; break;
-        case 4: player = newGame.player4; break;
-    }
+    if (!game.currentTrick)
+        throw Error();
 
-     if (!player || !player.human)
-         return undefined;
+    const euchreCard = new EuchreCard(player, card);
+    player.hand = player.hand.filter(c => c !== card);
+    player.playedCards.push(card);
 
-    // const cardPlayed = player.hand[cardIndex];
-    // const trick = newGame.currentTricks.pop();
-
-    // if (!trick)
-    //     throw Error("No tricks in the game");
-
-    // const card = new EuchreCard(player, cardPlayed);
-    // trick.cardsPlayed.push(card);
-    // trick.playerWon = determineTrickWon(newGame.trump, trick);
-    // newGame.currentTricks.push(trick);
+    game.currentTrick.cardsPlayed.push(euchreCard);
 
     return newGame;
 }
-
 
 
 export function getPlayerAndCard(playerInfo: string): { playerNumber: number, index: number } {
@@ -229,4 +215,60 @@ export function dealCardsForNewDealer(game: EuchreGameInstance): InitDealResult 
     }
 
     return retval;
+}
+
+export function determineCurrentWinnerForTrick(trump: Card, trick: EuchreTrick): EuchrePlayer | undefined {
+
+    let winningCard: EuchreCard | undefined;
+    let cardValue: number = 0;
+
+    for (let i = 0; i < trick.cardsPlayed.length; i++) {
+        const card = trick.cardsPlayed[i];
+        const temp = getCardValue(card.card, trump);
+        if (temp > cardValue)
+            winningCard = card;
+    }
+
+    return winningCard?.player;
+
+    return undefined;
+}
+
+export function getCardValue(card: Card, trump: Card): number {
+    return getCardValueBySuit(card, trump.suit, trump.color);
+}
+
+export function getCardValueBySuit(card: Card, trumpSuit: Suit, trumpColor: "R" | "B") {
+
+    let retval = 0;
+
+    if (card.suit === trumpSuit) {
+        retval = trumpValues.get(card.value) ?? 0;
+    } else if (card.value === "J" && card.color === trumpColor) {
+        retval = LEFT_BOWER_VALUE;
+    } else {
+        retval = (offsuitValues.get(card.value) ?? 0);
+    }
+
+    return retval;
+}
+
+export function getSuitCount(cards: Card[], trumpCard: Card) {
+    const retval: (Suit | number)[][] = [];
+
+    cards.map(c => {
+        const isLeftBower = cardIsLeftBower(c, trumpCard);
+        const value = retval.find(val => val[0] === (isLeftBower ? trumpCard.suit : c.suit));
+
+        if (value)
+            value[1] = value[1] as number + 1;
+        else
+            retval.push([c.suit, 1]);
+    });
+
+    return retval;
+}
+
+export function cardIsLeftBower(card: Card, trumpCard: Card) {
+    return card.color === trumpCard.color && card.value === "J" && card.suit !== trumpCard.suit;
 }

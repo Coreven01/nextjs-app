@@ -1,5 +1,6 @@
 import { createDummyCards, getPlayerRotation } from "./game";
-import { determineBidLogic, determineCardToPlayLogic, determineDiscard } from "./game-logic";
+import { determineBidLogic, determineDiscard } from "./game-bid-logic";
+import { determineCardToPlayLogic } from "./game-play-logic";
 
 export type Suit = "♠" | "♥" | "♦" | "♣";
 export type CardValue = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "?";
@@ -48,7 +49,7 @@ export class EuchrePlayer {
         const cardToDiscard = determineDiscard(game, this);
 
         if (this.hand.find(c => c === cardToDiscard) && game.trump) {
-            this.hand = [...this.hand.filter(c => c !== cardToDiscard), game.trump];
+            this.hand = [...this.hand, game.trump].filter(c => c !== cardToDiscard);
         }
     }
 }
@@ -100,15 +101,12 @@ export class EuchreGameInstance {
     deck: Card[] = [];
     kitty: Card[] = [];
     dealer: EuchrePlayer | undefined;
-    currentTrick: EuchreTrick = new EuchreTrick();
-    handTricks: EuchreTrick[] = [];
+    currentRoundTricks: EuchreTrick[] = [];
     gameTricks: EuchreTrick[] = [];
     currentPlayer: EuchrePlayer | undefined;
     maker: EuchrePlayer | undefined;
     loner: boolean = false;
     trump: Card | undefined;
-    bidNumber: 1 | 2 = 1
-    discard: Card | undefined;
     cardDealCount: number[] = [];
 
     constructor(player1: EuchrePlayer, player2: EuchrePlayer, player3: EuchrePlayer, player4: EuchrePlayer) {
@@ -129,6 +127,10 @@ export class EuchreGameInstance {
         return undefined;
     }
 
+    get currentTrick() {
+        return this.currentRoundTricks.at(-1);
+    }
+
     resetForNewGame() {
         this.gameTricks = [];
         this.dealer = undefined;
@@ -139,14 +141,12 @@ export class EuchreGameInstance {
     resetForNewDeal() {
         this.kitty = [];
         this.deck = createDummyCards(24);
-        this.currentTrick = new EuchreTrick();
         this.currentPlayer = undefined;
         this.maker = undefined;
         this.loner = false;
         this.trump = undefined;
-        this.bidNumber = 1;
-        this.discard = undefined;
         this.cardDealCount = [];
+        this.currentRoundTricks = [];
 
         const players = [this.player1, this.player2, this.player3, this.player4];
 
@@ -157,19 +157,18 @@ export class EuchreGameInstance {
         }
     }
 
-    shallowCopy() {
+    shallowCopy():EuchreGameInstance {
         const game = new EuchreGameInstance(this.player1, this.player2, this.player3, this.player4)
         game.deck = this.deck;
         game.kitty = this.kitty;
         game.dealer = this.dealer;
-        game.currentTrick = this.currentTrick;
         game.currentPlayer = this.currentPlayer;
         game.loner = this.loner;
         game.trump = this.trump;
-        game.bidNumber = this.bidNumber;
-        game.discard = this.discard;
         game.maker = this.maker;
         game.cardDealCount = this.cardDealCount;
+        game.currentRoundTricks = this.currentRoundTricks;
+        game.gameTricks = this.gameTricks;
 
         return game;
     }

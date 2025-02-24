@@ -1,35 +1,10 @@
-import { BidResult, Card, CardValue, EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreTrick, Suit } from "./data";
+import { BidResult, Card, EuchreGameInstance, EuchrePlayer, Suit } from "./data";
+import { getCardValue } from "./game";
 
-export const offsuitValues: Map<CardValue, number> = new Map([
-    ["9", 10],
-    ["10", 15],
-    ["J", 20],
-    ["Q", 25],
-    ["K", 30],
-    ["A", 90],
-]);
 
-export const trumpValues: Map<CardValue, number> = new Map([
-    ["9", 100],
-    ["10", 110],
-    ["Q", 120],
-    ["K", 130],
-    ["A", 150],
-    ["J", 300],
-]);
-
-const LEFT_BOWER_VALUE = 250;
-
-interface GameLogicInfo {
-    currentUserIsMaker: boolean,
-    isCurrentTeamMaker: boolean,
-    isFirstPlayer: boolean,
-    cardsPlayed: number,
-    teamTricksWon: number,
+interface GameBidLogic {
     trumpCardCount: number,
     offSuitAceCount: number,
-    leadCard: Card | undefined,
-    teammateLeadAce: boolean,
     playerHasRight: boolean,
     playerHasLeft: boolean,
     playerWillPickUp: boolean,
@@ -39,8 +14,8 @@ interface GameLogicInfo {
     suitsInHand: number,
 }
 
-/** Return a object of important values when making a decision.  */
-function getGameLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: boolean): GameLogicInfo {
+/** Return a object of important values when making a decision during the bidding process.  */
+function getGameBidLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: boolean): GameBidLogic {
 
     if (!game?.currentPlayer)
         throw Error("Invalid player to determine card to play.");
@@ -49,11 +24,6 @@ function getGameLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: boo
     let playerHasRight: boolean = false;
     let playerHasLeft: boolean = false;
     let playerWillPickup: boolean = game.dealer === currentPlayer;
-    let leadCard: Card | undefined = undefined;
-
-    if (game.currentTrick.cardsPlayed.length === 1) {
-        leadCard = game.currentTrick.cardsPlayed[0].card;
-    }
 
     if (!canNameSuit) {
         playerHasRight = currentPlayer.hand.filter(c => c.suit === flipCard.suit && c.value === "J").length > 0;
@@ -64,15 +34,8 @@ function getGameLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: boo
         }
     }
 
-    const info: GameLogicInfo = {
-        currentUserIsMaker: game.maker === currentPlayer,
-        isCurrentTeamMaker: game.maker?.team === currentPlayer.team,
-        isFirstPlayer: game.gamePlayers.map(p => p.playedCards).flat().length === 0,
-        cardsPlayed: currentPlayer.playedCards.length,
-        teamTricksWon: game.gameTricks.filter(t => t.playerWon && t.playerWon.team === currentPlayer?.team).length,
+    const info: GameBidLogic = {
         trumpCardCount: currentPlayer.hand.filter(c => c.suit === game.trump?.suit).length,
-        leadCard: leadCard,
-        teammateLeadAce: false,
         offSuitAceCount: currentPlayer.hand.filter(c => c.suit != flipCard.suit && c.value === "A").length,
         playerHasRight: playerHasRight,
         playerHasLeft: playerHasLeft,
@@ -86,6 +49,8 @@ function getGameLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: boo
     return info;
 }
 
+
+
 /** Determine how an AI player should play during the bidding round.
  *  Uses heuristic evaluation to create a score. If the score exceeds a value, then the player will name trump.
  */
@@ -94,8 +59,8 @@ export function determineBidLogic(game: EuchreGameInstance, flipCard: Card, canN
     if (!game?.currentPlayer)
         throw Error("Invalid player to determine card to play.");
 
-    const gameLogicResult = getGameLogic(game, flipCard, canNameSuit);
-    let modifiedResult: GameLogicInfo;
+    const gameLogicResult = getGameBidLogic(game, flipCard, canNameSuit);
+    let modifiedResult: GameBidLogic;
 
     if (canNameSuit)
         modifiedResult = getBidResultForSecondRound(game, flipCard, gameLogicResult);
@@ -115,7 +80,7 @@ export function determineBidLogic(game: EuchreGameInstance, flipCard: Card, canN
     return retval;
 }
 
-function getBidResultForFirstRound(game: EuchreGameInstance, flipCard: Card, gameLogic: GameLogicInfo): GameLogicInfo {
+function getBidResultForFirstRound(game: EuchreGameInstance, flipCard: Card, gameLogic: GameBidLogic): GameBidLogic {
 
     if (!game?.currentPlayer)
         throw Error("Invalid player to determine card to play.");
@@ -135,7 +100,7 @@ function getBidResultForFirstRound(game: EuchreGameInstance, flipCard: Card, gam
     return retval;
 }
 
-function getBidResultForSecondRound(game: EuchreGameInstance, flipCard: Card, gameLogic: GameLogicInfo): GameLogicInfo {
+function getBidResultForSecondRound(game: EuchreGameInstance, flipCard: Card, gameLogic: GameBidLogic): GameBidLogic {
 
     if (!game?.currentPlayer)
         throw Error("Invalid player to determine card to play.");
@@ -165,46 +130,6 @@ function getBidResultForSecondRound(game: EuchreGameInstance, flipCard: Card, ga
     return retval;
 }
 
-function determineTrickWon(trump: Card | undefined, trick: EuchreTrick): EuchrePlayer | undefined {
-
-    // if (trick.cardsPlayed.length < 4 || !trump)
-    //     return undefined;
-
-    // let winningCard: EuchreCard | undefined;
-    // let cardValue: number = 0;
-
-    // for (let i = 0; i < 4; i++) {
-    //     const card = trick.cardsPlayed[i];
-    //     const temp = getCardValue(card, trump);
-    //     if (temp > cardValue)
-    //         winningCard = card;
-    // }
-
-    // return winningCard?.player;
-
-    return undefined;
-}
-
-function getCardValue(card: Card, trump: Card): number {
-    return getCardValueBySuit(card, trump.suit, trump.color);
-}
-
-function getCardValueBySuit(card: Card, trumpSuit: Suit, trumpColor: "R" | "B") {
-
-    let retval = 0;
-
-    if (card.suit === trumpSuit) {
-        retval = trumpValues.get(card.value) ?? 0;
-    } else if (card.value === "J" && card.color === trumpColor) {
-        retval = LEFT_BOWER_VALUE;
-    } else {
-        retval = (offsuitValues.get(card.value) ?? 0);
-    }
-
-    return retval;
-}
-
-
 function getQualifyingScore() {
     return 600;
 }
@@ -213,29 +138,20 @@ function getQualifyingLonerScore() {
     return 800;
 }
 
-function getPositiveModifierForBid(game: EuchreGameInstance, flipCard: Card, gameLogic: GameLogicInfo) {
+function getPositiveModifierForBid(game: EuchreGameInstance, flipCard: Card, gameLogic: GameBidLogic) {
     return 0;
 }
 
-function getNegativeModifierForBid(game: EuchreGameInstance, flipCard: Card, gameLogic: GameLogicInfo) {
+function getNegativeModifierForBid(game: EuchreGameInstance, flipCard: Card, gameLogic: GameBidLogic) {
     return 0;
 }
 
-function getRiskScoreForBid(game: EuchreGameInstance, gameLogic: GameLogicInfo): number {
+function getRiskScoreForBid(game: EuchreGameInstance, gameLogic: GameBidLogic): number {
 
     return 0;
 }
 
-export function determineCardToPlayLogic(game: EuchreGameInstance): Card {
 
-    if (!game.currentPlayer)
-        throw Error("Invalid player to determine card to play.");
-
-    const card = game.currentPlayer.hand.filter(c => !game.currentPlayer?.playedCards.find(p => p === c))[0];
-    game.currentPlayer.playedCards.push(card);
-
-    return card;
-}
 
 export function determineDiscard(game: EuchreGameInstance, player: EuchrePlayer): Card {
 
