@@ -154,6 +154,9 @@ export function validateAndClickAjacentTiles(
 /** Determine if the game was won. */
 export function isGameWon(state: GameState, mapState: GameMapState): boolean {
 
+    if (!state.gameCreated)
+        return false;
+    
     if (mapState.exposedMap.find(tile => tile === undefined))
         return false;
 
@@ -189,6 +192,9 @@ export function isGameLost(state: GameState, mapState: GameMapState): GameLostPr
 
     const retval: GameLostProps = { gameLost: false, bombTile: undefined, incorrectTiles: [] };
 
+    if (!state.gameCreated)
+        return retval;
+
     for (let row = 0; row < state.rowCount; row++) {
         for (let col = 0; col < state.columnCount; col++) {
             const exposedTile = mapState.exposedMap[row][col];
@@ -209,6 +215,9 @@ export function isGameLost(state: GameState, mapState: GameMapState): GameLostPr
 
 /** Number of bombs remaining. The map bomb count minus the number of flagged tiles. */
 export function getBombsRemaining(state: GameState, mapState: GameMapState): number {
+
+    if (!state.gameCreated)
+        return 0;
 
     let retval = 0;
     let counter = 0;

@@ -3,7 +3,7 @@
 import CenterInfo from "@/app/ui/euchre/center-info";
 import UserInfo from "@/app/ui/euchre/user-info";
 import Image from 'next/image';
-import { useEffect, useReducer, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { BidResult, Card, EuchreGameInstance, EuchrePlayer, EuchreSettings, EuchreTrick, initialGameSettings, Suit } from "./data";
 import { initialPlayerInfoState, PlayerInfoAction, PlayerInfoActionType, PlayerInfoState, PlayerInfoStateDetail, playerInfoStateReducer } from "./playerInfoReducer";
 import { GameActionType, GameState, gameStateReducer, initialGameState } from "./gameStateReducer";
@@ -39,40 +39,21 @@ export function useEuchreGame() {
     const { setElementsForTransformation } = useRemoveTransformations();
     const { setElementForFadeOut } = useFadeOut();
 
-    useEffect(() => {
-        if (!shouldCancelGame && game) {
-            initDeckForInitialDeal();
-        }
+    // useEffect(() => {
+    //     beginDealCardsForDealer();
+    // }, [shouldDealForDealer]);
 
-    }, [shouldInitializeBoard]);
+    // useEffect(() => {
+    //     shuffleAndDealHand();
+    // }, [shouldDealHand]);
 
-    useEffect(() => {
-        if (!shouldCancelGame && game) {
-            beginDealCardsForDealer();
-        }
+    // useEffect(() => {
+    //     bidForTrump();
+    // }, [shouldBeginBid]);
 
-    }, [shouldDealForDealer]);
-
-    useEffect(() => {
-        if (!shouldCancelGame && game) {
-            shuffleAndDealHand();
-        }
-
-    }, [shouldDealHand]);
-
-    useEffect(() => {
-        if (!shouldCancelGame && game) {
-            bidForTrump();
-        }
-
-    }, [shouldBeginBid]);
-
-    useEffect(() => {
-        if (!shouldCancelGame && game) {
-            playCard();
-        }
-
-    }, [shouldPlayCard]);
+    // useEffect(() => {
+    //     playCard();
+    // }, [shouldPlayCard]);
     //#endregion
 
     //#region Game Initiallization
@@ -112,12 +93,17 @@ export function useEuchreGame() {
     }
 
     /** Initialize the game with shuffled deck and set player 1 for deal. */
-    const initDeckForInitialDeal = () => {
+    const initDeckForInitialDeal = useCallback(() => {
+
+        logDebugEvent("Init deck for init deal");
 
         const newGame = game?.shallowCopy();
 
         if (!newGame)
-            throw Error("Game not created - Initial deal.");
+            return; // game not yet created.
+
+        if (shouldCancelGame)
+            return;
 
         newGame.dealer = newGame.player1;
         newGame.currentPlayer = newGame.player1;
@@ -129,8 +115,12 @@ export function useEuchreGame() {
         setGame(newGame);
 
         // begin dealing cards to user to determine initial dealer.
-        setShouldDealForDealer((prev) => !prev);
-    }
+        //setShouldDealForDealer((prev) => !prev);
+    }, []);
+
+    useEffect(() => {
+        initDeckForInitialDeal();
+    }, [shouldInitializeBoard, initDeckForInitialDeal]);
 
     //#endregion
 
@@ -144,6 +134,9 @@ export function useEuchreGame() {
 
         if (!newGame?.deck)
             throw Error("Game deck not found.");
+
+        if (shouldCancelGame)
+            return;
 
         const originalDealer = newGame.dealer;
 
@@ -172,6 +165,9 @@ export function useEuchreGame() {
         logDebugEvent("Begin shuffleAndDealHand");
 
         const newGame = game?.shallowCopy();
+
+        if (shouldCancelGame)
+            return;
 
         if (!newGame)
             throw Error("Game not found.");
@@ -217,6 +213,9 @@ export function useEuchreGame() {
     const bidForTrump = async () => {
 
         logDebugEvent("Begin bidForTrump - Player: ", game?.currentPlayer);
+
+        if (shouldCancelGame)
+            return;
 
         if (!game)
             throw Error("Game not found - Bid for Trump.");
@@ -327,9 +326,10 @@ export function useEuchreGame() {
     }
 
     /** Submit the resulting discard from user input. */
-    const handleDiscardSubmit = (result: BidResult) => {
-        handleBidResult(result);
-        setShouldPromptBid(false);
+    const handleDiscardSubmit = (card: Card) => {
+        //handleBidResult(result);
+        //setShouldPromptBid(false);
+        throw Error("not implemented");
     }
 
     /** Player has ordered trump either by naming suit or telling the dealer to pick up the flipped card. */
@@ -381,6 +381,9 @@ export function useEuchreGame() {
         logDebugEvent("Begin playGame - Player: ", game?.currentPlayer);
 
         const newGame = game?.shallowCopy();
+
+        if (shouldCancelGame)
+            return;
 
         if (!newGame)
             throw Error("Game not found - Bid for Trump.");
@@ -542,7 +545,7 @@ export function useEuchreGame() {
 
     return {
         game, gameState, playerInfoState, shouldPromptBid, shouldPromptDiscard, gameSettings,
-        beginNewGame, handleBidSubmit, handleResetGame, handleSettingsChange, handlePlayCard, handleCancelGame,
+        beginNewGame, handleBidSubmit, handleResetGame, handleSettingsChange, handlePlayCard, handleCancelGame, handleDiscardSubmit,
     };
 
 }

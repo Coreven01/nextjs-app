@@ -23,13 +23,13 @@ function getGameBidLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: 
     const currentPlayer = game.currentPlayer;
     let playerHasRight: boolean = false;
     let playerHasLeft: boolean = false;
-    let playerWillPickup: boolean = game.dealer === currentPlayer;
+    const playerWillPickup: boolean = game.dealer === currentPlayer;
 
     if (!canNameSuit) {
         playerHasRight = currentPlayer.hand.filter(c => c.suit === flipCard.suit && c.value === "J").length > 0;
         playerHasLeft = currentPlayer.hand.filter(c => c.color === flipCard.color && c.value === "J" && c.suit != flipCard.suit).length > 0;
 
-        if (playerWillPickup) {
+        if (!playerHasRight && playerWillPickup) {
             playerHasRight = flipCard.value === "J";
         }
     }
@@ -48,8 +48,6 @@ function getGameBidLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: 
 
     return info;
 }
-
-
 
 /** Determine how an AI player should play during the bidding round.
  *  Uses heuristic evaluation to create a score. If the score exceeds a value, then the player will name trump.
@@ -80,19 +78,36 @@ export function determineBidLogic(game: EuchreGameInstance, flipCard: Card, canN
     return retval;
 }
 
+/** */
 function getBidResultForFirstRound(game: EuchreGameInstance, flipCard: Card, gameLogic: GameBidLogic): GameBidLogic {
 
     if (!game?.currentPlayer)
         throw Error("Invalid player to determine card to play.");
 
-    let score = 0;
+    let highScore = 0;
     const retval = { ...gameLogic };
+    const getHandScore = (hand: Card[]) => {
+        let score = 0;
+        for (const card of hand)
+            score += getCardValue(card, flipCard);
 
-    for (const card of game.currentPlayer.hand)
-        score += getCardValue(card, flipCard);
+        return score;
+    };
 
-    retval.handScore = score;
+    highScore = getHandScore(game.currentPlayer.hand);
 
+    // if current user is dealer, then check each hand with/without trump card.
+    if (gameLogic.playerWillPickUp) {
+        for (const card of game.currentPlayer.hand) {
+
+            const newHand = [...game.currentPlayer.hand.filter(c => c !== card), flipCard];
+            //const tempScore = 0; //getHandScore(newHand);
+            // if (tempScore > highScore)
+            //     highScore = tempScore;
+        }
+    }
+
+    retval.handScore = highScore;
     retval.handScore += getPositiveModifierForBid(game, flipCard, gameLogic);
     retval.handScore -= getNegativeModifierForBid(game, flipCard, gameLogic);
     retval.handScore += getRiskScoreForBid(game, gameLogic);

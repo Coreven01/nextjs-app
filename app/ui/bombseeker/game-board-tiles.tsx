@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { JSX, useMemo } from 'react';
 import { GameLostProps } from '@/app/lib/bombseeker/game';
 import { GameState } from '@/app/lib/bombseeker/gameStateReducer';
 import { GameMapState } from '@/app/lib/bombseeker/gameMapReducer';
@@ -32,7 +32,8 @@ export default function GameBoardTiles({
     onRightClick,
     onMouseUp,
     onMouseDown,
-    onMouseLeave }: Props) {
+    onMouseLeave
+}: Props) {
 
     const tiles = useMemo(
         () => createGameTiles(
@@ -45,7 +46,8 @@ export default function GameBoardTiles({
             onRightClick,
             onMouseUp,
             onMouseDown,
-            onMouseLeave),
+            onMouseLeave
+        ),
         [
             state,
             mapState,
@@ -73,10 +75,10 @@ export default function GameBoardTiles({
         onMouseDownEvent: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
         onMouseLeave: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void) {
 
-        const rowCells = []; // array of jsx GameTile to display
-
+        const rowCells: JSX.Element[] = []; // array of jsx GameTile to display
+        console.log("creating game tiles");
         for (let row = 0; row < state.rowCount; row++) {
-            const tileCells = [];
+            const tileCells: JSX.Element[] = [];
 
             for (let col = 0; col < state.columnCount; col++) {
                 const exposedTile: TileValue = mapState.exposedMap[row][col];

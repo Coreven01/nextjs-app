@@ -8,6 +8,7 @@ import { sectionStyle } from "../home/home-description";
 import { GameInfo } from "./game-info";
 import { OrderTrump } from "./order-trump";
 import { useEuchreGame } from "@/app/lib/euchre/useEuchreGame";
+import { DiscardPrompt } from "./discard-prompt";
 
 export default function EuchreGame() {
 
@@ -24,7 +25,8 @@ export default function EuchreGame() {
         handleResetGame,
         handleSettingsChange,
         handlePlayCard,
-        handleCancelGame } = useEuchreGame();
+        handleCancelGame,
+        handleDiscardSubmit } = useEuchreGame();
     // #endregion
 
     // #region Event Handlers
@@ -34,10 +36,6 @@ export default function EuchreGame() {
     }
 
     //#endregion
-
-    // console.log("Euchre Game Render - Game state: ", gameState);
-    // console.log("Euchre Game Render - Game settings: ", gameSettings);
-    //console.log('players: ', game?.gamePlayers);
     return (
         <>
             {!game ?
@@ -90,7 +88,12 @@ export default function EuchreGame() {
                                         location="side" />
                                 </div>
                             </div>
-                            {shouldPromptBid && game.trump ? <OrderTrump firstRound={!gameState.hasFirstBiddingPassed} flipCard={game.trump} onBidSubmit={handleBidSubmit} /> : <></>}
+                            {shouldPromptBid && game.trump ?
+                                <OrderTrump firstRound={!gameState.hasFirstBiddingPassed} flipCard={game.trump} onBidSubmit={handleBidSubmit} /> :
+                                <></>}
+                            {shouldPromptDiscard && game.trump && game.dealer ?
+                                <DiscardPrompt pickedUpCard={game.trump} playerHand={game.dealer.hand} onDiscardSubmit={handleDiscardSubmit} /> :
+                                <></>}
                         </div>
                     </div>
                     <div className={`${sectionStyle} m-2`}>

@@ -11,11 +11,12 @@
  */
 
 import { MouseEventHandler, useState } from "react";
-import { useDoubleMouseEvents, useTimer } from "./actions";
 import { TileValue } from "@/app/ui/bombseeker/game-tile";
 import { getDirectAdjacentTiles, getNewExposedMap, validateAndClickAjacentTiles } from "./game";
 import { GameState } from "./gameStateReducer";
 import { GameMapState } from "./gameMapReducer";
+import { useMouseEvents } from "./useMouseEvents";
+import { useTimer } from "./useTimer";
 
 export default function useTileClick(
     state: GameState,
@@ -40,7 +41,7 @@ export default function useTileClick(
         handledMouseClick,
         handledMouseRightClick,
         resetMouseClicks
-    } = useDoubleMouseEvents();
+    } = useMouseEvents();
 
     const {
         time,
@@ -48,7 +49,6 @@ export default function useTileClick(
         pauseTimer,
         resetTimer
     } = useTimer();
-
 
     /**
      * Handle left click of a tile. Exposes the tile and adjacent empty tiles if the tile is empty. If the tile is a bomb, then game over.

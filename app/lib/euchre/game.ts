@@ -18,7 +18,7 @@ export function createEuchreGame(): EuchreGameInstance {
     player3.team = 2;
     player4.team = 2;
 
-    let newGame = new EuchreGameInstance(player1, player2, player3, player4);
+    const newGame = new EuchreGameInstance(player1, player2, player3, player4);
     newGame.deck = createDummyCards(24);
     newGame.dealer = player1;
 
@@ -219,17 +219,17 @@ export function dealCardsForNewDealer(game: EuchreGameInstance): InitDealResult 
 
 export function determineCurrentWinnerForTrick(trump: Card, trick: EuchreTrick): EuchrePlayer | undefined {
 
-    let winningCard: EuchreCard | undefined;
-    let cardValue: number = 0;
+    // let winningCard: EuchreCard | undefined;
+    // let cardValue: number = 0;
 
-    for (let i = 0; i < trick.cardsPlayed.length; i++) {
-        const card = trick.cardsPlayed[i];
-        const temp = getCardValue(card.card, trump);
-        if (temp > cardValue)
-            winningCard = card;
-    }
+    // for (let i = 0; i < trick.cardsPlayed.length; i++) {
+    //     const card = trick.cardsPlayed[i];
+    //     const temp = getCardValue(card.card, trump);
+    //     if (temp > cardValue)
+    //         winningCard = card;
+    // }
 
-    return winningCard?.player;
+    // return winningCard?.player;
 
     return undefined;
 }
@@ -253,17 +253,17 @@ export function getCardValueBySuit(card: Card, trumpSuit: Suit, trumpColor: "R" 
     return retval;
 }
 
-export function getSuitCount(cards: Card[], trumpCard: Card) {
-    const retval: (Suit | number)[][] = [];
+export function getSuitCount(cards: Card[], trumpCard: Card): { suit: Suit, count: number }[] {
+    const retval: { suit: Suit, count: number }[] = [];
 
     cards.map(c => {
         const isLeftBower = cardIsLeftBower(c, trumpCard);
-        const value = retval.find(val => val[0] === (isLeftBower ? trumpCard.suit : c.suit));
+        const value = retval.find(val => val.suit === (isLeftBower ? trumpCard.suit : c.suit));
 
         if (value)
-            value[1] = value[1] as number + 1;
+            value.count += 1;
         else
-            retval.push([c.suit, 1]);
+            retval.push({ suit: c.suit, count: 1 });
     });
 
     return retval;
@@ -271,4 +271,41 @@ export function getSuitCount(cards: Card[], trumpCard: Card) {
 
 export function cardIsLeftBower(card: Card, trumpCard: Card) {
     return card.color === trumpCard.color && card.value === "J" && card.suit !== trumpCard.suit;
+}
+
+export function getHighAndLow(playerHand: Card[], trumpCard: Card): { high: Card | null, low: Card | null } {
+    return getHighAndLowFromCards(playerHand, trumpCard);
+}
+
+export function getHighAndLowForSuit(playerHand: Card[], trumpCard: Card, suit: Suit): { high: Card | null, low: Card | null } {
+    const hand = playerHand.filter(c => c.suit === suit);
+
+    return getHighAndLowFromCards(hand, trumpCard);
+}
+
+export function getHighAndLowNotSuit(playerHand: Card[], trumpCard: Card, suit: Suit): { high: Card | null, low: Card | null } {
+    const hand = playerHand.filter(c => c.suit !== suit);
+
+    return getHighAndLowFromCards(hand, trumpCard);
+}
+
+function getHighAndLowFromCards(playerHand: Card[], trumpCard: Card): { high: Card | null, low: Card | null } {
+
+    const highCardVal = 0;
+    const lowCardVal = 1000;
+    let highCard: Card | null = null;
+    let lowCard: Card | null = null;
+
+    for (const card of playerHand) {
+        const cardVal = getCardValue(card, trumpCard);
+
+        if (cardVal > highCardVal)
+            highCard = card;
+
+        if (cardVal < lowCardVal)
+            lowCard = card;
+    }
+
+    return { high: highCard, low: lowCard };
+
 }

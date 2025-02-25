@@ -165,8 +165,7 @@ function getCardSvg(card: Card, location: "center" | "side"): string {
    const cardValues = location === "center" ? svgCenterCardValues : svgSideCardValues;
 
    for (const text of imageKeys) {
-      let imageLocation: TextData | undefined;
-      imageLocation = location === "center" ? centerSvgVals.get(text) : sideSvgVals.get(text);
+      const imageLocation = location === "center" ? centerSvgVals.get(text) : sideSvgVals.get(text);
 
       if (imageLocation) {
          const xml = getCardText(imageLocation, imageColor, card.suit);

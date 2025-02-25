@@ -48,7 +48,7 @@ export function useFadeOut() {
             //console.log(`Fade out element not found ${fadeOutElementId}`, e);
         }
 
-    }, [fadeOutElementId]);
+    }, [fadeOutElementId, fadeOutDelay, fadeOutDuration]);
 
     const setElementForFadeOut = (id: string, delay: 0 | 1 | 2 | 3 | 4 | 5, duration: 0 | 1 | 2 | 3 | 4 | 5) => {
 

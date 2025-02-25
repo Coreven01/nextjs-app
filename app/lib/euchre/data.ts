@@ -175,16 +175,14 @@ export class EuchreGameInstance {
 
     dealCards() {
 
-        const currentGame: EuchreGameInstance = this;
-
-        if (!currentGame.dealer)
+        if (!this.dealer)
             throw Error("Unable to deal cards. Dealer not found.");
 
-        const players: EuchrePlayer[] = getPlayerRotation(currentGame.gamePlayers, currentGame.dealer);
+        const players: EuchrePlayer[] = getPlayerRotation(this.gamePlayers, this.dealer);
 
         const randomNum = Math.floor((Math.random() * 3)) + 1;
         let counter = 0;
-        currentGame.cardDealCount = [randomNum, 5 - randomNum];
+        this.cardDealCount = [randomNum, 5 - randomNum];
 
         for (let i = 0; i < 8; i++) {
             let numberOfCards = 0;
@@ -197,13 +195,13 @@ export class EuchreGameInstance {
                 numberOfCards = i % 2 ? 5 - randomNum : randomNum;
 
             for (let j = 0; j < numberOfCards; j++) {
-                currentPlayer.hand.push(currentGame.deck[counter] ?? new Card("♠", "?"));
+                currentPlayer.hand.push(this.deck[counter] ?? new Card("♠", "?"));
                 counter++;
             }
         }
 
-        while (counter < currentGame.deck.length) {
-            currentGame.kitty.push(currentGame.deck[counter] ?? new Card("♠", "?"));
+        while (counter < this.deck.length) {
+            this.kitty.push(this.deck[counter] ?? new Card("♠", "?"));
             counter++;
         }
     }
