@@ -3,9 +3,7 @@ import { FadeOutProps } from "./useFadeOut";
 export interface PlayerInfoStateDetail {
     id: string | undefined,
     detail: React.ReactNode,
-    fadeOutId: string | undefined,
-    fadeOutDelay: 0 | 1 | 2 | 3 | 4 | 5,
-    fadeOutDuration: 0 | 1 | 2 | 3 | 4 | 5
+
 }
 export interface PlayerInfoState {
 
@@ -32,11 +30,11 @@ export enum PlayerInfoActionType {
 }
 
 export const initialPlayerInfoState: PlayerInfoState = {
-    player1Info: { id: "state-1", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
-    player2Info: { id: "state-2", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
-    player3Info: { id: "state-3", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
-    player4Info: { id: "state=4", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
-    centerInfo: { id: "state-center", detail: undefined, fadeOutId: undefined, fadeOutDelay: 0, fadeOutDuration: 0 },
+    player1Info: { id: "state-1", detail: undefined },
+    player2Info: { id: "state-2", detail: undefined },
+    player3Info: { id: "state-3", detail: undefined },
+    player4Info: { id: "state=4", detail: undefined },
+    centerInfo: { id: "state-center", detail: undefined },
 };
 
 export function playerInfoStateReducer(state: PlayerInfoState, action: PlayerInfoAction): PlayerInfoState {

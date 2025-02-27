@@ -12,7 +12,6 @@ type Props = {
 
 export default function GameInfo({ seconds, bombsLeft }: Props) {
 
-
     return (
         <>
             <div className={`${orbitron.className} text-xl w-[200px]`}>

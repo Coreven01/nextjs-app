@@ -33,6 +33,10 @@ export class EuchrePlayer {
         return `player-base-${this.playerNumber}`;
     }
 
+    playerBidId(round: number): string {
+        return `player-${this.playerNumber}-bid-${round}`;
+    }
+
     /** Routine to determine if the computer should indicate if the flipped card should be picked up, or should name suit. */
     determineBid(game: EuchreGameInstance, flipCard: Card, canNameSuit: boolean): BidResult {
 
@@ -157,7 +161,7 @@ export class EuchreGameInstance {
         }
     }
 
-    shallowCopy():EuchreGameInstance {
+    shallowCopy(): EuchreGameInstance {
         const game = new EuchreGameInstance(this.player1, this.player2, this.player3, this.player4)
         game.deck = this.deck;
         game.kitty = this.kitty;

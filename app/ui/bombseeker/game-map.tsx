@@ -1,14 +1,18 @@
+'use client';
+
 import { TileValue } from './game-tile';
-import { isGameWon, getBombsRemaining, isGameLost } from '@/app/lib/bombseeker/game';
+import { isGameWon, getBombsRemaining, isGameLost, getNewExposedMap } from '@/app/lib/bombseeker/game';
 
 import GameOver from './game-over';
 import GameBoardTiles from './game-board-tiles';
 import GameInfo from './game-info';
 import GameSettings from './game-settings';
-import { sectionStyle } from '../home/home-description';
+import { SECTION_STYLE } from '../home/home-description';
 import { GameState } from '@/app/lib/bombseeker/gameStateReducer';
 import { GameMapState } from '@/app/lib/bombseeker/gameMapReducer';
 import useTileClick from '@/app/lib/bombseeker/useTileClick';
+import { useMemo, useState } from 'react';
+import { useTimer } from '@/app/lib/bombseeker/useTimer';
 
 type Props = {
 
@@ -28,40 +32,60 @@ type Props = {
  */
 export default function GameMap({ state, mapState, onPlay, onNewGame }: Props) {
 
-    const { time, 
-        showGameOverScreen, 
-        adjacentTiles, 
-        pauseTimer, 
-        handleTileClick, 
-        handleTileRightClick, 
-        handleTileMouseLeave, 
-        handleTileMouseUp, 
-        handleTileMouseDown, 
-        handleNewGameClick, 
-        handleGameOverScreenClick 
-    } = useTileClick(state, mapState, onPlay, onNewGame);
+    const gameLost = useMemo(() => isGameLost(state, mapState), [state, mapState]);
+    const gameWon = useMemo(() => !gameLost.gameLost && isGameWon(state, mapState), [state, mapState, gameLost]);
+    const bombsRemaining = useMemo(() => getBombsRemaining(state, mapState), [state, mapState]);
 
-    const cellClass = `${sectionStyle} mx-4 my-2 p-4`;
+    const [showGameOverScreen, setShowGameOverScreen] = useState<boolean>(true);
+
+    const {
+        time,
+        startTimer,
+        pauseTimer,
+        resetTimer
+    } = useTimer();
+
+    const {
+        adjacentTiles,
+        handleTileClick,
+        handleTileRightClick,
+        handleTileMouseLeave,
+        handleTileMouseUp,
+        handleTileMouseDown,
+        resetMouseClicks
+    } = useTileClick(state, mapState, onPlay, startTimer);
+
+    /** Hide the overlay if the game over screen is cliecked */
+    const handleGameOverScreenClick = () => {
+        setShowGameOverScreen(false);
+    }
+
+    /** Reset the state and generate a new game. */
+    const handleNewGameClick = (state: GameState) => {
+        pauseTimer();
+        resetTimer();
+        onNewGame(state);
+        resetMouseClicks();
+        setShowGameOverScreen(true);
+    }
+
+    const CELL_CLASS = `${SECTION_STYLE} mx-4 my-2 p-4`;
     let gameBoard = <></>;
 
     // create game board if user selects to start a new game.
     if (state.gameCreated) {
-        
-        const gameLost = isGameLost(state, mapState);
-        const gameWon = !gameLost.gameLost && isGameWon(state, mapState);
         const showGameOver = (gameLost.gameLost || gameWon) && showGameOverScreen;
-        const bombsRemaining = getBombsRemaining(state, mapState);
-        const message = gameLost.gameLost ? "Game Over" : gameWon ? "Win!" : "Error...";
+        const message = gameLost.gameLost ? "Game Over" : gameWon ? "Well Done!" : "";
 
         if (showGameOver)
             pauseTimer();
 
         gameBoard =
             <>
-                <div className={`${cellClass} flex flex-col items-center justify-center md:flex-row`}>
+                <div className={`${CELL_CLASS} flex flex-col items-center justify-center md:flex-row`}>
                     <GameInfo seconds={time} bombsLeft={bombsRemaining} />
                 </div>
-                <div className={`${cellClass} overflow-x-auto relative shadow-md shadow-white`}>
+                <div className={`${CELL_CLASS} overflow-x-auto relative shadow-md shadow-white`}>
                     <GameBoardTiles
                         state={state}
                         mapState={mapState}
@@ -84,7 +108,7 @@ export default function GameMap({ state, mapState, onPlay, onNewGame }: Props) {
 
     return (
         <>
-            <div className={cellClass}>
+            <div className={CELL_CLASS}>
                 <GameSettings
                     state={state}
                     onNewGame={handleNewGameClick} />

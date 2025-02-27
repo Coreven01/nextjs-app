@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/16/solid";
 import { GameState } from "@/app/lib/bombseeker/gameStateReducer";
-import { GameMapState } from "@/app/lib/bombseeker/gameMapReducer";
 
 type Props = {
     state: GameState,
@@ -15,6 +14,21 @@ type GameLevel = {
     bombs: number,
 }
 
+const INPUT_CLASS = "max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
+const SELECT_CLASS = "min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
+const LABEL_CLASS = "block font-medium my-2 dark:text-white";
+const MAX_ROWS = 40;
+const MIN_ROWS = 9;
+const MAX_COLUMNS = 40;
+const MIN_COLUMNS = 9;
+
+const GAME_LEVELS: GameLevel[] = [
+    { level: "b", rows: 9, columns: 9, bombs: 10 },
+    { level: "i", rows: 16, columns: 16, bombs: 40 },
+    { level: "e", rows: 16, columns: 30, bombs: 99 },
+    { level: "c", rows: 16, columns: 30, bombs: 99 },
+];
+
 export default function GameSettings({ state, onNewGame }: Props) {
 
     const selectedLevel = useRef<HTMLSelectElement>(null);
@@ -23,56 +37,41 @@ export default function GameSettings({ state, onNewGame }: Props) {
     const newColumns = useRef<HTMLInputElement>(null);
     const [disableSelection, setDisableSelection] = useState(true);
 
-    const inputClass = "max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
-    const selectClass = "min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
-    const labelClass = "block font-medium my-2 dark:text-white";
-    const maxRows = 40;
-    const minRows = 9;
-    const maxColumns = 40;
-    const minColumns = 9;
-
-    const gameLevels: GameLevel[] = [
-        { level: "b", rows: 9, columns: 9, bombs: 10 },
-        { level: "i", rows: 16, columns: 16, bombs: 40 },
-        { level: "e", rows: 16, columns: 30, bombs: 99 },
-        { level: "c", rows: 16, columns: 30, bombs: 99 },
-    ]
-
     const handleRowCountUp = () => {
-        if (newRows.current && newRows.current.valueAsNumber < maxRows)
+        if (newRows.current && newRows.current.valueAsNumber < MAX_ROWS)
             newRows.current.value = `${newRows.current.valueAsNumber + 1}`;
     }
 
     const handleRowCountDown = () => {
-        if (newRows.current && newRows.current.valueAsNumber > minRows)
+        if (newRows.current && newRows.current.valueAsNumber > MIN_ROWS)
             newRows.current.value = `${newRows.current.valueAsNumber - 1}`;
     }
 
     const handleRowCountLeave = () => {
         if (newRows.current) {
-            if (newRows.current.valueAsNumber < minRows)
-                newRows.current.value = `${minRows}`;
-            else if (newRows.current.valueAsNumber > maxRows)
-                newRows.current.value = `${maxRows}`;
+            if (newRows.current.valueAsNumber < MIN_ROWS)
+                newRows.current.value = `${MIN_ROWS}`;
+            else if (newRows.current.valueAsNumber > MAX_ROWS)
+                newRows.current.value = `${MAX_ROWS}`;
         }
     }
 
     const handleColumnCountUp = () => {
-        if (newColumns.current && newColumns.current.valueAsNumber < maxRows)
+        if (newColumns.current && newColumns.current.valueAsNumber < MAX_ROWS)
             newColumns.current.value = `${newColumns.current.valueAsNumber + 1}`;
     }
 
     const handleColumnCountDown = () => {
-        if (newColumns.current && newColumns.current.valueAsNumber > minRows)
+        if (newColumns.current && newColumns.current.valueAsNumber > MIN_ROWS)
             newColumns.current.value = `${newColumns.current.valueAsNumber - 1}`;
     }
 
     const handleColumnCountLeave = () => {
         if (newColumns.current) {
-            if (newColumns.current.valueAsNumber < minRows)
-                newColumns.current.value = `${minRows}`;
-            else if (newColumns.current.valueAsNumber > maxRows)
-                newColumns.current.value = `${maxRows}`;
+            if (newColumns.current.valueAsNumber < MIN_ROWS)
+                newColumns.current.value = `${MIN_ROWS}`;
+            else if (newColumns.current.valueAsNumber > MAX_ROWS)
+                newColumns.current.value = `${MAX_ROWS}`;
         }
     }
 
@@ -134,8 +133,8 @@ export default function GameSettings({ state, onNewGame }: Props) {
 
     const handleLevelChange = () => {
         const selectedValue: string = selectedLevel.current?.value ?? "";
-        const selected = gameLevels.find(lvl => lvl.level === selectedValue);
-        let baseLevel = gameLevels.find(lvl => lvl.level === 'b');
+        const selected = GAME_LEVELS.find(lvl => lvl.level === selectedValue);
+        let baseLevel = GAME_LEVELS.find(lvl => lvl.level === 'b');
 
         if (selected)
             baseLevel = selected;
@@ -164,10 +163,10 @@ export default function GameSettings({ state, onNewGame }: Props) {
             <div className="min-w-48 items-center md:mr-5">
                 <label
                     htmlFor="selectLevel"
-                    className={labelClass}
+                    className={LABEL_CLASS}
                 >Level</label>
                 <div className='flex flex-row flex-grow max-h-[32px]'>
-                    <select className={selectClass}
+                    <select className={SELECT_CLASS}
                         id='selectLevel'
                         onChange={handleLevelChange}
                         ref={selectedLevel}
@@ -186,16 +185,16 @@ export default function GameSettings({ state, onNewGame }: Props) {
             <div className="min-w-32 items-center">
                 <label
                     htmlFor="rowCount"
-                    className={labelClass}
+                    className={LABEL_CLASS}
                 >Row Count</label>
                 <div className='flex flex-row max-h-[32px]'>
-                    <input className={inputClass}
+                    <input className={INPUT_CLASS}
                         id='rowCount'
                         type='number'
                         required
                         disabled={disableSelection}
-                        max={maxRows}
-                        min={minRows}
+                        max={MAX_ROWS}
+                        min={MIN_ROWS}
                         ref={newRows}
                         defaultValue={state.rowCount}
                         onBlur={handleRowCountLeave}
@@ -209,16 +208,16 @@ export default function GameSettings({ state, onNewGame }: Props) {
             <div className="min-w-32">
                 <label
                     htmlFor="colCount"
-                    className={labelClass}
+                    className={LABEL_CLASS}
                 >Column Count</label>
                 <div className='flex flex-row max-h-[32px]'>
-                    <input className={inputClass}
+                    <input className={INPUT_CLASS}
                         id='colCount'
                         type='number'
                         required
                         disabled={disableSelection}
-                        max={maxColumns}
-                        min={minColumns}
+                        max={MAX_COLUMNS}
+                        min={MIN_COLUMNS}
                         ref={newColumns}
                         defaultValue={state.columnCount}
                         onBlur={handleColumnCountLeave}
@@ -232,10 +231,10 @@ export default function GameSettings({ state, onNewGame }: Props) {
             <div className="min-w-32">
                 <label
                     htmlFor="bombValue"
-                    className={labelClass}
+                    className={LABEL_CLASS}
                 >Bomb Count</label>
                 <div className='flex flex-row max-h-[32px]'>
-                    <input className={inputClass}
+                    <input className={INPUT_CLASS}
                         id='bombCount'
                         type='number'
                         required

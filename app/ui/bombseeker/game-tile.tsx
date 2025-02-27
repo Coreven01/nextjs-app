@@ -26,16 +26,32 @@ type Props = {
 */
 export type TileValue = undefined | "X" | "F" | "E" | "?" | "I" | "T" | number;
 
+const TILE_BG_COLOR = "bg-zinc-300";
+const TILE_DEFAULT = "border border-black text-xl font-bold h-7 w-7 p-0 text-center";
+const TILE_EXPOSED = "bg-white";
+const TILE_BOMB = "bg-white";
+const TILE_TRIGGERED = "bg-red-600";
+const TILE_UNKNOWN = "bg-yellow-200 text-black";
+const TILE_DARK = "bg-zinc-400";
+const TILE_ONE = "text-blue-500 ";
+const TILE_TWO = "text-green-500 ";
+const TILE_THREE = "text-red-500 ";
+const TILE_FOUR = "text-blue-800 ";
+const TILE_FIVE = "text-purple-700 ";
+const TILE_SIX = "text-teal-500 ";
+const TILE_SEVEN = "text-black ";
+const TILE_EIGHT = "text-gray-500 ";
+
 /**
  * Button associated with a bomb tile.
  * 
  * @param {*} param0 
  * @returns 
  */
-export default function GameTile({ id, displayValue, exposed, disabled, highlight, 
+export default function GameTile({ id, displayValue, exposed, disabled, highlight,
     onTileClick, onTileRightClick, onMouseUp, onMouseDown, onMouseLeave }: Props) {
 
-    const classValue = getTileClass(displayValue, highlight, exposed);
+    const classValue: string = getTileClass(displayValue, highlight, exposed);
     let value: React.ReactNode;
 
     if (displayValue === "F")
@@ -44,12 +60,10 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
         value = <FireIcon className='w-5 h-5 m-auto text-neutral-800 scale-115' />;
     else if (displayValue === "I")
         value = (
-            <>
-                <span className='relative'>
-                    <FlagIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-rose-500 scale-115' />
-                    <XMarkIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-black scale-[2]' />
-                </span>
-            </>
+            <span className='relative'>
+                <FlagIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-rose-500 scale-115' />
+                <XMarkIcon className='absolute top-[-9px] left-[-9px] w-5 h-5 m-auto text-black scale-[2]' />
+            </span>
         );
     else
         value = displayValue?.toString();
@@ -71,49 +85,34 @@ export default function GameTile({ id, displayValue, exposed, disabled, highligh
 
 function getTileClass(tileValue: TileValue, highlight: boolean, exposed: boolean) {
 
-    const tileBgColor = "bg-zinc-300";
-    const tileDefault = "border border-black text-xl font-bold h-7 w-7 p-0 text-center";
-    const tileExposed = "bg-white";
-    const tileBomb = "bg-white";
-    const tileTriggered = "bg-red-600";
-    const tileUnknown = "bg-yellow-200 text-black";
-    const tileDark = "bg-zinc-400";
-    const tile1 = "text-blue-500 ";
-    const tile2 = "text-green-500 ";
-    const tile3 = "text-red-500 ";
-    const tile4 = "text-blue-800 ";
-    const tile5 = "text-purple-700 ";
-    const tile6 = "text-teal-500 ";
-    const tile7 = "text-black ";
-    const tile8 = "text-gray-500 ";
-    const defaultExposed = `${tileExposed} ${tileDefault}`;
+    const defaultExposed = `${TILE_EXPOSED} ${TILE_DEFAULT}`;
 
     switch (tileValue) {
         case "X":
-            return `${tileDefault} ${tileBomb}`;
+            return `${TILE_DEFAULT} ${TILE_BOMB}`;
         case "T":
-            return `${tileDefault} ${tileTriggered}`;
+            return `${TILE_DEFAULT} ${TILE_TRIGGERED}`;
         case "F":
-            return `${tileDefault} ${tileBgColor}`;
+            return `${TILE_DEFAULT} ${TILE_BG_COLOR}`;
         case "?":
-            return `${tileDefault} ${tileUnknown}`;
+            return `${TILE_DEFAULT} ${TILE_UNKNOWN}`;
         case 1:
-            return defaultExposed + ` ${tile1}`;
+            return defaultExposed + ` ${TILE_ONE}`;
         case 2:
-            return defaultExposed + ` ${tile2}`;
+            return defaultExposed + ` ${TILE_TWO}`;
         case 3:
-            return defaultExposed + ` ${tile3}`;
+            return defaultExposed + ` ${TILE_THREE}`;
         case 4:
-            return defaultExposed + ` ${tile4}`;
+            return defaultExposed + ` ${TILE_FOUR}`;
         case 5:
-            return defaultExposed + ` ${tile5}`;
+            return defaultExposed + ` ${TILE_FIVE}`;
         case 6:
-            return defaultExposed + ` ${tile6}`;
+            return defaultExposed + ` ${TILE_SIX}`;
         case 7:
-            return defaultExposed + ` ${tile7}`;
+            return defaultExposed + ` ${TILE_SEVEN}`;
         case 8:
-            return defaultExposed + ` ${tile8}`;
+            return defaultExposed + ` ${TILE_EIGHT}`;
         default:
-            return `${(highlight ? ` ${tileDark}` : exposed ? `${tileExposed}` : `${tileBgColor}`)} ${tileDefault}`
+            return `${(highlight ? ` ${TILE_DARK}` : exposed ? `${TILE_EXPOSED}` : `${TILE_BG_COLOR}`)} ${TILE_DEFAULT}`
     }
 }

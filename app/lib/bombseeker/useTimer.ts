@@ -39,7 +39,7 @@ export function useTimer(): TimerEventType {
         }, 1000);
         setIntervalId(newIntervalId); // Store interval ID
         setIsRunning(true); // Set running state to true
-    }, [isRunning, intervalId]);
+    }, [isRunning]);
 
     const pauseTimer = useCallback(() => {
         if (!isRunning) return; // Prevent pausing if it's already paused

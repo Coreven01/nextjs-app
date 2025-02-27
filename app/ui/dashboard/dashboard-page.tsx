@@ -4,21 +4,21 @@ import { lusitana } from '@/app/ui/fonts';
 import { Suspense } from 'react';
 import { RevenueChartSkeleton, LatestInvoicesSkeleton, CardsSkeleton } from '@/app/ui/skeletons';
 import CardWrapper from '@/app/ui/dashboard/cards';
-import { sectionStyle } from '@/app/ui/home/home-description';
+import { SECTION_STYLE } from '@/app/ui/home/home-description';
 
 export default async function DashboardPage() {
 
     return (
         <div>
-            <h1 className={`${lusitana.className} m-4 p-2 text-xl md:text-2xl ${sectionStyle}`}>
+            <h1 className={`${lusitana.className} m-4 p-2 text-xl md:text-2xl ${SECTION_STYLE}`}>
                 Dashboard
             </h1>
-            <div className={`${sectionStyle} m-4 p-2`}>
+            <div className={`${SECTION_STYLE} m-4 p-2`}>
                 This dashboard is the result of going through the Next.js tutorial. Most of the components were already
                 written as part of the tutorial but with some minor changes to fit the theme.
             </div>
 
-            <div className={`${sectionStyle} m-4 p-2 flex`}>
+            <div className={`${SECTION_STYLE} m-4 p-2 flex`}>
                 <div className="min-w-32">
                     <label
                         htmlFor="delay"
@@ -42,13 +42,13 @@ export default async function DashboardPage() {
                 </div>
             </div>
 
-            <div className={`grid gap-6 sm:grid-cols-2 lg:grid-cols-4 m-4 p-2 ${sectionStyle}`}>
+            <div className={`grid gap-6 sm:grid-cols-2 lg:grid-cols-4 m-4 p-2 ${SECTION_STYLE}`}>
                 <Suspense fallback={<CardsSkeleton />}>
                     <CardWrapper msDelay={1000} />
                 </Suspense>
             </div>
 
-            <div className={`mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8 m-4 p-2 ${sectionStyle}`}>
+            <div className={`mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8 m-4 p-2 ${SECTION_STYLE}`}>
                 <Suspense fallback={<RevenueChartSkeleton />}>
                     <RevenueChart msDelay={1000} />
                 </Suspense>

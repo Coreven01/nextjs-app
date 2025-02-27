@@ -46,7 +46,13 @@ export function useMouseEvents(): DoubleMouseEventsType {
     }, []);
 
     return {
-        shouldHandleDoubleMouseUp, shouldHandleMouseClick, shouldHandleMouseRightClick, handleDoubleMouseDown,
-        handleDoubleMouseUp, handledMouseClick, handledMouseRightClick, resetMouseClicks
+        shouldHandleDoubleMouseUp,
+        shouldHandleMouseClick,
+        shouldHandleMouseRightClick,
+        handleDoubleMouseDown,
+        handleDoubleMouseUp,
+        handledMouseClick,
+        handledMouseRightClick,
+        resetMouseClicks
     };
 }

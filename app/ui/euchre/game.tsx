@@ -4,7 +4,7 @@ import React from "react";
 import PlayerGameDeck from "./players-game-deck";
 import GameSettings from "./game-settings";
 import { EuchreSettings } from "@/app/lib/euchre/data";
-import { sectionStyle } from "../home/home-description";
+import { SECTION_STYLE } from "../home/home-description";
 import { GameInfo } from "./game-info";
 import { OrderTrump } from "./order-trump";
 import { useEuchreGame } from "@/app/lib/euchre/useEuchreGame";
@@ -39,14 +39,14 @@ export default function EuchreGame() {
     return (
         <>
             {!game ?
-                (<div className={`m-2 p-2 ${sectionStyle} max-w-[980px] mx-auto`}>
+                (<div className={`m-2 p-2 ${SECTION_STYLE} max-w-[980px] mx-auto`}>
                     <GameSettings settings={gameSettings} onNewGame={beginNewGame} onApplySettings={changeSettings} />
                 </div>) : <></>}
             {game ?
                 <>
                     <div className="flex relative">
                         <div className="bg-white w-32 absolute h-full"> Testing</div>
-                        <div className={`m-2 p-2 ${sectionStyle} max-w-[980px] mx-auto relative`}>
+                        <div className={`m-2 p-2 ${SECTION_STYLE} max-w-[980px] mx-auto relative`}>
                             <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[150px,1fr,150px] gap-4 h-full">
                                 <div className="row-span-4 min-w-32">
                                     <PlayerGameDeck
@@ -96,7 +96,7 @@ export default function EuchreGame() {
                                 <></>}
                         </div>
                     </div>
-                    <div className={`${sectionStyle} m-2`}>
+                    <div className={`${SECTION_STYLE} m-2`}>
                         <div>
                             <button onClick={handleResetGame}>Go to Settings</button>
                         </div>

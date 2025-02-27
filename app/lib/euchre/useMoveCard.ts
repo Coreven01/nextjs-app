@@ -21,6 +21,13 @@ export interface CardTransformOptions {
     cardOffsetHorizontal: number,
 }
 
+export interface FadeOutOptions {
+    playerNumber: number | "o",
+    fadeOutId: string,
+    fadeOutDelay: 0 | 1 | 2 | 3 | 4 | 5,
+    fadeOutDuration: 0 | 1 | 2 | 3 | 4 | 5
+}
+
 export type DealAnimation = {
     setCardsToMove: (transformValues: CardTransformation[]) => Promise<void>,
 }
@@ -218,5 +225,4 @@ function getTransformationForSide(transform: CardTransformation, srcRect: DOMRec
     }
 
     return transformation;
-
 }

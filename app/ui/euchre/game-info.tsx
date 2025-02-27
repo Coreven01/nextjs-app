@@ -25,10 +25,7 @@ export function GameInfo({ playerInfoState }: Props) {
 
         gameDetailOrdered.push(
         <GameInfoDetail
-            id={player.id}
-            fadeOutId={player.fadeOutId}
-            fadeOutDelay={player.fadeOutDelay}
-            fadeOutDuration={player.fadeOutDuration}>
+            id={player.id}>
             {player.detail}
         </GameInfoDetail>);
     }

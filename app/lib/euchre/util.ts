@@ -17,7 +17,7 @@ export function logBidResult(game: EuchreGameInstance, result: BidResult) {
     console.table(logValue);
 }
 
-export function logConsole(message: object | string | null | undefined, ...params: (object | string | null | undefined)[]) {
+export function logDebugEvent(message: object | string | null | undefined, ...params: (object | string | null | undefined)[]) {
     if (!ENABLE_LOGGING) return;
     console.log(message, params);
 }

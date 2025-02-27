@@ -2,8 +2,7 @@
 
 import { Card, EuchreSettings } from "@/app/lib/euchre/data";
 import { createEuchreGame } from "@/app/lib/euchre/game";
-import { logConsole } from "@/app/lib/euchre/util";
-import { useCallback, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Props = {
     settings: EuchreSettings | undefined,
@@ -13,12 +12,23 @@ type Props = {
 
 export default function GameSettings({ settings, onNewGame, onApplySettings }: Props) {
 
-    const [animate, setAnimate] = useState(settings?.shouldAnimate ?? true);
+    const [newGameStart, setNewGameStart] = useState(false);
+    const animate = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (newGameStart)
+            onNewGame();
+    }, [newGameStart]);
 
     const handleNewGame = () => {
-        const newSettings: EuchreSettings = { ...settings, shouldAnimate: animate };
+        const newSettings: EuchreSettings = { ...settings, shouldAnimate: animate.current?.checked ?? true };
         onApplySettings(newSettings);
-        onNewGame();
+        setNewGameStart(true);
+    }
+
+    const handleApplySettings = () => {
+        const newSettings: EuchreSettings = { ...settings, shouldAnimate: animate.current?.checked ?? true };
+        onApplySettings(newSettings);
     }
 
     const handleTestButtonClick = () => {
@@ -28,31 +38,23 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
         game.player1.hand = [new Card("♠", "Q"), new Card("♠", "J"), new Card("♣", "J"), new Card("♣", "K"), new Card("♥", "A")];
         game.trump = new Card("♠", "9");
         const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
-        logConsole(computerChoice);
     }
-
-    const [count, setCount] = useState(0);
-
-    // Memoizing logMessage so it doesn't get re-created on every render
-    const logMessage = useCallback(() => {
-        setCount(count + 1);
-        console.log("Current time: ", new Date().toTimeString(), " Count: ", count);
-    }, []);  // The function will only be re-created if `count` changes
 
     return (
         <div>
             <div>
-                <label>Animate: </label><input type="checkbox" defaultChecked={settings?.shouldAnimate} onChange={() => setAnimate(!animate)} />
+                <label>Animate: </label>
+                <input
+                    type="checkbox"
+                    ref={animate}
+                    defaultChecked={settings?.shouldAnimate} />
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-2">
                 <button className="text-white border border-white p-2 rounded" onClick={handleNewGame}>Create Game</button>
+                <button className="text-white border border-white p-2 rounded" onClick={handleApplySettings}>Apply Settings</button>
             </div>
             <div className="flex justify-center my-2">
                 <button className="text-white border border-white p-2 rounded" onClick={handleTestButtonClick}>Run Test</button>
-            </div>
-
-            <div className="flex justify-center my-2">
-                <button className="text-white border border-white p-2 rounded" onClick={logMessage}>Run Test2</button>
             </div>
         </div>);
 } 

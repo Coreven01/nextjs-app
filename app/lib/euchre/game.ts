@@ -3,11 +3,6 @@ import { LEFT_BOWER_VALUE, TIMEOUT_MODIFIER } from "./constants";
 import { Card, CardValue, EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreTrick, Suit } from "./data";
 import { CardTransformation } from "./useMoveCard";
 
-interface InitDealResult {
-    transformations: CardTransformation[][],
-    newDealer: EuchrePlayer,
-}
-
 export function createEuchreGame(): EuchreGameInstance {
     const player1 = new EuchrePlayer("Nolan", [], 1);
     const player2 = new EuchrePlayer("Jerry", [], 2);
@@ -139,22 +134,6 @@ export function isGameWon() {
 
 }
 
-export function playGameCard(player: EuchrePlayer, card: Card, game: EuchreGameInstance): EuchreGameInstance {
-
-    const newGame = game.shallowCopy();
-
-    if (!game.currentTrick)
-        throw Error();
-
-    const euchreCard = new EuchreCard(player, card);
-    player.hand = player.hand.filter(c => c !== card);
-    player.playedCards.push(card);
-
-    game.currentTrick.cardsPlayed.push(euchreCard);
-
-    return newGame;
-}
-
 
 export function getPlayerAndCard(playerInfo: string): { playerNumber: number, index: number } {
 
@@ -165,74 +144,7 @@ export function getPlayerAndCard(playerInfo: string): { playerNumber: number, in
     return retval;
 }
 
-/** Deal cards to players until first Jack is dealt. The player that is dealt the Jack will be the initial dealer for the game.
- * Animates using a transform to show a card being dealt to the user, if enabled by the settings.
-*/
-export function dealCardsForNewDealer(game: EuchreGameInstance): InitDealResult {
 
-    if (!game)
-        throw Error("Game not found.");
-
-    if (!game?.dealer)
-        throw Error("Game dealer not found for initial dealer.");
-
-    let counter = 0;
-    const gameDeck = game.deck;
-    const rotation = getPlayerRotation(game.gamePlayers, game.dealer);
-    const orgDealerNumber = game.dealer.playerNumber;
-    const transformations: CardTransformation[][] = [];
-    const retval: InitDealResult = { newDealer: game.dealer, transformations: transformations };
-
-    // Deal until the first jack is dealt
-    for (const card of gameDeck) {
-
-        const player = rotation[counter % 4];
-        const sourceId = card.dealId;
-        const destinationId = player.innerPlayerBaseId;
-        const cardToMoveTransformation: CardTransformation[] = [{
-            sourceId: sourceId,
-            destinationId: destinationId,
-            sourcePlayerNumber: orgDealerNumber,
-            destinationPlayerNumber: player.playerNumber,
-            location: "inner",
-            options: {
-                msDelay: 500 * TIMEOUT_MODIFIER,
-                displayCardValue: true,
-                card: card,
-                cardOffsetHorizontal: 0,
-                cardOffsetVertical: 0,
-            }
-        }];
-
-        retval.transformations.push(cardToMoveTransformation);
-
-        // exit loop once a Jack is dealt.
-        if (card.value === "J") {
-            retval.newDealer = rotation[(counter % 4)];
-            break;
-        }
-        counter++;
-    }
-
-    return retval;
-}
-
-export function determineCurrentWinnerForTrick(trump: Card, trick: EuchreTrick): EuchrePlayer | undefined {
-
-    // let winningCard: EuchreCard | undefined;
-    // let cardValue: number = 0;
-
-    // for (let i = 0; i < trick.cardsPlayed.length; i++) {
-    //     const card = trick.cardsPlayed[i];
-    //     const temp = getCardValue(card.card, trump);
-    //     if (temp > cardValue)
-    //         winningCard = card;
-    // }
-
-    // return winningCard?.player;
-
-    return undefined;
-}
 
 export function getCardValue(card: Card, trump: Card): number {
     return getCardValueBySuit(card, trump.suit, trump.color);
@@ -283,8 +195,8 @@ export function getHighAndLowForSuit(playerHand: Card[], trumpCard: Card, suit: 
     return getHighAndLowFromCards(hand, trumpCard);
 }
 
-export function getHighAndLowNotSuit(playerHand: Card[], trumpCard: Card, suit: Suit): { high: Card | null, low: Card | null } {
-    const hand = playerHand.filter(c => c.suit !== suit);
+export function getHighAndLowNotSuit(playerHand: Card[], trumpCard: Card, excludeSuit: Suit): { high: Card | null, low: Card | null } {
+    const hand = playerHand.filter(c => c.suit !== excludeSuit);
 
     return getHighAndLowFromCards(hand, trumpCard);
 }
