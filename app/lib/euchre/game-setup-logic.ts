@@ -147,6 +147,8 @@ export const shuffleAndDealHand = (
     cancel: boolean): ShuffleResult => {
 
     const newGame = gameInstance.shallowCopy();
+    newGame.resetForNewDeal();
+    
     const retval: ShuffleResult = { transformations: [], game: newGame };
 
     if (cancel)
@@ -281,9 +283,11 @@ export const orderTrump = (gameInstance: EuchreGameInstance | undefined, result:
     const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, newGame.playerSittingOut);
 
     let round = 1;
-    newGame.currentRoundTricks.map(curr => round = curr.round > round ? curr.round : round);
-    const newTrick = new EuchreTrick();
-    newTrick.round = round;
+
+    if (newGame.gameTricks.length > 0)
+        round = newGame.gameTricks.reduce((acc, val) => val.round > acc.round ? val : acc).round;
+
+    const newTrick = new EuchreTrick(round);
     newGame.currentRoundTricks.push(newTrick);
     newGame.currentPlayer = rotation[0];
 

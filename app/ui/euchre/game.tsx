@@ -26,7 +26,8 @@ export default function EuchreGame() {
         handleSettingsChange,
         handlePlayCard,
         handleCancelGame,
-        handleDiscardSubmit } = useEuchreGame();
+        handleDiscardSubmit,
+        resaveGameState } = useEuchreGame();
     // #endregion
 
     // #region Event Handlers
@@ -39,14 +40,14 @@ export default function EuchreGame() {
     return (
         <>
             {!game ?
-                (<div className={`m-2 p-2 ${SECTION_STYLE} max-w-[980px] mx-auto`}>
+                (<div className={`m-2 p-2 ${SECTION_STYLE} mx-2`}>
                     <GameSettings settings={gameSettings} onNewGame={beginNewGame} onApplySettings={changeSettings} />
                 </div>) : <></>}
             {game ?
                 <>
                     <div className="flex relative">
                         <div className="bg-white w-32 absolute h-full"> Testing</div>
-                        <div className={`m-2 p-2 ${SECTION_STYLE} max-w-[980px] mx-auto relative`}>
+                        <div className={`m-2 p-2 ${SECTION_STYLE} mx-2 flex-grow relative`}>
                             <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[150px,1fr,150px] gap-4 h-full">
                                 <div className="row-span-4 min-w-32">
                                     <PlayerGameDeck
@@ -102,6 +103,9 @@ export default function EuchreGame() {
                         </div>
                         <div>
                             <button onClick={handleCancelGame}>Cancel</button>
+                        </div>
+                        <div>
+                            <button onClick={resaveGameState}>Re-save Game State</button>
                         </div>
                     </div>
                 </> : <></>}

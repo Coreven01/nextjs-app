@@ -1,7 +1,7 @@
 'use client';
 
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { BidResult, Card, Suit } from '@/app/lib/euchre/data';
+import { Card, Suit } from '@/app/lib/euchre/data';
 import Image from 'next/image';
 import { RefObject, useRef } from 'react';
 
@@ -41,7 +41,7 @@ export function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmit }: Pro
                         width={75}
                         height={112.5}
                         src={getEncodedCardSvg(pickedUpCard, "center")}
-                        alt="Game Card" /> 
+                        alt="Game Card" />
 
                     <CardSelection ref={bidSelection} playerHand={playerHand} />
                     <input ref={lonerSelection} type='checkbox' className='col-span-2' />

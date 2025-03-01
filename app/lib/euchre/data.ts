@@ -1,10 +1,10 @@
-import { createDummyCards, getPlayerRotation } from "./game";
+import { createDummyCards, getCardColorFromSuit, getPlayerRotation } from "./game";
 import { determineBidLogic, determineDiscard } from "./game-bid-logic";
 import { determineCardToPlayLogic } from "./game-play-logic";
 
 export type Suit = "♠" | "♥" | "♦" | "♣";
 export type CardValue = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "?";
-
+export type CardColor = "R" | "B";
 export class EuchrePlayer {
     name: string;
     hand: Card[];
@@ -61,7 +61,7 @@ export class EuchrePlayer {
 export interface BidResult {
     orderTrump: boolean,
     loner: boolean,
-    calledSuit: Suit | undefined,
+    calledSuit: Suit | null,
 }
 
 export class Card {
@@ -74,8 +74,8 @@ export class Card {
         this.value = value;
     }
 
-    get color(): "R" | "B" {
-        return this.suit === "♠" || this.suit === "♣" ? "B" : "R";
+    get color(): CardColor {
+        return getCardColorFromSuit(this.suit);
     }
 
     get dealId(): string {
@@ -225,9 +225,13 @@ export class EuchreGameInstance {
 }
 
 export class EuchreTrick {
-    playerWon: EuchrePlayer | undefined;
+    playerWon: EuchrePlayer | undefined = undefined;
     cardsPlayed: EuchreCard[] = [];
     round: number = 0
+
+    constructor(round: number){
+        this.round = round;
+    }
 }
 
 export class EuchreCard {

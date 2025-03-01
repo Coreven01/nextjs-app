@@ -15,7 +15,7 @@ import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/16/solid";
 import { dealCardsForDealer, getGameStateForInitialDeal, initDeckForInitialDeal, orderTrump, shuffleAndDealHand } from "./game-setup-logic";
 import { logDebugEvent } from "./util";
 import useAnimation from "./animation/useAnimation";
-import { playGameCard } from "./game-play-logic";
+import { determineCurrentWinnerForTrick, getGameStateForNextHand, playGameCard } from "./game-play-logic";
 
 const FLIPPED_CARD_ID = 'flipped-card';
 
@@ -34,6 +34,10 @@ export function useEuchreGame() {
     const [gameState, dispatchUpdateGameState] = useReducer(gameStateReducer, initialGameState);
     const [playerInfoState, dispatchUpdatePlayerInfoState] = useReducer(playerInfoStateReducer, initialPlayerInfoState);
     const { animateForInitialDeal, animateDealCardsForHand, setFadeOutForPlayers } = useAnimation();
+
+    useEffect(() => {
+        setFadeOutForPlayers(fadeOutElements);
+    }, [fadeOutElements]);
 
     //#region Game Initiallization
 
@@ -58,6 +62,16 @@ export function useEuchreGame() {
         setShouldPromptDiscard(false);
     };
 
+    const clearFadeOutElements = () => {
+        setfadeOutElements([
+            { playerNumber: 1, fadeOutId: "", fadeOutDelay: 1, fadeOutDuration: 1 },
+            { playerNumber: 2, fadeOutId: "", fadeOutDelay: 1, fadeOutDuration: 1 },
+            { playerNumber: 3, fadeOutId: "", fadeOutDelay: 1, fadeOutDuration: 1 },
+            { playerNumber: 4, fadeOutId: "", fadeOutDelay: 1, fadeOutDuration: 1 },
+            { playerNumber: "o", fadeOutId: "", fadeOutDelay: 1, fadeOutDuration: 1 },
+        ]);
+    }
+
     /** Reset state and begin cards being dealt to determine new dealer. */
     const beginNewGame = () => {
         reset(true);
@@ -69,7 +83,8 @@ export function useEuchreGame() {
     const createGame = () => {
         const newGame = initDeckForInitialDeal(shouldCancelGame);
         const newGameState: GameState = getGameStateForInitialDeal(gameState, gameSettings, newGame);
-        newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_FOR_DEALER
+        newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_FOR_DEALER;
+
         dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: newGameState });
         setGame(newGame);
     };
@@ -87,6 +102,7 @@ export function useEuchreGame() {
 
             gameInstance.dealer = dealResult.newDealer;
             gameInstance.currentPlayer = dealResult.newDealer;
+            
             dispatchUpdateGameState({ type: GameActionType.SET_ANIMATE_DEAL_FOR_JACK, payload: gameState });
             setGame(gameInstance);
             setAnimationTransformation(dealResult.transformations);
@@ -251,7 +267,7 @@ export function useEuchreGame() {
             }
 
             const playerElementId = newGame.currentPlayer.playerBidId(firstRound ? 1 : 2);
-            const newPlayerInfoState = getPlayerStateForBidding(playerElementId, newGame.currentPlayer, "p", playerInfoState)
+            const newPlayerInfoState = getPlayerStateForBidding(playerElementId, newGame.currentPlayer, "p", playerInfoState, null)
             const rotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
             newGame.currentPlayer = rotation[0];
 
@@ -271,12 +287,8 @@ export function useEuchreGame() {
         }
     }
 
-    useEffect(() => {
-        setFadeOutForPlayers(fadeOutElements);
-    }, [fadeOutElements]);
-
     /** Player has ordered trump either by naming suit or telling the dealer to pick up the flipped card. */
-    const beginOrderTrump = (result: BidResult) => {
+    const beginOrderTrump = async (result: BidResult) => {
 
         logDebugEvent("Trump ordered up. Player: ", gameInstance?.currentPlayer?.name);
 
@@ -291,9 +303,14 @@ export function useEuchreGame() {
         if (!newGame.maker)
             throw Error("Maker not found - Order Trump.");
 
+        const orderType = result.calledSuit ? "n" : "o";
         const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, newGame.playerSittingOut);
         const playerElementId = `player-${newGame.maker.playerNumber}-bid-${3}`;
-        const newPlayerInfoState = getPlayerStateForBidding(playerElementId, newGame.maker, "o", playerInfoState);
+        const newPlayerInfoState = getPlayerStateForBidding(playerElementId, newGame.maker, orderType, playerInfoState, result.calledSuit);
+        dispatchUpdatePlayerInfoState(newPlayerInfoState);
+
+        await new Promise(resolve => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
+
         newPlayerInfoState.type = PlayerInfoActionType.UPDATE_CENTER;
         newPlayerInfoState.payload.centerInfo.detail = undefined;
         dispatchUpdatePlayerInfoState(newPlayerInfoState);
@@ -308,6 +325,7 @@ export function useEuchreGame() {
         }
 
         setGame(newGame);
+        clearFadeOutElements();
     }
 
     /** All players passed during the bidding process. Re-initialize for deal for the next user in the rotation.  */
@@ -315,24 +333,25 @@ export function useEuchreGame() {
 
         logDebugEvent("All players passed first and second round. Update state to pass the deal to the next user.");
 
-        // const newGame = gameInstance?.shallowCopy();
+        const newGame = gameInstance?.shallowCopy();
 
-        // if (!newGame?.dealer)
-        //     throw Error("Game dealer not found - Pass deal.");
+        if (!newGame?.dealer)
+            throw Error("Game dealer not found - Pass deal.");
 
-        // const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
-        // newGame.resetForNewDeal();
-        // newGame.dealer = rotation[0];
+        const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
+        newGame.resetForNewDeal();
+        newGame.dealer = rotation[0];
 
-        // reset(false);
-        // setGame(newGame);
-        // dispatchUpdateGameState(
-        //     {
-        //         type: GameActionType.UPDATE_ALL,
-        //         payload: getGameStateForInitialDeal(gameState, gameSettings, newGame)
-        //     });
-
-        // setShouldDealHand((prev) => !prev);
+        reset(false);
+        setGame(newGame);
+        dispatchUpdateGameState(
+            {
+                type: GameActionType.UPDATE_ALL,
+                payload: getGameStateForInitialDeal(gameState, gameSettings, newGame)
+            });
+        dispatchUpdateGameState({ type: GameActionType.SET_SHUFFLE_CARDS, payload: gameState });
+        dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerInfoState });
+        clearFadeOutElements();
     }
 
     /** Regualr play for the game for winning tricks. Each player will play a card to determine the winner of the trick. */
@@ -359,11 +378,7 @@ export function useEuchreGame() {
                 throw Error("Game Trick not found");
 
             if (newGame.currentTrick.cardsPlayed.length === 4) {
-                return;
-            }
-
-            if (newGame.currentRoundTricks.length === 5) {
-                return;
+                throw Error("Invalid trick");
             }
 
             if (newGame.currentPlayer?.human) {
@@ -371,8 +386,7 @@ export function useEuchreGame() {
             } else {
                 const computerChoice = newGame.currentPlayer.determineCardToPlay(newGame);
                 handlePlayCard(newGame.currentPlayer, computerChoice);
-                //await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
-                //newGame.currentTrick.cardsPlayed
+                await new Promise((resolve) => setTimeout(resolve, 500 * TIMEOUT_MODIFIER));
             }
         }
     }, [gameInstance, gameState, shouldCancelGame]);
@@ -380,6 +394,68 @@ export function useEuchreGame() {
     useEffect(() => {
         beginPlayCard();
     }, [beginPlayCard]);
+
+
+    const handlePlayCard = async (player: EuchrePlayer, card: Card) => {
+
+        if (!gameInstance)
+            throw Error("Game not found - Play card.");
+
+        const newGame = playGameCard(player, card, gameInstance);
+
+        if (!newGame?.currentPlayer)
+            throw Error("Player not found.");
+
+        if (!newGame?.trump)
+            throw Error("Trump card not found.");
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const rotation = getPlayerRotation(gameInstance.gamePlayers, newGame.currentPlayer, newGame.playerSittingOut);
+        const currentRound = gameInstance.currentTrick?.round ?? 1;
+
+        if (newGame.currentTrick && newGame.currentTrick.cardsPlayed.length === rotation.length) {
+            const trickWinner = determineCurrentWinnerForTrick(newGame.trump, newGame.currentTrick);
+            newGame.currentTrick.playerWon = trickWinner.card?.player;
+
+            if (newGame.currentRoundTricks.length < 5){
+                newGame.currentRoundTricks.push(new EuchreTrick(currentRound));
+                newGame.currentPlayer = trickWinner.card?.player;
+            }
+        } else {
+            newGame.currentPlayer = rotation[0];
+        }
+
+        if (newGame.currentRoundTricks.length === 5 && newGame.currentRoundTricks.filter(t => t.playerWon !== undefined).length === 5) {
+            // todo: display round winner.
+            //alert("done");
+            newGame.gameTricks.push(...newGame.currentRoundTricks);
+            newGame.currentRoundTricks = [];
+            dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: getGameStateForNextHand(gameState, gameSettings, gameInstance)});
+        }
+
+        setGame(newGame);
+    }
+
+    const resaveGameState = () => {
+        if (gameInstance)
+            setGame(gameInstance.shallowCopy());
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -485,35 +561,6 @@ export function useEuchreGame() {
         }
     }
 
-    const handlePlayCard = async (player: EuchrePlayer, card: Card) => {
-
-        if (!gameInstance)
-            throw Error("Game not found - Play card.");
-
-        const newGame = playGameCard(player, card, gameInstance);
-
-        if (!newGame?.currentPlayer)
-            throw Error("Player not found.");
-
-        const rotation = getPlayerRotation(gameInstance.gamePlayers, newGame.currentPlayer, newGame.playerSittingOut);
-        if (newGame.currentTrick && newGame.currentTrick.cardsPlayed.length === rotation.length) {
-            // determine who wins the trick.
-        }
-
-        newGame.currentPlayer = rotation[0];
-
-        if (newGame.currentRoundTricks.length === 5) {
-            // determine who won the round.
-
-            //setShouldDealHand(prev => !prev);
-        } else {
-            //setShouldPlayCard(prev => !prev);
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setGame(newGame);
-    }
-
     //#region Animation - can be enabled/disabled by game settings.
 
 
@@ -540,7 +587,7 @@ export function useEuchreGame() {
 
     return {
         game: gameInstance, gameState, playerInfoState, shouldPromptBid, shouldPromptDiscard, gameSettings,
-        beginNewGame, handleBidSubmit, handleResetGame, handleSettingsChange, handlePlayCard, handleCancelGame, handleDiscardSubmit,
+        beginNewGame, handleBidSubmit, handleResetGame, handleSettingsChange, handlePlayCard, handleCancelGame, handleDiscardSubmit, resaveGameState
     };
 
 }
@@ -559,12 +606,19 @@ const getFaceUpCard = (id: string, card: Card) => {
 }
 
 /** Return a new state to provide a visual element that the user either passed or ordered trump. */
-const getPlayerStateForBidding = (id: string, player: EuchrePlayer, info: "p" | "o", playerInfoState: PlayerInfoState): PlayerInfoAction => {
+const getPlayerStateForBidding = (id: string, player: EuchrePlayer, info: "p" | "o" | "n", playerInfoState: PlayerInfoState, namedSuit: Suit | null): PlayerInfoAction => {
 
     let detail: PlayerInfoStateDetail;
     const newAction: PlayerInfoAction = { type: PlayerInfoActionType.UPDATE_PLAYER1, payload: { ...playerInfoState } };
-    const icon: React.ReactNode = info === "p" ? <XCircleIcon className="max-w-8 max-h-8 min-h-6" /> : <CheckCircleIcon className="max-w-8 max-h-8 min-h-6" />;
-    const messageDetail = info === "p" ? "Pass" : "Pick Up";
+    const icon: React.ReactNode = info === "p" ? <XCircleIcon className="min-h-[18px] max-h-[20px]" /> : <CheckCircleIcon className="min-h-[18px] max-h-[20px]" />;
+    let messageDetail: string;
+
+    switch (info) {
+        case "p": messageDetail = "Pass"; break;
+        case "o": messageDetail = "Pick Up"; break;
+        case "n": messageDetail = "Calling " + namedSuit; break;
+    }
+
     const infoDetail = <UserInfo><div className="flex gap-2 items-center">{icon}{messageDetail}</div></UserInfo>;
 
     switch (player.playerNumber) {

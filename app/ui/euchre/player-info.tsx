@@ -13,7 +13,7 @@ export default function PlayerInfo({ player, game }: Props) {
     let content = "";
 
     if (isDealer && isMaker)
-        content = `Dealer | Maker`;
+        content = `Dealer | Maker (${suit})`;
     else if (isDealer)
         content = "Dealer";
     else if (isMaker)
@@ -21,7 +21,7 @@ export default function PlayerInfo({ player, game }: Props) {
     
     return (
         <>
-            <div className="rounded border rounded-xl dark:border-white p-2 m-2">
+            <div className="rounded border rounded-xl dark:border-white p-2 m-2 text-sm">
                 <div>
                     {player.name} - Team: {player.team}
                 </div>
@@ -29,7 +29,7 @@ export default function PlayerInfo({ player, game }: Props) {
                     Tricks {0}/5
                 </div>
                 <div>
-                    Points {0}/5
+                    Points {0}/10
                 </div>
                 <div className={`text-yellow-500 ${!content ? "invisible": ""}`}>{content ? content : "X"}</div>
             </div>

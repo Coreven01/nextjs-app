@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, EuchreSettings } from "@/app/lib/euchre/data";
+import { Card, EuchreSettings, EuchreTrick } from "@/app/lib/euchre/data";
 import { createEuchreGame } from "@/app/lib/euchre/game";
 import { useEffect, useRef, useState } from "react";
 
@@ -40,6 +40,17 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
         const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
     }
 
+    const handleTestButtonClick2 = () => {
+        const game = createEuchreGame();
+        game.currentPlayer = game.player1;
+        game.dealer = game.player1;
+        game.currentRoundTricks.push(new EuchreTrick(1));
+        game.player1.hand = [new Card("♦", "Q"), new Card("♦", "J"), new Card("♣", "J"), new Card("♦", "K"), new Card("♦", "Q")];
+        game.trump = new Card("♠", "2");
+
+        const computerChoice = game.currentPlayer.determineCardToPlay(game);
+    }
+
     return (
         <div>
             <div>
@@ -54,7 +65,7 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
                 <button className="text-white border border-white p-2 rounded" onClick={handleApplySettings}>Apply Settings</button>
             </div>
             <div className="flex justify-center my-2">
-                <button className="text-white border border-white p-2 rounded" onClick={handleTestButtonClick}>Run Test</button>
+                <button className="text-white border border-white p-2 rounded" onClick={handleTestButtonClick2}>Run Test</button>
             </div>
         </div>);
 } 

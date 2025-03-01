@@ -33,7 +33,7 @@ export const initialPlayerInfoState: PlayerInfoState = {
     player1Info: { id: "state-1", detail: undefined },
     player2Info: { id: "state-2", detail: undefined },
     player3Info: { id: "state-3", detail: undefined },
-    player4Info: { id: "state=4", detail: undefined },
+    player4Info: { id: "state-4", detail: undefined },
     centerInfo: { id: "state-center", detail: undefined },
 };
 

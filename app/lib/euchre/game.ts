@@ -1,8 +1,8 @@
 import { offsuitValues, trumpValues } from "./card-data";
-import { LEFT_BOWER_VALUE, TIMEOUT_MODIFIER } from "./constants";
-import { Card, CardValue, EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreTrick, Suit } from "./data";
-import { CardTransformation } from "./useMoveCard";
+import { LEFT_BOWER_VALUE } from "./constants";
+import { Card, CardColor, CardValue, EuchreGameInstance, EuchrePlayer, Suit } from "./data";
 
+/** Create default euchre game with default players and dummy cards. */
 export function createEuchreGame(): EuchreGameInstance {
     const player1 = new EuchrePlayer("Nolan", [], 1);
     const player2 = new EuchrePlayer("Jerry", [], 2);
@@ -42,7 +42,8 @@ export function getPlayerRotation(players: EuchrePlayer[], relativePlayer: Euchr
     return returnRotation;
 }
 
-export function createShuffledDeck(shuffleCount: number) {
+/** Creates a deck of shuffled cards for a euchre game. 24 cards total. */
+export function createShuffledDeck(shuffleCount: number): Card[] {
     if (shuffleCount < 1)
         shuffleCount = 1;
 
@@ -54,6 +55,7 @@ export function createShuffledDeck(shuffleCount: number) {
     return newDeck;
 }
 
+/** Create a deck of cards used for a euchre game. */
 export function createEuchreDeck(): Card[] {
 
     const availableCards: CardValue[] = ["9", "10", "J", "Q", "K", "A"];
@@ -69,7 +71,8 @@ export function createEuchreDeck(): Card[] {
     return deck;
 }
 
-export function createDummyCards(deckSize: number) {
+/** Create cards for the given deck size. All the cards a 2 of spades. */
+export function createDummyCards(deckSize: number): Card[] {
     const retval: Card[] = [];
     for (let i = 0; i < deckSize; i++)
         retval.push(new Card("♠", "2"));
@@ -77,6 +80,7 @@ export function createDummyCards(deckSize: number) {
     return retval;
 }
 
+/** Shuffle a deck of cards using random number renerator */
 export function shuffleDeck(deck: Card[]): Card[] {
     const deckSize = deck.length;
     const newDeck: Card[] = [];
@@ -120,7 +124,8 @@ export function shuffleDeck(deck: Card[]): Card[] {
     return newDeck;
 }
 
-function createRange(start: number, end: number) {
+/** Create range of numbers between the givent start and end */
+function createRange(start: number, end: number): number[] {
     const result = [];
 
     for (let i = start; i <= end; i++) {
@@ -130,11 +135,7 @@ function createRange(start: number, end: number) {
     return result;
 }
 
-export function isGameWon() {
-
-}
-
-
+/** Get player number and card from the given string. Used to convert a card's element ID back into usable information. */
 export function getPlayerAndCard(playerInfo: string): { playerNumber: number, index: number } {
 
     if (!playerInfo)
@@ -144,19 +145,87 @@ export function getPlayerAndCard(playerInfo: string): { playerNumber: number, in
     return retval;
 }
 
-
-
-export function getCardValue(card: Card, trump: Card): number {
-    return getCardValueBySuit(card, trump.suit, trump.color);
+/** Get the card color from the given suit.  */
+export function getCardColorFromSuit(suit: Suit): CardColor {
+    return suit === "♠" || suit === "♣" ? "B" : "R";
 }
 
-export function getCardValueBySuit(card: Card, trumpSuit: Suit, trumpColor: "R" | "B") {
+/** Get the associated card values for the given cards and trump card. */
+export function getCardValues(cards: Card[], trump: Card): { card: Card, value: number }[] {
+
+    const retval: { card: Card, value: number }[] = [];
+
+    for (let i = 0; i < cards.length; i++) {
+        retval.push({ card: cards[i], value: getCardValue(cards[i], trump) });
+    }
+
+    return retval;
+}
+
+/** Return only the cards and their values for the given suit, based on the trump value. If no suit is provided,
+ *  return all cards values.
+ */
+export function getCardValuesForSuit(cards: Card[], trump: Card, suit: Suit | null): { card: Card, value: number }[] {
+
+    const retval: { card: Card, value: number }[] = [];
+    const excludeLeft = suit ? trump.suit !== suit : false;
+    const includeLeft = suit ? trump.suit === suit : true;
+
+    for (const card of cards) {
+
+        if (suit) {
+            const cardIsLeft = cardIsLeftBower(card, trump);
+            if (excludeLeft && cardIsLeft)
+                continue;
+
+            if (card.suit === suit || (includeLeft && cardIsLeft))
+                retval.push({ card: card, value: getCardValue(card, trump) });
+        } else {
+            retval.push({ card: card, value: getCardValue(card, trump) });
+        }
+    }
+
+    return retval;
+}
+
+/** Return only the cards and their values for the given suit, based on the trump value. If no suit is provided,
+ *  return all cards values.
+ */
+export function getCardValuesExcludeSuit(cards: Card[], trump: Card, excludeSuit: Suit | null): { card: Card, value: number }[] {
+
+    const retval: { card: Card, value: number }[] = [];
+    const excludeLeft = trump.suit === excludeSuit;
+
+    for (const card of cards) {
+
+        if (excludeSuit) {
+            const cardIsLeft = cardIsLeftBower(card, trump);
+            if (excludeLeft && cardIsLeft)
+                continue;
+
+            if (card.suit !== excludeSuit)
+                retval.push({ card: card, value: getCardValue(card, trump) });
+        } else {
+            retval.push({ card: card, value: getCardValue(card, trump) });
+        }
+    }
+
+    return retval;
+}
+
+/** */
+export function getCardValue(card: Card, trump: Card): number {
+    return getCardValueBySuit(card, trump);
+}
+
+/** */
+export function getCardValueBySuit(card: Card, trumpCard: Card) {
 
     let retval = 0;
 
-    if (card.suit === trumpSuit) {
+    if (card.suit === trumpCard.suit) {
         retval = trumpValues.get(card.value) ?? 0;
-    } else if (card.value === "J" && card.color === trumpColor) {
+    } else if (card.value === "J" && card.color === trumpCard.color) {
         retval = LEFT_BOWER_VALUE;
     } else {
         retval = (offsuitValues.get(card.value) ?? 0);
@@ -165,23 +234,25 @@ export function getCardValueBySuit(card: Card, trumpSuit: Suit, trumpColor: "R" 
     return retval;
 }
 
+/** */
 export function getSuitCount(cards: Card[], trumpCard: Card): { suit: Suit, count: number }[] {
     const retval: { suit: Suit, count: number }[] = [];
 
     cards.map(c => {
         const isLeftBower = cardIsLeftBower(c, trumpCard);
-        const value = retval.find(val => val.suit === (isLeftBower ? trumpCard.suit : c.suit));
+        const suitForCard =(isLeftBower ? trumpCard.suit : c.suit);
+        const value: { suit: Suit, count: number } | undefined = retval.find(val => val.suit === suitForCard);
 
         if (value)
             value.count += 1;
         else
-            retval.push({ suit: c.suit, count: 1 });
+            retval.push({ suit: suitForCard, count: 1 });
     });
 
     return retval;
 }
 
-export function cardIsLeftBower(card: Card, trumpCard: Card) {
+export function cardIsLeftBower(card: Card, trumpCard: Card): boolean {
     return card.color === trumpCard.color && card.value === "J" && card.suit !== trumpCard.suit;
 }
 
@@ -190,34 +261,40 @@ export function getHighAndLow(playerHand: Card[], trumpCard: Card): { high: Card
 }
 
 export function getHighAndLowForSuit(playerHand: Card[], trumpCard: Card, suit: Suit): { high: Card | null, low: Card | null } {
-    const hand = playerHand.filter(c => c.suit === suit);
+    const hand = playerHand.filter(c => c.suit === suit || (trumpCard.color === getCardColorFromSuit(suit) && cardIsLeftBower(c, trumpCard)));
 
     return getHighAndLowFromCards(hand, trumpCard);
 }
 
-export function getHighAndLowNotSuit(playerHand: Card[], trumpCard: Card, excludeSuit: Suit): { high: Card | null, low: Card | null } {
-    const hand = playerHand.filter(c => c.suit !== excludeSuit);
+export function getHighAndLowExcludeSuit(playerHand: Card[], trumpCard: Card, excludeSuit: Suit): { high: Card | null, low: Card | null } {
+    let hand = playerHand.filter(c => c.suit !== excludeSuit);
+
+    if (trumpCard.suit === excludeSuit)
+        hand = hand.filter(c => !cardIsLeftBower(c, trumpCard));
 
     return getHighAndLowFromCards(hand, trumpCard);
 }
 
 function getHighAndLowFromCards(playerHand: Card[], trumpCard: Card): { high: Card | null, low: Card | null } {
 
-    const highCardVal = 0;
-    const lowCardVal = 1000;
+    let highCardVal = 0;
+    let lowCardVal = 1000;
     let highCard: Card | null = null;
     let lowCard: Card | null = null;
 
     for (const card of playerHand) {
         const cardVal = getCardValue(card, trumpCard);
 
-        if (cardVal > highCardVal)
+        if (cardVal > highCardVal) {
             highCard = card;
+            highCardVal = cardVal;
+        }
 
-        if (cardVal < lowCardVal)
+        if (cardVal < lowCardVal) {
             lowCard = card;
+            lowCardVal = cardVal;
+        }
     }
 
     return { high: highCard, low: lowCard };
-
 }

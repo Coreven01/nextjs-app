@@ -1,6 +1,7 @@
 'use client';
 
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
+import { CARD_HEIGHT, CARD_WIDTH } from '@/app/lib/euchre/constants';
 import { BidResult, Card, Suit } from '@/app/lib/euchre/data';
 import Image from 'next/image';
 import { RefObject, useRef } from 'react';
@@ -38,8 +39,8 @@ export function OrderTrump({ flipCard, firstRound, onBidSubmit }: Props) {
                     {firstRound ? <Image
                         className={`contain row-span-1 col-span-1`}
                         quality={100}
-                        width={75}
-                        height={112.5}
+                        width={CARD_WIDTH}
+                        height={CARD_HEIGHT}
                         src={getEncodedCardSvg(flipCard, "center")}
                         alt="Game Card" /> : <></>}
                     <SuitSelection ref={bidSelection} firstRound={firstRound} trumpSuit={flipCard?.suit} />

@@ -10,7 +10,7 @@ interface GameBidLogic {
     playerWillPickUp: boolean,
     teamWillPickup: boolean,
     handScore: number,
-    suitToCall: Suit | undefined,
+    suitToCall: Suit | null,
     suitsInHand: number,
 }
 
@@ -42,7 +42,7 @@ function getGameBidLogic(game: EuchreGameInstance, flipCard: Card, canNameSuit: 
         playerWillPickUp: playerWillPickup,
         teamWillPickup: game.dealer?.team === currentPlayer.team,
         handScore: 0,
-        suitToCall: undefined,
+        suitToCall: null,
         suitsInHand: new Set(game.currentPlayer.hand.map(c => c.suit)).entries.length,
     }
 
@@ -65,12 +65,12 @@ export function determineBidLogic(game: EuchreGameInstance, flipCard: Card, canN
     else
         modifiedResult = getBidResultForFirstRound(game, flipCard, gameLogicResult);
 
-    const retval: BidResult = { orderTrump: false, loner: false, calledSuit: undefined, };
+    const retval: BidResult = { orderTrump: false, loner: false, calledSuit: null, };
 
     if (modifiedResult.handScore >= getQualifyingScore()) {
         retval.orderTrump = true;
         retval.loner = modifiedResult.handScore >= getQualifyingLonerScore();
-        retval.calledSuit = canNameSuit ? modifiedResult.suitToCall : undefined;
+        retval.calledSuit = canNameSuit ? modifiedResult.suitToCall : null;
 
         return retval;
     }
@@ -121,7 +121,7 @@ function getBidResultForSecondRound(game: EuchreGameInstance, flipCard: Card, ga
         throw Error("Invalid player to determine card to play.");
 
     let highScore = 0;
-    let bestSuit: Suit | undefined;
+    let bestSuit: Suit | null = null;
     let score = 0;
     const retval = { ...gameLogic };
     const suits: Suit[] = ["♠", "♥", "♦", "♣"];
