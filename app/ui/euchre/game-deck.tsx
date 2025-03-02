@@ -1,4 +1,3 @@
-import { CARD_HEIGHT, CARD_WIDTH } from "@/app/lib/euchre/constants";
 import { Card } from "@/app/lib/euchre/data"
 import Image from "next/image";
 
@@ -10,11 +9,12 @@ type Props = {
 export default function GameDeck({ deck, location }: Props) {
 
     const images: React.ReactNode[] = [];
-    const width = location === "center" ? CARD_WIDTH : CARD_HEIGHT;
-    const height = location === "center" ? CARD_HEIGHT : CARD_WIDTH;
+    const dummyCard: Card = new Card("♠", "2");
+    const width =  dummyCard.getDisplayWidth(location);
+    const height = dummyCard.getDisplayHeight(location);
     const cardBackSvg = location === "center" ? "/card-back.svg": "/card-back-side.svg";
 
-    const dummyCard = <Image
+    const dummyCardImg = <Image
         key={`deal-dummy`}
         id={`deal-dummy`}
         className={`contain`}
@@ -24,8 +24,7 @@ export default function GameDeck({ deck, location }: Props) {
         src={cardBackSvg}
         alt="Game Card" />;
 
-    images.push(dummyCard);
-
+    images.push(dummyCardImg);
     let index = 0;
 
     for (const card of deck) {

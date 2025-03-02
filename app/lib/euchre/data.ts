@@ -5,6 +5,9 @@ import { determineCardToPlayLogic } from "./game-play-logic";
 export type Suit = "♠" | "♥" | "♦" | "♣";
 export type CardValue = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K" | "A" | "?";
 export type CardColor = "R" | "B";
+const CARD_WIDTH = 75;
+const CARD_HEIGHT = 112.5;
+
 export class EuchrePlayer {
     name: string;
     hand: Card[];
@@ -31,6 +34,18 @@ export class EuchrePlayer {
 
     get playerBase(): string {
         return `player-base-${this.playerNumber}`;
+    }
+
+    get location(): "center" | "side" {
+        return this.playerNumber === 1 || this.playerNumber === 2 ? "center" : "side";
+    }
+
+    /** Generate a psudeo unique id used for player notification.
+     * Unless I find a better way, the notification fade out transition doesn't like it
+     * if it reuses the same ID.
+     */
+    generateElementId(): string {
+        return `player-${this.playerNumber}-${Math.floor(Math.random() * 1000)}`;
     }
 
     playerBidId(round: number): string {
@@ -80,6 +95,22 @@ export class Card {
 
     get dealId(): string {
         return `deal-${this.index}`;
+    }
+
+    get playId(): string {
+        return `card-play-${this.index}`;
+    }
+
+    getDisplayWidth(location: "center" | "side"): number {
+        return location === "center" ? CARD_WIDTH : CARD_HEIGHT;
+    }
+
+    getDisplayHeight(location: "center" | "side"): number {
+        return location === "center" ? CARD_HEIGHT : CARD_WIDTH;
+    }
+
+    generateElementId(): string {
+        return `card-${this.index}-${Math.floor(Math.random() * 1000)}`;
     }
 }
 
@@ -229,7 +260,7 @@ export class EuchreTrick {
     cardsPlayed: EuchreCard[] = [];
     round: number = 0
 
-    constructor(round: number){
+    constructor(round: number) {
         this.round = round;
     }
 }

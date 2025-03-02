@@ -1,7 +1,6 @@
 'use client';
 
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { CARD_HEIGHT, CARD_WIDTH } from '@/app/lib/euchre/constants';
 import { BidResult, Card, Suit } from '@/app/lib/euchre/data';
 import Image from 'next/image';
 import { RefObject, useRef } from 'react';
@@ -19,7 +18,7 @@ export function OrderTrump({ flipCard, firstRound, onBidSubmit }: Props) {
 
     const handleBidSubmit = (trumpOrdered: boolean) => {
 
-        let suit: Suit | undefined;
+        let suit: Suit | null = null;
         const isLoner = lonerSelection.current?.checked ?? false;
         const suitSelection = bidSelection.current?.querySelectorAll('input[type="radio"]:checked');
 
@@ -27,7 +26,7 @@ export function OrderTrump({ flipCard, firstRound, onBidSubmit }: Props) {
             suit = (suitSelection[0] as HTMLInputElement)?.value as Suit;
         }
 
-        const result = { orderTrump: trumpOrdered, loner: isLoner, calledSuit: firstRound ? undefined : suit };
+        const result:BidResult = { orderTrump: trumpOrdered, loner: isLoner, calledSuit: firstRound ? null : suit };
 
         onBidSubmit(result);
     }
@@ -39,8 +38,8 @@ export function OrderTrump({ flipCard, firstRound, onBidSubmit }: Props) {
                     {firstRound ? <Image
                         className={`contain row-span-1 col-span-1`}
                         quality={100}
-                        width={CARD_WIDTH}
-                        height={CARD_HEIGHT}
+                        width={flipCard.getDisplayWidth("center")}
+                        height={flipCard.getDisplayHeight("center")}
                         src={getEncodedCardSvg(flipCard, "center")}
                         alt="Game Card" /> : <></>}
                     <SuitSelection ref={bidSelection} firstRound={firstRound} trumpSuit={flipCard?.suit} />

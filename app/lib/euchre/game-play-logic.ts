@@ -1,6 +1,12 @@
 import { Card, CardValue, EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreSettings, EuchreTrick, Suit } from "./data";
 import { cardIsLeftBower, getCardValue, getCardValuesForSuit, getHighAndLow, getHighAndLowForSuit, getHighAndLowExcludeSuit, getSuitCount, getCardValuesExcludeSuit } from "./game";
 import { EuchreAnimateType, EuchreGameFlow, GameState } from "./gameStateReducer";
+import { CardTransformation } from "./useMoveCard";
+
+interface PlayCardResult {
+    transformations: CardTransformation[][],
+    card: Card;
+}
 
 //#region Logic information used to decide which card to play.
 interface TeamLogic {
@@ -235,9 +241,6 @@ function getTrumpLogic(game: EuchreGameInstance): TrumpLogic {
     if (!game?.currentPlayer)
         throw Error("Invalid player to determine card to play.");
 
-    if (!game.currentTrick)
-        throw Error();
-
     if (!game.trump)
         throw Error();
 
@@ -249,8 +252,8 @@ function getTrumpLogic(game: EuchreGameInstance): TrumpLogic {
 
     const retval: TrumpLogic = {
         trumpCardCount: trumpCards.length,
-        playerHasRight: trumpCards.find(c => c.card.suit === game?.trump?.suit && c.card.value === "J") !== undefined,
-        playerHasLeft: trumpCards.find(c => c.card.suit === game.trump?.suit && c.card.value === "J") !== undefined,
+        playerHasRight: currentPlayer.hand.find(c => c.suit === game?.trump?.suit && c.value === "J") !== undefined,
+        playerHasLeft: currentPlayer.hand.find(c => cardIsLeftBower(c, game.trump ?? new Card("♠", "2"))) !== undefined,
         trumpHighLow: getHighAndLowForSuit(currentPlayer.hand, game.trump, game.trump.suit),
         rightWasSeen: game.currentRoundTricks
             .flat()

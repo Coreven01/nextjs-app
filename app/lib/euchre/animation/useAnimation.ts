@@ -176,6 +176,11 @@ export default function useAnimation() {
         //await animate.setCardsToMove(transformations);
     }
 
+    const animateForPlayCard = async (game: EuchreGameInstance) => {
+        console.log("begin animation for play card.");
+        await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
+    }
+
     const setFadeOutForPlayers = (elements: FadeOutOptions[]) => {
         console.log("begin animation for fade out.");
 
@@ -186,6 +191,6 @@ export default function useAnimation() {
         }
     }
 
-    return { animateForInitialDeal, animateDealCardsForHand, setFadeOutForPlayers };
+    return { animateForInitialDeal, animateDealCardsForHand, animateForPlayCard, setFadeOutForPlayers };
 }
 

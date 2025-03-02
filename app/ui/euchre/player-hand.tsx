@@ -1,5 +1,4 @@
 import { getEncodedCardSvg } from "@/app/lib/euchre/card-data"
-import { CARD_HEIGHT, CARD_WIDTH } from "@/app/lib/euchre/constants";
 import { Card, EuchrePlayer } from "@/app/lib/euchre/data"
 import { getPlayerAndCard } from "@/app/lib/euchre/game";
 import { GameState } from "@/app/lib/euchre/gameStateReducer";
@@ -21,10 +20,15 @@ export default function PlayerHand({ gameState, player, location, onCardClick }:
         throw Error("Unable to show hand. No cards dealt.");
 
     const handValues: Card[] = player.hand.length === 0 ? player.placeholder : player.hand;
+
+    if (handValues.length === 0) {
+        throw new Error("No cards in player hand");
+    }
+
     const images: React.ReactNode[] = [];
     const activeClasses = shouldShowHandImages && player.human ? "cursor-pointer shadow-sm hover:scale-[1.15] hover:shadow-md hover:shadow-yellow-300 hover:z-10" : "";
-    const width = location === "center" ? CARD_WIDTH : CARD_HEIGHT;
-    const height = location === "center" ? CARD_HEIGHT : CARD_WIDTH;
+    const width = handValues[0].getDisplayWidth(location);
+    const height = handValues[0].getDisplayHeight(location);
     const hidden = !shouldShowHandImages ? "invisible" : "";
     const cardBackSvg = location === "center" ? "/card-back.svg" : "/card-back-side.svg";
 

@@ -5,7 +5,7 @@ import UserInfo from "@/app/ui/euchre/user-info";
 import Image from 'next/image';
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { BidResult, Card, EuchreGameInstance, EuchrePlayer, EuchreSettings, EuchreTrick, initialGameSettings, Suit } from "./data";
-import { initialPlayerInfoState, PlayerInfoAction, PlayerInfoActionType, PlayerInfoState, PlayerInfoStateDetail, playerInfoStateReducer } from "./playerInfoReducer";
+import { initialPlayerGameInfo, PlayerInfoAction, PlayerInfoActionType, PlayerGameInfoState, playerInfoStateReducer } from "./playerInfoReducer";
 import { EuchreAnimateType, EuchreGameFlow, GameActionType, GameState, gameStateReducer, initialGameState } from "./gameStateReducer";
 import { CardTransformation, FadeOutOptions } from "./useMoveCard";
 import { getPlayerRotation } from "./game";
@@ -25,6 +25,7 @@ export function useEuchreGame() {
     const [shouldPromptBid, setShouldPromptBid] = useState(false);
     const [shouldPromptDiscard, setShouldPromptDiscard] = useState(false);
     const [shouldCancelGame, setCancelGame] = useState(false);
+    const [playerCard, setPlayerCard] = useState<Card | null>(null);
 
     const [gameInstance, setGame] = useState<EuchreGameInstance | undefined>(undefined);
     const [gameSettings, setSettings] = useState<EuchreSettings>(initialGameSettings);
@@ -32,8 +33,8 @@ export function useEuchreGame() {
     const [fadeOutElements, setfadeOutElements] = useState<FadeOutOptions[]>([]);
 
     const [gameState, dispatchUpdateGameState] = useReducer(gameStateReducer, initialGameState);
-    const [playerInfoState, dispatchUpdatePlayerInfoState] = useReducer(playerInfoStateReducer, initialPlayerInfoState);
-    const { animateForInitialDeal, animateDealCardsForHand, setFadeOutForPlayers } = useAnimation();
+    const [playerInfoState, dispatchUpdatePlayerInfoState] = useReducer(playerInfoStateReducer, initialPlayerGameInfo);
+    const { animateForInitialDeal, animateDealCardsForHand, animateForPlayCard, setFadeOutForPlayers } = useAnimation();
 
     useEffect(() => {
         setFadeOutForPlayers(fadeOutElements);
@@ -57,9 +58,10 @@ export function useEuchreGame() {
                 });
         }
 
-        dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerInfoState });
+        dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerGameInfo });
         setShouldPromptBid(false);
         setShouldPromptDiscard(false);
+        setPlayerCard(null);
     };
 
     const clearFadeOutElements = () => {
@@ -102,10 +104,10 @@ export function useEuchreGame() {
 
             gameInstance.dealer = dealResult.newDealer;
             gameInstance.currentPlayer = dealResult.newDealer;
-            
+
             dispatchUpdateGameState({ type: GameActionType.SET_ANIMATE_DEAL_FOR_JACK, payload: gameState });
             setGame(gameInstance);
-            setAnimationTransformation(dealResult.transformations);
+            setAnimationTransformation([...animationTransformation, ...dealResult.transformations]);
         }
     }, [gameInstance, gameState, gameSettings, shouldCancelGame]);
 
@@ -153,7 +155,8 @@ export function useEuchreGame() {
                 shouldShowHandValues: showAllCards ? newGame.gamePlayers.map(p => { return { player: p, value: true } }) : [],
             };
 
-            playerInfoState.centerInfo.detail = getFaceUpCard(FLIPPED_CARD_ID, newGame.trump); // display trump card for bidding in the center of the table.
+            dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerGameInfo });
+            playerInfoState.centerGameInfo = getFaceUpCard(FLIPPED_CARD_ID, newGame.trump); // display trump card for bidding in the center of the table.
             dispatchUpdatePlayerInfoState({
                 type: PlayerInfoActionType.UPDATE_CENTER,
                 payload: { ...playerInfoState }
@@ -163,7 +166,7 @@ export function useEuchreGame() {
             dispatchUpdateGameState({ type: GameActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY, payload: gameState });
 
             setGame(newGame);
-            setAnimationTransformation(shuffleResult.transformations);
+            setAnimationTransformation([...animationTransformation, ...shuffleResult.transformations]);
 
         }
     }, [gameInstance, gameState, shouldCancelGame, playerInfoState]);
@@ -173,7 +176,7 @@ export function useEuchreGame() {
     }, [beginShuffleAndDealHand]);
 
     useEffect(() => {
-        const beginAnimationForRegularPlay = async () => {
+        const beginAnimationForBidForTrump = async () => {
             if (!shouldCancelGame && gameInstance && gameState.animationType === EuchreAnimateType.ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY) {
                 await animateDealCardsForHand(gameInstance);
 
@@ -182,7 +185,7 @@ export function useEuchreGame() {
             }
         }
 
-        beginAnimationForRegularPlay();
+        beginAnimationForBidForTrump();
     }, [gameState, shouldCancelGame, gameInstance, animationTransformation, animateDealCardsForHand]);
 
     /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
@@ -207,7 +210,7 @@ export function useEuchreGame() {
 
             if (gameState.hasSecondBiddingPassed) {
                 // all users have passed. pass the deal to the next user and begin to re-deal.
-                handlePassDeal();
+                await handlePassDeal();
                 return;
             }
 
@@ -215,8 +218,6 @@ export function useEuchreGame() {
                 setShouldPromptBid(true); // Show prompt window for choosing trump or passing for human player.
             } else {
                 const computerChoice = gameInstance.currentPlayer.determineBid(gameInstance, gameInstance.trump, gameState.hasFirstBiddingPassed);
-                //logBidResult(game, computerChoice);
-
                 // short delay to simulate that the computer is making a decision.
                 if (!shouldCancelGame)
                     await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
@@ -266,24 +267,27 @@ export function useEuchreGame() {
                 newGameState.hasSecondBiddingPassed = !firstRound;
             }
 
-            const playerElementId = newGame.currentPlayer.playerBidId(firstRound ? 1 : 2);
+            const playerElementId = newGame.currentPlayer.generateElementId();
             const newPlayerInfoState = getPlayerStateForBidding(playerElementId, newGame.currentPlayer, "p", playerInfoState, null)
             const rotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
+            const newFadeOutElements: FadeOutOptions[] = [];
             newGame.currentPlayer = rotation[0];
 
             dispatchUpdatePlayerInfoState(newPlayerInfoState);
             dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: { ...newGameState } });
             setGame(newGame);
-            setfadeOutElements([{
+            newFadeOutElements.push({
                 playerNumber: newGame.currentPlayer.playerNumber,
                 fadeOutId: playerElementId,
                 fadeOutDelay: 1,
                 fadeOutDuration: 1
-            }]);
+            });
 
-            if (roundFinished) {
-                setfadeOutElements([{ playerNumber: "o", fadeOutId: FLIPPED_CARD_ID, fadeOutDelay: 1, fadeOutDuration: 1 }]);
+            if (roundFinished && !newGameState.hasSecondBiddingPassed) {
+                newFadeOutElements.push({ playerNumber: "o", fadeOutId: FLIPPED_CARD_ID, fadeOutDelay: 1, fadeOutDuration: 1 });
             }
+
+            setfadeOutElements(newFadeOutElements);
         }
     }
 
@@ -304,18 +308,21 @@ export function useEuchreGame() {
             throw Error("Maker not found - Order Trump.");
 
         const orderType = result.calledSuit ? "n" : "o";
-        const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, newGame.playerSittingOut);
-        const playerElementId = `player-${newGame.maker.playerNumber}-bid-${3}`;
-        const newPlayerInfoState = getPlayerStateForBidding(playerElementId, newGame.maker, orderType, playerInfoState, result.calledSuit);
+        const playerElementId: string = newGame.maker.generateElementId();
+        const newPlayerInfoState: PlayerInfoAction =
+            getPlayerStateForBidding(playerElementId, newGame.maker, orderType, playerInfoState, result.calledSuit);
+        logDebugEvent("new player state", newPlayerInfoState);
+
         dispatchUpdatePlayerInfoState(newPlayerInfoState);
+        setfadeOutElements(
+            [{
+                playerNumber: newGame.maker.playerNumber,
+                fadeOutId: playerElementId,
+                fadeOutDelay: 1,
+                fadeOutDuration: 1
+            }]);
 
-        await new Promise(resolve => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
-
-        newPlayerInfoState.type = PlayerInfoActionType.UPDATE_CENTER;
-        newPlayerInfoState.payload.centerInfo.detail = undefined;
-        dispatchUpdatePlayerInfoState(newPlayerInfoState);
-
-        newGame.currentPlayer = rotation[0];
+        await new Promise(resolve => setTimeout(resolve, 2000 * TIMEOUT_MODIFIER));
 
         if (newGame.dealer.human) {
             setShouldPromptDiscard(true);
@@ -329,7 +336,7 @@ export function useEuchreGame() {
     }
 
     /** All players passed during the bidding process. Re-initialize for deal for the next user in the rotation.  */
-    const handlePassDeal = () => {
+    const handlePassDeal = async () => {
 
         logDebugEvent("All players passed first and second round. Update state to pass the deal to the next user.");
 
@@ -350,11 +357,23 @@ export function useEuchreGame() {
                 payload: getGameStateForInitialDeal(gameState, gameSettings, newGame)
             });
         dispatchUpdateGameState({ type: GameActionType.SET_SHUFFLE_CARDS, payload: gameState });
-        dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerInfoState });
-        clearFadeOutElements();
+        dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerGameInfo });
+
+        // todo: notify all users have passed.
+        await new Promise(resolve => setTimeout(resolve, 2000 * TIMEOUT_MODIFIER));
+
+        //clearFadeOutElements();
     }
 
-    /** Regualr play for the game for winning tricks. Each player will play a card to determine the winner of the trick. */
+    /** Proxy handler to animate playing the card for the player's choice before updating the state with the choice and result. */
+    const handlePlayCardBeginAnimation = useCallback((card: Card) => {
+        dispatchUpdateGameState({ type: GameActionType.SET_ANIMATE_PLAY_CARDS, payload: gameState });
+        setPlayerCard(card);
+    }, [gameState]);
+
+    /** Regualr play for the game for winning tricks. Each player will play a card to determine the winner of the trick. If human player,
+     * wait for user to select a card, otherwise select a card for AI player.
+     */
     const beginPlayCard = useCallback(async () => {
 
         if (gameInstance && gameState.gameFlow === EuchreGameFlow.PLAY_HAND && gameState.animationType === EuchreAnimateType.ANIMATE_NONE) {
@@ -381,27 +400,37 @@ export function useEuchreGame() {
                 throw Error("Invalid trick");
             }
 
+            if (newGame.currentTrick.cardsPlayed.length === 0) {
+                await new Promise(resolve => setTimeout(resolve, 2000 * TIMEOUT_MODIFIER));
+                dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerGameInfo });
+            }
+
             if (newGame.currentPlayer?.human) {
 
             } else {
                 const computerChoice = newGame.currentPlayer.determineCardToPlay(newGame);
-                handlePlayCard(newGame.currentPlayer, computerChoice);
-                await new Promise((resolve) => setTimeout(resolve, 500 * TIMEOUT_MODIFIER));
+                handlePlayCardBeginAnimation(computerChoice);
             }
         }
-    }, [gameInstance, gameState, shouldCancelGame]);
+    }, [gameInstance, gameState, shouldCancelGame, handlePlayCardBeginAnimation]);
 
     useEffect(() => {
-        beginPlayCard();
+        const beginPlayCardLocal = async () => {
+            await beginPlayCard();
+        }
+
+        beginPlayCardLocal();
     }, [beginPlayCard]);
 
+    const handlePlayCard = useCallback(async () => {
 
-    const handlePlayCard = async (player: EuchrePlayer, card: Card) => {
-
-        if (!gameInstance)
+        if (!gameInstance?.currentPlayer)
             throw Error("Game not found - Play card.");
 
-        const newGame = playGameCard(player, card, gameInstance);
+        if (!playerCard)
+            throw Error("Played card not found");
+
+        const newGame = playGameCard(gameInstance.currentPlayer, playerCard, gameInstance);
 
         if (!newGame?.currentPlayer)
             throw Error("Player not found.");
@@ -409,16 +438,17 @@ export function useEuchreGame() {
         if (!newGame?.trump)
             throw Error("Trump card not found.");
 
-        await new Promise(resolve => setTimeout(resolve, 500));
-
         const rotation = getPlayerRotation(gameInstance.gamePlayers, newGame.currentPlayer, newGame.playerSittingOut);
         const currentRound = gameInstance.currentTrick?.round ?? 1;
+        const newPlayerInfoState: PlayerInfoAction =
+            getPlayerStateForPlayedCard(playerCard, newGame.currentPlayer, playerInfoState);
+        dispatchUpdatePlayerInfoState(newPlayerInfoState);
 
         if (newGame.currentTrick && newGame.currentTrick.cardsPlayed.length === rotation.length) {
             const trickWinner = determineCurrentWinnerForTrick(newGame.trump, newGame.currentTrick);
             newGame.currentTrick.playerWon = trickWinner.card?.player;
 
-            if (newGame.currentRoundTricks.length < 5){
+            if (newGame.currentRoundTricks.length < 5) {
                 newGame.currentRoundTricks.push(new EuchreTrick(currentRound));
                 newGame.currentPlayer = trickWinner.card?.player;
             }
@@ -428,15 +458,32 @@ export function useEuchreGame() {
 
         if (newGame.currentRoundTricks.length === 5 && newGame.currentRoundTricks.filter(t => t.playerWon !== undefined).length === 5) {
             // todo: display round winner.
-            //alert("done");
+            await new Promise(resolve => setTimeout(resolve, 2000 * TIMEOUT_MODIFIER));
+
             newGame.gameTricks.push(...newGame.currentRoundTricks);
             newGame.currentRoundTricks = [];
-            dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: getGameStateForNextHand(gameState, gameSettings, gameInstance)});
+            dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: getGameStateForNextHand(gameState, gameSettings, gameInstance) });
+            dispatchUpdatePlayerInfoState({ type: PlayerInfoActionType.SET_ALL, payload: initialPlayerGameInfo });
+        } else {
+            dispatchUpdateGameState({ type: GameActionType.SET_ANIMATE_NONE, payload: gameState });
         }
 
         setGame(newGame);
-    }
+    }, [gameInstance, playerCard, playerInfoState, gameState, gameSettings]);
 
+    useEffect(() => {
+        const beginAnimationPlayCard = async () => {
+            if (!shouldCancelGame && gameInstance && gameState.animationType === EuchreAnimateType.ANIMATE_PLAY_CARDS) {
+                await animateForPlayCard(gameInstance);
+                await handlePlayCard();
+            }
+        }
+
+        beginAnimationPlayCard();
+    }, [gameState, shouldCancelGame, gameInstance, handlePlayCard]);
+
+
+    /** Used for debugging. Attempt to save the state again to restart effects. */
     const resaveGameState = () => {
         if (gameInstance)
             setGame(gameInstance.shallowCopy());
@@ -555,7 +602,7 @@ export function useEuchreGame() {
 
         } else {
             const computerChoice = newGame.currentPlayer.determineCardToPlay(newGame);
-            handlePlayCard(newGame.currentPlayer, computerChoice);
+            //handlePlayCard(newGame.currentPlayer, computerChoice);
             //await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
             //newGame.currentTrick.cardsPlayed
         }
@@ -587,7 +634,7 @@ export function useEuchreGame() {
 
     return {
         game: gameInstance, gameState, playerInfoState, shouldPromptBid, shouldPromptDiscard, gameSettings,
-        beginNewGame, handleBidSubmit, handleResetGame, handleSettingsChange, handlePlayCard, handleCancelGame, handleDiscardSubmit, resaveGameState
+        beginNewGame, handleBidSubmit, handleResetGame, handleSettingsChange, handlePlayCardBeginAnimation, handleCancelGame, handleDiscardSubmit, resaveGameState
     };
 
 }
@@ -606,9 +653,8 @@ const getFaceUpCard = (id: string, card: Card) => {
 }
 
 /** Return a new state to provide a visual element that the user either passed or ordered trump. */
-const getPlayerStateForBidding = (id: string, player: EuchrePlayer, info: "p" | "o" | "n", playerInfoState: PlayerInfoState, namedSuit: Suit | null): PlayerInfoAction => {
+const getPlayerStateForBidding = (id: string, player: EuchrePlayer, info: "p" | "o" | "n", playerInfoState: PlayerGameInfoState, namedSuit: Suit | null): PlayerInfoAction => {
 
-    let detail: PlayerInfoStateDetail;
     const newAction: PlayerInfoAction = { type: PlayerInfoActionType.UPDATE_PLAYER1, payload: { ...playerInfoState } };
     const icon: React.ReactNode = info === "p" ? <XCircleIcon className="min-h-[18px] max-h-[20px]" /> : <CheckCircleIcon className="min-h-[18px] max-h-[20px]" />;
     let messageDetail: string;
@@ -619,32 +665,63 @@ const getPlayerStateForBidding = (id: string, player: EuchrePlayer, info: "p" | 
         case "n": messageDetail = "Calling " + namedSuit; break;
     }
 
-    const infoDetail = <UserInfo><div className="flex gap-2 items-center">{icon}{messageDetail}</div></UserInfo>;
+    const infoDetail = <UserInfo id={id}><div className="flex gap-2 items-center">{icon}{messageDetail}</div></UserInfo>;
 
     switch (player.playerNumber) {
         case 1:
             newAction.type = PlayerInfoActionType.UPDATE_PLAYER1;
-            detail = newAction.payload.player1Info
+            newAction.payload.player1GameInfo = infoDetail
             break;
         case 2:
             newAction.type = PlayerInfoActionType.UPDATE_PLAYER2;
-            detail = newAction.payload.player2Info
+            newAction.payload.player2GameInfo = infoDetail
             break;
         case 3:
             newAction.type = PlayerInfoActionType.UPDATE_PLAYER3;
-            detail = newAction.payload.player3Info
+            newAction.payload.player3GameInfo = infoDetail
             break;
         case 4:
             newAction.type = PlayerInfoActionType.UPDATE_PLAYER4;
-            detail = newAction.payload.player4Info
+            newAction.payload.player4GameInfo = infoDetail
             break;
     }
 
-    if (detail) {
-        detail.id = id;
-        detail.detail = infoDetail;
-        return newAction;
+    return newAction;
+}
+
+const getPlayerStateForPlayedCard = (card: Card, player: EuchrePlayer, playerInfoState: PlayerGameInfoState) => {
+    const newAction: PlayerInfoAction = { type: PlayerInfoActionType.UPDATE_PLAYER1, payload: { ...playerInfoState } };
+    const infoDetail =
+        <UserInfo id={card.generateElementId()}>
+            <div className="flex gap-2 items-center"><Image
+                className={`contain`}
+                quality={100}
+                width={card.getDisplayWidth(player.location)}
+                height={card.getDisplayHeight(player.location)}
+                src={getEncodedCardSvg(card, player.location)}
+                alt="Game Card" />
+            </div>
+        </UserInfo>;
+
+    switch (player.playerNumber) {
+        case 1:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER1;
+            newAction.payload.player1GameInfo = infoDetail
+            break;
+        case 2:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER2;
+            newAction.payload.player2GameInfo = infoDetail
+            break;
+        case 3:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER3;
+            newAction.payload.player3GameInfo = infoDetail
+            break;
+        case 4:
+            newAction.type = PlayerInfoActionType.UPDATE_PLAYER4;
+            newAction.payload.player4GameInfo = infoDetail
+            break;
     }
 
-    throw Error("Unable to update player info state");
+    return newAction;
+
 }

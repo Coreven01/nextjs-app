@@ -48,13 +48,6 @@ export const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
     gameInstance.deck = createShuffledDeck(5);
 
     return gameInstance;
-    //const newGameState: GameState = getGameStateForInitialDeal(gameState, gameSettings, gameInstance);
-
-    //dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: newGameState });
-    //setGame(newGame);
-    //await beginDealCardsForDealer();
-    // begin dealing cards to user to determine initial dealer.
-    //setShouldDealForDealer((prev) => !prev);
 }
 
 /**
@@ -166,34 +159,6 @@ export const shuffleAndDealHand = (
     retval.transformations.push(getTransformationsForDealCardsForHand(newGame, gameSettings));
 
     return retval;
-
-    //if (gameSettings.shouldAnimate && !shouldCancelGame) {
-    //await animateDealCardsForHand(newGame, { setCardsToMove });
-    //await new Promise((resolve) => setTimeout(resolve, 500));     // pause for animation to finish.
-    //}
-
-    // used for debugging 
-    // const showAllCards = newGame.gamePlayers.filter(p => !p.human).length === 4;
-    // const newGameState: GameState = {
-    //     ...gameState,
-    //     areCardsDealt: true,
-    //     hasFirstBiddingPassed: false,
-    //     hasSecondBiddingPassed: false,
-    //     shouldShowHandValues: showAllCards ? newGame.gamePlayers.map(p => { return { player: p, value: true } }) : [],
-    // };
-
-    //playerInfoState.centerInfo.detail = getFaceUpCard(FLIPPED_CARD_ID, newGame.trump); // display trump card for bidding in the center of the table.
-    // dispatchUpdateGameState({ type: GameActionType.UPDATE_ALL, payload: newGameState });
-    // setGame(newGame);
-    // dispatchUpdatePlayerInfoState({
-    //     type: PlayerInfoActionType.UPDATE_CENTER,
-    //     payload: { ...playerInfoState }
-    // });
-
-    // after dealing cards to player, begin the bidding process. 
-    //setShouldBeginBid((prev) => !prev);
-
-    //return { transformations: [], game: gameInstance };
 };
 
 
@@ -295,24 +260,4 @@ export const orderTrump = (gameInstance: EuchreGameInstance | undefined, result:
         newGame.trump = new Card(result.calledSuit, "2");
 
     return newGame;
-
-    // const playerElementId = `player-${newGame.maker.playerNumber}-bid-${3}`;
-    // const newPlayerInfoState = getPlayerStateForBidding(playerElementId, maker, "o", playerInfoState);
-    // newPlayerInfoState.type = PlayerInfoActionType.UPDATE_CENTER;
-    // newPlayerInfoState.payload.centerInfo.detail = undefined;
-    // dispatchUpdatePlayerInfoState(newPlayerInfoState);
-
-
-
-    // if (namedBySuit) {
-    //     newGame.trump = new Card(namedBySuit, "2"); // card value doesn't matter. only the suit is needed during regular play.
-    //     //setShouldPlayCard(prev => !prev);
-    // } else if (newGame.dealer.human) {
-    //     setShouldPromptDiscard(true);
-    // } else {
-    //     newGame.dealer.discard(newGame);
-    //     //setShouldPlayCard(prev => !prev);
-    // }
-
-    // setGame(newGame);
 }

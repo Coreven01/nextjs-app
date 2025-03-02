@@ -65,7 +65,7 @@ export function useFadeOut() {
             setFadeOutElement(id); // Only set the element ID if it's different from the current value
         }
 
-        //console.log("Add element for fade out: ", id, delay, duration);
+        console.log("Add element for fade out: ", id, delay, duration);
     }
 
     return { setElementForFadeOut };
