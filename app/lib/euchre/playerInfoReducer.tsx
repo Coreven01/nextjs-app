@@ -23,11 +23,11 @@ export enum PlayerInfoActionType {
 }
 
 export const initialPlayerGameInfo: PlayerGameInfoState = {
-    player1GameInfo: <div id="state-1"></div>,
-    player2GameInfo: <div id="state-2"></div>,
-    player3GameInfo: <div id="state-3"></div>,
-    player4GameInfo: <div id="state-4"></div>,
-    centerGameInfo: <div id="state-center"></div>,
+    player1GameInfo: <div key="state-1" id="state-1"></div>,
+    player2GameInfo: <div key="state-2" id="state-2"></div>,
+    player3GameInfo: <div key="state-3" id="state-3"></div>,
+    player4GameInfo: <div key="state-4" id="state-4"></div>,
+    centerGameInfo: <div key="state-center" id="state-center"></div>,
 };
 
 export function playerInfoStateReducer(state: PlayerGameInfoState, action: PlayerInfoAction): PlayerGameInfoState {

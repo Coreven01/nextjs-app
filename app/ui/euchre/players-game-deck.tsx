@@ -10,7 +10,7 @@ type Props = {
     gameState: GameState
     dealDeck: Card[],
     location: "center" | "side",
-    onCardClick: (player: EuchrePlayer, card: Card) => Promise<void>,
+    onCardClick: (card: Card) => void,
 }
 
 

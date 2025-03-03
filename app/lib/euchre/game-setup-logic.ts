@@ -25,7 +25,6 @@ export const getGameStateForInitialDeal = (gameState: GameState, settings: Euchr
         shouldShowHandValues: [],
         hasFirstBiddingPassed: false,
         hasSecondBiddingPassed: false,
-        areCardsDealt: false,
         gameFlow: EuchreGameFlow.INIT_DEAL,
         animationType: EuchreAnimateType.ANIMATE_NONE
     };
@@ -57,13 +56,9 @@ export const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
 export const dealCardsForDealer = (
     gameInstance: EuchreGameInstance,
     gameState: GameState,
-    gameSettings: EuchreSettings,
-    cancel: boolean): InitDealResult | null => {
+    gameSettings: EuchreSettings): InitDealResult | null => {
 
     if (!gameState.hasGameStarted)
-        return null;
-
-    if (cancel)
         return null;
 
     const newGame = gameInstance?.shallowCopy();
@@ -100,7 +95,7 @@ function dealCardsForNewDealer(game: EuchreGameInstance, gameSetting: EuchreSett
         // only create transformation if it's enabled by the settings.
         if (gameSetting.shouldAnimate) {
             const player = rotation[counter % 4];
-            const sourceId = card.dealId;
+            const sourceId = card.generateElementId();
             const destinationId = player.innerPlayerBaseId;
             const cardToMoveTransformation: CardTransformation[] = [{
                 sourceId: sourceId,
@@ -193,7 +188,7 @@ const getTransformationsForDealCardsForHand = (game: EuchreGameInstance, gameSet
         for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
 
             const card = player.hand[firstRound ? cardIndex : (5 - cardCount) + cardIndex];
-            const cardSrcId = card.dealId;
+            const cardSrcId = card.generateElementId();
 
             transformations.push({
                 sourceId: cardSrcId,
@@ -213,7 +208,7 @@ const getTransformationsForDealCardsForHand = (game: EuchreGameInstance, gameSet
     }
 
     transformations.push({
-        sourceId: trumpCard.dealId,
+        sourceId: trumpCard.generateElementId(),
         destinationId: 'game-center',
         sourcePlayerNumber: dealerNumber,
         destinationPlayerNumber: 0,
@@ -250,7 +245,7 @@ export const orderTrump = (gameInstance: EuchreGameInstance | undefined, result:
     let round = 1;
 
     if (newGame.gameTricks.length > 0)
-        round = newGame.gameTricks.reduce((acc, val) => val.round > acc.round ? val : acc).round;
+        round = newGame.gameTricks.at(-1)?.roundNumber ?? 1;
 
     const newTrick = new EuchreTrick(round);
     newGame.currentRoundTricks.push(newTrick);

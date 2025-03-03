@@ -86,7 +86,7 @@ export default function useAnimation() {
     const animatePassCardsToPlayer = async (gameDeck: Card[], sourcePlayer: EuchrePlayer, destinationPlayer: EuchrePlayer) => {
 
         const dealDestId = destinationPlayer.playerBase;
-        const cardsToMove = new Map<string, Card | undefined>(gameDeck.map((card) => [card.dealId, card]));
+        const cardsToMove = new Map<string, Card | undefined>(gameDeck.map((card) => [card.generateElementId(), card]));
         cardsToMove.set('deal-dummy', undefined); // add the dummy card, which isn't really a card in the deck.
         const sourcePlayerNumber = sourcePlayer.playerNumber;
         const destinationPlayerNumber = destinationPlayer.playerNumber;
@@ -139,7 +139,7 @@ export default function useAnimation() {
             for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
 
                 const card = player.hand[firstRound ? cardIndex : (5 - cardCount) + cardIndex];
-                const cardSrcId = card.dealId;
+                const cardSrcId = card.generateElementId();
 
                 transformations.push({
                     sourceId: cardSrcId,
@@ -159,7 +159,7 @@ export default function useAnimation() {
         }
 
         transformations.push({
-            sourceId: trumpCard.dealId,
+            sourceId: trumpCard.generateElementId(),
             destinationId: 'game-center',
             sourcePlayerNumber: dealerNumber,
             destinationPlayerNumber: 0,

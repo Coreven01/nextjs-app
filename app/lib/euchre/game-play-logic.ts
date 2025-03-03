@@ -680,7 +680,6 @@ export const getGameStateForNextHand = (gameState: GameState, settings: EuchreSe
         shouldShowHandValues: [],
         hasFirstBiddingPassed: false,
         hasSecondBiddingPassed: false,
-        areCardsDealt: false,
         gameFlow: EuchreGameFlow.SHUFFLE_CARDS,
         animationType: EuchreAnimateType.ANIMATE_NONE
     };

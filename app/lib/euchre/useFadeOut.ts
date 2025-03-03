@@ -8,6 +8,10 @@ export interface FadeOutProps {
     duration: number,
 }
 
+const delayVals = ["delay-[1s]", "delay-[2s]", "delay-[3s]", "delay-[4s]", "delay-[5s]"];
+const durationVal = ["duration-[1s]", "duration-[2s]", "duration-[3s]", "duration-[4s]", "duration-[5s]"];
+const classList = ["transition-opacity", "ease-in-out"];
+
 export function useFadeOut() {
     const [fadeOutElementId, setFadeOutElement] = useState<string>('');
     const [fadeOutDelay, setFadeOutDelay] = useState<number>(2);
@@ -21,10 +25,6 @@ export function useFadeOut() {
         const e = document.getElementById(fadeOutElementId);
 
         if (e) {
-            const delayVals = ["delay-[1s]", "delay-[2s]", "delay-[3s]", "delay-[4s]", "delay-[5s]"];
-            const durationVal = ["duration-[1s]", "duration-[2s]", "duration-[3s]", "duration-[4s]", "duration-[5s]"];
-            const classList = ["transition-opacity", "ease-in-out"];
-
             if (fadeOutDelay > 0)
                 classList.push(delayVals[fadeOutDelay - 1]);
 
@@ -36,7 +36,7 @@ export function useFadeOut() {
             setTimeout(() => {
                 e.classList.add(...classList);
                 e.classList.add("opacity-0");
-            }, 50);
+            }, 15);
 
             const totalDuration = fadeOutDelay + fadeOutDuration;
 

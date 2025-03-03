@@ -8,7 +8,7 @@ type Props = {
     gameState: GameState
     player: EuchrePlayer,
     location: "center" | "side",
-    onCardClick: (player: EuchrePlayer, card: Card) => void,
+    onCardClick: (card: Card) => void,
 }
 
 export default function PlayerHand({ gameState, player, location, onCardClick }: Props) {
@@ -38,8 +38,7 @@ export default function PlayerHand({ gameState, player, location, onCardClick }:
 
         const cardInfo = getPlayerAndCard(srcElementId)
         const card = player.hand[cardInfo.index];
-        onCardClick(player, card);
-
+        onCardClick(card);
     }
 
     for (const card of handValues) {

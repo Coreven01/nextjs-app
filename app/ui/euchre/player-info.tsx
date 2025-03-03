@@ -10,6 +10,12 @@ export default function PlayerInfo({ player, game }: Props) {
     const isDealer = player === game.dealer;
     const isMaker = player === game.maker;
     const suit = game.trump?.suit;
+    const tricksCount = game.currentRoundTricks.filter(t => t.playerWon === player).length;
+    const points = game.gameTricks
+        .filter(t => t.teamWon === player.team)
+        .map(t => t.points)
+        .reduce((acc, curr) => acc + curr, 0);
+
     let content = "";
 
     if (isDealer && isMaker)
@@ -18,7 +24,7 @@ export default function PlayerInfo({ player, game }: Props) {
         content = "Dealer";
     else if (isMaker)
         content = `Maker (${suit})`;
-    
+
     return (
         <>
             <div className="rounded border rounded-xl dark:border-white p-2 m-2 text-sm">
@@ -26,12 +32,12 @@ export default function PlayerInfo({ player, game }: Props) {
                     {player.name} - Team: {player.team}
                 </div>
                 <div>
-                    Tricks {0}/5
+                    Tricks {tricksCount}/5
                 </div>
                 <div>
-                    Points {0}/10
+                    Points {points}/10
                 </div>
-                <div className={`text-yellow-500 ${!content ? "invisible": ""}`}>{content ? content : "X"}</div>
+                <div className={`text-yellow-500 ${!content ? "invisible" : ""}`}>{content ? content : "X"}</div>
             </div>
         </>
     );

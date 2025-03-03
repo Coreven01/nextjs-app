@@ -1,6 +1,7 @@
 'use client';
 
-import React from "react";
+import React, { RefObject, useRef } from "react";
+import ReactDOM from 'react-dom';
 import PlayerGameDeck from "./players-game-deck";
 import GameSettings from "./game-settings";
 import { EuchreSettings } from "@/app/lib/euchre/data";
@@ -9,6 +10,8 @@ import { GameInfo } from "./game-info";
 import { OrderTrump } from "./order-trump";
 import { useEuchreGame } from "@/app/lib/euchre/useEuchreGame";
 import { DiscardPrompt } from "./discard-prompt";
+import Draggable, { DraggableEvent } from 'react-draggable';
+import { DraggableCore } from 'react-draggable';
 
 export default function EuchreGame() {
 
@@ -24,10 +27,13 @@ export default function EuchreGame() {
         handleBidSubmit,
         handleResetGame,
         handleSettingsChange,
-        handlePlayCard,
         handleCancelGame,
         handleDiscardSubmit,
+        handlePlayCardBeginAnimation,
         resaveGameState } = useEuchreGame();
+
+
+
     // #endregion
 
     // #region Event Handlers
@@ -46,7 +52,7 @@ export default function EuchreGame() {
             {game ?
                 <>
                     <div className="flex relative">
-                        <div className="bg-white w-32 absolute h-full"> Testing</div>
+                        
                         <div className={`m-2 p-2 ${SECTION_STYLE} mx-2 flex-grow relative`}>
                             <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[150px,1fr,150px] gap-4 h-full">
                                 <div className="row-span-4 min-w-32">
@@ -54,7 +60,7 @@ export default function EuchreGame() {
                                         player={game.player3}
                                         game={game}
                                         gameState={gameState}
-                                        onCardClick={handlePlayCard}
+                                        onCardClick={handlePlayCardBeginAnimation}
                                         dealDeck={game.deck}
                                         location="side" />
                                 </div>
@@ -63,7 +69,7 @@ export default function EuchreGame() {
                                         player={game.player2}
                                         game={game}
                                         gameState={gameState}
-                                        onCardClick={handlePlayCard}
+                                        onCardClick={handlePlayCardBeginAnimation}
                                         dealDeck={game.deck}
                                         location="center" />
                                 </div>
@@ -75,7 +81,7 @@ export default function EuchreGame() {
                                         player={game.player1}
                                         game={game}
                                         gameState={gameState}
-                                        onCardClick={handlePlayCard}
+                                        onCardClick={handlePlayCardBeginAnimation}
                                         dealDeck={game.deck}
                                         location="center" />
                                 </div>
@@ -84,7 +90,7 @@ export default function EuchreGame() {
                                         player={game.player4}
                                         game={game}
                                         gameState={gameState}
-                                        onCardClick={handlePlayCard}
+                                        onCardClick={handlePlayCardBeginAnimation}
                                         dealDeck={game.deck}
                                         location="side" />
                                 </div>

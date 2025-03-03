@@ -1,4 +1,4 @@
-export const TIMEOUT_MODIFIER: number = 1;
+export const TIMEOUT_MODIFIER: number = 2;
 
 export const SPADE: string = "♠";
 export const HEART: string = "♥";

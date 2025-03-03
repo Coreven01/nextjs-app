@@ -40,7 +40,6 @@ export interface GameState {
 
     /** Should show the cards face up. */
     shouldShowHandValues: PlayerValue[],
-    areCardsDealt: boolean,
     gameFlow: EuchreGameFlow,
     animationType: EuchreAnimateType
 }
@@ -75,7 +74,6 @@ export const initialGameState: GameState = {
     shouldShowDeckImages: [],
     shouldShowHandImages: [],
     shouldShowHandValues: [],
-    areCardsDealt: false,
     hasSecondBiddingPassed: false,
     hasFirstBiddingPassed: false,
     gameFlow: EuchreGameFlow.INIT_DEAL,
