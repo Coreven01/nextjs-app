@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { PlayerNotificationState } from "@/app/hooks/euchre/playerNotificationReducer";
+import { PlayerNotificationState } from '@/app/hooks/euchre/playerNotificationReducer';
 
 type Props = {
   playerInfoState: PlayerNotificationState;
@@ -12,7 +12,7 @@ export function GameInfo({ playerInfoState }: Props) {
     playerInfoState.player3GameInfo,
     playerInfoState.centerGameInfo,
     playerInfoState.player4GameInfo,
-    playerInfoState.player1GameInfo,
+    playerInfoState.player1GameInfo
   ];
 
   return (

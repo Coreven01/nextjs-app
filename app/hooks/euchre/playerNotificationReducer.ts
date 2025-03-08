@@ -51,3 +51,18 @@ export function playerNotificationReducer(
     throw Error('Unknown action: ' + action.type);
   }
 }
+
+export function getPlayerNotificationType(playerNumber: number): PlayerNotificationActionType {
+  switch (playerNumber) {
+    case 1:
+      return PlayerNotificationActionType.UPDATE_PLAYER1;
+    case 2:
+      return PlayerNotificationActionType.UPDATE_PLAYER2;
+    case 3:
+      return PlayerNotificationActionType.UPDATE_PLAYER3;
+    case 4:
+      return PlayerNotificationActionType.UPDATE_PLAYER4;
+  }
+
+  return PlayerNotificationActionType.UPDATE_PLAYER1;
+}

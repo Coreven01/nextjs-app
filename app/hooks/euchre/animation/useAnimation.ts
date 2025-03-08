@@ -1,6 +1,5 @@
 import { CardTransformation, FadeOutOptions } from '@/app/hooks/euchre/useMoveCard';
-import { TIMEOUT_MODIFIER } from '../../../lib/euchre/constants';
-import { Card, EuchreGameInstance, EuchrePlayer } from '../../../lib/euchre/data';
+import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '../../../lib/euchre/data';
 import { getPlayerRotation } from '../../../lib/euchre/game';
 import useOtherAnimation from './useOtherAnimation';
 import usePlayer1Animation from './usePlayer1Animation';
@@ -9,7 +8,7 @@ import usePlayer3Animation from './usePlayer3Animation';
 import usePlayer4Animation from './usePlayer4Animation';
 import { useCallback } from 'react';
 
-export default function useAnimation() {
+export default function useAnimation(settings: EuchreSettings) {
   const {
     setCardsToMovePlayer1,
     setElementsForTransformationPlayer1,
@@ -61,13 +60,45 @@ export default function useAnimation() {
     ]
   );
 
+  const getMoveCardFunc = useCallback(
+    (location: number | 'o') => {
+      switch (location) {
+        case 1:
+          return setCardsToMovePlayer1;
+        case 2:
+          return setCardsToMovePlayer2;
+        case 3:
+          return setCardsToMovePlayer3;
+        case 4:
+          return setCardsToMovePlayer4;
+        case 'o':
+          return setCardsToMoveOther;
+      }
+
+      throw new Error('Invalid location for fade out.');
+    },
+    [
+      setCardsToMoveOther,
+      setCardsToMovePlayer1,
+      setCardsToMovePlayer2,
+      setCardsToMovePlayer3,
+      setCardsToMovePlayer4
+    ]
+  );
+
   /** */
   const animateForInitialDeal = async (
     transformations: CardTransformation[][],
     game: EuchreGameInstance,
     originalDealer: EuchrePlayer
   ) => {
-    console.log('begin animation for deal.');
+    console.log('Begin animation for initial deal.');
+
+    if (transformations.length === 0) {
+      await new Promise((resolve) => setTimeout(resolve, 500 * settings.gameSpeed));
+      return;
+    }
+
     //#region Animation to return cards to dealer, then pass cards to new dealer.
     // await new Promise((resolve) => setTimeout(resolve, 750 * TIMEOUT_MODIFIER));
 
@@ -111,7 +142,7 @@ export default function useAnimation() {
   /** After cards have been dealt to users, removes the transformation to animate returning the cards back to the dealer */
   const animateCardsReturnToDealer = async (cardIds: string[]) => {
     //setElementsForTransformation(cardIds);
-    await new Promise((resolve) => setTimeout(resolve, 50 * TIMEOUT_MODIFIER));
+    await new Promise((resolve) => setTimeout(resolve, 50 * settings.gameSpeed));
   };
 
   /** */
@@ -140,7 +171,7 @@ export default function useAnimation() {
           options: {
             card: e[1],
             displayCardValue: false,
-            msDelay: 25 * TIMEOUT_MODIFIER,
+            msDelay: 25 * settings.gameSpeed,
             cardOffsetVertical: 0,
             cardOffsetHorizontal: 0
           }
@@ -154,65 +185,20 @@ export default function useAnimation() {
   const animateDealCardsForHand = async (game: EuchreGameInstance) => {
     if (!game) throw Error('Game not found.');
 
-    if (!game?.dealer) throw Error('Game dealer not found for card animation.');
+    const transfomations = getTransformationsForDealCards(game, settings);
 
-    const rotation = getPlayerRotation(game.gamePlayers, game.dealer);
-    const transformations: CardTransformation[] = [];
-    const trumpCard = game.kitty[0];
-    const dealerNumber = game.dealer?.playerNumber ?? 1;
-
-    //#region Animation deal cards to users.
-    for (let i = 0; i < 8; i++) {
-      const player = rotation[i % 4];
-      const playerNumber = player.playerNumber;
-      const destinationId = player.innerPlayerBaseId;
-      const firstRound = i < 4;
-
-      let cardCount: number = 0;
-      cardCount = firstRound ? game.cardDealCount[i % 2] : game.cardDealCount[(i + 1) % 2];
-
-      for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
-        const card = player.hand[firstRound ? cardIndex : 5 - cardCount + cardIndex];
-        const cardSrcId = card.generateElementId();
-
-        transformations.push({
-          sourceId: cardSrcId,
-          destinationId: destinationId,
-          sourcePlayerNumber: dealerNumber,
-          destinationPlayerNumber: playerNumber,
-          location: 'inner',
-          options: {
-            msDelay: 75 * TIMEOUT_MODIFIER,
-            displayCardValue: false,
-            card: card,
-            cardOffsetHorizontal: 0,
-            cardOffsetVertical: 0
-          }
-        });
+    if (transfomations.length === 0)
+      await new Promise((resolve) => setTimeout(resolve, 500 * settings.gameSpeed));
+    else {
+      for (const t of transfomations) {
+        await getMoveCardFunc(t.location)(t.transformations);
       }
     }
-
-    transformations.push({
-      sourceId: trumpCard.generateElementId(),
-      destinationId: 'game-center',
-      sourcePlayerNumber: dealerNumber,
-      destinationPlayerNumber: 0,
-      location: 'outer',
-      options: {
-        card: trumpCard,
-        displayCardValue: false,
-        msDelay: 75 * TIMEOUT_MODIFIER,
-        cardOffsetVertical: 0,
-        cardOffsetHorizontal: 0
-      }
-    });
-
-    //await animate.setCardsToMove(transformations);
   };
 
   const animateForPlayCard = async (game: EuchreGameInstance) => {
     console.log('begin animation for play card.');
-    await new Promise((resolve) => setTimeout(resolve, 1000 * TIMEOUT_MODIFIER));
+    await new Promise((resolve) => setTimeout(resolve, 1000 * settings.gameSpeed));
   };
 
   const setFadeOutForPlayers = useCallback(
@@ -234,3 +220,80 @@ export default function useAnimation() {
     setFadeOutForPlayers
   };
 }
+
+interface TransformationValues {
+  location: number | 'o';
+  transformations: CardTransformation[];
+}
+
+const getTransformationsForDealCards = (
+  game: EuchreGameInstance,
+  settings: EuchreSettings
+): TransformationValues[] => {
+  if (!game) throw Error('Game not found.');
+
+  if (!game?.dealer) throw Error('Game dealer not found for card animation.');
+
+  if (!settings.shouldAnimate) return [];
+
+  const rotation = getPlayerRotation(game.gamePlayers, game.dealer);
+  const retval: TransformationValues[] = [];
+  const trumpCard = game.kitty[0];
+  const dealerNumber = game.dealer?.playerNumber ?? 1;
+
+  //#region Animation deal cards to users.
+  for (let i = 0; i < 8; i++) {
+    const player = rotation[i % 4];
+    const playerNumber = player.playerNumber;
+    const destinationId = player.innerPlayerBaseId;
+    const firstRound = i < 4;
+    const transformations: CardTransformation[] = [];
+
+    let cardCount: number = 0;
+    cardCount = firstRound ? game.cardDealCount[i % 2] : game.cardDealCount[(i + 1) % 2];
+
+    for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
+      const card = player.hand[firstRound ? cardIndex : 5 - cardCount + cardIndex];
+      const cardSrcId = card.generateElementId();
+
+      transformations.push({
+        sourceId: cardSrcId,
+        destinationId: destinationId,
+        sourcePlayerNumber: dealerNumber,
+        destinationPlayerNumber: playerNumber,
+        location: 'inner',
+        options: {
+          msDelay: 75 * settings.gameSpeed,
+          displayCardValue: false,
+          card: card,
+          cardOffsetHorizontal: 0,
+          cardOffsetVertical: 0
+        }
+      });
+    }
+
+    retval.push({ location: playerNumber, transformations: transformations });
+  }
+
+  retval.push({
+    location: 'o',
+    transformations: [
+      {
+        sourceId: trumpCard.generateElementId(),
+        destinationId: 'game-center',
+        sourcePlayerNumber: dealerNumber,
+        destinationPlayerNumber: 0,
+        location: 'outer',
+        options: {
+          card: trumpCard,
+          displayCardValue: false,
+          msDelay: 75 * settings.gameSpeed,
+          cardOffsetVertical: 0,
+          cardOffsetHorizontal: 0
+        }
+      }
+    ]
+  });
+
+  return retval;
+};

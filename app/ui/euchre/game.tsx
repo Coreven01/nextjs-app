@@ -7,11 +7,13 @@ import GameSettings from './game-settings';
 import { Card, EuchreSettings } from '@/app/lib/euchre/data';
 import { SECTION_STYLE } from '../home/home-description';
 import { GameInfo } from './game-info';
-import { OrderTrump } from './order-trump';
+import { BidPrompt } from './bid-prompt';
 import { DiscardPrompt } from './discard-prompt';
 import Draggable, { DraggableEvent } from 'react-draggable';
 import { DraggableCore } from 'react-draggable';
 import { useEuchreGame } from '@/app/hooks/euchre/useEuchreGame';
+import { HandResults } from './hand-results';
+import { GameResults } from './game-results';
 
 export default function EuchreGame() {
   // #region Hooks
@@ -22,6 +24,8 @@ export default function EuchreGame() {
     playerNotification,
     shouldPromptBid,
     shouldPromptDiscard,
+    shouldShowHandResults,
+    shouldShowGameResults,
     gameSettings,
     beginNewGame,
     handleBidSubmit,
@@ -29,7 +33,10 @@ export default function EuchreGame() {
     handleSettingsChange,
     handleCancelGame,
     handleDiscardSubmit,
-    resaveGameState
+    resaveGameState,
+    handleCloseHandResults,
+    handleCloseGameResults,
+    handlePlayerChoice
   } = useEuchreGame();
 
   // #endregion
@@ -66,7 +73,7 @@ export default function EuchreGame() {
                     player={gameInstance.current.player3}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={(card: Card) => null}
+                    onCardClick={handlePlayerChoice}
                     dealDeck={gameInstance.current.deck}
                     location="side"
                   />
@@ -76,7 +83,7 @@ export default function EuchreGame() {
                     player={gameInstance.current.player2}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={(card: Card) => null}
+                    onCardClick={handlePlayerChoice}
                     dealDeck={gameInstance.current.deck}
                     location="center"
                   />
@@ -89,7 +96,7 @@ export default function EuchreGame() {
                     player={gameInstance.current.player1}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={(card: Card) => null}
+                    onCardClick={handlePlayerChoice}
                     dealDeck={gameInstance.current.deck}
                     location="center"
                   />
@@ -99,14 +106,14 @@ export default function EuchreGame() {
                     player={gameInstance.current.player4}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={(card: Card) => null}
+                    onCardClick={handlePlayerChoice}
                     dealDeck={gameInstance.current.deck}
                     location="side"
                   />
                 </div>
               </div>
               {shouldPromptBid && gameInstance.current.trump ? (
-                <OrderTrump
+                <BidPrompt
                   firstRound={!gameFlow.hasFirstBiddingPassed}
                   flipCard={gameInstance.current.trump}
                   onBidSubmit={handleBidSubmit}
@@ -123,6 +130,22 @@ export default function EuchreGame() {
               ) : (
                 <></>
               )}
+              {shouldShowHandResults && gameInstance.current.gameResults.length > 0 ? (
+                <HandResults
+                  handResult={gameInstance.current.gameResults.at(-1) ?? null}
+                  onClose={handleCloseHandResults}
+                />
+              ) : (
+                <></>
+              )}
+              {shouldShowGameResults && gameInstance.current.gameResults.length > 0 ? (
+                <GameResults
+                  gameResults={gameInstance.current.gameResults}
+                  onClose={handleCloseGameResults}
+                />
+              ) : (
+                <></>
+              )}
             </div>
           </div>
           <div className={`${SECTION_STYLE} m-2`}>
@@ -132,7 +155,9 @@ export default function EuchreGame() {
             <div>
               <button onClick={handleCancelGame}>Cancel</button>
             </div>
-            <div>{/* <button onClick={resaveGameState}>Re-save Game State</button> */}</div>
+            <div>
+              <button onClick={resaveGameState}>Re-save Game State</button>
+            </div>
           </div>
         </>
       ) : (

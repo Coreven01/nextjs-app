@@ -1,5 +1,4 @@
 import { CardTransformation } from '@/app/hooks/euchre/useMoveCard';
-import { TIMEOUT_MODIFIER } from './constants';
 import {
   BidResult,
   Card,
@@ -116,7 +115,7 @@ function dealCardsForNewDealer(
           destinationPlayerNumber: player.playerNumber,
           location: 'inner',
           options: {
-            msDelay: 500 * TIMEOUT_MODIFIER,
+            msDelay: 500 * gameSetting.gameSpeed,
             displayCardValue: true,
             card: card,
             cardOffsetHorizontal: 0,
@@ -204,7 +203,7 @@ const getTransformationsForDealCardsForHand = (
         destinationPlayerNumber: playerNumber,
         location: 'inner',
         options: {
-          msDelay: 75 * TIMEOUT_MODIFIER,
+          msDelay: 75 * gameSettings.gameSpeed,
           displayCardValue: false,
           card: card,
           cardOffsetHorizontal: 0,
@@ -223,7 +222,7 @@ const getTransformationsForDealCardsForHand = (
     options: {
       card: trumpCard,
       displayCardValue: false,
-      msDelay: 75 * TIMEOUT_MODIFIER,
+      msDelay: 75 * gameSettings.gameSpeed,
       cardOffsetVertical: 0,
       cardOffsetHorizontal: 0
     }
@@ -250,10 +249,10 @@ export const orderTrump = (
 
   let round = 1;
 
-  if (newGame.gameTricks.length > 0) round = newGame.gameTricks.at(-1)?.roundNumber ?? 1;
+  if (newGame.gameResults.length > 0) round = newGame.gameResults.at(-1)?.roundNumber ?? 1;
 
   const newTrick = new EuchreTrick(round);
-  newGame.currentRoundTricks.push(newTrick);
+  newGame.currentTricks.push(newTrick);
   newGame.currentPlayer = rotation[0];
 
   if (result.calledSuit) newGame.trump = new Card(result.calledSuit, '2');

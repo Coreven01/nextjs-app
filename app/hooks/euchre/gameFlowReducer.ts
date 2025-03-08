@@ -7,7 +7,7 @@ interface PlayerDisplayValue {
 
 export enum EuchreGameFlow {
   INIT_DEAL,
-  BEGIN_DEAL_FOR_DEALER,
+  BEGIN_DEAL_FOR_JACK,
   SHUFFLE_CARDS,
   DEAL_CARDS,
   BID_FOR_TRUMP,
@@ -15,7 +15,9 @@ export enum EuchreGameFlow {
   ORDER_TRUMP,
   PASS_DEAL,
   PLAY_HAND,
-  HANDLE_PLAY_CARD
+  AWAIT_USER_INPUT,
+  HANDLE_PLAY_CARD,
+  HANDLE_PLAY_CARD_RESULT
 }
 
 export interface GameFlowState {
@@ -51,7 +53,9 @@ export enum GameFlowActionType {
   SET_ORDER_TRUMP,
   SET_PASS_DEAL,
   SET_PLAY_HAND,
-  SET_HANDLE_PLAY_CARD
+  SET_AWAIT_USER_INPUT,
+  SET_HANDLE_PLAY_CARD,
+  SET_HANDLE_PLAY_CARD_RESULT
 }
 
 export const initialGameFlowState: GameFlowState = {
@@ -70,7 +74,7 @@ export function gameFlowStateReducer(state: GameFlowState, action: GameFlowActio
   } else if (action.type === GameFlowActionType.SET_INIT_DEAL) {
     return { ...state, gameFlow: EuchreGameFlow.INIT_DEAL };
   } else if (action.type === GameFlowActionType.SET_BEGIN_DEAL_FOR_DEALER) {
-    return { ...state, gameFlow: EuchreGameFlow.BEGIN_DEAL_FOR_DEALER };
+    return { ...state, gameFlow: EuchreGameFlow.BEGIN_DEAL_FOR_JACK };
   } else if (action.type === GameFlowActionType.SET_SHUFFLE_CARDS) {
     return { ...state, gameFlow: EuchreGameFlow.SHUFFLE_CARDS };
   } else if (action.type === GameFlowActionType.SET_DEAL_CARDS) {
@@ -87,6 +91,10 @@ export function gameFlowStateReducer(state: GameFlowState, action: GameFlowActio
     return { ...state, gameFlow: EuchreGameFlow.PLAY_HAND };
   } else if (action.type === GameFlowActionType.SET_HANDLE_PLAY_CARD) {
     return { ...state, gameFlow: EuchreGameFlow.HANDLE_PLAY_CARD };
+  } else if (action.type === GameFlowActionType.SET_AWAIT_USER_INPUT) {
+    return { ...state, gameFlow: EuchreGameFlow.AWAIT_USER_INPUT };
+  } else if (action.type === GameFlowActionType.SET_HANDLE_PLAY_CARD_RESULT) {
+    return { ...state, gameFlow: EuchreGameFlow.HANDLE_PLAY_CARD_RESULT };
   } else {
     throw Error('Unknown action: ' + action.type);
   }

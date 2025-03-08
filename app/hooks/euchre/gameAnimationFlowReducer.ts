@@ -8,6 +8,7 @@ export enum EuchreAnimateType {
   ANIMATE_PLAY_CARDS,
   ANIMATE_HANDLE_BID,
   ANIMATE_HANDLE_PLAY_CARD,
+  ANIMATE_HANDLE_PLAY_CARD_RESULT,
   ANIMATE_TAKE_TRICK
 }
 
@@ -28,6 +29,7 @@ export enum EuchreAnimationAnimationType {
   SET_ANIMATE_ORDER_TRUMP,
   SET_ANIMATE_HANDLE_BID,
   SET_ANIMATE_HANDLE_PLAY_CARD,
+  SET_ANIMATE_HANDLE_PLAY_CARD_RESULT,
   SET_ANIMATE_PLAY_CARDS,
   SET_ANIMATE_TAKE_TRICK
 }
@@ -63,6 +65,8 @@ export function gameAnimationFlowReducer(
     return { ...state, animationType: EuchreAnimateType.ANIMATE_HANDLE_BID };
   } else if (action.type === EuchreAnimationAnimationType.SET_ANIMATE_HANDLE_PLAY_CARD) {
     return { ...state, animationType: EuchreAnimateType.ANIMATE_HANDLE_PLAY_CARD };
+  } else if (action.type === EuchreAnimationAnimationType.SET_ANIMATE_HANDLE_PLAY_CARD_RESULT) {
+    return { ...state, animationType: EuchreAnimateType.ANIMATE_HANDLE_PLAY_CARD_RESULT };
   } else if (action.type === EuchreAnimationAnimationType.SET_ANIMATE_ORDER_TRUMP) {
     return { ...state, animationType: EuchreAnimateType.ANIMATE_ORDER_TRUMP };
   } else if (action.type === EuchreAnimationAnimationType.SET_ANIMATE_PLAY_CARDS) {

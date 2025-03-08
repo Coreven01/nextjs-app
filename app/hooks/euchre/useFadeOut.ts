@@ -8,14 +8,23 @@ export interface FadeOutProps {
   duration: number;
 }
 
-const delayVals = ['delay-[1s]', 'delay-[2s]', 'delay-[3s]', 'delay-[4s]', 'delay-[5s]'];
-const durationVal = [
-  'duration-[1s]',
-  'duration-[2s]',
-  'duration-[3s]',
-  'duration-[4s]',
-  'duration-[5s]'
-];
+const delayVals: Map<number, string> = new Map<number, string>([
+  [0.5, 'delay-[0.5s]'],
+  [1, 'delay-[1s]'],
+  [2, 'delay-[2s]'],
+  [3, 'delay-[3s]'],
+  [4, 'delay-[4s]'],
+  [5, 'delay-[5s]']
+]);
+
+const durationVal: Map<number, string> = new Map<number, string>([
+  [0.5, 'duration-[0.5s]'],
+  [1, 'duration-[1s]'],
+  [2, 'duration-[2s]'],
+  [3, 'duration-[3s]'],
+  [4, 'duration-[4s]'],
+  [5, 'duration-[5s]']
+]);
 const classList = ['transition-opacity', 'ease-in-out'];
 
 export function useFadeOut() {
@@ -29,9 +38,9 @@ export function useFadeOut() {
     const e = document.getElementById(fadeOutElementId);
 
     if (e) {
-      if (fadeOutDelay > 0) classList.push(delayVals[fadeOutDelay - 1]);
+      if (fadeOutDelay > 0) classList.push(delayVals.get(fadeOutDelay) ?? '');
 
-      if (fadeOutDuration > 0) classList.push(durationVal[fadeOutDuration - 1]);
+      if (fadeOutDuration > 0) classList.push(durationVal.get(fadeOutDuration) ?? '');
 
       e.classList.remove('opacity-0');
 
@@ -45,7 +54,7 @@ export function useFadeOut() {
       if (totalDuration > 0)
         setTimeout(() => {
           e.classList.remove(...classList);
-        }, totalDuration * 950);
+        }, totalDuration * 1000);
 
       console.log(`Fade out triggered: ${fadeOutElementId}`, e);
     } else {
@@ -53,16 +62,13 @@ export function useFadeOut() {
     }
   }, [fadeOutElementId, fadeOutDelay, fadeOutDuration]);
 
-  const setElementForFadeOut = useCallback(
-    (id: string, delay: 0 | 1 | 2 | 3 | 4 | 5, duration: 0 | 1 | 2 | 3 | 4 | 5) => {
-      setFadeOutDelay(delay);
-      setFadeOutDuration(duration);
-      setFadeOutElement(id);
+  const setElementForFadeOut = useCallback((id: string, delay: number, duration: number) => {
+    setFadeOutDelay(delay);
+    setFadeOutDuration(duration);
+    setFadeOutElement(id);
 
-      //console.log('Add element for fade out: ', id, delay, duration);
-    },
-    []
-  );
+    //console.log('Add element for fade out: ', id, delay, duration);
+  }, []);
 
   return { setElementForFadeOut };
 }

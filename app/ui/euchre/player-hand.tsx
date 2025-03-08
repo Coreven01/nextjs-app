@@ -1,53 +1,42 @@
-import { GameFlowState } from "@/app/hooks/euchre/gameFlowReducer";
-import { getEncodedCardSvg } from "@/app/lib/euchre/card-data";
-import { Card, EuchrePlayer } from "@/app/lib/euchre/data";
-import { getPlayerAndCard } from "@/app/lib/euchre/game";
-import Image from "next/image";
+import { GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
+import { Card, EuchrePlayer } from '@/app/lib/euchre/data';
+import { getPlayerAndCard } from '@/app/lib/euchre/game';
+import Image from 'next/image';
 
 type Props = {
-  gameState: GameFlowState;
+  gameFlow: GameFlowState;
   player: EuchrePlayer;
-  location: "center" | "side";
+  location: 'center' | 'side';
   onCardClick: (card: Card) => void;
 };
 
-export default function PlayerHand({
-  gameState,
-  player,
-  location,
-  onCardClick,
-}: Props) {
+export default function PlayerHand({ gameFlow: gameState, player, location, onCardClick }: Props) {
   const shouldShowHandImages = gameState.shouldShowHandImages.find(
-    (c) => c.player === player,
+    (c) => c.player === player
   )?.value;
   const shouldShowHandValues = gameState.shouldShowHandValues.find(
-    (c) => c.player === player,
+    (c) => c.player === player
   )?.value;
 
-  if (
-    shouldShowHandImages &&
-    player.hand.length === 0 &&
-    player.placeholder.length === 0
-  )
-    throw Error("Unable to show hand. No cards dealt.");
+  if (shouldShowHandImages && player.hand.length === 0 && player.placeholder.length === 0)
+    throw Error('Unable to show hand. No cards dealt.');
 
-  const handValues: Card[] =
-    player.hand.length === 0 ? player.placeholder : player.hand;
+  const handValues: Card[] = player.hand.length === 0 ? player.placeholder : player.hand;
 
   if (handValues.length === 0) {
-    throw new Error("No cards in player hand");
+    throw new Error('No cards in player hand');
   }
 
   const images: React.ReactNode[] = [];
   const activeClasses =
     shouldShowHandImages && player.human
-      ? "cursor-pointer shadow-sm hover:scale-[1.15] hover:shadow-md hover:shadow-yellow-300 hover:z-10"
-      : "";
+      ? 'cursor-pointer shadow-sm hover:scale-[1.15] hover:shadow-md hover:shadow-yellow-300 hover:z-10'
+      : '';
   const width = handValues[0].getDisplayWidth(location);
   const height = handValues[0].getDisplayHeight(location);
-  const hidden = !shouldShowHandImages ? "invisible" : "";
-  const cardBackSvg =
-    location === "center" ? "/card-back.svg" : "/card-back-side.svg";
+  const hidden = !shouldShowHandImages ? 'invisible' : '';
+  const cardBackSvg = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
 
   let index = 0;
 
@@ -70,14 +59,10 @@ export default function PlayerHand({
           quality={100}
           width={width}
           height={height}
-          src={
-            shouldShowHandValues
-              ? getEncodedCardSvg(card, location)
-              : cardBackSvg
-          }
+          src={shouldShowHandValues ? getEncodedCardSvg(card, location) : cardBackSvg}
           alt="Game Card"
         />
-      </div>,
+      </div>
     );
     index++;
   }
