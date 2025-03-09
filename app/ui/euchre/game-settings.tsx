@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, EuchreSettings, EuchreTrick } from '@/app/lib/euchre/data';
+import { Card, EuchreSettings, EuchreTrick } from '@/app/lib/euchre/definitions';
 import { createEuchreGame } from '@/app/lib/euchre/game';
 import { useEffect, useRef, useState } from 'react';
 
@@ -109,7 +109,9 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
       <div className="my-4 flex justify-center">
         <label>Game Speed: </label>
         <select className="text-black" ref={gameSpeed} defaultValue={settings?.gameSpeed}>
+          <option value={0.25}>0.25x</option>
           <option value={0.5}>0.5x</option>
+          <option value={0.75}>0.75x</option>
           <option value={1}>1x</option>
           <option value={2}>2x</option>
           <option value={3}>3x</option>

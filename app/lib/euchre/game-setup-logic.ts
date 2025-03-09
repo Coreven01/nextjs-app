@@ -6,10 +6,17 @@ import {
   EuchrePlayer,
   EuchreSettings,
   EuchreTrick
-} from './data';
+} from './definitions';
 import { createEuchreGame, createShuffledDeck, getPlayerRotation } from './game';
 import { logDebugEvent } from './util';
 import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+
+const initialGameSettings: EuchreSettings = {
+  shouldAnimate: true,
+  debugAlwaysPass: false,
+  gameSpeed: 1,
+  showHandResult: true
+};
 
 interface InitDealResult {
   transformations: CardTransformation[][];
@@ -21,7 +28,7 @@ interface ShuffleResult {
   game: EuchreGameInstance;
 }
 
-export const getGameStateForInitialDeal = (
+const getGameStateForInitialDeal = (
   gameState: GameFlowState,
   settings: EuchreSettings,
   game: EuchreGameInstance
@@ -38,14 +45,14 @@ export const getGameStateForInitialDeal = (
     shouldShowHandValues: [],
     hasFirstBiddingPassed: false,
     hasSecondBiddingPassed: false,
-    gameFlow: EuchreGameFlow.INIT_DEAL
+    gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL
   };
 
   return newGameFlow;
 };
 
 /** Initialize the game with shuffled deck and set player 1 for deal. */
-export const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
+const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
   logDebugEvent('Init deck for init deal');
 
   const gameInstance = createEuchreGame();
@@ -63,7 +70,7 @@ export const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
  * Deal cards to determine who the initial dealer is for a new game.
  * First Jack dealt will be the dealer of the game.
  */
-export const dealCardsForDealer = (
+const dealCardsForDealer = (
   gameInstance: EuchreGameInstance,
   gameState: GameFlowState,
   gameSettings: EuchreSettings
@@ -141,7 +148,7 @@ function dealCardsForNewDealer(
 
 /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
  * or if a player will name suit. */
-export const shuffleAndDealHand = (
+const shuffleAndDealHand = (
   gameInstance: EuchreGameInstance,
   gameSettings: EuchreSettings,
   cancel: boolean
@@ -158,6 +165,7 @@ export const shuffleAndDealHand = (
   const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
   newGame.deck = createShuffledDeck(5);
   newGame.dealCards();
+  newGame.gamePlayers.forEach((p) => p.orderHand(null));
   newGame.verifyDealtCards();
   newGame.currentPlayer = rotation[0];
   newGame.trump = newGame.kitty[0];
@@ -231,7 +239,7 @@ const getTransformationsForDealCardsForHand = (
   return transformations;
 };
 
-export const orderTrump = (
+const orderTrump = (
   gameInstance: EuchreGameInstance | undefined,
   result: BidResult
 ): EuchreGameInstance => {
@@ -255,7 +263,17 @@ export const orderTrump = (
   newGame.currentTricks.push(newTrick);
   newGame.currentPlayer = rotation[0];
 
-  if (result.calledSuit) newGame.trump = new Card(result.calledSuit, '2');
+  if (result.calledSuit) newGame.trump = new Card(result.calledSuit, 'JK');
+  newGame.gamePlayers.filter((p) => p.human).forEach((p) => p.orderHand(newGame.trump));
 
   return newGame;
+};
+
+export {
+  orderTrump,
+  shuffleAndDealHand,
+  getGameStateForInitialDeal,
+  initDeckForInitialDeal,
+  dealCardsForDealer,
+  initialGameSettings
 };

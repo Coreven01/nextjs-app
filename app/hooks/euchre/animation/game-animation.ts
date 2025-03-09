@@ -1,6 +1,5 @@
 import { CardTransformation } from '@/app/hooks/euchre/useMoveCard';
-import { TIMEOUT_MODIFIER } from '../../../lib/euchre/constants';
-import { EuchreGameInstance, EuchrePlayer } from '../../../lib/euchre/data';
+import { EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/definitions';
 
 /** */
 const animateForInitialDeal = async (

@@ -1,6 +1,6 @@
 'use client';
 
-import { EuchreHandResult } from '@/app/lib/euchre/data';
+import { EuchreHandResult } from '@/app/lib/euchre/definitions';
 import HandResultDetail from './hand-result-detail';
 
 type Props = {

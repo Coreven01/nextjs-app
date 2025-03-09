@@ -4,7 +4,7 @@ import React, { RefObject, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import PlayerGameDeck from './players-game-deck';
 import GameSettings from './game-settings';
-import { Card, EuchreSettings } from '@/app/lib/euchre/data';
+import { Card, EuchreSettings } from '@/app/lib/euchre/definitions';
 import { SECTION_STYLE } from '../home/home-description';
 import { GameInfo } from './game-info';
 import { BidPrompt } from './bid-prompt';
@@ -36,7 +36,7 @@ export default function EuchreGame() {
     resaveGameState,
     handleCloseHandResults,
     handleCloseGameResults,
-    handlePlayerChoice
+    handleCardPlayed
   } = useEuchreGame();
 
   // #endregion
@@ -73,7 +73,7 @@ export default function EuchreGame() {
                     player={gameInstance.current.player3}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={handlePlayerChoice}
+                    onCardClick={handleCardPlayed}
                     dealDeck={gameInstance.current.deck}
                     location="side"
                   />
@@ -83,7 +83,7 @@ export default function EuchreGame() {
                     player={gameInstance.current.player2}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={handlePlayerChoice}
+                    onCardClick={handleCardPlayed}
                     dealDeck={gameInstance.current.deck}
                     location="center"
                   />
@@ -96,7 +96,7 @@ export default function EuchreGame() {
                     player={gameInstance.current.player1}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={handlePlayerChoice}
+                    onCardClick={handleCardPlayed}
                     dealDeck={gameInstance.current.deck}
                     location="center"
                   />
@@ -106,7 +106,7 @@ export default function EuchreGame() {
                     player={gameInstance.current.player4}
                     game={gameInstance.current}
                     gameState={gameFlow}
-                    onCardClick={handlePlayerChoice}
+                    onCardClick={handleCardPlayed}
                     dealDeck={gameInstance.current.deck}
                     location="side"
                   />

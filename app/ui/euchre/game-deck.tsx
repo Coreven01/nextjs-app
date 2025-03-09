@@ -1,18 +1,17 @@
-import { Card } from "@/app/lib/euchre/data";
-import Image from "next/image";
+import { Card } from '@/app/lib/euchre/definitions';
+import Image from 'next/image';
 
 type Props = {
   deck: Card[];
-  location: "center" | "side";
+  location: 'center' | 'side';
 };
 
 export default function GameDeck({ deck, location }: Props) {
   const images: React.ReactNode[] = [];
-  const dummyCard: Card = new Card("♠", "2");
+  const dummyCard: Card = new Card('♠', '2');
   const width = dummyCard.getDisplayWidth(location);
   const height = dummyCard.getDisplayHeight(location);
-  const cardBackSvg =
-    location === "center" ? "/card-back.svg" : "/card-back-side.svg";
+  const cardBackSvg = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
 
   const dummyCardImg = (
     <Image
@@ -41,7 +40,7 @@ export default function GameDeck({ deck, location }: Props) {
         height={height}
         src={cardBackSvg}
         alt="Game Card"
-      />,
+      />
     );
     index++;
   }

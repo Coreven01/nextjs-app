@@ -1,7 +1,7 @@
 'use client';
 
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { Card, Suit } from '@/app/lib/euchre/data';
+import { Card, Suit } from '@/app/lib/euchre/definitions';
 import Image from 'next/image';
 import { RefObject, useRef } from 'react';
 

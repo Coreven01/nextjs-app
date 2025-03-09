@@ -8,7 +8,7 @@ import {
   EuchreSettings,
   EuchreTrick,
   Suit
-} from './data';
+} from './definitions';
 import {
   cardIsLeftBower,
   getCardValue,
@@ -17,7 +17,8 @@ import {
   getHighAndLowForSuit,
   getHighAndLowExcludeSuit,
   getSuitCount,
-  getCardValuesExcludeSuit
+  getCardValuesExcludeSuit,
+  getPlayerRotation
 } from './game';
 import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 
@@ -696,13 +697,44 @@ function playGameCard(
 ): EuchreGameInstance {
   const newGame = game.shallowCopy();
 
-  if (!game.currentTrick) throw Error();
+  if (!newGame.currentTrick) throw Error();
+  if (!newGame.currentPlayer) throw Error();
+  if (!newGame.trump) throw Error();
 
   const euchreCard = new EuchreCard(player, card);
   player.hand = player.hand.filter((c) => c !== card);
   player.playedCards.push(card);
 
-  game.currentTrick.cardsPlayed.push(euchreCard);
+  newGame.currentTrick.cardsPlayed.push(euchreCard);
+  const rotation = getPlayerRotation(
+    newGame.gamePlayers,
+    newGame.currentPlayer,
+    newGame.playerSittingOut
+  );
+  const currentRound = newGame.currentRound;
+
+  // if round is finished, determine who the winner of the trick.
+  if (newGame.currentTrick && newGame.currentTrick.cardsPlayed.length === rotation.length) {
+    const trickWinner = determineCurrentWinnerForTrick(newGame.trump, newGame.currentTrick);
+    newGame.currentTrick.taker = trickWinner.card?.player;
+
+    if (newGame.currentTricks.length < 5) {
+      newGame.currentTricks.push(new EuchreTrick(currentRound));
+      newGame.currentPlayer = trickWinner.card?.player ?? null;
+    }
+  } else {
+    newGame.currentPlayer = rotation[0];
+  }
+
+  // if hand is over update the tricks with the result.
+  if (
+    newGame.currentTricks.length === 5 &&
+    newGame.currentTricks.filter((t) => t.taker !== undefined).length === 5
+  ) {
+    newGame.gameResults.push(newGame.getHandResult());
+    newGame.currentRound += 1;
+    newGame.currentTricks = [];
+  }
 
   return newGame;
 }
@@ -770,10 +802,44 @@ const getGameStateForNextHand = (
     shouldShowHandValues: [],
     hasFirstBiddingPassed: false,
     hasSecondBiddingPassed: false,
-    gameFlow: EuchreGameFlow.SHUFFLE_CARDS
+    gameFlow: EuchreGameFlow.BEGIN_SHUFFLE_CARDS
   };
 
   return newGameState;
+};
+
+/** Returns false if the player must follow suit and the played card did not follow suit.
+ * Returns true in all other cases.
+ */
+const didPlayerFollowSuit = (game: EuchreGameInstance, playedCard: Card): boolean => {
+  if (!game.currentPlayer) throw new Error();
+  if (!game.trump) throw new Error();
+
+  const leadCard: EuchreCard | null = game.currentTrick?.cardsPlayed.at(0) ?? null;
+
+  // player does not need to follow suit if no card has yet been lead.
+  if (!leadCard) return true;
+
+  const leadCardIsLeftBower = leadCard ? cardIsLeftBower(leadCard.card, game.trump) : false;
+  const suitToFollow = leadCardIsLeftBower ? game.trump.suit : leadCard?.card.suit;
+  const suitCount = getSuitCount(game.currentPlayer.hand, game.trump);
+
+  const mustFollowSuit: boolean =
+    suitCount.filter((s) => s.suit === suitToFollow && s.count > 0).length > 0;
+
+  if (mustFollowSuit) {
+    const cardsAvailableToFollowSuit = getCardValuesForSuit(
+      game.currentPlayer.hand,
+      game.trump,
+      suitToFollow
+    );
+
+    const cardFound = cardsAvailableToFollowSuit.find((c) => c.card === playedCard);
+
+    if (!cardFound) return false;
+  }
+
+  return true;
 };
 
 export {
@@ -781,5 +847,6 @@ export {
   getGameStateForNextHand,
   isGameOver,
   handleGameCardPlayed,
-  playGameCard
+  playGameCard,
+  didPlayerFollowSuit
 };

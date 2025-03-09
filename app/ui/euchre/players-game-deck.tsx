@@ -1,4 +1,4 @@
-import { Card, EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/data';
+import { Card, EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/definitions';
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
 import GameDeck from './game-deck';

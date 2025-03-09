@@ -1,6 +1,6 @@
 'use client';
 
-import { EuchreHandResult } from '@/app/lib/euchre/data';
+import { EuchreHandResult } from '@/app/lib/euchre/definitions';
 
 type Props = {
   gameResults: EuchreHandResult[] | null;

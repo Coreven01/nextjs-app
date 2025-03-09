@@ -1,4 +1,4 @@
-import { EuchrePlayer } from '@/app/lib/euchre/data';
+import { EuchrePlayer } from '@/app/lib/euchre/definitions';
 
 interface PlayerDisplayValue {
   player: EuchrePlayer;
@@ -6,20 +6,74 @@ interface PlayerDisplayValue {
 }
 
 export enum EuchreGameFlow {
-  INIT_DEAL,
-  BEGIN_DEAL_FOR_JACK,
-  SHUFFLE_CARDS,
-  DEAL_CARDS,
-  BID_FOR_TRUMP,
-  HANDLE_BID,
-  ORDER_TRUMP,
-  PASS_DEAL,
-  PLAY_HAND,
-  AWAIT_USER_INPUT,
-  HANDLE_PLAY_CARD,
-  HANDLE_PLAY_CARD_RESULT
+  AWAIT_USER_INPUT = 1,
+  BEGIN_INIT_DEAL,
+  END_INIT_DEAL,
+  BEGIN_DEAL_FOR_DEALER,
+  END_DEAL_FOR_DEALER,
+  BEGIN_SHUFFLE_CARDS,
+  END_SHUFFLE_CARDS,
+  BEGIN_DEAL_CARDS,
+  END_DEAL_CARDS,
+  BEGIN_BID_FOR_TRUMP,
+  END_BID_FOR_TRUMP,
+  BEGIN_ORDER_TRUMP,
+  END_ORDER_TRUMP,
+  BEGIN_PASS_DEAL,
+  END_PASS_DEAL,
+  BEGIN_PLAY_CARD,
+  END_PLAY_CARD,
+  BEGIN_PLAY_CARD_RESULT,
+  END_PLAY_CARD_RESULT
 }
 
+export enum EuchreFlowActionType {
+  UPDATE_ALL = 1,
+  SET_AWAIT_USER_INPUT,
+  SET_BEGIN_INIT_DEAL,
+  SET_END_INIT_DEAL,
+  SET_BEGIN_DEAL_FOR_DEALER,
+  SET_END_DEAL_FOR_DEALER,
+  SET_BEGIN_SHUFFLE_CARDS,
+  SET_END_SHUFFLE_CARDS,
+  SET_BEGIN_DEAL_CARDS,
+  SET_END_DEAL_CARDS,
+  SET_BEGIN_BID_FOR_TRUMP,
+  SET_END_BID_FOR_TRUMP,
+  SET_BEGIN_ORDER_TRUMP,
+  SET_END_ORDER_TRUMP,
+  SET_BEGIN_PASS_DEAL,
+  SET_END_PASS_DEAL,
+  SET_BEGIN_PLAY_CARD,
+  SET_END_PLAY_CARD,
+  SET_BEGIN_PLAY_CARD_RESULT,
+  SET_END_PLAY_CARD_RESULT
+}
+
+const actionTypeMap: Map<EuchreFlowActionType, EuchreGameFlow> = new Map([
+  [EuchreFlowActionType.SET_AWAIT_USER_INPUT, EuchreGameFlow.AWAIT_USER_INPUT],
+  [EuchreFlowActionType.SET_BEGIN_INIT_DEAL, EuchreGameFlow.BEGIN_INIT_DEAL],
+  [EuchreFlowActionType.SET_END_INIT_DEAL, EuchreGameFlow.END_INIT_DEAL],
+  [EuchreFlowActionType.SET_BEGIN_DEAL_FOR_DEALER, EuchreGameFlow.BEGIN_DEAL_FOR_DEALER],
+  [EuchreFlowActionType.SET_END_DEAL_FOR_DEALER, EuchreGameFlow.END_DEAL_FOR_DEALER],
+
+  [EuchreFlowActionType.SET_BEGIN_SHUFFLE_CARDS, EuchreGameFlow.BEGIN_SHUFFLE_CARDS],
+  [EuchreFlowActionType.SET_END_SHUFFLE_CARDS, EuchreGameFlow.END_SHUFFLE_CARDS],
+  [EuchreFlowActionType.SET_BEGIN_DEAL_CARDS, EuchreGameFlow.BEGIN_DEAL_CARDS],
+  [EuchreFlowActionType.SET_END_DEAL_CARDS, EuchreGameFlow.END_DEAL_CARDS],
+  [EuchreFlowActionType.SET_BEGIN_ORDER_TRUMP, EuchreGameFlow.BEGIN_ORDER_TRUMP],
+
+  [EuchreFlowActionType.SET_END_ORDER_TRUMP, EuchreGameFlow.END_ORDER_TRUMP],
+  [EuchreFlowActionType.SET_BEGIN_PASS_DEAL, EuchreGameFlow.BEGIN_PASS_DEAL],
+  [EuchreFlowActionType.SET_END_PASS_DEAL, EuchreGameFlow.END_PASS_DEAL],
+  [EuchreFlowActionType.SET_BEGIN_PLAY_CARD, EuchreGameFlow.BEGIN_PLAY_CARD],
+  [EuchreFlowActionType.SET_END_PLAY_CARD, EuchreGameFlow.END_PLAY_CARD],
+
+  [EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP, EuchreGameFlow.BEGIN_BID_FOR_TRUMP],
+  [EuchreFlowActionType.SET_END_BID_FOR_TRUMP, EuchreGameFlow.END_BID_FOR_TRUMP],
+  [EuchreFlowActionType.SET_BEGIN_PLAY_CARD_RESULT, EuchreGameFlow.BEGIN_PLAY_CARD_RESULT],
+  [EuchreFlowActionType.SET_END_PLAY_CARD_RESULT, EuchreGameFlow.END_PLAY_CARD_RESULT]
+]);
 export interface GameFlowState {
   /** Boolean value to identify if a game has yet been created. */
   hasGameStarted: boolean;
@@ -38,24 +92,8 @@ export interface GameFlowState {
 }
 
 export interface GameFlowAction {
-  type: GameFlowActionType;
-  payload?: GameFlowState | undefined;
-}
-
-export enum GameFlowActionType {
-  UPDATE_ALL,
-  SET_INIT_DEAL,
-  SET_BEGIN_DEAL_FOR_DEALER,
-  SET_SHUFFLE_CARDS,
-  SET_DEAL_CARDS,
-  SET_BID_FOR_TRUMP,
-  SET_HANDLE_BID,
-  SET_ORDER_TRUMP,
-  SET_PASS_DEAL,
-  SET_PLAY_HAND,
-  SET_AWAIT_USER_INPUT,
-  SET_HANDLE_PLAY_CARD,
-  SET_HANDLE_PLAY_CARD_RESULT
+  type: EuchreFlowActionType;
+  payload?: GameFlowState;
 }
 
 export const initialGameFlowState: GameFlowState = {
@@ -65,37 +103,18 @@ export const initialGameFlowState: GameFlowState = {
   shouldShowHandValues: [],
   hasSecondBiddingPassed: false,
   hasFirstBiddingPassed: false,
-  gameFlow: EuchreGameFlow.INIT_DEAL
+  gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL
 };
 
 export function gameFlowStateReducer(state: GameFlowState, action: GameFlowAction): GameFlowState {
-  if (action.type === GameFlowActionType.UPDATE_ALL) {
+  if (action.type === EuchreFlowActionType.UPDATE_ALL) {
     return { ...state, ...action.payload };
-  } else if (action.type === GameFlowActionType.SET_INIT_DEAL) {
-    return { ...state, gameFlow: EuchreGameFlow.INIT_DEAL };
-  } else if (action.type === GameFlowActionType.SET_BEGIN_DEAL_FOR_DEALER) {
-    return { ...state, gameFlow: EuchreGameFlow.BEGIN_DEAL_FOR_JACK };
-  } else if (action.type === GameFlowActionType.SET_SHUFFLE_CARDS) {
-    return { ...state, gameFlow: EuchreGameFlow.SHUFFLE_CARDS };
-  } else if (action.type === GameFlowActionType.SET_DEAL_CARDS) {
-    return { ...state, gameFlow: EuchreGameFlow.DEAL_CARDS };
-  } else if (action.type === GameFlowActionType.SET_BID_FOR_TRUMP) {
-    return { ...state, gameFlow: EuchreGameFlow.BID_FOR_TRUMP };
-  } else if (action.type === GameFlowActionType.SET_HANDLE_BID) {
-    return { ...state, gameFlow: EuchreGameFlow.HANDLE_BID };
-  } else if (action.type === GameFlowActionType.SET_ORDER_TRUMP) {
-    return { ...state, gameFlow: EuchreGameFlow.ORDER_TRUMP };
-  } else if (action.type === GameFlowActionType.SET_PASS_DEAL) {
-    return { ...state, gameFlow: EuchreGameFlow.PASS_DEAL };
-  } else if (action.type === GameFlowActionType.SET_PLAY_HAND) {
-    return { ...state, gameFlow: EuchreGameFlow.PLAY_HAND };
-  } else if (action.type === GameFlowActionType.SET_HANDLE_PLAY_CARD) {
-    return { ...state, gameFlow: EuchreGameFlow.HANDLE_PLAY_CARD };
-  } else if (action.type === GameFlowActionType.SET_AWAIT_USER_INPUT) {
-    return { ...state, gameFlow: EuchreGameFlow.AWAIT_USER_INPUT };
-  } else if (action.type === GameFlowActionType.SET_HANDLE_PLAY_CARD_RESULT) {
-    return { ...state, gameFlow: EuchreGameFlow.HANDLE_PLAY_CARD_RESULT };
+  } else if (actionTypeMap.get(action.type)) {
+    return {
+      ...state,
+      gameFlow: actionTypeMap.get(action.type) ?? EuchreGameFlow.AWAIT_USER_INPUT
+    };
   } else {
-    throw Error('Unknown action: ' + action.type);
+    throw Error('Unknown game flow action: ' + action.type);
   }
 }

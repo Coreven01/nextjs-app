@@ -1,5 +1,10 @@
 import { CardTransformation, FadeOutOptions } from '@/app/hooks/euchre/useMoveCard';
-import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '../../../lib/euchre/data';
+import {
+  Card,
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings
+} from '../../../lib/euchre/definitions';
 import { getPlayerRotation } from '../../../lib/euchre/game';
 import useOtherAnimation from './useOtherAnimation';
 import usePlayer1Animation from './usePlayer1Animation';

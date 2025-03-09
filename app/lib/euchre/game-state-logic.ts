@@ -1,5 +1,5 @@
 import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
-import { EuchreGameInstance } from './data';
+import { EuchreGameInstance } from './definitions';
 import {
   EuchreAnimateType,
   EuchreAnimationState

@@ -1,7 +1,7 @@
 'use client';
 
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { Card } from '@/app/lib/euchre/data';
+import { Card } from '@/app/lib/euchre/definitions';
 import { useCallback, useEffect, useState } from 'react';
 
 export interface CardTransformation {

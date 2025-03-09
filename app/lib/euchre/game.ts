@@ -1,6 +1,13 @@
 import { offsuitValues, trumpValues } from './card-data';
-import { LEFT_BOWER_VALUE } from './constants';
-import { Card, CardColor, CardValue, EuchreGameInstance, EuchrePlayer, Suit } from './data';
+import {
+  Card,
+  CardColor,
+  CardValue,
+  EuchreGameInstance,
+  EuchrePlayer,
+  Suit,
+  LEFT_BOWER_VALUE
+} from './definitions';
 
 /** Create default euchre game with default players and dummy cards. */
 export function createEuchreGame(): EuchreGameInstance {
@@ -24,7 +31,7 @@ export function createEuchreGame(): EuchreGameInstance {
 export function getPlayerRotation(
   players: EuchrePlayer[],
   relativePlayer: EuchrePlayer,
-  playerSittingOut: EuchrePlayer | undefined = undefined
+  playerSittingOut: EuchrePlayer | null = null
 ): EuchrePlayer[] {
   const playerCount = players.length;
   const playerRotation = [1, 3, 2, 4];
@@ -145,7 +152,7 @@ export function getCardColorFromSuit(suit: Suit): CardColor {
 }
 
 /** Get the associated card values for the given cards and trump card. */
-export function getCardValues(cards: Card[], trump: Card): { card: Card; value: number }[] {
+export function getCardValues(cards: Card[], trump: Card | null): { card: Card; value: number }[] {
   const retval: { card: Card; value: number }[] = [];
 
   for (let i = 0; i < cards.length; i++) {
@@ -208,17 +215,17 @@ export function getCardValuesExcludeSuit(
 }
 
 /** */
-export function getCardValue(card: Card, trump: Card): number {
+export function getCardValue(card: Card, trump: Card | null): number {
   return getCardValueBySuit(card, trump);
 }
 
 /** */
-export function getCardValueBySuit(card: Card, trumpCard: Card) {
+export function getCardValueBySuit(card: Card, trumpCard: Card | null) {
   let retval = 0;
 
-  if (card.suit === trumpCard.suit) {
+  if (trumpCard && card.suit === trumpCard.suit) {
     retval = trumpValues.get(card.value) ?? 0;
-  } else if (card.value === 'J' && card.color === trumpCard.color) {
+  } else if (trumpCard && card.value === 'J' && card.color === trumpCard.color) {
     retval = LEFT_BOWER_VALUE;
   } else {
     retval = offsuitValues.get(card.value) ?? 0;
@@ -228,12 +235,15 @@ export function getCardValueBySuit(card: Card, trumpCard: Card) {
 }
 
 /** */
-export function getSuitCount(cards: Card[], trumpCard: Card): { suit: Suit; count: number }[] {
+export function getSuitCount(
+  cards: Card[],
+  trumpCard: Card | null
+): { suit: Suit; count: number }[] {
   const retval: { suit: Suit; count: number }[] = [];
 
   cards.map((c) => {
-    const isLeftBower = cardIsLeftBower(c, trumpCard);
-    const suitForCard = isLeftBower ? trumpCard.suit : c.suit;
+    const isLeftBower = trumpCard ? cardIsLeftBower(c, trumpCard) : false;
+    const suitForCard = isLeftBower && trumpCard ? trumpCard.suit : c.suit;
     const value: { suit: Suit; count: number } | undefined = retval.find(
       (val) => val.suit === suitForCard
     );

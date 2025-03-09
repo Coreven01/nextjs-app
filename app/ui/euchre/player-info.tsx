@@ -1,4 +1,4 @@
-import { EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/data';
+import { EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/definitions';
 
 type Props = {
   player: EuchrePlayer;

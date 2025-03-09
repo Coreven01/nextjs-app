@@ -1,6 +1,6 @@
 import { GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { Card, EuchrePlayer } from '@/app/lib/euchre/data';
+import { Card, EuchrePlayer } from '@/app/lib/euchre/definitions';
 import { getPlayerAndCard } from '@/app/lib/euchre/game';
 import Image from 'next/image';
 

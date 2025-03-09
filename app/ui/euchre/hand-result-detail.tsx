@@ -1,5 +1,5 @@
 import { getCardClassColorFromSuit } from '@/app/lib/euchre/card-data';
-import { EuchreCard, EuchrePlayer } from '@/app/lib/euchre/data';
+import { EuchreCard, EuchrePlayer } from '@/app/lib/euchre/definitions';
 
 interface Props {
   cardsPlayed: EuchreCard[];

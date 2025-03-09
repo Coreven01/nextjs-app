@@ -1,4 +1,4 @@
-import { BidResult, Card, EuchreGameInstance, EuchrePlayer, Suit } from './data';
+import { BidResult, Card, EuchreGameInstance, EuchrePlayer, Suit } from './definitions';
 import { getCardValue } from './game';
 
 interface GameBidLogic {
