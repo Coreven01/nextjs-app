@@ -22,15 +22,17 @@ function getGameBidLogic(
   if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
 
   const currentPlayer = game.currentPlayer;
+  const playerCards = currentPlayer.availableCards;
+
   let playerHasRight: boolean = false;
   let playerHasLeft: boolean = false;
   const playerWillPickup: boolean = game.dealer === currentPlayer;
 
   if (!canNameSuit) {
     playerHasRight =
-      currentPlayer.hand.filter((c) => c.suit === flipCard.suit && c.value === 'J').length > 0;
+      playerCards.filter((c) => c.suit === flipCard.suit && c.value === 'J').length > 0;
     playerHasLeft =
-      currentPlayer.hand.filter(
+      playerCards.filter(
         (c) => c.color === flipCard.color && c.value === 'J' && c.suit != flipCard.suit
       ).length > 0;
 
@@ -40,16 +42,15 @@ function getGameBidLogic(
   }
 
   const info: GameBidLogic = {
-    trumpCardCount: currentPlayer.hand.filter((c) => c.suit === game.trump?.suit).length,
-    offSuitAceCount: currentPlayer.hand.filter((c) => c.suit != flipCard.suit && c.value === 'A')
-      .length,
+    trumpCardCount: playerCards.filter((c) => c.suit === game.trump?.suit).length,
+    offSuitAceCount: playerCards.filter((c) => c.suit != flipCard.suit && c.value === 'A').length,
     playerHasRight: playerHasRight,
     playerHasLeft: playerHasLeft,
     playerWillPickUp: playerWillPickup,
     teamWillPickup: game.dealer?.team === currentPlayer.team,
     handScore: 0,
     suitToCall: null,
-    suitsInHand: new Set(game.currentPlayer.hand.map((c) => c.suit)).entries.length
+    suitsInHand: 0
   };
 
   return info;
@@ -93,6 +94,7 @@ function getBidResultForFirstRound(
   if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
 
   let highScore = 0;
+  const playerCards: Card[] = game.currentPlayer.availableCards;
   const retval = { ...gameLogic };
   const getHandScore = (hand: Card[]) => {
     let score = 0;
@@ -101,12 +103,12 @@ function getBidResultForFirstRound(
     return score;
   };
 
-  highScore = getHandScore(game.currentPlayer.hand);
+  highScore = getHandScore(playerCards);
 
   // if current user is dealer, then check each hand with/without trump card.
   if (gameLogic.playerWillPickUp) {
-    for (const card of game.currentPlayer.hand) {
-      const newHand = [...game.currentPlayer.hand.filter((c) => c !== card), flipCard];
+    for (const card of playerCards) {
+      const newHand = [...playerCards.filter((c) => c !== card), flipCard];
       const tempScore = getHandScore(newHand);
       if (tempScore > highScore) highScore = tempScore;
     }
@@ -132,10 +134,11 @@ function getBidResultForSecondRound(
   let score = 0;
   const retval = { ...gameLogic };
   const suits: Suit[] = ['♠', '♥', '♦', '♣'];
+  const playerCards: Card[] = game.currentPlayer.availableCards;
 
   for (const suit of suits.filter((s) => s !== flipCard.suit)) {
     const tempCard = new Card(suit, '2');
-    for (const card of game.currentPlayer.hand) score += getCardValue(card, tempCard);
+    for (const card of playerCards) score += getCardValue(card, tempCard);
 
     if (score > highScore) {
       highScore = score;
@@ -186,8 +189,9 @@ function determineDiscard(game: EuchreGameInstance, player: EuchrePlayer): Card 
 
   let lowestScore = 10000;
   let lowCard: Card | undefined;
+  const playerCards: Card[] = player.availableCards;
 
-  for (const card of [...player.hand, game.trump]) {
+  for (const card of [...playerCards, game.trump]) {
     const tempScore = getCardValue(card, game.trump);
     if (tempScore < lowestScore) {
       lowestScore = tempScore;

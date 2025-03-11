@@ -5,11 +5,12 @@ import { EuchreHandResult } from '@/app/lib/euchre/definitions';
 type Props = {
   gameResults: EuchreHandResult[] | null;
   onClose: () => void;
+  onReplayHand: () => void;
 };
 
 const BASE_CLASS =
   'border dark:border-white rounded text-center dark:bg-neutral-800 dark:text-white p-1 my-1';
-export function GameResults({ gameResults, onClose }: Props) {
+export function GameResults({ gameResults, onReplayHand, onClose }: Props) {
   if (!gameResults) throw new Error('No game results were found');
 
   return (
@@ -20,6 +21,9 @@ export function GameResults({ gameResults, onClose }: Props) {
 
           <button onClick={onClose} className="border border-white rounded w-full mt-2">
             Close
+          </button>
+          <button onClick={onReplayHand} className="border border-white rounded w-full mt-2">
+            Replay Hand
           </button>
         </div>
       </div>

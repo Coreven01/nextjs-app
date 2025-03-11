@@ -1,7 +1,7 @@
 'use client';
 
 import CenterInfo from '@/app/ui/euchre/center-info';
-import UserInfo from '@/app/ui/euchre/user-info';
+import UserInfo from '@/app/ui/euchre/player/user-info';
 import Image from 'next/image';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { CardTransformation, FadeOutOptions } from './useMoveCard';
@@ -51,7 +51,8 @@ import {
   didPlayerFollowSuit,
   getGameStateForNextHand,
   isGameOver,
-  playGameCard
+  playGameCard,
+  reverseLastHandPlayed
 } from '@/app/lib/euchre/game-play-logic';
 import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 
@@ -340,16 +341,6 @@ export function useEuchreGame() {
     if (!game?.trump) throw Error('Trump not found after shuffle and deal for regular play.');
 
     // show all players cards - used for debugging
-    const showAllCards = game.gamePlayers.filter((p) => !p.human).length === 4;
-    const showCardValues = showAllCards
-      ? game.gamePlayers.map((p) => {
-          return { player: p, value: true };
-        })
-      : game.gamePlayers
-          .filter((p) => p.human)
-          .map((p) => {
-            return { player: p, value: true };
-          });
 
     dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
 
@@ -359,23 +350,15 @@ export function useEuchreGame() {
       payload: getFaceUpCard(FLIPPED_CARD_ID, game.trump)
     });
 
-    const newGameState: GameFlowState = {
-      ...gameFlow,
-      hasFirstBiddingPassed: false,
-      hasSecondBiddingPassed: false,
-      shouldShowHandValues: showCardValues,
-      gameFlow: EuchreGameFlow.BEGIN_DEAL_CARDS
-    };
+    const newGameState: GameFlowState = getGameStateForNextHand(
+      gameFlow,
+      gameSettings.current,
+      game
+    );
+    newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 
-    dispatchGameFlow({
-      type: EuchreFlowActionType.UPDATE_ALL,
-      payload: newGameState
-    });
-
-    dispatchGameAnimationFlow({
-      type: EuchreActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
-    });
-
+    dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameState });
+    dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY });
     setAnimationTransformation([...animationTransformation, ...shuffleResult.transformations]);
     gameInstance.current = game;
   }, [gameFlow, gameAnimationFlow, shouldCancelGame, handleCancelGame, animationTransformation]);
@@ -450,6 +433,7 @@ export function useEuchreGame() {
 
     // simulate flipping over the trump card.
     if (roundFinished && !gameFlow.hasSecondBiddingPassed) {
+      game.turnedDown = game.trump;
       tempFadeOutElements.current.push({
         playerNumber: 'o',
         fadeOutId: FLIPPED_CARD_ID,
@@ -653,7 +637,7 @@ export function useEuchreGame() {
     const rotation = getPlayerRotation(game.gamePlayers, game.dealer);
     game.dealer = rotation[0];
 
-    dispatchPlayerNotification(getPlayerStateForAllPassed(game.dealer));
+    dispatchPlayerNotification(getPlayerNotificationForAllPassed(game.dealer));
 
     await new Promise((resolve) => setTimeout(resolve, 2000 * gameSettings.current.gameSpeed));
 
@@ -771,7 +755,7 @@ export function useEuchreGame() {
         setShouldPromptDiscard(true);
         return;
       } else {
-        if (shouldDiscard) game.dealer.chooseDiscard(game);
+        if (shouldDiscard) game.discard = game.dealer.chooseDiscard(game);
 
         dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
         clearFadeOutElements();
@@ -793,10 +777,12 @@ export function useEuchreGame() {
     shouldCancelGame
   ]);
 
-  //   /** Submit the resulting discard from user input after flip card has been picke up. */
+  //   /** Submit the resulting discard from user input after flip card has been picked up. */
   const handleDiscardSubmit = (card: Card) => {
     if (gameInstance.current?.trump && gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT) {
       gameInstance.current.dealer?.discard(card, gameInstance.current.trump);
+      gameInstance.current.dealer?.orderHand(gameInstance.current.trump);
+      gameInstance.current.discard = card;
 
       dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
 
@@ -1012,7 +998,9 @@ export function useEuchreGame() {
           throw new Error('Invalid state for handling play card result. Winning trick not found.');
 
         dispatchPlayerNotification(
-          getPlayerStateForTrickWon(lastWonTrick ?? handFinishedResult ?? EuchreTrick.defaultVal)
+          getPlayerNotificationForTrickWon(
+            lastWonTrick ?? handFinishedResult ?? EuchreTrick.defaultVal
+          )
         );
       }
 
@@ -1058,6 +1046,24 @@ export function useEuchreGame() {
     gameInstance.current = null;
   };
 
+  const handleReplayHand = () => {
+    if (!gameInstance.current) throw Error('Game not found for replay hand.');
+
+    setShouldShowHandResults(false);
+
+    gameInstance.current = reverseLastHandPlayed(gameInstance.current);
+
+    const newGameFlow = getGameStateForNextHand(
+      gameFlow,
+      gameSettings.current,
+      gameInstance.current
+    );
+    newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
+
+    dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameFlow });
+    dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
+  };
+
   return {
     gameInstance,
     gameFlow,
@@ -1077,7 +1083,8 @@ export function useEuchreGame() {
     resaveGameState,
     handleCloseHandResults,
     handleCloseGameResults,
-    handleCardPlayed
+    handleCardPlayed,
+    handleReplayHand
   };
 }
 
@@ -1087,8 +1094,8 @@ const getFaceUpCard = (id: string, card: Card) => {
       <Image
         className={`contain`}
         quality={100}
-        width={75}
-        height={112.5}
+        width={100}
+        height={150}
         src={getEncodedCardSvg(card, 'center')}
         alt="Game Card"
       />
@@ -1191,16 +1198,16 @@ const getPlayerNotificationForPlayedCard = (card: Card, player: EuchrePlayer) =>
   let cardLocation = '';
   switch (player.playerNumber) {
     case 1:
-      cardLocation = 'top-2';
+      cardLocation = '-top-2';
       break;
     case 2:
-      cardLocation = 'bottom-2';
+      cardLocation = '-bottom-2';
       break;
     case 3:
-      cardLocation = 'right-2';
+      cardLocation = '-right-2';
       break;
     case 4:
-      cardLocation = 'left-2';
+      cardLocation = '-left-2';
       break;
   }
 
@@ -1228,7 +1235,7 @@ const getPlayerNotificationForPlayedCard = (card: Card, player: EuchrePlayer) =>
   return newAction;
 };
 
-const getPlayerStateForAllPassed = (player: EuchrePlayer) => {
+const getPlayerNotificationForAllPassed = (player: EuchrePlayer) => {
   const newAction: PlayerNotificationAction = {
     type: PlayerNotificationActionType.UPDATE_CENTER,
     payload: undefined
@@ -1244,7 +1251,7 @@ const getPlayerStateForAllPassed = (player: EuchrePlayer) => {
   return newAction;
 };
 
-const getPlayerStateForTrickWon = (result: EuchreTrick) => {
+const getPlayerNotificationForTrickWon = (result: EuchreTrick) => {
   const newAction: PlayerNotificationAction = {
     type: PlayerNotificationActionType.UPDATE_CENTER,
     payload: undefined

@@ -16,7 +16,7 @@ export function GameInfo({ playerInfoState }: Props) {
   ];
 
   return (
-    <div className="grid grid-flow-col grid-rows-3 gap-1 h-full w-full text-black grid-cols-[1fr,175px,1fr]">
+    <div className="grid grid-flow-col grid-rows-[150px,150px,150px] gap-1 h-full w-full text-black grid-cols-[1fr,175px,1fr]">
       <div
         id="player2-region"
         className="bg-white col-span-1 col-start-2 bg-opacity-50 relative flex justify-center items-center"
@@ -43,7 +43,7 @@ export function GameInfo({ playerInfoState }: Props) {
       </div>
       <div
         id="game-info"
-        className="bg-white col-span-1 col-start-2 row-start-2 relative bg-opacity-50 flex justify-center h-32 items-center"
+        className="bg-white col-span-1 col-start-2 row-start-2 relative bg-opacity-50 flex justify-center items-center"
       >
         <div id={`game-center`} className={`absolute top-auto`}>
           X

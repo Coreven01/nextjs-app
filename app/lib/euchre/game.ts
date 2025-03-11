@@ -21,7 +21,7 @@ export function createEuchreGame(): EuchreGameInstance {
   player4.team = 2;
 
   const newGame = new EuchreGameInstance(player1, player2, player3, player4);
-  newGame.deck = createDummyCards(24);
+  newGame.deck = createPlaceholderCards(24);
   newGame.dealer = player1;
 
   return newGame;
@@ -77,9 +77,13 @@ export function createEuchreDeck(): Card[] {
 }
 
 /** Create cards for the given deck size. All the cards a 2 of spades. */
-export function createDummyCards(deckSize: number): Card[] {
+export function createPlaceholderCards(deckSize: number): Card[] {
   const retval: Card[] = [];
-  for (let i = 0; i < deckSize; i++) retval.push(new Card('♠', '2'));
+  for (let i = 0; i < deckSize; i++) {
+    const temp = new Card('♠', 'P');
+    temp.index = -1 - i;
+    retval.push(temp);
+  }
 
   return retval;
 }

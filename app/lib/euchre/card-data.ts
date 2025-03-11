@@ -1,4 +1,5 @@
 import { Card, CardValue, Suit } from './definitions';
+import { createPlaceholderCards } from './game';
 
 const offsuitValues: Map<CardValue, number> = new Map([
   ['9', 10],
@@ -299,14 +300,14 @@ const svgCenterCardValues: Map<string, TextData> = new Map([
   [
     's-b',
     {
-      x: -93.46167,
-      y: -118.71033,
-      fontsize: '14px',
+      x: -95,
+      y: -116,
+      fontsize: '18px',
       transform: 'scale(-1)',
       style: 'display:inline'
     }
   ],
-  ['s-t', { x: 6.3028178, y: 33.939663, fontsize: '14px', transform: '', style: 'display:inline' }],
+  ['s-t', { x: 5, y: 33.939663, fontsize: '18px', transform: '', style: 'display:inline' }],
   [
     'v-b',
     {
@@ -464,4 +465,84 @@ function getSuitName(suit: Suit): string {
   return '';
 }
 
-export { getEncodedCardSvg, getCardClassColorFromSuit, getSuitName, offsuitValues, trumpValues };
+function getCardValueName(value: CardValue): string {
+  switch (value) {
+    case '2':
+      return 'Two';
+    case '3':
+      return 'Three';
+    case '4':
+      return 'Four';
+    case '5':
+      return 'Five';
+    case '6':
+      return 'Six';
+    case '7':
+      return 'Seven';
+    case '8':
+      return 'Eight';
+    case '9':
+      return 'Nine';
+    case '10':
+      return 'Ten';
+    case 'J':
+      return 'Jack';
+    case 'Q':
+      return 'Queen';
+    case 'K':
+      return 'King';
+    case 'A':
+      return 'Ace';
+  }
+
+  return '';
+}
+
+function getCardFullName(card: Card): string {
+  return `${getCardValueName(card.value)} of ${getSuitName(card.suit)}s`;
+}
+
+function orderPlayerHand(cards: Card[]): Card[] {
+  switch (cards.length) {
+    case 5:
+      return cards.map((c) => {
+        return c;
+      });
+    case 4:
+      return [...cards, ...createPlaceholderCards(1)].slice(0, 5).map((c) => {
+        return c;
+      });
+    case 3:
+      return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(1)]
+        .slice(0, 5)
+        .map((c) => {
+          return c;
+        });
+    case 2:
+      return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(2)]
+        .slice(0, 5)
+        .map((c) => {
+          return c;
+        });
+    case 1:
+      return [...createPlaceholderCards(2), ...cards, ...createPlaceholderCards(2)]
+        .slice(0, 5)
+        .map((c) => {
+          return c;
+        });
+  }
+
+  return createPlaceholderCards(5).map((c) => {
+    return c;
+  });
+}
+
+export {
+  getEncodedCardSvg,
+  getCardClassColorFromSuit,
+  getSuitName,
+  getCardFullName,
+  orderPlayerHand,
+  offsuitValues,
+  trumpValues
+};

@@ -1,6 +1,7 @@
+import { orderPlayerHand } from './card-data';
 import {
   cardIsLeftBower,
-  createDummyCards,
+  createPlaceholderCards,
   getCardColorFromSuit,
   getCardValues,
   getPlayerRotation,
@@ -9,8 +10,19 @@ import {
 import { determineBidLogic, determineDiscard } from './game-bid-logic';
 import { determineCardToPlayLogic } from './game-play-logic';
 
-const CARD_WIDTH = 75;
-const CARD_HEIGHT = 112.5;
+const CARD_WIDTH = 100;
+const CARD_HEIGHT = 150;
+export type TeamColor = 'red' | 'blue' | 'orange' | 'yellow' | 'green' | 'white' | 'black';
+
+export const TEAM_COLOR_MAP: Map<TeamColor, string> = new Map([
+  ['red', 'bg-red-600'],
+  ['blue', 'bg-blue-600'],
+  ['orange', 'bg-orange-500'],
+  ['yellow', 'bg-yellow-300'],
+  ['green', 'bg-green-600'],
+  ['white', 'bg-white'],
+  ['black', 'bg-black']
+]);
 export const SPADE: string = '♠';
 export const HEART: string = '♥';
 export const DIAMOND: string = '♦';
@@ -31,7 +43,8 @@ export type CardValue =
   | 'Q'
   | 'K'
   | 'A'
-  | 'JK';
+  | 'JK'
+  | 'P';
 export type CardColor = 'R' | 'B';
 
 export interface EuchreHandResult {
@@ -62,7 +75,7 @@ export interface BidResult {
 
 class EuchrePlayer {
   name: string;
-  hand: Card[];
+  private hand: Card[];
   placeholder: Card[] = [];
   playedCards: Card[] = [];
   playerNumber: 1 | 2 | 3 | 4;
@@ -73,7 +86,7 @@ class EuchrePlayer {
     this.name = name;
     this.hand = hand;
     this.playerNumber = playerNumber;
-    this.placeholder = createDummyCards(5);
+    this.placeholder = createPlaceholderCards(5);
   }
 
   get innerPlayerBaseId(): string {
@@ -92,6 +105,22 @@ class EuchrePlayer {
     return this.playerNumber === 1 || this.playerNumber === 2 ? 'center' : 'side';
   }
 
+  get availableCards(): Card[] {
+    return this.hand.filter((c) => c.value !== 'P');
+  }
+
+  get displayCards(): Card[] {
+    return [...this.hand];
+  }
+
+  set assignCards(cards: Card[]) {
+    this.hand = cards;
+  }
+
+  addToHand(cards: Card[]) {
+    this.hand = [...this.hand, ...cards];
+  }
+
   generateElementId(): string {
     return `player-${this.playerNumber}-${Math.floor(Math.random() * 1000)}`;
   }
@@ -107,14 +136,17 @@ class EuchrePlayer {
   }
 
   /** */
-  chooseDiscard(game: EuchreGameInstance) {
+  chooseDiscard(game: EuchreGameInstance): Card {
     const cardToDiscard = determineDiscard(game, this);
     if (game.trump) this.discard(cardToDiscard, game.trump);
+    return cardToDiscard;
   }
 
   discard(cardToDiscard: Card, trump: Card) {
     if (this.hand.find((c) => c === cardToDiscard)) {
-      this.hand = [...this.hand, trump].filter((c) => c !== cardToDiscard);
+      const tempHand = [...this.hand, trump].filter((c) => c !== cardToDiscard);
+      tempHand.forEach((c, index) => (c.index = index));
+      this.hand = tempHand;
     } else {
       throw new Error("Unable to discard. Card not found in player's hand.");
     }
@@ -123,9 +155,17 @@ class EuchrePlayer {
   }
 
   orderHand(trump: Card | null): void {
-    if (this.hand.length < 2) return;
+    let tempHand: Card[] = this.availableCards;
 
-    const tempHand: Card[] = [];
+    if (tempHand.length < 5) {
+      tempHand = orderPlayerHand(tempHand);
+      tempHand.forEach((c, index) => (c.index = index));
+      this.hand = tempHand;
+
+      return;
+    }
+
+    tempHand = [];
     const suitCount = getSuitCount(this.hand, trump).sort((a, b) => b.count - a.count);
     const cardValues = getCardValues(this.hand, trump);
 
@@ -156,6 +196,7 @@ class EuchrePlayer {
       }
     }
 
+    tempHand = orderPlayerHand(tempHand);
     tempHand.forEach((c, index) => (c.index = index));
     this.hand = tempHand;
   }
@@ -177,6 +218,10 @@ class Card {
 
   get cardId(): string {
     return `card-${this.index}`;
+  }
+
+  get isPlaceHolder(): boolean {
+    return this.value === 'P';
   }
 
   getDisplayWidth(location: 'center' | 'side'): number {
@@ -207,8 +252,14 @@ class EuchreGameInstance {
   maker: EuchrePlayer | null = null;
   loner: boolean = false;
   trump: Card | null = null;
+  discard: Card | null = null;
+  turnedDown: Card | null = null;
   cardDealCount: number[] = [];
   currentRound: number = 1;
+  teamColor: { team: 1 | 2; color: TeamColor }[] = [
+    { team: 1, color: 'blue' },
+    { team: 2, color: 'red' }
+  ];
 
   constructor(
     player1: EuchrePlayer,
@@ -244,26 +295,28 @@ class EuchreGameInstance {
   resetForNewGame() {
     this.gameResults = [];
     this.dealer = null;
-    this.deck = createDummyCards(24);
+    this.deck = createPlaceholderCards(24);
     this.resetForNewDeal();
   }
 
   resetForNewDeal() {
     this.kitty = [];
-    this.deck = createDummyCards(24);
+    this.deck = createPlaceholderCards(24);
     this.currentPlayer = null;
     this.maker = null;
     this.loner = false;
     this.trump = null;
+    this.discard = null;
+    this.turnedDown = null;
     this.cardDealCount = [];
     this.currentTricks = [];
 
     const players = [this.player1, this.player2, this.player3, this.player4];
 
     for (const player of players) {
-      player.hand = [];
+      player.assignCards = [];
       player.playedCards = [];
-      player.placeholder = createDummyCards(5);
+      player.placeholder = createPlaceholderCards(5);
     }
   }
 
@@ -280,6 +333,9 @@ class EuchreGameInstance {
     game.currentTricks = this.currentTricks;
     game.gameResults = this.gameResults;
     game.currentRound = this.currentRound;
+    game.teamColor = this.teamColor;
+    game.discard = this.discard;
+    game.turnedDown = this.turnedDown;
 
     return game;
   }
@@ -297,14 +353,16 @@ class EuchreGameInstance {
       let numberOfCards = 0;
       const currentPlayer = players[i % 4];
       const firstRound = i < 4;
+      const tempHand: Card[] = [];
 
       if (firstRound) numberOfCards = i % 2 ? randomNum : 5 - randomNum;
       else numberOfCards = i % 2 ? 5 - randomNum : randomNum;
 
       for (let j = 0; j < numberOfCards; j++) {
-        currentPlayer.hand.push(this.deck[counter] ?? new Card('♠', 'JK'));
+        tempHand.push(this.deck[counter] ?? new Card('♠', 'JK'));
         counter++;
       }
+      currentPlayer.addToHand(tempHand);
     }
 
     while (counter < this.deck.length) {
@@ -315,10 +373,10 @@ class EuchreGameInstance {
 
   verifyDealtCards(): void {
     const allCardsDealt = [
-      this.player1.hand,
-      this.player2.hand,
-      this.player3.hand,
-      this.player4.hand,
+      this.player1.availableCards,
+      this.player2.availableCards,
+      this.player3.availableCards,
+      this.player4.availableCards,
       this.kitty
     ].flat();
 

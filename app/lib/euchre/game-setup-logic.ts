@@ -196,12 +196,13 @@ const getTransformationsForDealCardsForHand = (
     const playerNumber = player.playerNumber;
     const destinationId = player.innerPlayerBaseId;
     const firstRound = i < 4;
+    const availableCards = player.availableCards;
 
     let cardCount: number = 0;
     cardCount = firstRound ? game.cardDealCount[i % 2] : game.cardDealCount[(i + 1) % 2];
 
     for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
-      const card = player.hand[firstRound ? cardIndex : 5 - cardCount + cardIndex];
+      const card = availableCards[firstRound ? cardIndex : 5 - cardCount + cardIndex];
       const cardSrcId = card.generateElementId();
 
       transformations.push({
@@ -264,7 +265,7 @@ const orderTrump = (
   newGame.currentPlayer = rotation[0];
 
   if (result.calledSuit) newGame.trump = new Card(result.calledSuit, 'JK');
-  newGame.gamePlayers.filter((p) => p.human).forEach((p) => p.orderHand(newGame.trump));
+  newGame.gamePlayers.forEach((p) => p.orderHand(newGame.trump));
 
   return newGame;
 };

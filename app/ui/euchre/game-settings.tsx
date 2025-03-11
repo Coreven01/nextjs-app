@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, EuchreSettings, EuchreTrick } from '@/app/lib/euchre/definitions';
+import { Card, EuchreCard, EuchreSettings, EuchreTrick, Suit } from '@/app/lib/euchre/definitions';
 import { createEuchreGame } from '@/app/lib/euchre/game';
 import { useEffect, useRef, useState } from 'react';
 
@@ -45,7 +45,7 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
     const game = createEuchreGame();
     game.currentPlayer = game.player1;
     game.dealer = game.player1;
-    game.player1.hand = [
+    game.player1.assignCards = [
       new Card('♠', 'Q'),
       new Card('♠', 'J'),
       new Card('♣', 'J'),
@@ -57,18 +57,21 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
   };
 
   const handleTestButtonClick2 = () => {
+    const suits: Suit[] = ['♠', '♣', '♥', '♦'];
     const game = createEuchreGame();
     game.currentPlayer = game.player1;
     game.dealer = game.player1;
+    const t1 = new EuchreTrick(1);
+    t1.cardsPlayed.push(new EuchreCard(game.player2, new Card('♦', 'A')));
     game.currentTricks.push(new EuchreTrick(1));
-    game.player1.hand = [
-      new Card('♦', 'Q'),
-      new Card('♦', 'J'),
-      new Card('♣', 'J'),
-      new Card('♦', 'K'),
-      new Card('♦', 'Q')
+    game.player1.assignCards = [
+      new Card('♦', '9'),
+      new Card('♥', 'Q'),
+      new Card('♥', 'J'),
+      new Card('♠', 'J'),
+      new Card('♣', '10')
     ];
-    game.trump = new Card('♠', '2');
+    game.trump = new Card('♥', '2');
 
     const computerChoice = game.currentPlayer.determineCardToPlay(game);
   };
@@ -78,7 +81,7 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
     game.currentPlayer = game.player1;
     game.dealer = game.player1;
     game.currentTricks.push(new EuchreTrick(1));
-    game.player1.hand = [
+    game.player1.assignCards = [
       new Card('♥', '9'),
       new Card('♥', 'A'),
       new Card('♣', 'J'),
@@ -131,7 +134,7 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
       <div className="flex justify-center my-2">
         <button
           className="text-white border border-white p-2 rounded"
-          onClick={handleTestButtonClick3}
+          onClick={handleTestButtonClick2}
         >
           Run Test
         </button>

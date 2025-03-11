@@ -6,11 +6,12 @@ import HandResultDetail from './hand-result-detail';
 type Props = {
   handResult: EuchreHandResult | null;
   onClose: () => void;
+  onReplayHand: () => void;
 };
 
 const BASE_CLASS =
   'border dark:border-white rounded text-center dark:bg-neutral-800 dark:text-white p-1 my-1';
-export function HandResults({ handResult, onClose }: Props) {
+export function HandResults({ handResult, onReplayHand, onClose }: Props) {
   if (!handResult) throw new Error('No hand result was found');
 
   return (
@@ -39,7 +40,7 @@ export function HandResults({ handResult, onClose }: Props) {
               {handResult.tricks.map((t) => {
                 return (
                   <div
-                    key={`${t.round}-${t.cardsPlayed.map((c) => `${c.player.playerNumber}-${c.card.index}`).join('')}`}
+                    key={`${t.round}-${t.cardsPlayed.map((c, index) => `${c.player.playerNumber}-${c.card.value}-${c.card.suit}`).join('')}`}
                     className={`flex items-center ${BASE_CLASS}`}
                   >
                     <HandResultDetail cardsPlayed={t.cardsPlayed} playerWon={t.taker} />
@@ -55,6 +56,9 @@ export function HandResults({ handResult, onClose }: Props) {
           </div>
           <button onClick={onClose} className="border border-white rounded w-full mt-2">
             Close
+          </button>
+          <button onClick={onReplayHand} className="border border-white rounded w-full mt-2">
+            Replay Hand
           </button>
         </div>
       </div>
