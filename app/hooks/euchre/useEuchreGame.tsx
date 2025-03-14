@@ -1,6 +1,5 @@
 'use client';
 
-import CenterInfo from '@/app/ui/euchre/center-info';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import Image from 'next/image';
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
@@ -34,18 +33,20 @@ import {
   EuchrePlayer,
   EuchreSettings,
   EuchreTrick,
+  GameSpeed,
   Suit
 } from '@/app/lib/euchre/definitions';
 import {
   dealCardsForDealer,
   getGameStateForInitialDeal,
+  incrementSpeed,
+  INIT_GAME_SETTINGS,
   initDeckForInitialDeal,
-  initialGameSettings,
   orderTrump,
   shuffleAndDealHand
 } from '@/app/lib/euchre/game-setup-logic';
-import { logDebugEvent } from '@/app/lib/euchre/util';
-import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
+import { createEvent, logDebugEvent } from '@/app/lib/euchre/util';
+import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { getPlayerRotation } from '@/app/lib/euchre/game';
 import {
   didPlayerFollowSuit,
@@ -55,6 +56,8 @@ import {
   reverseLastHandPlayed
 } from '@/app/lib/euchre/game-play-logic';
 import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
+import EphemeralModal from '@/app/ui/euchre/ephemeral-modal';
+import { useEventLog } from './useEventLog';
 
 const FLIPPED_CARD_ID = 'flipped-card';
 
@@ -69,7 +72,7 @@ export function useEuchreGame() {
   const playerCard = useRef<Card | null>(null);
   const bidResult = useRef<BidResult | null>(null);
   const gameInstance = useRef<EuchreGameInstance | null>(null);
-  const gameSettings = useRef<EuchreSettings>(initialGameSettings);
+  const gameSettings = useRef<EuchreSettings>(INIT_GAME_SETTINGS);
 
   const [playerNotification, dispatchPlayerNotification] = useReducer(
     playerNotificationReducer,
@@ -80,18 +83,11 @@ export function useEuchreGame() {
     gameAnimationFlowReducer,
     initialGameAnimationState
   );
-  const [animationTransformation, setAnimationTransformation] = useState<CardTransformation[][]>(
-    []
-  );
+  const [animationTransformation, setAnimationTransformation] = useState<CardTransformation[][]>([]);
+  const { animateForInitialDeal, animateDealCardsForHand, animateForPlayCard, setFadeOutForPlayers } =
+    useAnimation(gameSettings.current);
 
-  const tempFadeOutElements = useRef<FadeOutOptions[]>([]);
-
-  const {
-    animateForInitialDeal,
-    animateDealCardsForHand,
-    animateForPlayCard,
-    setFadeOutForPlayers
-  } = useAnimation(gameSettings.current);
+  const { events, addEvent, clearEvents } = useEventLog();
 
   //#endregion
 
@@ -109,7 +105,7 @@ export function useEuchreGame() {
       setFadeOutForPlayers(elements);
 
       await new Promise((resolve) =>
-        setTimeout(resolve, (maxDelay + maxDuration) * 1000 * gameSettings.current.gameSpeed)
+        setTimeout(resolve, maxDelay + maxDuration + gameSettings.current.gameSpeed)
       );
     },
     [setFadeOutForPlayers]
@@ -117,11 +113,11 @@ export function useEuchreGame() {
 
   const clearFadeOutElements = useCallback(() => {
     addFadeOutElements([
-      { playerNumber: 1, fadeOutId: '', fadeOutDelay: 1, fadeOutDuration: 1 },
-      { playerNumber: 2, fadeOutId: '', fadeOutDelay: 1, fadeOutDuration: 1 },
-      { playerNumber: 3, fadeOutId: '', fadeOutDelay: 1, fadeOutDuration: 1 },
-      { playerNumber: 4, fadeOutId: '', fadeOutDelay: 1, fadeOutDuration: 1 },
-      { playerNumber: 'o', fadeOutId: '', fadeOutDelay: 1, fadeOutDuration: 1 }
+      { playerNumber: 1, fadeOutId: '', fadeOutDelay: 150, fadeOutDuration: 150 },
+      { playerNumber: 2, fadeOutId: '', fadeOutDelay: 150, fadeOutDuration: 150 },
+      { playerNumber: 3, fadeOutId: '', fadeOutDelay: 150, fadeOutDuration: 150 },
+      { playerNumber: 4, fadeOutId: '', fadeOutDelay: 150, fadeOutDuration: 150 },
+      { playerNumber: 'o', fadeOutId: '', fadeOutDelay: 150, fadeOutDuration: 150 }
     ]);
   }, [addFadeOutElements]);
 
@@ -228,7 +224,7 @@ export function useEuchreGame() {
     const game = gameInstance.current;
     if (!game) throw new Error();
 
-    logDebugEvent('Begin deal cards for dealer');
+    addEvent(createEvent(undefined, gameSettings.current, undefined, 'Begin deal cards for dealer'));
 
     const dealResult = dealCardsForDealer(game, gameFlow, gameSettings.current);
 
@@ -238,8 +234,8 @@ export function useEuchreGame() {
     game.currentPlayer = dealResult.newDealer;
 
     dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_DEAL_FOR_DEALER });
-    setAnimationTransformation([...animationTransformation, ...dealResult.transformations]);
-  }, [gameFlow, gameAnimationFlow, shouldCancelGame, handleCancelGame, animationTransformation]);
+    //setAnimationTransformation([...animationTransformation, ...dealResult.transformations]);
+  }, [gameFlow, gameAnimationFlow, shouldCancelGame, handleCancelGame, addEvent]);
 
   /** */
   const endDealCardsForDealer = useCallback(() => {
@@ -282,7 +278,7 @@ export function useEuchreGame() {
 
       if (!game.dealer) throw new Error('Unable to find dealer for initial deal animation.');
 
-      await animateForInitialDeal(animationTransformation, game, game.dealer);
+      //await animateForInitialDeal(animationTransformation, game, game.dealer);
 
       dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
       dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_SHUFFLE_CARDS });
@@ -329,7 +325,9 @@ export function useEuchreGame() {
     )
       return;
 
-    logDebugEvent('Begin shuffle and deal for regular play');
+    addEvent(
+      createEvent(undefined, gameSettings.current, undefined, 'Begin shuffle and deal for regular play')
+    );
 
     let game = gameInstance.current;
     if (!game) throw new Error();
@@ -340,28 +338,22 @@ export function useEuchreGame() {
 
     if (!game?.trump) throw Error('Trump not found after shuffle and deal for regular play.');
 
-    // show all players cards - used for debugging
-
     dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
 
     // display trump card for bidding in the center of the table.
     dispatchPlayerNotification({
       type: PlayerNotificationActionType.UPDATE_CENTER,
-      payload: getFaceUpCard(FLIPPED_CARD_ID, game.trump)
+      payload: getFaceUpCard(FLIPPED_CARD_ID, game.trump, false)
     });
 
-    const newGameState: GameFlowState = getGameStateForNextHand(
-      gameFlow,
-      gameSettings.current,
-      game
-    );
+    const newGameState: GameFlowState = getGameStateForNextHand(gameFlow, gameSettings.current, game);
     newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 
     dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameState });
     dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY });
     setAnimationTransformation([...animationTransformation, ...shuffleResult.transformations]);
     gameInstance.current = game;
-  }, [gameFlow, gameAnimationFlow, shouldCancelGame, handleCancelGame, animationTransformation]);
+  }, [gameFlow, gameAnimationFlow, shouldCancelGame, handleCancelGame, addEvent, animationTransformation]);
 
   useEffect(() => {
     beginShuffleAndDealHand();
@@ -408,53 +400,98 @@ export function useEuchreGame() {
 
   //#region Bid for Trump *************************************************************************
 
-  /** */
+  /** Handle passing the bid to the next player.*/
   const handlePassForBid = useCallback(() => {
     const game = gameInstance.current;
     if (!game?.currentPlayer) throw new Error();
-    const roundFinished = game.dealer === game.currentPlayer;
+    if (!game?.trump) throw new Error();
 
-    const playerElementId = game.currentPlayer.generateElementId();
+    addEvent(
+      createEvent(
+        game,
+        gameSettings.current,
+        game.currentPlayer,
+        'Handle Pass for bid. Score: ' + bidResult.current?.handScore
+      )
+    );
+
+    const biddingRoundFinished = game.dealer === game.currentPlayer;
     const newPlayerNotification = getPlayerNotificationForBidding(
-      playerElementId,
       game.currentPlayer,
       game.currentPlayer,
       'p',
       false,
-      null
+      null,
+      gameSettings.current.gameSpeed
     );
 
-    tempFadeOutElements.current.push({
-      playerNumber: game.currentPlayer.playerNumber,
-      fadeOutId: playerElementId,
-      fadeOutDelay: 1,
-      fadeOutDuration: 1
-    });
-
     // simulate flipping over the trump card.
-    if (roundFinished && !gameFlow.hasSecondBiddingPassed) {
+    if (biddingRoundFinished && !gameFlow.hasSecondBiddingPassed) {
       game.turnedDown = game.trump;
-      tempFadeOutElements.current.push({
-        playerNumber: 'o',
-        fadeOutId: FLIPPED_CARD_ID,
-        fadeOutDelay: 1,
-        fadeOutDuration: 1
+      dispatchPlayerNotification({
+        type: PlayerNotificationActionType.UPDATE_CENTER,
+        payload: getFaceUpCard(FLIPPED_CARD_ID, game.trump, true)
       });
+
+      // remove the card from the DOM
+      setTimeout(
+        () =>
+          dispatchPlayerNotification({
+            type: PlayerNotificationActionType.UPDATE_CENTER,
+            payload: undefined
+          }),
+        150
+      );
     }
 
     dispatchPlayerNotification(newPlayerNotification);
     dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_BEGIN_BID_FOR_TRUMP });
     dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
-  }, [gameFlow.hasSecondBiddingPassed]);
+  }, [addEvent, gameFlow.hasSecondBiddingPassed]);
 
-  /** */
+  /** Side effect to animate events after the initial bid for trump. */
+  useEffect(() => {
+    const beginAnimationForBidForTrump = async () => {
+      if (
+        !isGameStateValidToContinue(
+          gameInstance.current,
+          gameFlow,
+          gameAnimationFlow,
+          EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
+          EuchreAnimateType.ANIMATE_BEGIN_BID_FOR_TRUMP,
+          shouldCancelGame,
+          handleCancelGame
+        )
+      )
+        return;
+
+      await new Promise((resolve) => setTimeout(resolve, gameSettings.current.gameSpeed));
+
+      addEvent(createEvent(undefined, gameSettings.current, undefined, 'End Animation for bid for trump'));
+      dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
+      dispatchGameFlow({ type: EuchreFlowActionType.SET_END_BID_FOR_TRUMP });
+    };
+
+    beginAnimationForBidForTrump();
+  }, [
+    addEvent,
+    addFadeOutElements,
+    gameAnimationFlow,
+    gameAnimationFlow.animationType,
+    gameFlow,
+    gameFlow.gameFlow,
+    handleCancelGame,
+    shouldCancelGame
+  ]);
+
+  /** Update game flow when player orders trump. */
   const handlePlayerOrderTrumpFromBid = () => {
     // player called trump, either by suit or telling the deal er to pick up the card.
     dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_ORDER_TRUMP });
     dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
   };
 
-  /** */
+  /** Either order trump or pass bid from user selection. */
   const handlePlayerSelectionForBid = useCallback(
     (result: BidResult) => {
       bidResult.current = result;
@@ -488,7 +525,7 @@ export function useEuchreGame() {
     if (!game?.trump) throw Error('Trump not found for bid for trump.');
     if (!game?.currentPlayer) throw Error('Player not found for bid for trump.');
 
-    logDebugEvent('Begin bid For trump - Player: ', game.currentPlayer?.name);
+    //addEvent(createEvent(game, gameSettings.current, game.currentPlayer, 'Begin bid For trump'));
 
     if (gameFlow.hasSecondBiddingPassed) {
       // all users have passed. pass the deal to the next user and begin to re-deal.
@@ -504,24 +541,15 @@ export function useEuchreGame() {
       const computerChoice: BidResult = game.currentPlayer.determineBid(
         game,
         game.trump,
-        gameFlow.hasFirstBiddingPassed
+        !gameFlow.hasFirstBiddingPassed
       );
       handlePlayerSelectionForBid(computerChoice);
     }
-  }, [
-    gameAnimationFlow,
-    gameFlow,
-    handleCancelGame,
-    handlePlayerSelectionForBid,
-    shouldCancelGame
-  ]);
+  }, [gameAnimationFlow, gameFlow, handleCancelGame, handlePlayerSelectionForBid, shouldCancelGame]);
 
-  /** */
+  /** Begin bid for trump game flow. */
   useEffect(() => {
-    const beginBidForTrumpLocal = async () => {
-      await beginBidForTrump();
-    };
-    beginBidForTrumpLocal();
+    beginBidForTrump();
   }, [beginBidForTrump]);
 
   /** Modify the game state depending on if the user named trump or passed based on player bid choice. */
@@ -542,14 +570,12 @@ export function useEuchreGame() {
     const game = gameInstance.current;
     if (!game?.currentPlayer) throw Error('Current player not found for end bid for trump.');
 
-    const roundFinished = game.dealer === game.currentPlayer;
+    const biddingRoundFinished = game.dealer === game.currentPlayer;
     const firstRound = !gameFlow.hasFirstBiddingPassed;
-
-    // player passed
     const newGameFlow: GameFlowState = { ...gameFlow };
 
     newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
-    if (roundFinished) {
+    if (biddingRoundFinished) {
       newGameFlow.hasFirstBiddingPassed = firstRound || newGameFlow.hasFirstBiddingPassed;
       newGameFlow.hasSecondBiddingPassed = !firstRound;
     }
@@ -560,47 +586,12 @@ export function useEuchreGame() {
     dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameFlow });
   }, [gameAnimationFlow, gameFlow, handleCancelGame, shouldCancelGame]);
 
+  /** */
   useEffect(() => {
     endBidForTrump();
   }, [endBidForTrump]);
 
-  useEffect(() => {
-    const beginAnimationForBidForTrump = async () => {
-      if (
-        !isGameStateValidToContinue(
-          gameInstance.current,
-          gameFlow,
-          gameAnimationFlow,
-          EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
-          EuchreAnimateType.ANIMATE_BEGIN_BID_FOR_TRUMP,
-          shouldCancelGame,
-          handleCancelGame
-        )
-      )
-        return;
-
-      logDebugEvent('Begin Animation for bid for trump');
-
-      //await new Promise((resolve) => setTimeout(resolve, 500 * gameSettings.current.gameSpeed));
-      await addFadeOutElements(tempFadeOutElements.current);
-      tempFadeOutElements.current = [];
-
-      dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
-      dispatchGameFlow({ type: EuchreFlowActionType.SET_END_BID_FOR_TRUMP });
-    };
-
-    beginAnimationForBidForTrump();
-  }, [
-    addFadeOutElements,
-    gameAnimationFlow,
-    gameAnimationFlow.animationType,
-    gameFlow,
-    gameFlow.gameFlow,
-    handleCancelGame,
-    shouldCancelGame
-  ]);
-
-  //   /** Submit the resulting bid from user input. */
+  /** Submit the resulting bid from user input. */
   const handleBidSubmit = (result: BidResult) => {
     if (gameInstance.current && gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT) {
       setShouldPromptBid(false);
@@ -611,7 +602,7 @@ export function useEuchreGame() {
   //#endregion
 
   //#region Pass Deal *************************************************************************
-  //   /** All players passed during the bidding process. Re-initialize for deal for the next user in the rotation.  */
+  /** All players passed during the bidding process. Re-initialize for deal for the next user in the rotation.  */
   const beginPassDeal = useCallback(async () => {
     if (
       !isGameStateValidToContinue(
@@ -639,7 +630,7 @@ export function useEuchreGame() {
 
     dispatchPlayerNotification(getPlayerNotificationForAllPassed(game.dealer));
 
-    await new Promise((resolve) => setTimeout(resolve, 2000 * gameSettings.current.gameSpeed));
+    await new Promise((resolve) => setTimeout(resolve, 2 * gameSettings.current.gameSpeed));
 
     reset(false);
     const newGameFlow = getGameStateForInitialDeal(gameFlow, gameSettings.current, game);
@@ -693,25 +684,29 @@ export function useEuchreGame() {
     if (!game.maker) throw Error('Maker not found - Order Trump.');
 
     const orderType = bidResult.current.calledSuit ? 'n' : 'o';
-    const playerElementId: string = game.maker.generateElementId();
     const newPlayerNotification: PlayerNotificationAction = getPlayerNotificationForBidding(
-      playerElementId,
       game.dealer,
       game.maker,
       orderType,
       bidResult.current.loner,
-      bidResult.current.calledSuit
+      bidResult.current.calledSuit,
+      gameSettings.current.gameSpeed
     );
 
-    dispatchPlayerNotification(newPlayerNotification);
-    const option: FadeOutOptions = {
-      playerNumber: game.maker.playerNumber,
-      fadeOutId: playerElementId,
-      fadeOutDelay: 1,
-      fadeOutDuration: 1
-    };
-    tempFadeOutElements.current.push(option);
+    if (bidResult.current.loner) {
+      const partnerSittingOut = game.gamePlayers.find((p) => p.team === game.maker?.team && p !== game.maker);
+      if (partnerSittingOut) {
+        const playerSetting = gameFlow.shouldShowHandImages.find((i) => i.player === partnerSittingOut);
+        if (playerSetting) playerSetting.value = false;
 
+        dispatchGameFlow({
+          type: EuchreFlowActionType.UPDATE_ALL,
+          payload: { ...gameFlow }
+        });
+      }
+    }
+
+    dispatchPlayerNotification(newPlayerNotification);
     dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_ORDER_TRUMP });
     gameInstance.current = game;
   }, [gameAnimationFlow, gameFlow, handleCancelGame, shouldCancelGame]);
@@ -741,11 +736,8 @@ export function useEuchreGame() {
       const game = gameInstance.current;
       if (!game?.dealer) throw new Error('Game dealer not found for animation trump ordered.');
 
-      await addFadeOutElements(tempFadeOutElements.current);
-      tempFadeOutElements.current = [];
-
       // additional delay to notify users which suit is trump
-      await new Promise((resolve) => setTimeout(resolve, 1000 * gameSettings.current.gameSpeed));
+      await new Promise((resolve) => setTimeout(resolve, 2 * gameSettings.current.gameSpeed));
 
       const shouldDiscard =
         bidResult.current?.calledSuit === null || bidResult.current?.calledSuit === undefined;
@@ -831,7 +823,15 @@ export function useEuchreGame() {
       dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
     }
 
-    if (game.currentPlayer?.human) {
+    let promptForInput = game.currentPlayer.human;
+    if (
+      promptForInput &&
+      game.currentPlayer.availableCards.length === 1 &&
+      gameSettings.current.autoPlayLastCard
+    )
+      promptForInput = false;
+
+    if (promptForInput) {
       dispatchGameFlow({ type: EuchreFlowActionType.SET_AWAIT_USER_INPUT });
     } else {
       const selectedCard: Card = game.currentPlayer.determineCardToPlay(game);
@@ -861,16 +861,17 @@ export function useEuchreGame() {
       )
         return;
 
-      await new Promise((resolve) => setTimeout(resolve, 1000 * gameSettings.current.gameSpeed));
+      if (!gameInstance.current?.currentPlayer?.human)
+        await new Promise((resolve) => setTimeout(resolve, gameSettings.current.gameSpeed));
 
-      if (!playerCard.current)
-        throw new Error('Unable to animate play card - player card not found.');
+      if (!playerCard.current) throw new Error('Unable to animate play card - player card not found.');
       if (!gameInstance.current?.currentPlayer)
         throw new Error('Unable to animate play card - current player not found.');
 
       dispatchPlayerNotification(
         getPlayerNotificationForPlayedCard(playerCard.current, gameInstance.current.currentPlayer)
       );
+
       dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
       dispatchGameFlow({ type: EuchreFlowActionType.SET_END_PLAY_CARD });
     };
@@ -933,10 +934,7 @@ export function useEuchreGame() {
       setShouldShowHandResults(false);
       setShouldShowGameResults(true);
     } else {
-      const rotation = getPlayerRotation(
-        gameInstance.current.gamePlayers,
-        gameInstance.current.dealer
-      );
+      const rotation = getPlayerRotation(gameInstance.current.gamePlayers, gameInstance.current.dealer);
       gameInstance.current.dealer = rotation[0];
 
       setShouldShowHandResults(false);
@@ -989,7 +987,7 @@ export function useEuchreGame() {
       const trickFinished: boolean = (trickResult && trickResult.cardsPlayed.length === 0) ?? false;
 
       if (handFinished || trickFinished) {
-        await new Promise((resolve) => setTimeout(resolve, 1000 * gameSettings.current.gameSpeed));
+        await new Promise((resolve) => setTimeout(resolve, 1.5 * gameSettings.current.gameSpeed));
 
         const lastWonTrick: EuchreTrick | undefined = game.currentTricks.at(-2);
         const handFinishedResult: EuchreTrick | undefined = game.gameResults.at(-1)?.tricks.at(-1);
@@ -998,20 +996,18 @@ export function useEuchreGame() {
           throw new Error('Invalid state for handling play card result. Winning trick not found.');
 
         dispatchPlayerNotification(
-          getPlayerNotificationForTrickWon(
-            lastWonTrick ?? handFinishedResult ?? EuchreTrick.defaultVal
-          )
+          getPlayerNotificationForTrickWon(lastWonTrick ?? handFinishedResult ?? EuchreTrick.defaultVal)
         );
       }
 
       if (handFinished) {
-        await new Promise((resolve) => setTimeout(resolve, 4000 * gameSettings.current.gameSpeed));
+        await new Promise((resolve) => setTimeout(resolve, 1.5 * gameSettings.current.gameSpeed));
 
         dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
         if (gameSettings.current.showHandResult) setShouldShowHandResults(true);
         else handleCloseHandResults();
       } else if (trickFinished) {
-        await new Promise((resolve) => setTimeout(resolve, 2000 * gameSettings.current.gameSpeed));
+        await new Promise((resolve) => setTimeout(resolve, gameSettings.current.gameSpeed));
       }
 
       if (!handFinished) dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
@@ -1030,6 +1026,7 @@ export function useEuchreGame() {
 
   //#endregion
 
+  //#region Other Handlers *************************************************************************
   const resaveGameState = () => {
     setCancelGame(false);
   };
@@ -1046,6 +1043,7 @@ export function useEuchreGame() {
     gameInstance.current = null;
   };
 
+  /** Reverse game state to play the hand again. Used for testing/debugging */
   const handleReplayHand = () => {
     if (!gameInstance.current) throw Error('Game not found for replay hand.');
 
@@ -1053,16 +1051,13 @@ export function useEuchreGame() {
 
     gameInstance.current = reverseLastHandPlayed(gameInstance.current);
 
-    const newGameFlow = getGameStateForNextHand(
-      gameFlow,
-      gameSettings.current,
-      gameInstance.current
-    );
+    const newGameFlow = getGameStateForNextHand(gameFlow, gameSettings.current, gameInstance.current);
     newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
 
     dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameFlow });
     dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
   };
+  //#endregion
 
   return {
     gameInstance,
@@ -1074,6 +1069,8 @@ export function useEuchreGame() {
     shouldShowHandResults,
     shouldShowGameResults,
     gameSettings,
+    events,
+    clearEvents,
     beginNewGame,
     handleBidSubmit,
     handleResetGame,
@@ -1088,41 +1085,52 @@ export function useEuchreGame() {
   };
 }
 
-const getFaceUpCard = (id: string, card: Card) => {
+/** */
+const getFaceUpCard = (id: string, card: Card, fadeOut: boolean) => {
   return (
-    <CenterInfo id={id} className="flex items-center justify-center">
+    <EphemeralModal
+      key={`${card.generateElementId()}-${Math.floor(Math.random() * 1000)}`}
+      durationMs={150}
+      delayMs={150}
+      fadeType={fadeOut ? 'out' : 'in'}
+      className={fadeOut ? 'opacity-100' : 'opacity-0'}
+    >
       <Image
+        id={id}
         className={`contain`}
         quality={100}
-        width={100}
-        height={150}
+        width={card.getDisplayWidth('center')}
+        height={card.getDisplayHeight('center')}
         src={getEncodedCardSvg(card, 'center')}
-        alt="Game Card"
+        alt={getCardFullName(card)}
+        title={getCardFullName(card)}
       />
-    </CenterInfo>
+    </EphemeralModal>
   );
 };
 
-// /** Return a new state to provide a visual element that the user either passed or ordered trump. */
+/** Return a new state to provide a visual element that the user either passed or ordered trump. */
 const getPlayerNotificationForBidding = (
-  id: string,
   dealer: EuchrePlayer,
   player: EuchrePlayer,
   info: 'p' | 'o' | 'n',
   loner: boolean,
-  namedSuit: Suit | null
+  namedSuit: Suit | null,
+  fadeSpeed: GameSpeed
 ): PlayerNotificationAction => {
   const newAction: PlayerNotificationAction = {
     type: PlayerNotificationActionType.UPDATE_PLAYER1,
     payload: undefined
   };
+
   const icon: React.ReactNode =
     info === 'p' ? (
-      <XCircleIcon className="min-h-[18px] max-h-[20px]" />
+      <XCircleIcon className="min-h-[18px] max-h-[20px] text-red-300" />
     ) : (
-      <CheckCircleIcon className="min-h-[18px] max-h-[20px]" />
+      <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />
     );
   let messageLocation = '';
+  let delay = fadeSpeed;
 
   switch (player.playerNumber) {
     case 1:
@@ -1147,24 +1155,29 @@ const getPlayerNotificationForBidding = (
       break;
     case 'o':
       messageDetail = dealer === player ? 'Picking Up' : 'Pick it up';
+      delay = incrementSpeed(delay);
       break;
     case 'n':
       messageDetail = 'Calling ' + namedSuit;
+      delay = incrementSpeed(delay);
       break;
   }
 
   const infoDetail = (
-    <UserInfo
-      className={`p-2 text-sm w-auto absolute whitespace-nowrap ${messageLocation}`}
-      id={id}
-      key={`${id}-${Math.floor(Math.random() * 1000)}`}
+    <EphemeralModal
+      className={`w-auto absolute whitespace-nowrap ${messageLocation} opacity-0`}
+      durationMs={fadeSpeed}
+      delayMs={delay}
+      fadeType="both"
     >
-      <div className="flex gap-2 items-center">
-        {icon}
-        <div>{messageDetail}</div>
-        {loner ? <div>Going Alone!</div> : <></>}
-      </div>
-    </UserInfo>
+      <UserInfo className="p-2 text-sm">
+        <div className="flex gap-2 items-center">
+          {icon}
+          <div>{messageDetail}</div>
+        </div>
+        {loner ? <div className="w-full text-center text-yellow-200">Going Alone!</div> : <></>}
+      </UserInfo>
+    </EphemeralModal>
   );
 
   switch (player.playerNumber) {
@@ -1189,6 +1202,7 @@ const getPlayerNotificationForBidding = (
   return newAction;
 };
 
+/** */
 const getPlayerNotificationForPlayedCard = (card: Card, player: EuchrePlayer) => {
   const newAction: PlayerNotificationAction = {
     type: PlayerNotificationActionType.UPDATE_PLAYER1,
@@ -1198,36 +1212,43 @@ const getPlayerNotificationForPlayedCard = (card: Card, player: EuchrePlayer) =>
   let cardLocation = '';
   switch (player.playerNumber) {
     case 1:
-      cardLocation = '-top-2';
+      cardLocation = '-top-5';
       break;
     case 2:
-      cardLocation = '-bottom-2';
+      cardLocation = '-bottom-5';
       break;
     case 3:
-      cardLocation = '-right-2';
+      cardLocation = '-right-5';
       break;
     case 4:
-      cardLocation = '-left-2';
+      cardLocation = '-left-5';
       break;
   }
 
+  const rotateValues = [
+    'rotate-[-8deg]',
+    'rotate-[-4deg]',
+    'rotate-[-1deg]',
+    'rotate-[1deg]',
+    'rotate-[4deg]',
+    'rotate-[8deg]'
+  ];
+
   const infoDetail = (
-    <UserInfo
-      className={`absolute ${cardLocation}`}
+    <div
+      className={`absolute ${rotateValues[Math.round(Math.random() * 5)]} ${cardLocation}`}
       id={card.generateElementId()}
       key={`${card.generateElementId()}-${Math.floor(Math.random() * 1000)}`}
     >
-      <div className={`flex gap-2`}>
-        <Image
-          className={`contain`}
-          quality={100}
-          width={card.getDisplayWidth(player.location)}
-          height={card.getDisplayHeight(player.location)}
-          src={getEncodedCardSvg(card, player.location)}
-          alt="Game Card"
-        />
-      </div>
-    </UserInfo>
+      <Image
+        className={`contain`}
+        quality={100}
+        src={getEncodedCardSvg(card, player.location)}
+        width={card.getDisplayWidth(player.location)}
+        height={card.getDisplayHeight(player.location)}
+        alt={getCardFullName(card)}
+      />
+    </div>
   );
 
   newAction.type = getPlayerNotificationType(player.playerNumber);
@@ -1256,7 +1277,7 @@ const getPlayerNotificationForTrickWon = (result: EuchreTrick) => {
     type: PlayerNotificationActionType.UPDATE_CENTER,
     payload: undefined
   };
-  const icon: React.ReactNode = <CheckCircleIcon className="min-h-[18px] max-h-[20px]" />;
+  const icon: React.ReactNode = <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />;
   let messageLocation = '';
 
   switch (result.taker?.playerNumber) {
@@ -1277,7 +1298,7 @@ const getPlayerNotificationForTrickWon = (result: EuchreTrick) => {
   const id = result.taker?.generateElementId();
   const infoDetail = (
     <UserInfo
-      className={`p-2 text-sm w-auto absolute whitespace-nowrap ${messageLocation}`}
+      className={`p-2 text-md w-auto absolute whitespace-nowrap z-50 shadow-lg ${messageLocation}`}
       id={id}
       key={`${id}-${Math.floor(Math.random() * 1000)}`}
     >

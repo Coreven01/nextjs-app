@@ -1,56 +1,29 @@
 import { BidResult, Card, EuchreGameInstance, EuchrePlayer, Suit } from './definitions';
-import { getCardValue } from './game';
+import { cardIsLeftBower, getCardValue, getSuitCount } from './game';
 
 interface GameBidLogic {
   trumpCardCount: number;
   offSuitAceCount: number;
   playerHasRight: boolean;
   playerHasLeft: boolean;
-  playerWillPickUp: boolean;
-  teamWillPickup: boolean;
-  handScore: number;
-  suitToCall: Suit | null;
   suitsInHand: number;
+  firstRoundOfBidding: boolean;
 }
 
 /** Return a object of important values when making a decision during the bidding process.  */
-function getGameBidLogic(
-  game: EuchreGameInstance,
-  flipCard: Card,
-  canNameSuit: boolean
-): GameBidLogic {
-  if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
-
-  const currentPlayer = game.currentPlayer;
-  const playerCards = currentPlayer.availableCards;
-
-  let playerHasRight: boolean = false;
-  let playerHasLeft: boolean = false;
-  const playerWillPickup: boolean = game.dealer === currentPlayer;
-
-  if (!canNameSuit) {
-    playerHasRight =
-      playerCards.filter((c) => c.suit === flipCard.suit && c.value === 'J').length > 0;
-    playerHasLeft =
-      playerCards.filter(
-        (c) => c.color === flipCard.color && c.value === 'J' && c.suit != flipCard.suit
-      ).length > 0;
-
-    if (!playerHasRight && playerWillPickup) {
-      playerHasRight = flipCard.value === 'J';
-    }
-  }
+function getGameBidLogic(playerCards: Card[], flipCard: Card, firstRoundOfBidding: boolean): GameBidLogic {
+  const playerHasRight = playerCards.find((c) => c.suit === flipCard.suit && c.value === 'J') !== undefined;
+  const playerHasLeft = playerCards.find((c) => cardIsLeftBower(c, flipCard)) !== undefined;
+  const suitCount = getSuitCount(playerCards, flipCard);
 
   const info: GameBidLogic = {
-    trumpCardCount: playerCards.filter((c) => c.suit === game.trump?.suit).length,
-    offSuitAceCount: playerCards.filter((c) => c.suit != flipCard.suit && c.value === 'A').length,
+    trumpCardCount: playerCards.filter((c) => c.suit === flipCard.suit || cardIsLeftBower(c, flipCard))
+      .length,
+    offSuitAceCount: playerCards.filter((c) => c.suit !== flipCard.suit && c.value === 'A').length,
     playerHasRight: playerHasRight,
     playerHasLeft: playerHasLeft,
-    playerWillPickUp: playerWillPickup,
-    teamWillPickup: game.dealer?.team === currentPlayer.team,
-    handScore: 0,
-    suitToCall: null,
-    suitsInHand: 0
+    suitsInHand: suitCount.length,
+    firstRoundOfBidding: firstRoundOfBidding
   };
 
   return info;
@@ -62,97 +35,78 @@ function getGameBidLogic(
 function determineBidLogic(
   game: EuchreGameInstance,
   flipCard: Card,
-  canNameSuit: boolean
+  firstRoundOfBidding: boolean
 ): BidResult {
   if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
+  if (!game?.dealer) throw Error('Invalid dealer to determine card to play.');
 
-  const gameLogicResult = getGameBidLogic(game, flipCard, canNameSuit);
-  let modifiedResult: GameBidLogic;
+  let modifiedResult: BidResult = { orderTrump: false, calledSuit: null, handScore: 0, loner: false };
+  const suits: Suit[] = ['♠', '♥', '♦', '♣'];
+  const playerWillPickup: boolean = firstRoundOfBidding && game.dealer === game.currentPlayer;
+  const playerPotentialHands: Card[][] = [];
+  const potentialTrumpCards: Card[] = [];
+  const playerCards = game.currentPlayer.availableCards;
 
-  if (canNameSuit) modifiedResult = getBidResultForSecondRound(game, flipCard, gameLogicResult);
-  else modifiedResult = getBidResultForFirstRound(game, flipCard, gameLogicResult);
-
-  const retval: BidResult = { orderTrump: false, loner: false, calledSuit: null };
-
-  if (modifiedResult.handScore >= getQualifyingScore()) {
-    retval.orderTrump = true;
-    retval.loner = modifiedResult.handScore >= getQualifyingLonerScore();
-    retval.calledSuit = canNameSuit ? modifiedResult.suitToCall : null;
-
-    return retval;
+  if (playerWillPickup) {
+    for (const card of playerCards) {
+      const newHand = [...playerCards.filter((c) => c !== card), flipCard];
+      playerPotentialHands.push(newHand);
+    }
+  } else {
+    playerPotentialHands.push(playerCards);
   }
 
-  return retval;
+  if (!firstRoundOfBidding) {
+    for (const suit of suits.filter((s) => s !== flipCard.suit)) {
+      potentialTrumpCards.push(new Card(suit, 'P'));
+    }
+  } else potentialTrumpCards.push(flipCard);
+
+  for (const potentialHand of playerPotentialHands) {
+    for (const potentialTrumpCard of potentialTrumpCards) {
+      const bidLogic = getGameBidLogic(potentialHand, potentialTrumpCard, firstRoundOfBidding);
+      const tempResult = getBidResult(game, potentialHand, potentialTrumpCard, bidLogic);
+      if (tempResult.handScore > modifiedResult.handScore) {
+        modifiedResult = tempResult;
+
+        if (!firstRoundOfBidding) modifiedResult.calledSuit = potentialTrumpCard.suit;
+      }
+    }
+  }
+
+  if (modifiedResult.handScore >= getQualifyingScore()) {
+    modifiedResult.orderTrump = true;
+    modifiedResult.loner = modifiedResult.handScore >= getQualifyingLonerScore();
+  }
+
+  return modifiedResult;
 }
 
 /** */
-function getBidResultForFirstRound(
+function getBidResult(
   game: EuchreGameInstance,
-  flipCard: Card,
+  playerCards: Card[],
+  potentialTrump: Card,
   gameLogic: GameBidLogic
-): GameBidLogic {
-  if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
+): BidResult {
+  const retval: BidResult = { orderTrump: false, loner: false, calledSuit: null, handScore: 0 };
 
-  let highScore = 0;
-  const playerCards: Card[] = game.currentPlayer.availableCards;
-  const retval = { ...gameLogic };
-  const getHandScore = (hand: Card[]) => {
-    let score = 0;
-    for (const card of hand) score += getCardValue(card, flipCard);
-
-    return score;
-  };
-
-  highScore = getHandScore(playerCards);
-
-  // if current user is dealer, then check each hand with/without trump card.
-  if (gameLogic.playerWillPickUp) {
-    for (const card of playerCards) {
-      const newHand = [...playerCards.filter((c) => c !== card), flipCard];
-      const tempScore = getHandScore(newHand);
-      if (tempScore > highScore) highScore = tempScore;
-    }
-  }
-
-  retval.handScore = highScore;
-  retval.handScore += getPositiveModifierForBid(game, flipCard, gameLogic);
-  retval.handScore -= getNegativeModifierForBid(game, flipCard, gameLogic);
-  retval.handScore += getRiskScoreForBid(game, gameLogic);
-
-  return retval;
-}
-
-function getBidResultForSecondRound(
-  game: EuchreGameInstance,
-  flipCard: Card,
-  gameLogic: GameBidLogic
-): GameBidLogic {
-  if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
-
-  let highScore = 0;
-  let bestSuit: Suit | null = null;
   let score = 0;
-  const retval = { ...gameLogic };
-  const suits: Suit[] = ['♠', '♥', '♦', '♣'];
-  const playerCards: Card[] = game.currentPlayer.availableCards;
-
-  for (const suit of suits.filter((s) => s !== flipCard.suit)) {
-    const tempCard = new Card(suit, '2');
-    for (const card of playerCards) score += getCardValue(card, tempCard);
-
-    if (score > highScore) {
-      highScore = score;
-      bestSuit = suit;
-    }
-
-    score = 0;
-  }
-
-  retval.handScore = highScore;
-  retval.suitToCall = bestSuit;
+  score = getHandScore(playerCards, potentialTrump);
+  score += getPositiveModifierForBid(game, potentialTrump, gameLogic);
+  score -= getNegativeModifierForBid(game, potentialTrump, gameLogic);
+  score += getRiskScoreForBid(game, gameLogic);
+  retval.handScore = score;
 
   return retval;
 }
+
+const getHandScore = (hand: Card[], trump: Card) => {
+  let score = 0;
+  for (const card of hand) score += getCardValue(card, trump);
+
+  return score;
+};
 
 function getQualifyingScore() {
   return 600;
@@ -162,24 +116,62 @@ function getQualifyingLonerScore() {
   return 800;
 }
 
-function getPositiveModifierForBid(
-  game: EuchreGameInstance,
-  flipCard: Card,
-  gameLogic: GameBidLogic
-) {
-  return 0;
+function getPositiveModifierForBid(game: EuchreGameInstance, flipCard: Card, gameLogic: GameBidLogic) {
+  let score = 0;
+
+  if (gameLogic.firstRoundOfBidding && flipCard.value === 'J' && game.dealer === game.currentPlayer)
+    score += 50;
+
+  if (
+    gameLogic.firstRoundOfBidding &&
+    flipCard.value === 'J' &&
+    game.dealer !== game.currentPlayer &&
+    game.dealer?.team === game.currentPlayer?.team
+  )
+    score += 25;
+
+  if (gameLogic.suitsInHand === 2) score += 25;
+
+  if (gameLogic.offSuitAceCount > 0 && gameLogic.trumpCardCount > 2 && gameLogic.suitsInHand <= 3)
+    score += 25;
+
+  return score;
 }
 
-function getNegativeModifierForBid(
-  game: EuchreGameInstance,
-  flipCard: Card,
-  gameLogic: GameBidLogic
-) {
-  return 0;
+function getNegativeModifierForBid(game: EuchreGameInstance, flipCard: Card, gameLogic: GameBidLogic) {
+  let score = 0;
+
+  if (
+    gameLogic.firstRoundOfBidding &&
+    flipCard.value === 'J' &&
+    game.dealer?.team !== game.currentPlayer?.team
+  )
+    score += 50;
+  if (gameLogic.suitsInHand === 4) score += 50;
+  if (gameLogic.suitsInHand === 3) score += 25;
+  if (gameLogic.offSuitAceCount === 0) score += 25;
+
+  return score;
 }
 
 function getRiskScoreForBid(game: EuchreGameInstance, gameLogic: GameBidLogic): number {
-  return 0;
+  let score = 0;
+
+  const currentTeam = game.gameResults
+    .filter((t) => t.teamWon === game.currentPlayer?.team)
+    .map((t) => t.points)
+    .reduce((acc, curr) => acc + curr, 0);
+
+  const opposingTeam = game.gameResults
+    .filter((t) => t.teamWon !== game.currentPlayer?.team)
+    .map((t) => t.points)
+    .reduce((acc, curr) => acc + curr, 0);
+
+  const difference = opposingTeam - currentTeam;
+
+  if (difference >= 4) score += 25;
+
+  return score;
 }
 
 function determineDiscard(game: EuchreGameInstance, player: EuchrePlayer): Card {

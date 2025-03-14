@@ -1,4 +1,4 @@
-import { getCardClassColorFromSuit } from '@/app/lib/euchre/card-data';
+import { getCardClassColorFromSuit, getCardFullName } from '@/app/lib/euchre/card-data';
 import { EuchreCard, EuchrePlayer } from '@/app/lib/euchre/definitions';
 
 interface Props {
@@ -12,8 +12,8 @@ export default function HandResultDetail({ cardsPlayed, playerWon }: Props) {
       {cardsPlayed.map((c) => {
         return (
           <div
-            title={``}
-            className={`flex flex-col min-w-16 text-black border rounded mx-1 ${c.player === playerWon ? 'bg-yellow-300 border-orange-300' : 'bg-white'}`}
+            title={`${c.player.name} played ${getCardFullName(c.card)}`}
+            className={`flex flex-col min-w-16 text-black border rounded mx-1 ${c.player === playerWon ? 'bg-amber-200 border-orange-300 shadow-lg' : 'bg-white'}`}
             key={`${c.player.playerNumber}-${c.card.value}-${c.card.suit}`}
           >
             <CardDetail card={c} />
@@ -30,7 +30,7 @@ interface DetailProps {
 function CardDetail({ card }: DetailProps) {
   return (
     <>
-      <div>
+      <div className="text-md">
         <span>{card.card.value}</span>-
         <span className={getCardClassColorFromSuit(card.card.suit)}>{card.card.suit}</span>
       </div>

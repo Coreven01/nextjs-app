@@ -23,11 +23,20 @@ export const TEAM_COLOR_MAP: Map<TeamColor, string> = new Map([
   ['white', 'bg-white'],
   ['black', 'bg-black']
 ]);
+
+export const GAME_SPEED_MAP = new Map<string, GameSpeed>([
+  ['Slow', 2000],
+  ['Normal', 700],
+  ['Fast', 300]
+]);
+
+export const AVAILABLE_GAME_SPEED: GameSpeed[] = [150, 300, 700, 1000, 2000, 3000, 4000];
 export const SPADE: string = '♠';
 export const HEART: string = '♥';
 export const DIAMOND: string = '♦';
 export const CLUB: string = '♣';
 export const LEFT_BOWER_VALUE = 250;
+export type GameSpeed = 150 | 300 | 700 | 1000 | 2000 | 3000 | 4000;
 export type Suit = '♠' | '♥' | '♦' | '♣';
 export type CardValue =
   | '2'
@@ -63,14 +72,19 @@ export interface EuchreHandResult {
 export interface EuchreSettings {
   shouldAnimate: boolean;
   debugAlwaysPass: boolean;
-  gameSpeed: number;
+  gameSpeed: GameSpeed;
   showHandResult: boolean;
+  teamOneColor: TeamColor;
+  teamTwoColor: TeamColor;
+  allowRenege: boolean;
+  autoPlayLastCard: boolean;
 }
 
 export interface BidResult {
   orderTrump: boolean;
   loner: boolean;
   calledSuit: Suit | null;
+  handScore: number;
 }
 
 class EuchrePlayer {
@@ -117,6 +131,23 @@ class EuchrePlayer {
     this.hand = cards;
   }
 
+  getTeamColor(settings: EuchreSettings): TeamColor {
+    if (this.team === 1) {
+      return settings.teamOneColor;
+    } else {
+      return settings.teamTwoColor;
+    }
+  }
+
+  getTeamCssClass(settings: EuchreSettings): string {
+    const teamColor = this.getTeamColor(settings);
+    const teamCss = TEAM_COLOR_MAP.get(teamColor);
+
+    if (teamCss) return teamCss;
+
+    return 'bg-white';
+  }
+
   addToHand(cards: Card[]) {
     this.hand = [...this.hand, ...cards];
   }
@@ -126,8 +157,8 @@ class EuchrePlayer {
   }
 
   /** Routine to determine if the computer should indicate if the flipped card should be picked up, or should name suit. */
-  determineBid(game: EuchreGameInstance, flipCard: Card, canNameSuit: boolean): BidResult {
-    const result = determineBidLogic(game, flipCard, canNameSuit);
+  determineBid(game: EuchreGameInstance, flipCard: Card, firstRoundOfBidding: boolean): BidResult {
+    const result = determineBidLogic(game, flipCard, firstRoundOfBidding);
     return result;
   }
 
@@ -256,17 +287,8 @@ class EuchreGameInstance {
   turnedDown: Card | null = null;
   cardDealCount: number[] = [];
   currentRound: number = 1;
-  teamColor: { team: 1 | 2; color: TeamColor }[] = [
-    { team: 1, color: 'blue' },
-    { team: 2, color: 'red' }
-  ];
 
-  constructor(
-    player1: EuchrePlayer,
-    player2: EuchrePlayer,
-    player3: EuchrePlayer,
-    player4: EuchrePlayer
-  ) {
+  constructor(player1: EuchrePlayer, player2: EuchrePlayer, player3: EuchrePlayer, player4: EuchrePlayer) {
     this.player1 = player1;
     this.player2 = player2;
     this.player3 = player3;
@@ -333,7 +355,6 @@ class EuchreGameInstance {
     game.currentTricks = this.currentTricks;
     game.gameResults = this.gameResults;
     game.currentRound = this.currentRound;
-    game.teamColor = this.teamColor;
     game.discard = this.discard;
     game.turnedDown = this.turnedDown;
 
@@ -394,9 +415,7 @@ class EuchreGameInstance {
 
     if (!taker) throw new Error('Taker was not found for hand result.');
 
-    const makerTricksWon = this.currentTricks.filter(
-      (t) => t.taker?.team === this.maker?.team
-    ).length;
+    const makerTricksWon = this.currentTricks.filter((t) => t.taker?.team === this.maker?.team).length;
     let points = 0;
     let teamWon = this.maker.team;
 
@@ -420,8 +439,8 @@ class EuchreGameInstance {
       taker: taker,
       roundNumber: this.currentRound,
       loner: this.loner,
-      trump: this.trump ?? new Card('♠', '2'),
-      trumpWasNamed: this.trump?.value === '2'
+      trump: this.trump ?? new Card('♠', 'P'),
+      trumpWasNamed: this.turnedDown !== null
     };
 
     return retval;

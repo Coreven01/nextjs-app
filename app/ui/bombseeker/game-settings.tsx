@@ -1,6 +1,6 @@
-import { useRef, useState } from "react";
-import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/16/solid";
-import { GameState } from "@/app/lib/bombseeker/gameStateReducer";
+import { useRef, useState } from 'react';
+import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/16/solid';
+import { GameState } from '@/app/lib/bombseeker/gameStateReducer';
 
 type Props = {
   state: GameState;
@@ -8,27 +8,27 @@ type Props = {
 };
 
 type GameLevel = {
-  level: "b" | "i" | "e" | "c";
+  level: 'b' | 'i' | 'e' | 'c';
   rows: number;
   columns: number;
   bombs: number;
 };
 
 const INPUT_CLASS =
-  "max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
+  'max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
 const SELECT_CLASS =
-  "min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2";
-const LABEL_CLASS = "block font-medium my-2 dark:text-white";
+  'min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
+const LABEL_CLASS = 'block font-medium my-2 dark:text-white';
 const MAX_ROWS = 40;
 const MIN_ROWS = 9;
 const MAX_COLUMNS = 40;
 const MIN_COLUMNS = 9;
 
 const GAME_LEVELS: GameLevel[] = [
-  { level: "b", rows: 9, columns: 9, bombs: 10 },
-  { level: "i", rows: 16, columns: 16, bombs: 40 },
-  { level: "e", rows: 16, columns: 30, bombs: 99 },
-  { level: "c", rows: 16, columns: 30, bombs: 99 },
+  { level: 'b', rows: 9, columns: 9, bombs: 10 },
+  { level: 'i', rows: 16, columns: 16, bombs: 40 },
+  { level: 'e', rows: 16, columns: 30, bombs: 99 },
+  { level: 'c', rows: 16, columns: 30, bombs: 99 }
 ];
 
 export default function GameSettings({ state, onNewGame }: Props) {
@@ -50,10 +50,8 @@ export default function GameSettings({ state, onNewGame }: Props) {
 
   const handleRowCountLeave = () => {
     if (newRows.current) {
-      if (newRows.current.valueAsNumber < MIN_ROWS)
-        newRows.current.value = `${MIN_ROWS}`;
-      else if (newRows.current.valueAsNumber > MAX_ROWS)
-        newRows.current.value = `${MAX_ROWS}`;
+      if (newRows.current.valueAsNumber < MIN_ROWS) newRows.current.value = `${MIN_ROWS}`;
+      else if (newRows.current.valueAsNumber > MAX_ROWS) newRows.current.value = `${MAX_ROWS}`;
     }
   };
 
@@ -69,8 +67,7 @@ export default function GameSettings({ state, onNewGame }: Props) {
 
   const handleColumnCountLeave = () => {
     if (newColumns.current) {
-      if (newColumns.current.valueAsNumber < MIN_ROWS)
-        newColumns.current.value = `${MIN_ROWS}`;
+      if (newColumns.current.valueAsNumber < MIN_ROWS) newColumns.current.value = `${MIN_ROWS}`;
       else if (newColumns.current.valueAsNumber > MAX_ROWS)
         newColumns.current.value = `${MAX_ROWS}`;
     }
@@ -78,10 +75,8 @@ export default function GameSettings({ state, onNewGame }: Props) {
 
   const handleBombCountUp = () => {
     const max = Math.max(
-      (newColumns.current?.valueAsNumber ?? 1) *
-        (newRows.current?.valueAsNumber ?? 1) -
-        1,
-      1,
+      (newColumns.current?.valueAsNumber ?? 1) * (newRows.current?.valueAsNumber ?? 1) - 1,
+      1
     );
 
     if (newBombCount.current && newBombCount.current.valueAsNumber < max)
@@ -95,16 +90,13 @@ export default function GameSettings({ state, onNewGame }: Props) {
 
   const handleBombCountLeave = () => {
     const max = Math.max(
-      (newColumns.current?.valueAsNumber ?? 1) *
-        (newRows.current?.valueAsNumber ?? 1),
-      2,
+      (newColumns.current?.valueAsNumber ?? 1) * (newRows.current?.valueAsNumber ?? 1),
+      2
     );
 
     if (newBombCount.current) {
-      if (newBombCount.current.valueAsNumber < 1)
-        newBombCount.current.value = `${10}`;
-      else if (newBombCount.current.valueAsNumber >= max)
-        newBombCount.current.value = `${max - 1}`;
+      if (newBombCount.current.valueAsNumber < 1) newBombCount.current.value = `${10}`;
+      else if (newBombCount.current.valueAsNumber >= max) newBombCount.current.value = `${max - 1}`;
     }
   };
 
@@ -113,9 +105,9 @@ export default function GameSettings({ state, onNewGame }: Props) {
 
     const selectedValue: string = selectedLevel.current.value;
 
-    if (selectedValue === "b") selectedLevel.current.value = "i";
-    else if (selectedValue === "i") selectedLevel.current.value = "e";
-    else if (selectedValue === "e") selectedLevel.current.value = "c";
+    if (selectedValue === 'b') selectedLevel.current.value = 'i';
+    else if (selectedValue === 'i') selectedLevel.current.value = 'e';
+    else if (selectedValue === 'e') selectedLevel.current.value = 'c';
 
     handleLevelChange();
   };
@@ -125,17 +117,17 @@ export default function GameSettings({ state, onNewGame }: Props) {
 
     const selectedValue: string = selectedLevel.current.value;
 
-    if (selectedValue === "c") selectedLevel.current.value = "e";
-    else if (selectedValue === "e") selectedLevel.current.value = "i";
-    else if (selectedValue === "i") selectedLevel.current.value = "b";
+    if (selectedValue === 'c') selectedLevel.current.value = 'e';
+    else if (selectedValue === 'e') selectedLevel.current.value = 'i';
+    else if (selectedValue === 'i') selectedLevel.current.value = 'b';
 
     handleLevelChange();
   };
 
   const handleLevelChange = () => {
-    const selectedValue: string = selectedLevel.current?.value ?? "";
+    const selectedValue: string = selectedLevel.current?.value ?? '';
     const selected = GAME_LEVELS.find((lvl) => lvl.level === selectedValue);
-    let baseLevel = GAME_LEVELS.find((lvl) => lvl.level === "b");
+    let baseLevel = GAME_LEVELS.find((lvl) => lvl.level === 'b');
 
     if (selected) baseLevel = selected;
 
@@ -144,14 +136,14 @@ export default function GameSettings({ state, onNewGame }: Props) {
       newRows.current &&
       newColumns.current &&
       newBombCount.current &&
-      baseLevel.level !== "c"
+      baseLevel.level !== 'c'
     ) {
       newRows.current.value = `${baseLevel.rows}`;
       newColumns.current.value = `${baseLevel.columns}`;
       newBombCount.current.value = `${baseLevel.bombs}`;
     }
 
-    setDisableSelection(baseLevel?.level !== "c");
+    setDisableSelection(baseLevel?.level !== 'c');
   };
 
   const handleNewGame = () => {
@@ -159,7 +151,7 @@ export default function GameSettings({ state, onNewGame }: Props) {
       const tempVals = {
         rowCount: newRows.current.valueAsNumber,
         columnCount: newColumns.current.valueAsNumber,
-        bombCount: newBombCount.current.valueAsNumber,
+        bombCount: newBombCount.current.valueAsNumber
       };
       onNewGame(tempVals.rowCount, tempVals.columnCount, tempVals.bombCount);
     }
@@ -177,12 +169,12 @@ export default function GameSettings({ state, onNewGame }: Props) {
             id="selectLevel"
             onChange={handleLevelChange}
             ref={selectedLevel}
-            defaultValue={"b"}
+            defaultValue={'b'}
           >
-            <option value={"c"}>Custom</option>
-            <option value={"e"}>Expert</option>
-            <option value={"i"}>Intermediate</option>
-            <option value={"b"}>Beginner</option>
+            <option value={'c'}>Custom</option>
+            <option value={'e'}>Expert</option>
+            <option value={'i'}>Intermediate</option>
+            <option value={'b'}>Beginner</option>
           </select>
           <div className="flex flex-col">
             <button onClick={handleLevelChangeUp}>
@@ -278,7 +270,7 @@ export default function GameSettings({ state, onNewGame }: Props) {
       </div>
       <div className="my-2 p-2">
         <button
-          className={`border border-black dark:border-white rounded block m-auto justify-center dark:border-white font-medium dark:text-white p-2 dark:bg-neutral-800 bg-zinc-200`}
+          className={`border border-black dark:border-white block m-auto justify-center dark:border-white font-medium dark:text-white p-2 dark:bg-neutral-800 bg-zinc-200`}
           onClick={handleNewGame}
         >
           New Game

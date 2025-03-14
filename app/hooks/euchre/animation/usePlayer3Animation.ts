@@ -2,6 +2,7 @@ import { CardTransformation, useMoveCard } from '@/app/hooks/euchre/useMoveCard'
 import { useRemoveTransformations } from '../../../lib/euchre/actions';
 import { useFadeOut } from '@/app/hooks/euchre/useFadeOut';
 import { useCallback } from 'react';
+import { GameSpeed } from '@/app/lib/euchre/definitions';
 
 export default function usePlayer3Animation() {
   const { setCardsToMove } = useMoveCard();
@@ -17,7 +18,7 @@ export default function usePlayer3Animation() {
   };
 
   const setElementForFadeOutPlayer3 = useCallback(
-    (id: string, delay: 0 | 1 | 2 | 3 | 4 | 5, duration: 0 | 1 | 2 | 3 | 4 | 5) => {
+    (id: string, delay: GameSpeed, duration: GameSpeed) => {
       setElementForFadeOut(id, delay, duration);
     },
     [setElementForFadeOut]

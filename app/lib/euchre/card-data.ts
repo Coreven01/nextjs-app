@@ -30,16 +30,21 @@ const baseCard: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
      id="defs4" />
-  <rect
-     width="97.771812"
-     height="147.51994"
-     rx="7"
-     fill="#ffffff"
-     stroke="#000000"
-     stroke-width="1.96118"
-     id="rect1"
-     x="1.2400337"
-     y="1.3659784" />`;
+    `;
+
+const getBaseCardColor = (color: string, opacity: number): string => {
+  return `<rect
+      width="97.771812"
+      height="147.51994"
+      rx="7"
+      fill="${color}"
+      fill-opacity="${opacity}"
+      stroke="#000000"
+      stroke-width="1.96118"
+      id="rect1"
+      x="1.2400337"
+      y="1.3659784" />`;
+};
 
 const baseCardSide: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
@@ -51,18 +56,22 @@ const baseCardSide: string = `<?xml version="1.0" encoding="UTF-8" standalone="n
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
-     id="defs4" />
-  <rect
+     id="defs4" />`;
+
+const getBaseCardSideColor = (color: string, opacity: number): string => {
+  return `<rect
      width="97.771812"
      height="147.51994"
      rx="7"
-     fill="#ffffff"
+     fill="${color}"
+     fill-opacity="${opacity}"
      stroke="#000000"
      stroke-width="1.96118"
      id="rect1"
      x="1.3030159"
      y="-148.4451"
      transform="rotate(90)" />`;
+};
 
 type TextData = {
   x: number;
@@ -77,43 +86,19 @@ const centerSvgVals = new Map<string, TextData>([
   ['s1-1', { x: 21.09375, y: 42.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
   ['s1-2', { x: 21.09375, y: 71.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
   ['s1-3', { x: 21.09375, y: 84.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
-  [
-    's1-4',
-    { x: -38.09375, y: -82, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }
-  ],
-  [
-    's1-5',
-    { x: -38.09375, y: -110, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }
-  ],
+  ['s1-4', { x: -38.09375, y: -82, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }],
+  ['s1-5', { x: -38.09375, y: -110, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }],
   ['s2-1', { x: 43.09375, y: 42.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
   ['s2-2', { x: 43.09375, y: 59.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
-  [
-    's2-3',
-    { x: 43.118938, y: 86.798607, fontsize: '32px', transform: '', style: 'display:inline' }
-  ],
-  [
-    's2-4',
-    { x: -60.09375, y: -93, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }
-  ],
-  [
-    's2-5',
-    { x: -60.09375, y: -110, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }
-  ],
-  [
-    's2-b',
-    { x: 30.931087, y: 99.539062, fontsize: '72px', transform: '', style: 'display:inline' }
-  ],
+  ['s2-3', { x: 43.118938, y: 86.798607, fontsize: '32px', transform: '', style: 'display:inline' }],
+  ['s2-4', { x: -60.09375, y: -93, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }],
+  ['s2-5', { x: -60.09375, y: -110, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }],
+  ['s2-b', { x: 30.931087, y: 99.539062, fontsize: '72px', transform: '', style: 'display:inline' }],
   ['s3-1', { x: 65.09375, y: 42.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
   ['s3-2', { x: 65.09375, y: 71.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
   ['s3-3', { x: 65.09375, y: 84.234375, fontsize: '32px', transform: '', style: 'display:inline' }],
-  [
-    's3-4',
-    { x: -82.09375, y: -82, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }
-  ],
-  [
-    's3-5',
-    { x: -82.09375, y: -110, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }
-  ]
+  ['s3-4', { x: -82.09375, y: -82, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }],
+  ['s3-5', { x: -82.09375, y: -110, fontsize: '32px', transform: 'scale(-1)', style: 'display:inline' }]
 ]);
 
 const sideSvgVals = new Map<string, TextData>([
@@ -378,18 +363,42 @@ const svgCardColors = new Map<string, string>([
   ['B', '#000']
 ]);
 
-/** Get dynamic svg for a playing card.
- *
- * @param card
- * @param location
+/**
+ * Get svg value to represent a game card.
+ * @param card The card to render as an svg
+ * @param location Orientation of the card by default. center = upright, side = rotated 90 deg.
+ * @param addOpaqueOverlay Adds an opaque overlay to the card. Used to indicate that the card is not available.
+ * @param color Default card color.
+ * @param opacity Default card opacity.
  * @returns
  */
-function getCardSvg(card: Card, location: 'center' | 'side'): string {
+function getCardSvg(
+  card: Card,
+  location: 'center' | 'side',
+  addOpaqueOverlay?: boolean,
+  color?: string,
+  opacity?: number
+): string {
   let retval = location === 'center' ? baseCard : baseCardSide;
+
+  const cardColor = color ?? '#ffffff';
+  const cardOpacity = opacity ?? 1;
+  const addCardOverlay = addOpaqueOverlay ?? false;
+
   const textValues = [];
-  const imageKeys = cardSvgValues.get(card.value) ?? [];
-  const imageColor = svgCardColors.get(card.color) ?? '#000';
+  const imageKeys: string[] = cardSvgValues.get(card.value) ?? [];
+  const imageColor: string = svgCardColors.get(card.color) ?? '#000';
   const cardValues = location === 'center' ? svgCenterCardValues : svgSideCardValues;
+  const baseCardRect =
+    location === 'center'
+      ? getBaseCardColor(cardColor, cardOpacity)
+      : getBaseCardSideColor(cardColor, cardOpacity);
+  const overlayColor: string = '#333333';
+  let baseCardOverlayRect = '';
+
+  if (addCardOverlay)
+    baseCardOverlayRect =
+      location === 'center' ? getBaseCardColor(overlayColor, 0.4) : getBaseCardSideColor(overlayColor, 0.5);
 
   for (const text of imageKeys) {
     const imageLocation = location === 'center' ? centerSvgVals.get(text) : sideSvgVals.get(text);
@@ -411,15 +420,24 @@ function getCardSvg(card: Card, location: 'center' | 'side'): string {
     }
   }
 
+  retval += baseCardRect;
+
   for (const val of textValues) retval += val;
 
-  retval += '</svg>';
+  retval += baseCardOverlayRect + '</svg>';
 
   return retval;
 }
 
-function getEncodedCardSvg(card: Card, location: 'center' | 'side') {
-  const cardSvg = getCardSvg(card, location);
+/** */
+function getEncodedCardSvg(
+  card: Card,
+  location: 'center' | 'side',
+  addOpaqueOverlay?: boolean,
+  color?: string,
+  opacity?: number
+) {
+  const cardSvg = getCardSvg(card, location, addOpaqueOverlay, color, opacity);
   const dynamicSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cardSvg)}`;
 
   return dynamicSvg;
@@ -513,23 +531,17 @@ function orderPlayerHand(cards: Card[]): Card[] {
         return c;
       });
     case 3:
-      return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(1)]
-        .slice(0, 5)
-        .map((c) => {
-          return c;
-        });
+      return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(1)].slice(0, 5).map((c) => {
+        return c;
+      });
     case 2:
-      return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(2)]
-        .slice(0, 5)
-        .map((c) => {
-          return c;
-        });
+      return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(2)].slice(0, 5).map((c) => {
+        return c;
+      });
     case 1:
-      return [...createPlaceholderCards(2), ...cards, ...createPlaceholderCards(2)]
-        .slice(0, 5)
-        .map((c) => {
-          return c;
-        });
+      return [...createPlaceholderCards(2), ...cards, ...createPlaceholderCards(2)].slice(0, 5).map((c) => {
+        return c;
+      });
   }
 
   return createPlaceholderCards(5).map((c) => {

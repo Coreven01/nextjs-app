@@ -1,6 +1,16 @@
 'use client';
 
-import { Card, EuchreCard, EuchreSettings, EuchreTrick, Suit } from '@/app/lib/euchre/definitions';
+import {
+  Card,
+  EuchreCard,
+  EuchreSettings,
+  EuchreTrick,
+  GAME_SPEED_MAP,
+  GameSpeed,
+  Suit,
+  TEAM_COLOR_MAP,
+  TeamColor
+} from '@/app/lib/euchre/definitions';
 import { createEuchreGame } from '@/app/lib/euchre/game';
 import { useEffect, useRef, useState } from 'react';
 
@@ -16,6 +26,13 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
   const debugAlwaysPass = useRef<HTMLInputElement>(null);
   const gameSpeed = useRef<HTMLSelectElement>(null);
   const showHandResult = useRef<HTMLInputElement>(null);
+  const allowRenege = useRef<HTMLInputElement>(null);
+  const autoPlayLastCard = useRef<HTMLInputElement>(null);
+  const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings?.teamOneColor ?? 'blue');
+  const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings?.teamTwoColor ?? 'red');
+
+  const teamColors = [...TEAM_COLOR_MAP.keys()];
+  const gameSpeedValues = [...GAME_SPEED_MAP.entries()];
 
   useEffect(() => {
     if (newGameStart) onNewGame();
@@ -26,8 +43,12 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
       ...settings,
       shouldAnimate: animate.current?.checked ?? true,
       debugAlwaysPass: debugAlwaysPass.current?.checked ?? true,
-      gameSpeed: parseFloat(gameSpeed.current?.value ?? '1'),
-      showHandResult: showHandResult.current?.checked ?? true
+      gameSpeed: (parseInt(gameSpeed.current?.value ?? '300') as GameSpeed) ?? 300,
+      showHandResult: showHandResult.current?.checked ?? true,
+      allowRenege: allowRenege.current?.checked ?? true,
+      teamOneColor: teamOneColor,
+      teamTwoColor: teamTwoColor,
+      autoPlayLastCard: autoPlayLastCard.current?.checked ?? true
     };
 
     return newSettings;
@@ -39,6 +60,22 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
 
   const handleApplySettings = () => {
     onApplySettings(getSettings());
+  };
+
+  const handleTeamColorChange = (teamNumber: number, value: TeamColor) => {
+    if (teamNumber === 1) {
+      if (value === teamTwoColor) {
+        const newVal = teamColors.find((c) => c !== teamTwoColor);
+        if (newVal) setTeamTwoColor(newVal);
+      }
+      setTeamOneColor(value);
+    } else {
+      if (teamOneColor === value) {
+        const newVal = teamColors.find((c) => c !== teamOneColor);
+        if (newVal) setTeamOneColor(newVal);
+      }
+      setTeamTwoColor(value);
+    }
   };
 
   const handleTestButtonClick = () => {
@@ -105,37 +142,64 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
           <input type="checkbox" ref={showHandResult} defaultChecked={settings?.showHandResult} />
         </div>
         <div>
+          <label>Allow Renege: </label>
+          <input type="checkbox" ref={allowRenege} defaultChecked={settings?.allowRenege} />
+        </div>
+        <div>
+          <label>Auto Play Last Card: </label>
+          <input type="checkbox" ref={autoPlayLastCard} defaultChecked={settings?.autoPlayLastCard} />
+        </div>
+        <div>
           <label>Debug Always Pass: </label>
           <input type="checkbox" ref={debugAlwaysPass} defaultChecked={settings?.debugAlwaysPass} />
         </div>
       </div>
-      <div className="my-4 flex justify-center">
+      <div className="my-4 flex justify-center gap-2">
         <label>Game Speed: </label>
         <select className="text-black" ref={gameSpeed} defaultValue={settings?.gameSpeed}>
-          <option value={0.25}>0.25x</option>
-          <option value={0.5}>0.5x</option>
-          <option value={0.75}>0.75x</option>
-          <option value={1}>1x</option>
-          <option value={2}>2x</option>
-          <option value={3}>3x</option>
+          {gameSpeedValues.map((value) => {
+            return (
+              <option key={value[1]} value={value[1]}>
+                {value[0]}
+              </option>
+            );
+          })}
+        </select>
+        <label>Team 1 Color: </label>
+        <select
+          onChange={(e) => handleTeamColorChange(1, (e.target.value as TeamColor) ?? 'blue')}
+          className="text-black"
+          value={teamOneColor}
+        >
+          {teamColors.map((k) => (
+            <option key={k} value={k}>
+              {k.substring(0, 1).toUpperCase() + k.substring(1)}
+            </option>
+          ))}
+        </select>
+        <label>Team 2 Color: </label>
+        <select
+          onChange={(e) => handleTeamColorChange(2, (e.target.value as TeamColor) ?? 'red')}
+          className="text-black"
+          value={teamTwoColor}
+        >
+          {teamColors.map((k) => (
+            <option key={k} value={k}>
+              {k.substring(0, 1).toUpperCase() + k.substring(1)}
+            </option>
+          ))}
         </select>
       </div>
       <div className="flex justify-center gap-2">
-        <button className="text-white border border-white p-2 rounded" onClick={handleNewGame}>
+        <button className="text-white border border-white p-2" onClick={handleNewGame}>
           Create Game
         </button>
-        <button
-          className="text-white border border-white p-2 rounded"
-          onClick={handleApplySettings}
-        >
+        <button className="text-white border border-white p-2" onClick={handleApplySettings}>
           Apply Settings
         </button>
       </div>
       <div className="flex justify-center my-2">
-        <button
-          className="text-white border border-white p-2 rounded"
-          onClick={handleTestButtonClick2}
-        >
+        <button className="text-white border border-white p-2" onClick={handleTestButtonClick2}>
           Run Test
         </button>
       </div>

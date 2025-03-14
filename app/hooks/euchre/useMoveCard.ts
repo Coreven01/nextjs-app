@@ -1,7 +1,7 @@
 'use client';
 
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { Card } from '@/app/lib/euchre/definitions';
+import { Card, GameSpeed } from '@/app/lib/euchre/definitions';
 import { useCallback, useEffect, useState } from 'react';
 
 export interface CardTransformation {
@@ -24,8 +24,8 @@ export interface CardTransformOptions {
 export interface FadeOutOptions {
   playerNumber: number | 'o';
   fadeOutId: string;
-  fadeOutDelay: 0 | 1 | 2 | 3 | 4 | 5;
-  fadeOutDuration: 0 | 1 | 2 | 3 | 4 | 5;
+  fadeOutDelay: GameSpeed;
+  fadeOutDuration: GameSpeed;
 }
 
 export type DealAnimation = {
@@ -100,11 +100,7 @@ const animateCardMove = (transform: CardTransformation) => {
   }
 };
 
-const getTransformationValue = (
-  transform: CardTransformation,
-  srcRect: DOMRect,
-  destRect: DOMRect
-) => {
+const getTransformationValue = (transform: CardTransformation, srcRect: DOMRect, destRect: DOMRect) => {
   const sidePlayers = [3, 4];
   const centerPlayers = [1, 2];
 
@@ -113,11 +109,7 @@ const getTransformationValue = (
   else return getTransformationForSide(transform, srcRect, destRect);
 };
 
-function getTransformationForCenter(
-  transform: CardTransformation,
-  srcRect: DOMRect,
-  destRect: DOMRect
-) {
+function getTransformationForCenter(transform: CardTransformation, srcRect: DOMRect, destRect: DOMRect) {
   let widthOffset = 0;
   let heightOffset = 0;
 
@@ -172,11 +164,7 @@ function getTransformationForCenter(
   return transformation;
 }
 
-function getTransformationForSide(
-  transform: CardTransformation,
-  srcRect: DOMRect,
-  destRect: DOMRect
-) {
+function getTransformationForSide(transform: CardTransformation, srcRect: DOMRect, destRect: DOMRect) {
   let widthOffset = 0;
   let heightOffset = 0;
 

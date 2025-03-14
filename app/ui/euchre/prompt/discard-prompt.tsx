@@ -1,11 +1,11 @@
 'use client';
 
 import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { Card, Suit } from '@/app/lib/euchre/definitions';
+import { Card } from '@/app/lib/euchre/definitions';
 import Image from 'next/image';
-import { RefObject, useRef, useState } from 'react';
-import { GamePrompt } from './game-prompt';
+import { useState } from 'react';
 import PromptSelection from './prompt-selection';
+import GamePrompt from '../game/game-prompt';
 
 type Props = {
   pickedUpCard: Card;
@@ -13,13 +13,12 @@ type Props = {
   onDiscardSubmit: (discard: Card) => void;
 };
 
-export function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmit }: Props) {
+export default function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmit }: Props) {
   const [discardSelection, setDiscardSelection] = useState<string | null>(null);
   const submitEnabled = discardSelection !== null;
 
   const handleDiscardSubmit = () => {
     let card: Card | undefined;
-    // const isLoner = lonerSelection.current?.checked ?? false;
     const cardSelection = discardSelection;
     if (cardSelection?.length) {
       const selectedIndex = parseInt(cardSelection);
@@ -36,8 +35,14 @@ export function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmit }: Pro
   return (
     <GamePrompt>
       <div className="bg-stone-900 p-2">
-        <div className="grid grid-rows-[1fr,35px] grid-cols-[130px,100px] gap-1">
-          <div className="p-2 bg-green-950 flex flex-col items-center justify-center rounded border border-white">
+        <div className="grid grid-rows-[28px,1fr,35px] grid-cols-[130px,100px] gap-1">
+          <div
+            title={`Choose which card to discard`}
+            className="flex items-center justify-center col-span-2 cursor-default"
+          >
+            <h2 className="text-yellow-200 font-bold">Choose Discard</h2>
+          </div>
+          <div className="p-2 bg-green-950 flex flex-col items-center justify-center border border-white">
             <div className="mb-2">Picked up card</div>
             <Image
               className={`contain row-span-1 col-span-1`}
@@ -49,13 +54,13 @@ export function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmit }: Pro
               title={getCardFullName(pickedUpCard)}
             />
           </div>
-          <div className="bg-green-950 border border-white rounded p-2 justify-center">
+          <div className="bg-green-950 border border-white p-2 justify-center">
             <CardSelection onSelectionChanged={handleSelectionChanged} playerHand={playerHand} />
           </div>
 
           <button
             onClick={() => handleDiscardSubmit()}
-            className="col-span-2 border border-white rounded hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+            className="col-span-2 border border-white hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
             disabled={!submitEnabled}
           >
             Discard Selected

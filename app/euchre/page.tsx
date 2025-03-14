@@ -1,11 +1,10 @@
-import { Metadata } from "next";
-import EuchreGame from "../ui/euchre/game";
+import { Metadata } from 'next';
+import EuchreGame from '../ui/euchre/game/game';
 
 export const metadata: Metadata = {
-    title: 'Nolan Appel | Euchre',
-  };
-  
+  title: 'Nolan Appel | Euchre'
+};
+
 export default function Euchre() {
-    
-    return <EuchreGame />
+  return <EuchreGame />;
 }

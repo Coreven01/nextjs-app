@@ -3,7 +3,8 @@ import {
   Card,
   EuchreGameInstance,
   EuchrePlayer,
-  EuchreSettings
+  EuchreSettings,
+  GameSpeed
 } from '../../../lib/euchre/definitions';
 import { getPlayerRotation } from '../../../lib/euchre/game';
 import useOtherAnimation from './useOtherAnimation';
@@ -14,33 +15,19 @@ import usePlayer4Animation from './usePlayer4Animation';
 import { useCallback } from 'react';
 
 export default function useAnimation(settings: EuchreSettings) {
-  const {
-    setCardsToMovePlayer1,
-    setElementsForTransformationPlayer1,
-    setElementForFadeOutPlayer1
-  } = usePlayer1Animation();
-  const {
-    setCardsToMovePlayer2,
-    setElementsForTransformationPlayer2,
-    setElementForFadeOutPlayer2
-  } = usePlayer2Animation();
-  const {
-    setCardsToMovePlayer3,
-    setElementsForTransformationPlayer3,
-    setElementForFadeOutPlayer3
-  } = usePlayer3Animation();
-  const {
-    setCardsToMovePlayer4,
-    setElementsForTransformationPlayer4,
-    setElementForFadeOutPlayer4
-  } = usePlayer4Animation();
+  const { setCardsToMovePlayer1, setElementsForTransformationPlayer1, setElementForFadeOutPlayer1 } =
+    usePlayer1Animation();
+  const { setCardsToMovePlayer2, setElementsForTransformationPlayer2, setElementForFadeOutPlayer2 } =
+    usePlayer2Animation();
+  const { setCardsToMovePlayer3, setElementsForTransformationPlayer3, setElementForFadeOutPlayer3 } =
+    usePlayer3Animation();
+  const { setCardsToMovePlayer4, setElementsForTransformationPlayer4, setElementForFadeOutPlayer4 } =
+    usePlayer4Animation();
   const { setCardsToMoveOther, setElementsForTransformationOther, setElementForFadeOutOther } =
     useOtherAnimation();
 
   const getFadeOutFunc = useCallback(
-    (
-      location: number | 'o'
-    ): ((id: string, delay: 0 | 1 | 2 | 3 | 4 | 5, duration: 0 | 1 | 2 | 3 | 4 | 5) => void) => {
+    (location: number | 'o'): ((id: string, delay: GameSpeed, duration: GameSpeed) => void) => {
       switch (location) {
         case 1:
           return setElementForFadeOutPlayer1;
@@ -99,10 +86,10 @@ export default function useAnimation(settings: EuchreSettings) {
   ) => {
     console.log('Begin animation for initial deal.');
 
-    if (transformations.length === 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500 * settings.gameSpeed));
-      return;
-    }
+    // if (transformations.length === 0) {
+    //   await new Promise((resolve) => setTimeout(resolve, settings.gameSpeed));
+    //   return;
+    // }
 
     //#region Animation to return cards to dealer, then pass cards to new dealer.
     // await new Promise((resolve) => setTimeout(resolve, 750 * TIMEOUT_MODIFIER));
@@ -147,7 +134,7 @@ export default function useAnimation(settings: EuchreSettings) {
   /** After cards have been dealt to users, removes the transformation to animate returning the cards back to the dealer */
   const animateCardsReturnToDealer = async (cardIds: string[]) => {
     //setElementsForTransformation(cardIds);
-    await new Promise((resolve) => setTimeout(resolve, 50 * settings.gameSpeed));
+    await new Promise((resolve) => setTimeout(resolve, settings.gameSpeed));
   };
 
   /** */
@@ -192,8 +179,7 @@ export default function useAnimation(settings: EuchreSettings) {
 
     const transfomations = getTransformationsForDealCards(game, settings);
 
-    if (transfomations.length === 0)
-      await new Promise((resolve) => setTimeout(resolve, 500 * settings.gameSpeed));
+    if (transfomations.length === 0) await new Promise((resolve) => setTimeout(resolve, settings.gameSpeed));
     else {
       for (const t of transfomations) {
         await getMoveCardFunc(t.location)(t.transformations);
@@ -203,7 +189,7 @@ export default function useAnimation(settings: EuchreSettings) {
 
   const animateForPlayCard = async (game: EuchreGameInstance) => {
     console.log('begin animation for play card.');
-    await new Promise((resolve) => setTimeout(resolve, 1000 * settings.gameSpeed));
+    await new Promise((resolve) => setTimeout(resolve, settings.gameSpeed));
   };
 
   const setFadeOutForPlayers = useCallback(
@@ -258,7 +244,7 @@ const getTransformationsForDealCards = (
     cardCount = firstRound ? game.cardDealCount[i % 2] : game.cardDealCount[(i + 1) % 2];
 
     for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
-      const card = player.hand[firstRound ? cardIndex : 5 - cardCount + cardIndex];
+      const card = player.availableCards[firstRound ? cardIndex : 5 - cardCount + cardIndex];
       const cardSrcId = card.generateElementId();
 
       transformations.push({
@@ -268,7 +254,7 @@ const getTransformationsForDealCards = (
         destinationPlayerNumber: playerNumber,
         location: 'inner',
         options: {
-          msDelay: 75 * settings.gameSpeed,
+          msDelay: settings.gameSpeed,
           displayCardValue: false,
           card: card,
           cardOffsetHorizontal: 0,
@@ -292,7 +278,7 @@ const getTransformationsForDealCards = (
         options: {
           card: trumpCard,
           displayCardValue: false,
-          msDelay: 75 * settings.gameSpeed,
+          msDelay: settings.gameSpeed,
           cardOffsetVertical: 0,
           cardOffsetHorizontal: 0
         }

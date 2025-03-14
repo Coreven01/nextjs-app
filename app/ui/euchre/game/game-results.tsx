@@ -10,7 +10,8 @@ type Props = {
 
 const BASE_CLASS =
   'border dark:border-white rounded text-center dark:bg-neutral-800 dark:text-white p-1 my-1';
-export function GameResults({ gameResults, onReplayHand, onClose }: Props) {
+
+export default function GameResults({ gameResults, onReplayHand, onClose }: Props) {
   if (!gameResults) throw new Error('No game results were found');
 
   return (

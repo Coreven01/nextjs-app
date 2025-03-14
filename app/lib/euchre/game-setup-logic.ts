@@ -1,21 +1,27 @@
 import { CardTransformation } from '@/app/hooks/euchre/useMoveCard';
 import {
+  AVAILABLE_GAME_SPEED,
   BidResult,
   Card,
   EuchreGameInstance,
   EuchrePlayer,
   EuchreSettings,
-  EuchreTrick
+  EuchreTrick,
+  GameSpeed
 } from './definitions';
 import { createEuchreGame, createShuffledDeck, getPlayerRotation } from './game';
 import { logDebugEvent } from './util';
 import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 
-const initialGameSettings: EuchreSettings = {
-  shouldAnimate: true,
+const INIT_GAME_SETTINGS: EuchreSettings = {
+  shouldAnimate: false,
   debugAlwaysPass: false,
-  gameSpeed: 1,
-  showHandResult: true
+  gameSpeed: 700,
+  showHandResult: true,
+  teamOneColor: 'blue',
+  teamTwoColor: 'red',
+  allowRenege: true,
+  autoPlayLastCard: true
 };
 
 interface InitDealResult {
@@ -89,10 +95,7 @@ const dealCardsForDealer = (
 /** Deal cards to players until first Jack is dealt. The player that is dealt the Jack will be the initial dealer for the game.
  * Animates using a transform to show a card being dealt to the user, if enabled by the settings.
  */
-function dealCardsForNewDealer(
-  game: EuchreGameInstance,
-  gameSetting: EuchreSettings
-): InitDealResult {
+function dealCardsForNewDealer(game: EuchreGameInstance, gameSetting: EuchreSettings): InitDealResult {
   if (!game) throw Error('Game not found.');
 
   if (!game?.dealer) throw Error('Game dealer not found for initial dealer.');
@@ -240,10 +243,7 @@ const getTransformationsForDealCardsForHand = (
   return transformations;
 };
 
-const orderTrump = (
-  gameInstance: EuchreGameInstance | undefined,
-  result: BidResult
-): EuchreGameInstance => {
+const orderTrump = (gameInstance: EuchreGameInstance | undefined, result: BidResult): EuchreGameInstance => {
   const newGame = gameInstance?.shallowCopy();
 
   if (!newGame) throw Error('Game not found - Order Trump.');
@@ -270,11 +270,35 @@ const orderTrump = (
   return newGame;
 };
 
+const incrementSpeed = (gameSpeed: GameSpeed): GameSpeed => {
+  if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
+    const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + 1) ?? 150;
+
+    if (retval < gameSpeed) return gameSpeed;
+    else return retval;
+  }
+
+  return gameSpeed;
+};
+
+const decrementSpeed = (gameSpeed: GameSpeed): GameSpeed => {
+  if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
+    const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) - 1) ?? 4000;
+
+    if (retval > gameSpeed) return gameSpeed;
+    else return retval;
+  }
+
+  return gameSpeed;
+};
+
 export {
   orderTrump,
   shuffleAndDealHand,
   getGameStateForInitialDeal,
   initDeckForInitialDeal,
   dealCardsForDealer,
-  initialGameSettings
+  incrementSpeed,
+  decrementSpeed,
+  INIT_GAME_SETTINGS
 };
