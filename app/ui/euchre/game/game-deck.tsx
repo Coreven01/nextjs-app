@@ -8,7 +8,7 @@ type Props = {
 
 export default function GameDeck({ deck, location }: Props) {
   const images: React.ReactNode[] = [];
-  const dummyCard: Card = new Card('♠', '2');
+  const dummyCard: Card = new Card('♠', 'P');
   const width = dummyCard.getDisplayWidth(location);
   const height = dummyCard.getDisplayHeight(location);
   const cardBackSvg = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
@@ -40,6 +40,7 @@ export default function GameDeck({ deck, location }: Props) {
         height={height}
         src={cardBackSvg}
         alt="Game Card"
+        unoptimized={true}
       />
     );
     index++;

@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import PlayerGameDeck from '../player/players-game-deck';
-import GameSettings from './game-settings';
 import { EuchreSettings } from '@/app/lib/euchre/definitions';
 import { SECTION_STYLE } from '../../home/home-description';
-import { GameInfo } from './game-info';
-import { useEuchreGame } from '@/app/hooks/euchre/useEuchreGame';
+import PlayerGameDeck from '../player/players-game-deck';
+import GameSettings from './game-settings';
+import GameTable from './game-table';
+import useEuchreGame from '@/app/hooks/euchre/useEuchreGame';
 import GameScore from './game-score';
 import GameBorder from './game-border';
 import BidPrompt from '../prompt/bid-prompt';
@@ -14,6 +14,13 @@ import DiscardPrompt from '../prompt/discard-prompt';
 import HandResults from '../prompt/hand-results';
 import GameResults from './game-results';
 import GameEvents from './game-events';
+import { Varela_Round } from 'next/font/google';
+import GameMenu from './game-menu';
+
+const verela = Varela_Round({
+  weight: '400',
+  subsets: ['latin']
+});
 
 export default function EuchreGame() {
   // #region Hooks
@@ -42,6 +49,9 @@ export default function EuchreGame() {
     handleReplayHand
   } = useEuchreGame();
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showEvents, setShowEvents] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+
   const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
   const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
   const menuSvg =
@@ -57,6 +67,10 @@ export default function EuchreGame() {
 
   const toggleFullScreen = (value: boolean) => {
     setIsFullScreen(value);
+  };
+
+  const toggleEvents = (value: boolean) => {
+    setShowEvents(value);
   };
   //#endregion
 
@@ -89,11 +103,11 @@ export default function EuchreGame() {
     shouldShowHandResults &&
     gameSettings.current &&
     gameInstance.current &&
-    gameInstance.current.gameResults.length > 0 ? (
+    gameInstance.current.allGameResults.length > 0 ? (
       <HandResults
         game={gameInstance.current}
         settings={gameSettings.current}
-        handResult={gameInstance.current.gameResults.at(-1) ?? null}
+        handResult={gameInstance.current.allGameResults.at(-1) ?? null}
         onClose={handleCloseHandResults}
         onReplayHand={handleReplayHand}
       />
@@ -102,9 +116,11 @@ export default function EuchreGame() {
     );
 
   const renderGameResults =
-    shouldShowGameResults && gameInstance.current && gameInstance.current.gameResults.length > 0 ? (
+    shouldShowGameResults && gameInstance.current && gameInstance.current.allGameResults.length > 0 ? (
       <GameResults
-        gameResults={gameInstance.current.gameResults}
+        game={gameInstance.current}
+        settings={gameSettings.current}
+        gameResults={gameInstance.current.allGameResults}
         onClose={handleCloseGameResults}
         onReplayHand={handleReplayHand}
       />
@@ -131,78 +147,83 @@ export default function EuchreGame() {
       )}
       {gameInstance.current ? (
         <>
-          {isFullScreen && <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg !z-20" />}
+          {isFullScreen && <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg !z-50" />}
+
           <div
             id="euchre-game"
-            className={`flex p-1 ${isFullScreen ? 'fixed top-0 left-0 w-full h-full z-30' : 'relative'}`}
+            className={`flex p-1 ${isFullScreen ? 'fixed top-0 left-0 w-full h-full z-50 overflow-auto' : 'relative'} ${verela.className}`}
           >
-            <GameBorder>
-              <div
-                className={`m-2 p-2 ${SECTION_STYLE} mx-2 flex-grow relative bg-[url(/feltgreen5.png)] bg-auto`}
-              >
-                <div className="absolute z-50 bg-black" onClick={() => setIsFullScreen(!isFullScreen)}>
-                  <input
-                    checked={isFullScreen}
-                    type="checkbox"
-                    title="Toggle Fullscreen"
-                    className={`${menuSvg}`}
-                    onChange={(e) => toggleFullScreen(e.target.checked)}
+            <GameBorder className="relative">
+              <GameMenu
+                isFullScreen={isFullScreen}
+                showEvents={showEvents}
+                onFullScreenToggle={toggleFullScreen}
+                onEventsToggle={toggleEvents}
+              />
+              <div className={`m-2 ${SECTION_STYLE} mx-2 flex-grow relative bg-[url(/felt1.png)] bg-auto`}>
+                <div className="m-2">
+                  <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[1fr,600px,1fr] gap-4 h-full">
+                    <div className="row-span-4 min-w-[175px]">
+                      <PlayerGameDeck
+                        player={gameInstance.current.player3}
+                        game={gameInstance.current}
+                        gameFlow={gameFlow}
+                        settings={gameSettings.current}
+                        onCardClick={handleCardPlayed}
+                        dealDeck={gameInstance.current.deck}
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <PlayerGameDeck
+                        player={gameInstance.current.player2}
+                        game={gameInstance.current}
+                        gameFlow={gameFlow}
+                        settings={gameSettings.current}
+                        onCardClick={handleCardPlayed}
+                        dealDeck={gameInstance.current.deck}
+                      />
+                    </div>
+                    <div className="col-span-1 row-span-2">
+                      <GameTable playerInfoState={playerNotification} />
+                    </div>
+                    <div className="col-span-1 ">
+                      <PlayerGameDeck
+                        player={gameInstance.current.player1}
+                        game={gameInstance.current}
+                        gameFlow={gameFlow}
+                        settings={gameSettings.current}
+                        onCardClick={handleCardPlayed}
+                        dealDeck={gameInstance.current.deck}
+                      />
+                    </div>
+                    <div className="row-span-4 min-w-[175px]">
+                      <PlayerGameDeck
+                        player={gameInstance.current.player4}
+                        game={gameInstance.current}
+                        gameFlow={gameFlow}
+                        settings={gameSettings.current}
+                        onCardClick={handleCardPlayed}
+                        dealDeck={gameInstance.current.deck}
+                      />
+                    </div>
+                  </div>
+                  {renderBidPrompt}
+                  {renderDiscardPrompt}
+                  {renderHandResults}
+                  {renderGameResults}
+                  {showEvents && (
+                    <GameEvents
+                      events={events}
+                      onClear={clearEvents}
+                      onClose={() => toggleEvents(false)}
+                      className="-left-2 top-0"
+                    />
+                  )}
+                  <GameScore
+                    game={gameInstance.current}
+                    className="min-h-16 min-w-16 absolute top-2 right-2"
                   />
                 </div>
-                <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[1fr,600px,1fr] gap-4 h-full">
-                  <div className="row-span-4 min-w-[175px]">
-                    <PlayerGameDeck
-                      player={gameInstance.current.player3}
-                      game={gameInstance.current}
-                      gameFlow={gameFlow}
-                      settings={gameSettings.current}
-                      onCardClick={handleCardPlayed}
-                      dealDeck={gameInstance.current.deck}
-                    />
-                  </div>
-                  <div className="col-span-1">
-                    <PlayerGameDeck
-                      player={gameInstance.current.player2}
-                      game={gameInstance.current}
-                      gameFlow={gameFlow}
-                      settings={gameSettings.current}
-                      onCardClick={handleCardPlayed}
-                      dealDeck={gameInstance.current.deck}
-                    />
-                  </div>
-                  <div className="col-span-1 row-span-2">
-                    <GameInfo playerInfoState={playerNotification} />
-                  </div>
-                  <div className="col-span-1 ">
-                    <PlayerGameDeck
-                      player={gameInstance.current.player1}
-                      game={gameInstance.current}
-                      gameFlow={gameFlow}
-                      settings={gameSettings.current}
-                      onCardClick={handleCardPlayed}
-                      dealDeck={gameInstance.current.deck}
-                    />
-                  </div>
-                  <div className="row-span-4 min-w-[175px]">
-                    <PlayerGameDeck
-                      player={gameInstance.current.player4}
-                      game={gameInstance.current}
-                      gameFlow={gameFlow}
-                      settings={gameSettings.current}
-                      onCardClick={handleCardPlayed}
-                      dealDeck={gameInstance.current.deck}
-                    />
-                  </div>
-                </div>
-                {renderBidPrompt}
-                {renderDiscardPrompt}
-                {renderHandResults}
-                {renderGameResults}
-                <GameEvents events={events} onClear={clearEvents} className="-left-2 top-0"></GameEvents>
-                <GameScore
-                  game={gameInstance.current}
-                  className="min-h-16 min-w-16 absolute top-2 right-2"
-                ></GameScore>
               </div>
             </GameBorder>
           </div>

@@ -1,10 +1,8 @@
-import { CardTransformation } from '@/app/hooks/euchre/useMoveCard';
 import {
   Card,
   CardValue,
   EuchreCard,
   EuchreGameInstance,
-  EuchrePlayer,
   EuchreSettings,
   EuchreTrick,
   Suit
@@ -18,129 +16,14 @@ import {
   getHighAndLowExcludeSuit,
   getSuitCount,
   getCardValuesExcludeSuit,
-  getPlayerRotation
+  cardIsRightBower
 } from './game';
 import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { GamePlayLogic, OffsuitLogic, TeamLogic, TrickLogic, TrumpLogic } from './logic-definitions';
 
-interface PlayCardResult {
-  transformations: CardTransformation[][];
-  card: Card;
-}
-
-//#region Logic information used to decide which card to play.
-interface TeamLogic {
-  currentUserIsMaker: boolean;
-  teammateIsMaker: boolean;
-
-  /** True if no cards have yet to be played for the current hand.  */
-  isFirstPlayer: boolean;
-
-  /** Number of cards played for the current player in the current round. */
-  cardsPlayed: number;
-
-  /** True if the current player leads the current trick. */
-  isLeading: boolean;
-
-  /** True if the current player plays the last card for the trick */
-  isLast: boolean;
-  teammateYetToPlay: boolean;
-}
-
-interface TrumpLogic {
-  /** Total trump count for the players entire hand. */
-  trumpCardCount: number;
-
-  /** True if the player has right bower */
-  playerHasRight: boolean;
-
-  /** True if the player has the left bower */
-  playerHasLeft: boolean;
-
-  /** Current cards available to play that are trump. High is the highest value, low is the lowest value. */
-  trumpHighLow: { high: Card | null; low: Card | null };
-
-  /** Dealer picked up the right bower. */
-  knownPlayerWithRight: EuchrePlayer | null;
-
-  /** Saw the right bower was played by any player */
-  rightWasSeen: boolean;
-
-  /** Saw the left bower was played by any player */
-  leftWasSeen: boolean;
-}
-
-interface OffsuitLogic {
-  /** Number of aces currently available to play. */
-  offSuitAceCount: number;
-
-  /** Cards that don't follow trump suit. High is the highest value, low is the lowest value. */
-  offsuitHighLow: { high: Card | null; low: Card | null };
-
-  /** True if teammate lead an offsuit ace. */
-  teammateLeadAce: boolean;
-}
-
-interface TrickLogic {
-  /** True if any player lead trump for the current trick. */
-  trumpWasLead: boolean;
-
-  /** All the card values in the players hand available to play. */
-  cardValues: { card: Card; value: number }[];
-
-  /** The card the was lead for the current trick. */
-  leadCard: EuchreCard | null;
-
-  /** Number of tricks won by the team for the current hand */
-  teamTricksWon: number;
-
-  /** Number of tricks won by the team for the current hand */
-  opponentTricksWon: number;
-
-  /** Cards available to play that beat the current winning card for the trick. */
-  winningHighLow: { high: Card | null; low: Card | null };
-
-  /** All other cards available to player that won't beat the current winning card. */
-  losingHighLow: { high: Card | null; low: Card | null };
-
-  /** Card and user that is currently winning the trick. */
-  currentWinningCard: { card: EuchreCard | null; value: number };
-
-  /** Cards that are available to play if the user must follow suit. */
-  cardsAvailableToFollowSuit: { card: Card; value: number }[];
-
-  /** Map of suit to the count of those suits in the players hand. */
-  suitCount: { suit: Suit; count: number }[];
-
-  /** True if the player must follow suit. */
-  mustFollowSuit: boolean;
-
-  /** Suit that must be followed */
-  suitToFollow: Suit | null;
-
-  /** Reference to the cards that have been played in the current trick. */
-  currentTrick: EuchreTrick;
-
-  /** True if the player's team is currently losing the hand. */
-  currentlyLosing: boolean;
-
-  /** Array of suits that were lead for the current hand. General strategy is to avoid leading the same suit more than once
-   * becuase changes are the opposing team will not have any left to follow suit.
-   */
-  suitsLeadForHand: Set<Suit>;
-
-  leadCardIsRight: boolean;
-
-  leadCardIsLeft: boolean;
-}
-
-interface GamePlayLogic {
-  teamInfo: TeamLogic;
-  trumpInfo: TrumpLogic;
-  offsuitInfo: OffsuitLogic;
-  trickInfo: TrickLogic;
-}
-
-/** Return a object of important values when making a decision during regular game play.  */
+/** Return a object of important values when making a decision during regular game play.
+ *
+ */
 function getGamePlayLogic(game: EuchreGameInstance): GamePlayLogic {
   const retval: GamePlayLogic = {
     teamInfo: getTeamLogic(game),
@@ -152,38 +35,38 @@ function getGamePlayLogic(game: EuchreGameInstance): GamePlayLogic {
   return retval;
 }
 
+/** Get information related to the number of tricks taken and what cards are available to play.
+ *
+ */
 function getTrickLogic(game: EuchreGameInstance): TrickLogic {
   if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
-
   if (!game.currentTrick) throw Error();
-
   if (!game.trump) throw Error();
-
   if (!game.dealer) throw Error();
 
+  const trumpCard: Card = game.trump;
   const suitsThatHaveBeenLead: Suit[] = [];
   const currentPlayer = game.currentPlayer;
   const playerCards: Card[] = currentPlayer.availableCards;
   const leadCard: EuchreCard | null = game.currentTrick.cardsPlayed.at(0) ?? null;
   const leadCardIsRightBower = leadCard
-    ? leadCard.card.suit === game.trump.suit && leadCard.card.value === 'J'
+    ? leadCard.card.suit === trumpCard.suit && leadCard.card.value === 'J'
     : false;
-  const leadCardIsLeftBower = leadCard ? cardIsLeftBower(leadCard.card, game.trump) : false;
+  const leadCardIsLeftBower = leadCard ? cardIsLeftBower(leadCard.card, trumpCard) : false;
   const trumpWasLead: boolean = leadCard
-    ? leadCard.card.suit === game.trump.suit || leadCardIsLeftBower
+    ? leadCard.card.suit === trumpCard.suit || leadCardIsLeftBower
     : false;
 
-  const suitToFollow = leadCardIsLeftBower ? game.trump.suit : leadCard?.card.suit;
-  const suitCount = getSuitCount(playerCards, game.trump);
-
+  const suitToFollow = leadCardIsLeftBower ? trumpCard.suit : leadCard?.card.suit;
+  const suitCount = getSuitCount(playerCards, trumpCard);
   const mustFollowSuit: boolean = suitCount.filter((s) => s.suit === suitToFollow && s.count > 0).length > 0;
-  const currentWinningCard = determineCurrentWinnerForTrick(game.trump, game.currentTrick);
+  const currentWinningCard = determineCurrentWinnerForTrick(trumpCard, game.currentTrick);
   const winningCardVal = currentWinningCard.value;
 
   // if must follow suit, then only return cards that match the lead card.
   const cardsAvailableToPlay = getCardValuesForSuit(
     playerCards,
-    game.trump,
+    trumpCard,
     mustFollowSuit ? (suitToFollow ?? null) : null
   );
 
@@ -192,27 +75,23 @@ function getTrickLogic(game: EuchreGameInstance): TrickLogic {
       // winning cards are all available cards if no lead card
       leadCard === null ||
       // winning cards are trump cards with higher value than the current winning card.
-      (c.value > winningCardVal &&
-        game.trump &&
-        (c.card.suit === game.trump?.suit || cardIsLeftBower(c.card, game.trump))) ||
+      (c.value > winningCardVal && (c.card.suit === trumpCard.suit || cardIsLeftBower(c.card, trumpCard))) ||
       // winning cards are also cards that follow lead and higher value than current winning card.
       (c.value > winningCardVal && c.card.suit === suitToFollow)
     );
   });
   const losingCards = cardsAvailableToPlay.filter((c) => !winningCards.includes(c));
-
-  const cardValues: { card: Card; value: number }[] = getCardValuesForSuit(playerCards, game.trump, null);
-
+  const cardValues: { card: Card; value: number }[] = getCardValuesForSuit(playerCards, trumpCard, null);
   const winningHighLow = getHighAndLow(
     winningCards.map((c) => c.card),
-    game.trump
+    trumpCard
   );
   const losingHighLow = getHighAndLow(
     losingCards.map((c) => c.card),
-    game.trump
+    trumpCard
   );
 
-  for (const trick of game.currentTricks) {
+  for (const trick of game.handTricks) {
     if (trick.cardsPlayed.length) suitsThatHaveBeenLead.push(trick.cardsPlayed[0].card.suit);
   }
 
@@ -220,9 +99,8 @@ function getTrickLogic(game: EuchreGameInstance): TrickLogic {
     trumpWasLead: trumpWasLead,
     cardValues: cardValues,
     leadCard: leadCard,
-    teamTricksWon: game.currentTricks.filter((t) => t.taker && t.taker.team === currentPlayer?.team).length,
-    opponentTricksWon: game.currentTricks.filter((t) => t.taker && t.taker.team !== currentPlayer?.team)
-      .length,
+    teamTricksWon: game.handTricks.filter((t) => t.taker && t.taker.team === currentPlayer.team).length,
+    opponentTricksWon: game.handTricks.filter((t) => t.taker && t.taker.team !== currentPlayer.team).length,
     winningHighLow: winningHighLow,
     losingHighLow: losingHighLow,
     currentWinningCard: currentWinningCard,
@@ -242,96 +120,116 @@ function getTrickLogic(game: EuchreGameInstance): TrickLogic {
   return retval;
 }
 
+/** Get information related to who is the maker and other team information
+ *
+ */
 function getTeamLogic(game: EuchreGameInstance): TeamLogic {
   if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
-
+  if (!game.maker) throw Error();
   if (!game.currentTrick) throw Error();
 
   const currentPlayer = game.currentPlayer;
   const leadCard: EuchreCard | null = game.currentTrick.cardsPlayed.at(0) ?? null;
+  const currentUserIsMaker = game.maker.equal(currentPlayer);
+  const lastCardCount = game.loner ? 2 : 3;
 
   const teamLogic: TeamLogic = {
-    currentUserIsMaker: game.maker === currentPlayer,
-    teammateIsMaker: game.maker?.team === currentPlayer.team,
+    currentUserIsMaker: currentUserIsMaker,
+    teammateIsMaker: !currentUserIsMaker && game.maker.team === currentPlayer.team,
     isFirstPlayer: game.gamePlayers.map((p) => p.playedCards).flat().length === 0,
     cardsPlayed: currentPlayer.playedCards.length,
     isLeading: leadCard === null,
-    isLast: game.currentTrick.cardsPlayed.length === 3,
-    teammateYetToPlay: game.currentTrick.cardsPlayed.length < 2
+    isLast: game.currentTrick.cardsPlayed.length === lastCardCount,
+    teammateYetToPlay: game.currentTrick.cardsPlayed.length < 2,
+    playerTeam: currentPlayer.team
   };
 
   return teamLogic;
 }
 
+/**  */
 function getTrumpLogic(game: EuchreGameInstance): TrumpLogic {
   if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
+  if (!game.trump) throw Error('Invalid trump to determine card to play.');
+  if (!game.dealer) throw Error('Invalid dealer to determine card to play.');
 
-  if (!game.trump) throw Error();
-
-  if (!game.dealer) throw Error();
-
+  const trumpCard: Card = game.trump;
   const currentPlayer = game.currentPlayer;
   const playerCards: Card[] = currentPlayer.availableCards;
-  const trumpCards = getCardValuesForSuit(
+  const trumpCards = getCardValuesForSuit(playerCards, trumpCard, trumpCard.suit);
+  const allTrumpCards = getCardValuesForSuit(
     [...playerCards, ...currentPlayer.playedCards],
-    game.trump,
-    game.trump.suit
+    trumpCard,
+    trumpCard.suit
   );
 
   const retval: TrumpLogic = {
-    trumpCardCount: trumpCards.length,
-    playerHasRight: playerCards.find((c) => c.suit === game?.trump?.suit && c.value === 'J') !== undefined,
-    playerHasLeft:
-      playerCards.find((c) => cardIsLeftBower(c, game.trump ?? new Card('♠', '2'))) !== undefined,
-    trumpHighLow: getHighAndLowForSuit(playerCards, game.trump, game.trump.suit),
+    totalHandTrumpCardCount: allTrumpCards.length,
+    currentTrumpCardCount: trumpCards.length,
+    playerHasRight: playerCards.find((c) => cardIsRightBower(c, trumpCard)) !== undefined,
+    playerHasLeft: playerCards.find((c) => cardIsLeftBower(c, trumpCard)) !== undefined,
+    trumpHighLow: getHighAndLowForSuit(playerCards, trumpCard, trumpCard.suit),
     rightWasSeen:
-      game.currentTricks
+      game.handTricks
         .flat()
         .map((t) => t.cardsPlayed)
         .flat()
-        .find((c) => c.card.suit === game.trump?.suit && c.card.value === 'J') !== undefined,
+        .find((c) => cardIsRightBower(c.card, trumpCard)) !== undefined,
     leftWasSeen:
-      game.currentTricks
+      game.handTricks
         .flat()
         .map((t) => t.cardsPlayed)
         .flat()
-        .find((c) => cardIsLeftBower(c.card, game?.trump ?? new Card('♠', '2'))) !== undefined,
-    knownPlayerWithRight: game.trump.value === 'J' ? game.dealer : null
+        .find((c) => cardIsLeftBower(c.card, trumpCard)) !== undefined,
+    knownPlayerWithRight: game.discard !== null && game.trump.value === 'J' ? game.dealer : null
   };
 
   return retval;
 }
 
+/** */
 function getOffsuitLogic(game: EuchreGameInstance): OffsuitLogic {
   if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
-
   if (!game.currentTrick) throw Error();
-
   if (!game.trump) throw Error();
-
   if (!game.dealer) throw Error();
 
+  const trumpCard: Card = game.trump;
   const currentPlayer = game.currentPlayer;
   const playerCards: Card[] = currentPlayer.availableCards;
   const leadCard: EuchreCard | null = game.currentTrick.cardsPlayed.at(0) ?? null;
-  const offSuitCards = getCardValuesExcludeSuit(playerCards, game.trump, game.trump.suit);
+  const offSuitCards = getCardValuesExcludeSuit(playerCards, trumpCard, trumpCard.suit);
+  const leadCards = game.handTricks.filter((t) => t.cardsPlayed.length > 0).map((t) => t.cardsPlayed[0]);
+  const leadOffsuitCards = leadCards
+    .filter((c) => c.card.suit !== trumpCard.suit && !cardIsLeftBower(c.card, trumpCard))
+    .map((c) => c.card.suit);
 
   // teammate lead an offsuit ace:
   const leadAce =
-    leadCard?.player !== currentPlayer &&
-    leadCard?.player.team === currentPlayer.team &&
-    leadCard.card.value === 'A' &&
-    leadCard.card.suit !== game.trump?.suit;
+    (leadCard &&
+      leadCard.player !== currentPlayer &&
+      leadCard.player.team === currentPlayer.team &&
+      leadCard.card.value === 'A' &&
+      leadCard.card.suit !== trumpCard.suit) ??
+    false;
 
   const retval: OffsuitLogic = {
     offSuitAceCount: offSuitCards.filter((c) => c.card.value === 'A').length,
-    offsuitHighLow: getHighAndLowExcludeSuit(playerCards, game.trump, game.trump.suit),
+    offSuitAceCountNotYetLead: offSuitCards.filter(
+      (c) => !leadOffsuitCards.includes(c.card.suit) && c.card.value === 'A'
+    ).length,
+    offsuitHighLow: getHighAndLowExcludeSuit(playerCards, trumpCard, [trumpCard.suit]),
+    offsuitNotYetLeadHighLow: getHighAndLowExcludeSuit(playerCards, trumpCard, [
+      trumpCard.suit,
+      ...leadOffsuitCards
+    ]),
     teammateLeadAce: leadAce
   };
 
   return retval;
 }
 
+/** Validate the information gathered from the logic functions is returning correct data. */
 function validateGamePlayLogic(logic: GamePlayLogic) {
   if (logic.trickInfo.cardValues.length === 0) throw new Error('Invalid card values');
 
@@ -359,48 +257,76 @@ export function determineCardToPlayLogic(game: EuchreGameInstance): Card {
   let cardToPlay: Card;
 
   if (logic.teamInfo.isLeading) {
-    cardToPlay = getBestCardForLead(playerHand, game, logic);
+    cardToPlay = getBestCardForLead(game, logic);
   } else if (logic.trickInfo.mustFollowSuit) {
-    cardToPlay = getBestCardForFollowSuit(playerHand, game, logic);
+    cardToPlay = getBestCardForFollowSuit(game, logic);
   } else if (logic.offsuitInfo.teammateLeadAce) {
-    cardToPlay = getBestCardWhenTeammateLeadAce(playerHand, game, logic);
+    cardToPlay = getBestCardWhenTeammateLeadAce(game, logic);
   } else if (logic.teamInfo.currentUserIsMaker || logic.teamInfo.teammateIsMaker) {
-    cardToPlay = getBestCardWhenTeamIsMaker(playerHand, game, logic);
-  } else cardToPlay = getBestCardWhenDefender(playerHand, game, logic);
+    cardToPlay = getBestCardWhenTeamIsMaker(game, logic);
+  } else cardToPlay = getBestCardWhenDefender(game, logic);
 
   return cardToPlay;
 }
 
 /** Choose best card to play when leading the current trick. */
-function getBestCardForLead(hand: Card[], game: EuchreGameInstance, logic: GamePlayLogic): Card {
-  let cardToPlay: Card | undefined;
+function getBestCardForLead(game: EuchreGameInstance, logic: GamePlayLogic): Card {
+  if (!game.currentPlayer) throw Error('Invalid player to determine card to play.');
 
-  if (!game.trump) throw Error();
+  let cardToPlay: Card | undefined;
 
   if (
     logic.teamInfo.currentUserIsMaker &&
-    logic.trumpInfo.trumpCardCount < 3 &&
+    logic.trickInfo.teamTricksWon === 0 &&
+    logic.trumpInfo.knownPlayerWithRight &&
+    logic.trumpInfo.knownPlayerWithRight.team !== game.currentPlayer?.team &&
+    !logic.trumpInfo.rightWasSeen
+  ) {
+    // player named trump, but saw the opposing team pick up the right bower. play ace if available, otherwise play high offsuit.
+    if (logic.offsuitInfo.offsuitNotYetLeadHighLow.high) {
+      cardToPlay = logic.offsuitInfo.offsuitNotYetLeadHighLow.high;
+    } else if (logic.offsuitInfo.offsuitHighLow.high) {
+      cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
+    } else if (logic.trickInfo.winningHighLow.low) {
+      cardToPlay = logic.trickInfo.winningHighLow.low;
+    }
+  } else if (
+    logic.teamInfo.currentUserIsMaker &&
+    logic.trumpInfo.totalHandTrumpCardCount < 3 &&
     logic.trickInfo.teamTricksWon < 2 &&
     logic.offsuitInfo.offSuitAceCount === 0
   ) {
     // low number of trump and team has yet to win a trick. play an offsuit card hoping it will win, or your partner will win.
-    if (logic.offsuitInfo.offsuitHighLow.high) cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
-  } else if (logic.teamInfo.currentUserIsMaker && logic.trumpInfo.trumpCardCount > 3 && game.loner) {
-    // high number of trump and current user is maker and went alone. standard strategy is to play cards from highest to lowest.
-    if (logic.trumpInfo.trumpHighLow.high) cardToPlay = logic.trumpInfo.trumpHighLow.high;
-    else if (logic.offsuitInfo.offsuitHighLow.high) cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
+    if (logic.offsuitInfo.offsuitNotYetLeadHighLow.high) {
+      cardToPlay = logic.offsuitInfo.offsuitNotYetLeadHighLow.high;
+    } else if (logic.offsuitInfo.offsuitHighLow.high) {
+      cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
+    }
   } else if (
     logic.teamInfo.currentUserIsMaker &&
-    logic.offsuitInfo.offSuitAceCount > 0 &&
+    logic.trumpInfo.totalHandTrumpCardCount >= 3 &&
+    game.loner
+  ) {
+    // high number of trump and current user is maker and went alone. standard strategy is to play cards from highest to lowest.
+    if (logic.trumpInfo.trumpHighLow.high) {
+      cardToPlay = logic.trumpInfo.trumpHighLow.high;
+    } else if (logic.offsuitInfo.offsuitHighLow.high) {
+      cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
+    }
+  } else if (
+    logic.teamInfo.currentUserIsMaker &&
+    logic.offsuitInfo.offSuitAceCountNotYetLead > 0 &&
     logic.trickInfo.teamTricksWon < 2
   ) {
     // play an offsuit ace if available.
-    if (logic.offsuitInfo.offsuitHighLow.high) cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
+    if (logic.offsuitInfo.offsuitNotYetLeadHighLow.high) {
+      cardToPlay = logic.offsuitInfo.offsuitNotYetLeadHighLow.high;
+    }
   } else if (!logic.teamInfo.currentUserIsMaker && !logic.teamInfo.teammateIsMaker) {
-    // if opponent called trump, but player has right bower, play that card.
-    if (logic.trickInfo.opponentTricksWon > logic.trickInfo.teamTricksWon && logic.trumpInfo.playerHasRight)
-      cardToPlay = hand.find((c) => c.suit === game.trump?.suit && c.value === 'J');
-    else if (logic.offsuitInfo.offsuitHighLow.high) {
+    // play high offsuit cards if available.
+    if (logic.offsuitInfo.offsuitNotYetLeadHighLow.high) {
+      cardToPlay = logic.offsuitInfo.offsuitNotYetLeadHighLow.high;
+    } else if (logic.offsuitInfo.offsuitHighLow.high) {
       cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
     } else if (logic.trickInfo.winningHighLow.low) {
       cardToPlay = logic.trickInfo.winningHighLow.low;
@@ -413,13 +339,16 @@ function getBestCardForLead(hand: Card[], game: EuchreGameInstance, logic: GameP
   ) {
     // if current user is maker, then attempt to pull the rest of the trump by
     // playing high trump cards
-    if (logic.trickInfo.winningHighLow.high) cardToPlay = logic.trickInfo.winningHighLow.high;
+    if (logic.trickInfo.winningHighLow.high) {
+      cardToPlay = logic.trickInfo.winningHighLow.high;
+    }
   } else if (
     logic.teamInfo.currentUserIsMaker &&
     logic.trickInfo.teamTricksWon > 0 &&
-    logic.trumpInfo.trumpCardCount > 3 &&
+    logic.trumpInfo.totalHandTrumpCardCount > 3 &&
     logic.trickInfo.winningHighLow.high
   ) {
+    // player is maker and high trump count, but not necessarily has left/right.
     cardToPlay = logic.trickInfo.winningHighLow.high;
   } else if (
     logic.teamInfo.teammateIsMaker &&
@@ -435,9 +364,17 @@ function getBestCardForLead(hand: Card[], game: EuchreGameInstance, logic: GameP
     // partner can with the trump from the opposing team and hopefully win the last trick fron an offsuit ace.
     cardToPlay = logic.trumpInfo.trumpHighLow.low;
   } else if (logic.teamInfo.currentUserIsMaker) {
-    if (logic.trickInfo.winningHighLow.high) cardToPlay = logic.trickInfo.winningHighLow.high;
-    else if (logic.trickInfo.losingHighLow.high) cardToPlay = logic.trickInfo.losingHighLow.high;
+    // current user is maker
+    if (logic.trickInfo.winningHighLow.high) {
+      cardToPlay = logic.trickInfo.winningHighLow.high;
+    } else if (logic.trickInfo.losingHighLow.high) {
+      cardToPlay = logic.trickInfo.losingHighLow.high;
+    }
+  } else if (logic.offsuitInfo.offsuitNotYetLeadHighLow.high) {
+    // play offsuit high card if available
+    cardToPlay = logic.offsuitInfo.offsuitNotYetLeadHighLow.high;
   } else if (logic.trickInfo.winningHighLow.high) {
+    // default to best card if other logic fails
     cardToPlay = logic.trickInfo.winningHighLow.high;
   }
 
@@ -447,23 +384,22 @@ function getBestCardForLead(hand: Card[], game: EuchreGameInstance, logic: GameP
 }
 
 /** Choose best card when the player must follow suit.  */
-function getBestCardForFollowSuit(hand: Card[], game: EuchreGameInstance, gameLogic: GamePlayLogic): Card {
+function getBestCardForFollowSuit(game: EuchreGameInstance, gameLogic: GamePlayLogic): Card {
   let cardToPlay: Card | undefined;
 
   if (!gameLogic.trickInfo.leadCard) throw Error('Lead card not found');
-
-  if (!game.trump) throw Error();
+  if (!game.trump) throw Error('Trump card not found');
 
   if (gameLogic.trickInfo.cardsAvailableToFollowSuit.length === 0)
     throw new Error('Invalid card for follow suit. No cards found.');
 
-  // if only one card, then this card must be played.
+  // if only one card available, then this card must be played.
   if (gameLogic.trickInfo.cardsAvailableToFollowSuit.length === 1)
     return gameLogic.trickInfo.cardsAvailableToFollowSuit[0].card;
 
-  if (gameLogic.trickInfo.currentlyLosing && gameLogic.teamInfo.isLast) {
+  if (gameLogic.teamInfo.isLast) {
     // if playing last and a winning card is available, play that card, otherwise play a weak losing card.
-    if (gameLogic.trickInfo.winningHighLow.low) {
+    if (gameLogic.trickInfo.currentlyLosing && gameLogic.trickInfo.winningHighLow.low) {
       cardToPlay = gameLogic.trickInfo.winningHighLow.low;
     } else if (gameLogic.trickInfo.losingHighLow.low) {
       cardToPlay = gameLogic.trickInfo.losingHighLow.low;
@@ -486,8 +422,11 @@ function getBestCardForFollowSuit(hand: Card[], game: EuchreGameInstance, gameLo
     gameLogic.trickInfo.leadCardIsLeft
   ) {
     // teammate led left bower and current player has right. play lowest card possible.
-    if (gameLogic.trickInfo.losingHighLow.low) cardToPlay = gameLogic.trickInfo.losingHighLow.low;
-    else if (gameLogic.trickInfo.winningHighLow.low) cardToPlay = gameLogic.trickInfo.winningHighLow.low;
+    if (gameLogic.trickInfo.losingHighLow.low) {
+      cardToPlay = gameLogic.trickInfo.losingHighLow.low;
+    } else if (gameLogic.trickInfo.winningHighLow.low) {
+      cardToPlay = gameLogic.trickInfo.winningHighLow.low;
+    }
   } else if (
     gameLogic.trickInfo.trumpWasLead &&
     gameLogic.teamInfo.currentUserIsMaker &&
@@ -497,31 +436,34 @@ function getBestCardForFollowSuit(hand: Card[], game: EuchreGameInstance, gameLo
     // player led trump but wasn't the maker. if current player has right bower then play it now.
     cardToPlay = gameLogic.trickInfo.winningHighLow.high;
   } else if (!gameLogic.trickInfo.trumpWasLead) {
-    // if playing trump offsuit,
-    if (gameLogic.trickInfo.winningHighLow.high && gameLogic.trickInfo.winningHighLow.high.value === 'A') {
+    // playing offsuit logic
+    if (gameLogic.trickInfo.winningHighLow.high && !gameLogic.teamInfo.isLast) {
+      // if not playing last, play best offsuit card.
       cardToPlay = gameLogic.trickInfo.winningHighLow.high;
-    } else if (
-      gameLogic.trickInfo.winningHighLow.high &&
-      gameLogic.trickInfo.currentlyLosing &&
-      !gameLogic.teamInfo.isLast
-    ) {
-      cardToPlay = gameLogic.trickInfo.winningHighLow.high;
-    } else if (
-      gameLogic.trickInfo.winningHighLow.low &&
-      gameLogic.trickInfo.currentlyLosing &&
-      gameLogic.teamInfo.isLast
-    ) {
+    } else if (gameLogic.trickInfo.winningHighLow.low && gameLogic.trickInfo.currentlyLosing) {
+      // if playing last, currently losing, and winning card available, then play that card.
       cardToPlay = gameLogic.trickInfo.winningHighLow.low;
     } else if (gameLogic.trickInfo.losingHighLow.low) {
+      // all else, play lowest card available.
       cardToPlay = gameLogic.trickInfo.losingHighLow.low;
     }
   } else if (
     !gameLogic.teamInfo.teammateYetToPlay &&
     gameLogic.trickInfo.currentlyLosing &&
-    gameLogic.trickInfo.winningHighLow.low
+    gameLogic.trickInfo.winningHighLow.high
   ) {
-    // play lowest card if possible to win if currently losing and teammate already played.
-    cardToPlay = gameLogic.trickInfo.winningHighLow.low;
+  } else if (
+    gameLogic.trickInfo.trumpWasLead &&
+    gameLogic.trickInfo.leadCard.player.team === gameLogic.teamInfo.playerTeam &&
+    (gameLogic.trumpInfo.playerHasLeft || gameLogic.trumpInfo.playerHasRight) &&
+    (gameLogic.teamInfo.teammateIsMaker || gameLogic.teamInfo.currentUserIsMaker) &&
+    ['9', '10', 'Q', 'K'].includes(gameLogic.trickInfo.leadCard.card.suit)
+  ) {
+    // partner leads low trump when team is the maker
+    // rare circumstance where partner is indicating that the current player should play their best card.
+    if (gameLogic.trickInfo.winningHighLow.high) {
+      cardToPlay = gameLogic.trickInfo.winningHighLow.high;
+    }
   } else {
     if (gameLogic.trickInfo.winningHighLow.low) {
       cardToPlay = gameLogic.trickInfo.winningHighLow.low;
@@ -536,11 +478,7 @@ function getBestCardForFollowSuit(hand: Card[], game: EuchreGameInstance, gameLo
 }
 
 /** */
-function getBestCardWhenTeammateLeadAce(
-  playerHand: Card[],
-  game: EuchreGameInstance,
-  gameLogic: GamePlayLogic
-): Card {
+function getBestCardWhenTeammateLeadAce(game: EuchreGameInstance, gameLogic: GamePlayLogic): Card {
   if (!game.trump) throw Error();
 
   if (!game.currentPlayer) throw Error();
@@ -565,11 +503,7 @@ function getBestCardWhenTeammateLeadAce(
   return cardToPlay;
 }
 
-function getBestCardWhenTeamIsMaker(
-  playerHand: Card[],
-  game: EuchreGameInstance,
-  gameLogic: GamePlayLogic
-): Card {
+function getBestCardWhenTeamIsMaker(game: EuchreGameInstance, gameLogic: GamePlayLogic): Card {
   let cardToPlay: Card | undefined;
 
   if (gameLogic.teamInfo.isLast && !gameLogic.trickInfo.currentlyLosing) {
@@ -584,6 +518,15 @@ function getBestCardWhenTeamIsMaker(
     //
     if (gameLogic.trickInfo.winningHighLow.low) cardToPlay = gameLogic.trickInfo.winningHighLow.low;
     else if (gameLogic.trickInfo.losingHighLow.low) cardToPlay = gameLogic.trickInfo.losingHighLow.low;
+  } else if (
+    gameLogic.teamInfo.teammateYetToPlay &&
+    gameLogic.trumpInfo.playerHasLeft &&
+    gameLogic.trumpInfo.playerHasRight &&
+    gameLogic.trumpInfo.totalHandTrumpCardCount === 2 &&
+    gameLogic.trickInfo.losingHighLow.low
+  ) {
+    // if only holding left and right and those are the only trump left, then hope your partner can take it.
+    cardToPlay = gameLogic.trickInfo.losingHighLow.low;
   } else {
     //
     if (gameLogic.trickInfo.winningHighLow.low) cardToPlay = gameLogic.trickInfo.winningHighLow.low;
@@ -596,11 +539,7 @@ function getBestCardWhenTeamIsMaker(
 }
 
 /** Team is defending when opposing team makes trump. Play a little bit more aggressively when attempting to defend. */
-function getBestCardWhenDefender(
-  playerHand: Card[],
-  game: EuchreGameInstance,
-  gameLogic: GamePlayLogic
-): Card {
+function getBestCardWhenDefender(game: EuchreGameInstance, gameLogic: GamePlayLogic): Card {
   let cardToPlay: Card | undefined;
 
   if (gameLogic.teamInfo.isLast && gameLogic.trickInfo.currentlyLosing) {
@@ -610,7 +549,7 @@ function getBestCardWhenDefender(
     } else if (gameLogic.trickInfo.losingHighLow.low) {
       cardToPlay = gameLogic.trickInfo.losingHighLow.low;
     }
-  } else if (!gameLogic.teamInfo.isLast && gameLogic.trumpInfo.trumpCardCount > 1) {
+  } else if (!gameLogic.teamInfo.isLast && gameLogic.trumpInfo.totalHandTrumpCardCount > 1) {
     //
     const trumpLow = gameLogic.trickInfo.winningHighLow.low;
     const lowValues: CardValue[] = ['9', '10', 'Q', 'K', 'A'];
@@ -639,63 +578,6 @@ function getBestCardWhenDefender(
   if (!cardToPlay) throw Error('Error determining card to play');
 
   return cardToPlay;
-}
-
-function handleGameCardPlayed(
-  player: EuchrePlayer,
-  card: Card,
-  game: EuchreGameInstance
-): EuchreGameInstance {
-  const newGame: EuchreGameInstance = playGameCard(player, card, game);
-
-  if (!newGame?.currentPlayer) throw Error('Player not found in game card played.');
-
-  if (!newGame?.trump) throw Error('Trump card not found in game card played.');
-
-  return newGame;
-}
-
-function playGameCard(player: EuchrePlayer, card: Card, game: EuchreGameInstance): EuchreGameInstance {
-  const newGame = game.shallowCopy();
-
-  if (!newGame.currentTrick) throw Error();
-  if (!newGame.currentPlayer) throw Error();
-  if (!newGame.trump) throw Error();
-
-  const euchreCard = new EuchreCard(player, card);
-  const tempCards = player.availableCards.filter((c) => c !== card);
-  player.assignCards = tempCards;
-  player.orderHand(game.trump);
-  player.playedCards.push(card);
-
-  newGame.currentTrick.cardsPlayed.push(euchreCard);
-  const rotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer, newGame.playerSittingOut);
-  const currentRound = newGame.currentRound;
-
-  // if round is finished, determine who the winner of the trick.
-  if (newGame.currentTrick && newGame.currentTrick.cardsPlayed.length === rotation.length) {
-    const trickWinner = determineCurrentWinnerForTrick(newGame.trump, newGame.currentTrick);
-    newGame.currentTrick.taker = trickWinner.card?.player;
-
-    if (newGame.currentTricks.length < 5) {
-      newGame.currentTricks.push(new EuchreTrick(currentRound));
-      newGame.currentPlayer = trickWinner.card?.player ?? null;
-    }
-  } else {
-    newGame.currentPlayer = rotation[0];
-  }
-
-  // if hand is over update the tricks with the result.
-  if (
-    newGame.currentTricks.length === 5 &&
-    newGame.currentTricks.filter((t) => t.taker !== undefined).length === 5
-  ) {
-    newGame.gameResults.push(newGame.getHandResult());
-    newGame.currentRound += 1;
-    newGame.currentTricks = [];
-  }
-
-  return newGame;
 }
 
 function determineCurrentWinnerForTrick(
@@ -729,19 +611,6 @@ function determineCurrentWinnerForTrick(
   }
 
   return winningCard;
-}
-
-function isGameOver(game: EuchreGameInstance): boolean {
-  const teamOnePoints = game.gameResults
-    .filter((r) => r.teamWon === 1)
-    .map((r) => r.points)
-    .reduce((acc, curr) => acc + curr, 0);
-  const teamTwoPoints = game.gameResults
-    .filter((r) => r.teamWon === 2)
-    .map((r) => r.points)
-    .reduce((acc, curr) => acc + curr, 0);
-
-  return teamOnePoints >= 10 || teamTwoPoints >= 10;
 }
 
 const getGameStateForNextHand = (
@@ -811,53 +680,6 @@ const didPlayerFollowSuit = (game: EuchreGameInstance, playedCard: Card): boolea
   return true;
 };
 
-const reverseLastHandPlayed = (game: EuchreGameInstance): EuchreGameInstance => {
-  const newGame = game.shallowCopy();
-  const lastGameResult = newGame.gameResults.at(-1);
-
-  if (!lastGameResult) throw new Error('Game result not found.');
-
-  if (!newGame.dealer) throw new Error('Game dealer not found.');
-
-  newGame.gameResults = [...newGame.gameResults.slice(0, newGame.gameResults.length - 1)];
-  const player1Hand = lastGameResult.tricks
-    .map((t) => t.cardsPlayed.filter((c) => c.player === newGame.player1).map((c) => c.card))
-    .flat();
-  const player2Hand = lastGameResult.tricks
-    .map((t) => t.cardsPlayed.filter((c) => c.player === newGame.player2).map((c) => c.card))
-    .flat();
-  const player3Hand = lastGameResult.tricks
-    .map((t) => t.cardsPlayed.filter((c) => c.player === newGame.player3).map((c) => c.card))
-    .flat();
-  const player4Hand = lastGameResult.tricks
-    .map((t) => t.cardsPlayed.filter((c) => c.player === newGame.player4).map((c) => c.card))
-    .flat();
-
-  newGame.player1.assignCards = player1Hand;
-  newGame.player2.assignCards = player2Hand;
-  newGame.player3.assignCards = player3Hand;
-  newGame.player4.assignCards = player4Hand;
-  newGame.maker = null;
-  newGame.loner = false;
-  newGame.currentPlayer = getPlayerRotation(newGame.gamePlayers, newGame.dealer)[0];
-
-  if (newGame.discard && !lastGameResult.trumpWasNamed && newGame.trump) {
-    newGame.dealer.assignCards = [
-      ...newGame.dealer.availableCards.filter((c) => c !== newGame.trump),
-      newGame.discard
-    ];
-  } else if (newGame.turnedDown) {
-    newGame.trump = newGame.turnedDown;
-  }
-
-  newGame.player1.orderHand(newGame.trump);
-  newGame.player2.orderHand(newGame.trump);
-  newGame.player3.orderHand(newGame.trump);
-  newGame.player4.orderHand(newGame.trump);
-
-  return newGame;
-};
-
 const getCardsAvailableToPlay = (game: EuchreGameInstance, leadCard: Card | null, playerCards: Card[]) => {
   if (!game.trump) throw new Error('Trump card not found for cards available to play.');
 
@@ -879,10 +701,6 @@ const getCardsAvailableToPlay = (game: EuchreGameInstance, leadCard: Card | null
 export {
   determineCurrentWinnerForTrick,
   getGameStateForNextHand,
-  isGameOver,
-  handleGameCardPlayed,
-  playGameCard,
   didPlayerFollowSuit,
-  reverseLastHandPlayed,
   getCardsAvailableToPlay
 };

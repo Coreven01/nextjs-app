@@ -19,7 +19,10 @@ export default function GameModal({ children, className, durationMs, ...rest }: 
   return (
     <div
       ref={element}
-      className={clsx(`transition-opacity ${getDurationClass(durationMs)} ease-in-out`, className)}
+      className={clsx(
+        `shadow-md shadow-black transition-opacity ${getDurationClass(durationMs)} ease-in-out`,
+        className
+      )}
       {...rest}
     >
       {children}

@@ -16,6 +16,11 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      backgroundImage: {
+        wooden1: "url('/wooden/wooden2.jpg'),url('/wooden/wooden3.jpg')",
+        wooden2: "url('/wooden/wooden1.jpg'),url('/wooden/wooden4.jpg')",
+        wooden3: "url('/wooden/wooden5.jpg'),url('/wooden/wooden6.jpg')"
+      },
       gridTemplateColumns: {
         '13': 'repeat(13, minmax(0, 1fr))'
       },

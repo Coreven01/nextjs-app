@@ -1,4 +1,4 @@
-import { GameEvent } from '@/app/hooks/euchre/useEventLog';
+import { GameEvent, GameEventType } from '@/app/hooks/euchre/useEventLog';
 import { BidResult, EuchreGameInstance, EuchrePlayer, EuchreSettings } from './definitions';
 
 const ENABLE_LOGGING = true;
@@ -26,7 +26,7 @@ export function logDebugEvent(
 }
 
 export function createEvent(
-  game?: EuchreGameInstance,
+  type: GameEventType,
   settings?: EuchreSettings,
   player?: EuchrePlayer,
   message?: string,
@@ -35,7 +35,7 @@ export function createEvent(
   const retval: GameEvent = {
     id: 0,
     time: new Date().toLocaleTimeString(),
-    type: 'i',
+    type: type,
     message: message,
     player: player?.name,
     team: player?.team,
@@ -43,4 +43,15 @@ export function createEvent(
   };
 
   return retval;
+}
+
+/** Create range of numbers between the given start and end. Includes both start and end value. */
+export function createRange(start: number, end: number): number[] {
+  const result = [];
+
+  for (let i = start; i <= end; i++) {
+    result.push(i);
+  }
+
+  return result;
 }

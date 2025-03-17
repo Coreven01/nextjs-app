@@ -8,6 +8,7 @@ import {
   Suit,
   LEFT_BOWER_VALUE
 } from './definitions';
+import { createRange } from './util';
 
 /** Create default euchre game with default players and dummy cards. */
 export function createEuchreGame(): EuchreGameInstance {
@@ -128,17 +129,6 @@ export function shuffleDeck(deck: Card[]): Card[] {
   return newDeck;
 }
 
-/** Create range of numbers between the givent start and end */
-function createRange(start: number, end: number): number[] {
-  const result = [];
-
-  for (let i = start; i <= end; i++) {
-    result.push(i);
-  }
-
-  return result;
-}
-
 /** Get player number and card from the given string. Used to convert a card's element ID back into usable information. */
 export function getPlayerAndCard(playerInfo: string): { playerNumber: number; index: number } {
   if (!playerInfo) return { playerNumber: 0, index: -1 };
@@ -239,18 +229,13 @@ export function getCardValueBySuit(card: Card, trumpCard: Card | null) {
 }
 
 /** */
-export function getSuitCount(
-  cards: Card[],
-  trumpCard: Card | null
-): { suit: Suit; count: number }[] {
+export function getSuitCount(cards: Card[], trumpCard: Card | null): { suit: Suit; count: number }[] {
   const retval: { suit: Suit; count: number }[] = [];
 
   cards.map((c) => {
     const isLeftBower = trumpCard ? cardIsLeftBower(c, trumpCard) : false;
     const suitForCard = isLeftBower && trumpCard ? trumpCard.suit : c.suit;
-    const value: { suit: Suit; count: number } | undefined = retval.find(
-      (val) => val.suit === suitForCard
-    );
+    const value: { suit: Suit; count: number } | undefined = retval.find((val) => val.suit === suitForCard);
 
     if (value) value.count += 1;
     else retval.push({ suit: suitForCard, count: 1 });
@@ -263,10 +248,11 @@ export function cardIsLeftBower(card: Card, trumpCard: Card): boolean {
   return card.color === trumpCard.color && card.value === 'J' && card.suit !== trumpCard.suit;
 }
 
-export function getHighAndLow(
-  playerHand: Card[],
-  trumpCard: Card
-): { high: Card | null; low: Card | null } {
+export function cardIsRightBower(card: Card, trumpCard: Card): boolean {
+  return card.value === 'J' && card.suit === trumpCard.suit;
+}
+
+export function getHighAndLow(playerHand: Card[], trumpCard: Card): { high: Card | null; low: Card | null } {
   return getHighAndLowFromCards(playerHand, trumpCard);
 }
 
@@ -277,8 +263,7 @@ export function getHighAndLowForSuit(
 ): { high: Card | null; low: Card | null } {
   const hand = playerHand.filter(
     (c) =>
-      c.suit === suit ||
-      (trumpCard.color === getCardColorFromSuit(suit) && cardIsLeftBower(c, trumpCard))
+      c.suit === suit || (trumpCard.color === getCardColorFromSuit(suit) && cardIsLeftBower(c, trumpCard))
   );
 
   return getHighAndLowFromCards(hand, trumpCard);
@@ -287,11 +272,17 @@ export function getHighAndLowForSuit(
 export function getHighAndLowExcludeSuit(
   playerHand: Card[],
   trumpCard: Card,
-  excludeSuit: Suit
+  excludeSuits: Suit[]
 ): { high: Card | null; low: Card | null } {
-  let hand = playerHand.filter((c) => c.suit !== excludeSuit);
+  const excludeLeftFromHand = excludeSuits.includes(trumpCard.suit);
 
-  if (trumpCard.suit === excludeSuit) hand = hand.filter((c) => !cardIsLeftBower(c, trumpCard));
+  const hand = playerHand.filter((c) => {
+    const cardIsLeft = cardIsLeftBower(c, trumpCard);
+    if (excludeLeftFromHand && cardIsLeft) return false;
+    if (!cardIsLeft && excludeSuits.includes(c.suit)) return false;
+
+    return true;
+  });
 
   return getHighAndLowFromCards(hand, trumpCard);
 }

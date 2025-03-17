@@ -4,6 +4,7 @@ import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/li
 import { getPlayerAndCard } from '@/app/lib/euchre/game';
 import { getCardsAvailableToPlay } from '@/app/lib/euchre/game-play-logic';
 import Image from 'next/image';
+import GameCard from '../game/game-card';
 
 type Props = {
   game: EuchreGameInstance;
@@ -48,15 +49,15 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
 
     images.push(
       <div className={`relative ${hidden}`} key={keyval}>
-        <Image
-          id={cardval}
-          onClick={isAvailable ? () => handleCardClick(cardval, player) : () => null}
-          className={`${getCardCssForPlayerLocation(gameFlow, player, card.index, isAvailable)}`}
-          quality={100}
+        <GameCard
+          enableShadow={true}
+          card={card}
           width={width}
           height={height}
           src={shouldShowHandValues ? getEncodedCardSvg(card, player.location, !isAvailable) : cardBackSvg}
-          alt="Game Card"
+          id={cardval}
+          onClick={isAvailable ? () => handleCardClick(cardval, player) : () => null}
+          className={`${getCardCssForPlayerLocation(gameFlow, player, card.index, isAvailable)}`}
         />
       </div>
     );

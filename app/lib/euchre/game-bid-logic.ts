@@ -1,14 +1,6 @@
 import { BidResult, Card, EuchreGameInstance, EuchrePlayer, Suit } from './definitions';
 import { cardIsLeftBower, getCardValue, getSuitCount } from './game';
-
-interface GameBidLogic {
-  trumpCardCount: number;
-  offSuitAceCount: number;
-  playerHasRight: boolean;
-  playerHasLeft: boolean;
-  suitsInHand: number;
-  firstRoundOfBidding: boolean;
-}
+import { GameBidLogic } from './logic-definitions';
 
 /** Return a object of important values when making a decision during the bidding process.  */
 function getGameBidLogic(playerCards: Card[], flipCard: Card, firstRoundOfBidding: boolean): GameBidLogic {
@@ -96,7 +88,8 @@ function getBidResult(
   score += getPositiveModifierForBid(game, potentialTrump, gameLogic);
   score -= getNegativeModifierForBid(game, potentialTrump, gameLogic);
   score += getRiskScoreForBid(game, gameLogic);
-  retval.handScore = score;
+  const roundValue = 25 - ((score % 25) % 25);
+  retval.handScore = score + (roundValue <= 10 ? roundValue : -(25 - roundValue));
 
   return retval;
 }
@@ -157,17 +150,11 @@ function getNegativeModifierForBid(game: EuchreGameInstance, flipCard: Card, gam
 function getRiskScoreForBid(game: EuchreGameInstance, gameLogic: GameBidLogic): number {
   let score = 0;
 
-  const currentTeam = game.gameResults
-    .filter((t) => t.teamWon === game.currentPlayer?.team)
-    .map((t) => t.points)
-    .reduce((acc, curr) => acc + curr, 0);
-
-  const opposingTeam = game.gameResults
-    .filter((t) => t.teamWon !== game.currentPlayer?.team)
-    .map((t) => t.points)
-    .reduce((acc, curr) => acc + curr, 0);
-
-  const difference = opposingTeam - currentTeam;
+  const team = game.currentPlayer?.team ?? 1;
+  const opposingTeam = team === 1 ? 2 : 1;
+  const currentTeamPoints = game.teamPoints(team);
+  const opposingTeamPoints = game.teamPoints(opposingTeam);
+  const difference = opposingTeamPoints - currentTeamPoints;
 
   if (difference >= 4) score += 25;
 
@@ -176,8 +163,6 @@ function getRiskScoreForBid(game: EuchreGameInstance, gameLogic: GameBidLogic): 
 
 function determineDiscard(game: EuchreGameInstance, player: EuchrePlayer): Card {
   if (!game.trump) throw Error('Unable to determine discard. Trump card not found.');
-
-  //const gameLogicResult = getGameLogic(game, game.trump, false);
 
   let lowestScore = 10000;
   let lowCard: Card | undefined;

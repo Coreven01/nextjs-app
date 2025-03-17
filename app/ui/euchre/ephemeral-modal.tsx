@@ -26,11 +26,11 @@ export default function EphemeralModal({
       const current = element.current;
 
       if (current && (fadeType === 'in' || fadeType === 'both'))
-        setTimeout(() => current.classList.add('opacity-100'), 25);
+        setTimeout(() => current.classList.add('!opacity-100'), 25);
       if (current && fadeType === 'out') {
         setTimeout(() => {
           current.classList.remove('opacity-100');
-          current.classList.add('opacity-0');
+          current.classList.add('!opacity-0');
         }, 25);
       }
 
@@ -40,7 +40,7 @@ export default function EphemeralModal({
       if (fadeType === 'both') {
         await new Promise((resolve) => setTimeout(resolve, delay + duration));
 
-        if (current) setTimeout(() => current.classList.remove('opacity-100'), 25);
+        if (current) setTimeout(() => current.classList.remove('!opacity-100'), 25);
       }
     };
 
@@ -50,7 +50,16 @@ export default function EphemeralModal({
   return (
     <div
       ref={element}
-      className={clsx(`transition-opacity ${getDurationClass(durationMs)} ease-in-out`, className)}
+      className={clsx(
+        `transition-opacity ${getDurationClass(durationMs)} ease-in-out`,
+        className,
+        {
+          'opacity-0': fadeType === 'in' || fadeType === 'both'
+        },
+        {
+          'opacity-100': fadeType === 'out'
+        }
+      )}
       {...rest}
     >
       {children}

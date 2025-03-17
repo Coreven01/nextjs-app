@@ -6,14 +6,21 @@ import Image from 'next/image';
 import { useState } from 'react';
 import PromptSelection from './prompt-selection';
 import GamePrompt from '../game/game-prompt';
+import clsx from 'clsx';
 
-type Props = {
+interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   pickedUpCard: Card;
   playerHand: Card[];
   onDiscardSubmit: (discard: Card) => void;
-};
+}
 
-export default function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmit }: Props) {
+export default function DiscardPrompt({
+  pickedUpCard,
+  playerHand,
+  onDiscardSubmit,
+  className,
+  ...rest
+}: DivProps) {
   const [discardSelection, setDiscardSelection] = useState<string | null>(null);
   const submitEnabled = discardSelection !== null;
 
@@ -33,9 +40,9 @@ export default function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmi
   };
 
   return (
-    <GamePrompt>
+    <GamePrompt {...rest} className={clsx('bg-green-950', className)}>
       <div className="bg-stone-900 p-2">
-        <div className="grid grid-rows-[28px,1fr,35px] grid-cols-[130px,100px] gap-1">
+        <div className="grid grid-rows-[28px,1fr,30px] grid-cols-[130px,100px] gap-1">
           <div
             title={`Choose which card to discard`}
             className="flex items-center justify-center col-span-2 cursor-default"
@@ -54,13 +61,13 @@ export default function DiscardPrompt({ pickedUpCard, playerHand, onDiscardSubmi
               title={getCardFullName(pickedUpCard)}
             />
           </div>
-          <div className="bg-green-950 border border-white p-2 justify-center">
+          <div className="p-1 justify-center">
             <CardSelection onSelectionChanged={handleSelectionChanged} playerHand={playerHand} />
           </div>
 
           <button
             onClick={() => handleDiscardSubmit()}
-            className="col-span-2 border border-white hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+            className="col-span-2 border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
             disabled={!submitEnabled}
           >
             Discard Selected

@@ -28,8 +28,11 @@ const baseCard: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <defs
-     id="defs4" />
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="5" dy="5" stdDeviation="5" flood-color="rgba(0, 0, 0, 0.5)" />
+    </filter>
+  </defs>
     `;
 
 const getBaseCardColor = (color: string, opacity: number): string => {
@@ -45,7 +48,7 @@ const getBaseCardColor = (color: string, opacity: number): string => {
       x="1.2400337"
       y="1.3659784" />`;
 };
-
+// filter="url(#shadow)"
 const baseCardSide: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    width="150"

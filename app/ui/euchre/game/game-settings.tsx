@@ -1,17 +1,12 @@
 'use client';
 
 import {
-  Card,
-  EuchreCard,
   EuchreSettings,
-  EuchreTrick,
   GAME_SPEED_MAP,
   GameSpeed,
-  Suit,
   TEAM_COLOR_MAP,
   TeamColor
 } from '@/app/lib/euchre/definitions';
-import { createEuchreGame } from '@/app/lib/euchre/game';
 import { useEffect, useRef, useState } from 'react';
 
 type Props = {
@@ -79,55 +74,53 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
   };
 
   const handleTestButtonClick = () => {
-    const game = createEuchreGame();
-    game.currentPlayer = game.player1;
-    game.dealer = game.player1;
-    game.player1.assignCards = [
-      new Card('♠', 'Q'),
-      new Card('♠', 'J'),
-      new Card('♣', 'J'),
-      new Card('♣', 'K'),
-      new Card('♥', 'A')
-    ];
-    game.trump = new Card('♠', '9');
-    const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
+    // const game = createEuchreGame();
+    // game.currentPlayer = game.player1;
+    // game.dealer = game.player1;
+    // game.player1.assignCards = [
+    //   new Card('♠', 'Q'),
+    //   new Card('♠', 'J'),
+    //   new Card('♣', 'J'),
+    //   new Card('♣', 'K'),
+    //   new Card('♥', 'A')
+    // ];
+    // game.trump = new Card('♠', '9');
+    // const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
   };
 
   const handleTestButtonClick2 = () => {
-    const suits: Suit[] = ['♠', '♣', '♥', '♦'];
-    const game = createEuchreGame();
-    game.currentPlayer = game.player1;
-    game.dealer = game.player1;
-    const t1 = new EuchreTrick(1);
-    t1.cardsPlayed.push(new EuchreCard(game.player2, new Card('♦', 'A')));
-    game.currentTricks.push(new EuchreTrick(1));
-    game.player1.assignCards = [
-      new Card('♦', '9'),
-      new Card('♥', 'Q'),
-      new Card('♥', 'J'),
-      new Card('♠', 'J'),
-      new Card('♣', '10')
-    ];
-    game.trump = new Card('♥', '2');
-
-    const computerChoice = game.currentPlayer.determineCardToPlay(game);
+    // const suits: Suit[] = ['♠', '♣', '♥', '♦'];
+    // const game = createEuchreGame();
+    // game.currentPlayer = game.player1;
+    // game.dealer = game.player1;
+    // const t1 = new EuchreTrick(1);
+    // t1.cardsPlayed.push(new EuchreCard(game.player2, new Card('♦', 'A')));
+    // game.currentTricks.push(new EuchreTrick(1));
+    // game.player1.assignCards = [
+    //   new Card('♦', '9'),
+    //   new Card('♥', 'Q'),
+    //   new Card('♥', 'J'),
+    //   new Card('♠', 'J'),
+    //   new Card('♣', '10')
+    // ];
+    // game.trump = new Card('♥', '2');
+    // const computerChoice = game.currentPlayer.determineCardToPlay(game);
   };
 
   const handleTestButtonClick3 = () => {
-    const game = createEuchreGame();
-    game.currentPlayer = game.player1;
-    game.dealer = game.player1;
-    game.currentTricks.push(new EuchreTrick(1));
-    game.player1.assignCards = [
-      new Card('♥', '9'),
-      new Card('♥', 'A'),
-      new Card('♣', 'J'),
-      new Card('♥', 'K'),
-      new Card('♠', 'Q')
-    ];
-    game.trump = new Card('♠', 'J');
-
-    const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
+    // const game = createEuchreGame();
+    // game.currentPlayer = game.player1;
+    // game.dealer = game.player1;
+    // game.currentTricks.push(new EuchreTrick(1));
+    // game.player1.assignCards = [
+    //   new Card('♥', '9'),
+    //   new Card('♥', 'A'),
+    //   new Card('♣', 'J'),
+    //   new Card('♥', 'K'),
+    //   new Card('♠', 'Q')
+    // ];
+    // game.trump = new Card('♠', 'J');
+    // const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
   };
 
   return (

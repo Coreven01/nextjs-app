@@ -3,7 +3,7 @@
 import { TeamColor } from '@/app/lib/euchre/definitions';
 import { useCallback, useRef, useState } from 'react';
 
-export type GameEventType = 'i' | 'e' | 'd';
+export type GameEventType = 'i' | 'e' | 'd' | 'v';
 
 export interface GameEvent {
   id: number;
@@ -24,7 +24,7 @@ export function useEventLog() {
       event.id = counter.current;
       counter.current++;
 
-      if (events.length > 100) {
+      if (events.length > 200) {
         setEvents([...events.slice(1), event]);
       } else {
         setEvents([...events, event]);

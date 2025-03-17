@@ -4,7 +4,6 @@ import {
   BidResult,
   Card,
   EuchreGameInstance,
-  EuchrePlayer,
   EuchreSettings,
   EuchreTrick,
   GameSpeed
@@ -12,6 +11,7 @@ import {
 import { createEuchreGame, createShuffledDeck, getPlayerRotation } from './game';
 import { logDebugEvent } from './util';
 import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { InitDealResult, ShuffleResult } from './logic-definitions';
 
 const INIT_GAME_SETTINGS: EuchreSettings = {
   shouldAnimate: false,
@@ -23,16 +23,6 @@ const INIT_GAME_SETTINGS: EuchreSettings = {
   allowRenege: true,
   autoPlayLastCard: true
 };
-
-interface InitDealResult {
-  transformations: CardTransformation[][];
-  newDealer: EuchrePlayer;
-}
-
-interface ShuffleResult {
-  transformations: CardTransformation[][];
-  game: EuchreGameInstance;
-}
 
 const getGameStateForInitialDeal = (
   gameState: GameFlowState,
@@ -65,8 +55,7 @@ const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
 
   if (cancel) return gameInstance;
 
-  gameInstance.dealer = gameInstance.player1;
-  gameInstance.currentPlayer = gameInstance.player1;
+  gameInstance.assignDealerAndPlayer(gameInstance.player1);
   gameInstance.deck = createShuffledDeck(5);
 
   return gameInstance;
@@ -168,9 +157,9 @@ const shuffleAndDealHand = (
   const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
   newGame.deck = createShuffledDeck(5);
   newGame.dealCards();
-  newGame.gamePlayers.forEach((p) => p.orderHand(null));
+  newGame.gamePlayers.forEach((p) => p.sortCards(null));
   newGame.verifyDealtCards();
-  newGame.currentPlayer = rotation[0];
+  newGame.assignPlayer(rotation[0]);
   newGame.trump = newGame.kitty[0];
   retval.transformations.push(getTransformationsForDealCardsForHand(newGame, gameSettings));
 
@@ -255,24 +244,18 @@ const orderTrump = (gameInstance: EuchreGameInstance | undefined, result: BidRes
   newGame.maker = newGame.currentPlayer;
   newGame.loner = result.loner;
   const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, newGame.playerSittingOut);
-
-  let round = 1;
-
-  if (newGame.gameResults.length > 0) round = newGame.gameResults.at(-1)?.roundNumber ?? 1;
-
-  const newTrick = new EuchreTrick(round);
-  newGame.currentTricks.push(newTrick);
-  newGame.currentPlayer = rotation[0];
+  newGame.addTrickForNewHand();
+  newGame.assignPlayer(rotation[0]);
 
   if (result.calledSuit) newGame.trump = new Card(result.calledSuit, 'JK');
-  newGame.gamePlayers.forEach((p) => p.orderHand(newGame.trump));
+  newGame.gamePlayers.forEach((p) => p.sortCards(newGame.trump));
 
   return newGame;
 };
 
-const incrementSpeed = (gameSpeed: GameSpeed): GameSpeed => {
+const incrementSpeed = (gameSpeed: GameSpeed, offset: number): GameSpeed => {
   if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
-    const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + 1) ?? 150;
+    const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + offset) ?? 150;
 
     if (retval < gameSpeed) return gameSpeed;
     else return retval;
@@ -281,9 +264,9 @@ const incrementSpeed = (gameSpeed: GameSpeed): GameSpeed => {
   return gameSpeed;
 };
 
-const decrementSpeed = (gameSpeed: GameSpeed): GameSpeed => {
+const decrementSpeed = (gameSpeed: GameSpeed, offset: number): GameSpeed => {
   if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
-    const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) - 1) ?? 4000;
+    const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) - offset) ?? 4000;
 
     if (retval > gameSpeed) return gameSpeed;
     else return retval;

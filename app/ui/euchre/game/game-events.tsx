@@ -10,8 +10,9 @@ interface Props {
   className?: string;
   events: GameEvent[];
   onClear: () => void;
+  onClose: () => void;
 }
-export default function GameEvents({ className, events, onClear }: Props) {
+export default function GameEvents({ className, events, onClear, onClose }: Props) {
   const draggableRef: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
   const divRef = useRef<HTMLDivElement>(null);
 
@@ -23,6 +24,10 @@ export default function GameEvents({ className, events, onClear }: Props) {
 
   const handleClear = () => {
     onClear();
+  };
+
+  const handleClose = () => {
+    onClose();
   };
 
   const handleDrag = (e: DraggableEvent, data: object) => {
@@ -40,7 +45,7 @@ export default function GameEvents({ className, events, onClear }: Props) {
       <div ref={draggableRef} className="cursor-move flex w-[500px]">
         <GameBorder className="w-full relative">
           <h2 className="text-yellow-200 font-bold text-center">Events</h2>
-          <div ref={divRef} className="p-2 border border-white m-1 max-h-[200px] overflow-y-auto text-sm">
+          <div ref={divRef} className="p-2 border border-white m-1 h-[200px] overflow-y-auto text-sm">
             <ul>
               {events.map((e) => {
                 return (
@@ -51,9 +56,14 @@ export default function GameEvents({ className, events, onClear }: Props) {
               })}
             </ul>
           </div>
-          <button className="absolute bottom-2" onClick={handleClear}>
-            Clear
-          </button>
+          <div className="flex gap-2 items-center justify-center">
+            <button className="" onClick={handleClear}>
+              Clear
+            </button>
+            <button className="" onClick={handleClose}>
+              Close
+            </button>
+          </div>
         </GameBorder>
       </div>
     </Draggable>

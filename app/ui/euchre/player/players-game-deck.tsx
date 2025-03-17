@@ -39,7 +39,7 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
       classForLocation = 'items-end justify-start';
       break;
     case 2:
-      playerInfoClass = 'absolute -left-10';
+      playerInfoClass = 'absolute -left-10 bottom-0';
       playerInfoSize = 'h-full min-w-8';
       classForLocation = 'justify-start';
       break;
