@@ -5,31 +5,32 @@ import {
   Card,
   EuchreGameInstance,
   EuchreSettings,
-  EuchreTrick,
   GameSpeed
 } from './definitions';
 import { createEuchreGame, createShuffledDeck, getPlayerRotation } from './game';
 import { logDebugEvent } from './util';
-import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import { InitDealResult, ShuffleResult } from './logic-definitions';
 
 const INIT_GAME_SETTINGS: EuchreSettings = {
   shouldAnimate: false,
   debugAlwaysPass: false,
-  gameSpeed: 700,
+  gameSpeed: 1000,
   showHandResult: true,
   teamOneColor: 'blue',
   teamTwoColor: 'red',
   allowRenege: true,
-  autoPlayLastCard: true
+  autoFollowSuit: true,
+  debugShowHandsWhenPassed: false,
+  debugShowPlayersHand: false
 };
 
 const getGameStateForInitialDeal = (
-  gameState: GameFlowState,
+  gameState: EuchreGameFlowState,
   settings: EuchreSettings,
   game: EuchreGameInstance
 ) => {
-  const newGameFlow: GameFlowState = {
+  const newGameFlow: EuchreGameFlowState = {
     ...gameState,
     hasGameStarted: true,
     shouldShowDeckImages: settings.shouldAnimate ? [{ player: game.player1, value: true }] : [],
@@ -67,7 +68,7 @@ const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
  */
 const dealCardsForDealer = (
   gameInstance: EuchreGameInstance,
-  gameState: GameFlowState,
+  gameState: EuchreGameFlowState,
   gameSettings: EuchreSettings
 ): InitDealResult | null => {
   if (!gameState.hasGameStarted) return null;

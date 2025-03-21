@@ -23,7 +23,7 @@ export default function HandResults({
   ...rest
 }: Props) {
   return (
-    <GamePrompt {...rest} className={clsx('bg-stone-800', className)}>
+    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
         <h3 className="text-lg text-center font-bold text-yellow-200">Hand Results</h3>
         <div className="p-1 ">

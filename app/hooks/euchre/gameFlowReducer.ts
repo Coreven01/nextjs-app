@@ -7,6 +7,7 @@ interface PlayerDisplayValue {
 
 export enum EuchreGameFlow {
   AWAIT_USER_INPUT = 1,
+  WAIT,
   BEGIN_INIT_DEAL,
   END_INIT_DEAL,
   BEGIN_DEAL_FOR_DEALER,
@@ -29,6 +30,7 @@ export enum EuchreGameFlow {
 
 export enum EuchreFlowActionType {
   UPDATE_ALL = 1,
+  SET_WAIT,
   SET_AWAIT_USER_INPUT,
   SET_BEGIN_INIT_DEAL,
   SET_END_INIT_DEAL,
@@ -72,9 +74,10 @@ const actionTypeMap: Map<EuchreFlowActionType, EuchreGameFlow> = new Map([
   [EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP, EuchreGameFlow.BEGIN_BID_FOR_TRUMP],
   [EuchreFlowActionType.SET_END_BID_FOR_TRUMP, EuchreGameFlow.END_BID_FOR_TRUMP],
   [EuchreFlowActionType.SET_BEGIN_PLAY_CARD_RESULT, EuchreGameFlow.BEGIN_PLAY_CARD_RESULT],
-  [EuchreFlowActionType.SET_END_PLAY_CARD_RESULT, EuchreGameFlow.END_PLAY_CARD_RESULT]
+  [EuchreFlowActionType.SET_END_PLAY_CARD_RESULT, EuchreGameFlow.END_PLAY_CARD_RESULT],
+  [EuchreFlowActionType.SET_WAIT, EuchreGameFlow.WAIT]
 ]);
-export interface GameFlowState {
+export interface EuchreGameFlowState {
   /** Boolean value to identify if a game has yet been created. */
   hasGameStarted: boolean;
   hasFirstBiddingPassed: boolean;
@@ -93,10 +96,10 @@ export interface GameFlowState {
 
 export interface GameFlowAction {
   type: EuchreFlowActionType;
-  payload?: GameFlowState;
+  payload?: EuchreGameFlowState;
 }
 
-export const initialGameFlowState: GameFlowState = {
+export const INIT_GAME_FLOW_STATE: EuchreGameFlowState = {
   hasGameStarted: false,
   shouldShowDeckImages: [],
   shouldShowHandImages: [],
@@ -106,7 +109,10 @@ export const initialGameFlowState: GameFlowState = {
   gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL
 };
 
-export function gameFlowStateReducer(state: GameFlowState, action: GameFlowAction): GameFlowState {
+export function gameFlowStateReducer(
+  state: EuchreGameFlowState,
+  action: GameFlowAction
+): EuchreGameFlowState {
   if (action.type === EuchreFlowActionType.UPDATE_ALL) {
     return { ...state, ...action.payload };
   } else if (actionTypeMap.get(action.type)) {

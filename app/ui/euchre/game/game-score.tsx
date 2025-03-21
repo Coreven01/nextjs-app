@@ -1,14 +1,17 @@
-import Draggable, { DraggableEvent, DraggableEventHandler } from 'react-draggable';
+import Draggable, { DraggableEvent } from 'react-draggable';
 import { RefObject, useRef } from 'react';
 import GameBorder from './game-border';
-import { EuchreGameInstance } from '@/app/lib/euchre/definitions';
+import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
+import PlayerColor from '../player/player-team-color';
+import { getSuitName } from '@/app/lib/euchre/card-data';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   game: EuchreGameInstance;
+  settings: EuchreSettings;
 }
 
-export default function GameScore({ children, className, game, ...rest }: DivProps) {
+export default function GameScore({ children, className, game, settings, ...rest }: DivProps) {
   const teamOnePoints = game.teamPoints(1);
   const teamTwoPoints = game.teamPoints(2);
   const draggableRef: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
@@ -25,12 +28,19 @@ export default function GameScore({ children, className, game, ...rest }: DivPro
       onDrag={handleDrag}
     >
       <div ref={draggableRef} className="cursor-move flex max-h-64">
-        <GameBorder>
+        <GameBorder className="shadow-md shadow-black">
           <h3 className="text-yellow-200 font-bold text-center">Score</h3>
           <div className="p-1 text-sm">
-            <div>Team One: {Math.min(teamOnePoints, 10)} / 10</div>
-            <div>Team Two: {Math.min(teamTwoPoints, 10)} / 10</div>
+            <PlayerColor player={game.player1} settings={settings} className="border border-white mb-1 p-1">
+              <div className="bg-stone-900 p-1">Points {Math.min(teamOnePoints, 10)} / 10</div>
+            </PlayerColor>
+            <PlayerColor player={game.player3} settings={settings} className="border border-white mb-1 p-1">
+              <div className="bg-stone-900 p-1">Points {Math.min(teamTwoPoints, 10)} / 10</div>
+            </PlayerColor>
           </div>
+          {game.maker && game.trump && (
+            <div className="p-1 text-sm">Trump {getSuitName(game.trump.suit)}s</div>
+          )}
         </GameBorder>
       </div>
     </Draggable>

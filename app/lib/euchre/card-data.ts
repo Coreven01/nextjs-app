@@ -37,16 +37,16 @@ const baseCard: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 
 const getBaseCardColor = (color: string, opacity: number): string => {
   return `<rect
-      width="97.771812"
-      height="147.51994"
-      rx="7"
-      fill="${color}"
-      fill-opacity="${opacity}"
-      stroke="#000000"
-      stroke-width="1.96118"
-      id="rect1"
-      x="1.2400337"
-      y="1.3659784" />`;
+          width="97.771812"
+          height="147.51994"
+          rx="7"
+          fill="${color}"
+          fill-opacity="${opacity}"
+          stroke="#000000"
+          stroke-width="1.96118"
+          id="rect1"
+          x="1.2400337"
+          y="1.3659784" />`;
 };
 // filter="url(#shadow)"
 const baseCardSide: string = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>

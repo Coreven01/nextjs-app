@@ -73,7 +73,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
   };
 
   return (
-    <GamePrompt {...rest} className={clsx('bg-stone-800', className)}>
+    <GamePrompt {...rest} zIndex={50} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
         <div
           className={`grid ${

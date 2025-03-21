@@ -10,6 +10,13 @@ import {
 import { determineBidLogic, determineDiscard } from './game-bid-logic';
 import { determineCardToPlayLogic, determineCurrentWinnerForTrick } from './game-play-logic';
 
+const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
+const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
+const menuSvg =
+  (true ? arrowDownSvg : arrowUpSvg) +
+  ` bg-no-repeat bg-center bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)]
+dark:bg-[rgba(25,115,25,0.9)] border border-black appearance-none cursor-pointer border rounded w-8 h-8 checked:dark:bg-stone-500`;
+
 const CARD_WIDTH = 100;
 const CARD_HEIGHT = 150;
 export type TeamColor = 'red' | 'blue' | 'orange' | 'yellow' | 'green' | 'white' | 'pink' | 'purple';
@@ -26,10 +33,22 @@ export const TEAM_COLOR_MAP: Map<TeamColor, string> = new Map([
 ]);
 
 export const GAME_SPEED_MAP = new Map<string, GameSpeed>([
-  ['Fast', 300],
-  ['Normal', 700],
-  ['Slow', 1000]
+  ['Faster', 300],
+  ['Fast', 700],
+  ['Normal', 1000],
+  ['Slow', 2000],
+  ['Slower', 4000]
 ]);
+
+export enum PromptType {
+  BID,
+  GAME_RESULT,
+  HAND_RESULT,
+  DISCARD
+}
+export type PromptValue = {
+  type: PromptType;
+};
 
 export const AVAILABLE_GAME_SPEED: GameSpeed[] = [150, 300, 700, 1000, 2000, 3000, 4000];
 export const AVAILABLE_SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
@@ -68,17 +87,20 @@ export interface EuchreHandResult {
   loner: boolean;
   trump: Card;
   trumpWasNamed: boolean;
+  defenders: EuchrePlayer[];
 }
 
 export interface EuchreSettings {
   shouldAnimate: boolean;
-  debugAlwaysPass: boolean;
   gameSpeed: GameSpeed;
   showHandResult: boolean;
   teamOneColor: TeamColor;
   teamTwoColor: TeamColor;
   allowRenege: boolean;
-  autoPlayLastCard: boolean;
+  autoFollowSuit: boolean;
+  debugShowPlayersHand: boolean;
+  debugShowHandsWhenPassed: boolean;
+  debugAlwaysPass: boolean;
 }
 
 export interface BidResult {
@@ -502,7 +524,8 @@ class EuchreGameInstance {
       roundNumber: this.currentRound,
       loner: this.loner,
       trump: this.trump ?? new Card('♠', 'P'),
-      trumpWasNamed: this.turnedDown !== null
+      trumpWasNamed: this.turnedDown !== null,
+      defenders: this.gamePlayers.filter((p) => p.team !== teamWon)
     };
 
     return retval;

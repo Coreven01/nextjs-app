@@ -2,13 +2,13 @@ import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/li
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
 import GameDeck from '../game/game-deck';
-import { GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 
 type Props = {
   player: EuchrePlayer;
   game: EuchreGameInstance;
   settings: EuchreSettings;
-  gameFlow: GameFlowState;
+  gameFlow: EuchreGameFlowState;
   dealDeck: Card[];
   onCardClick: (card: Card) => void;
 };

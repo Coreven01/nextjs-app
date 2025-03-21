@@ -3,7 +3,8 @@
 import { TeamColor } from '@/app/lib/euchre/definitions';
 import { useCallback, useRef, useState } from 'react';
 
-export type GameEventType = 'i' | 'e' | 'd' | 'v';
+/** Information, Warn, Error, Debug, Verbose */
+export type GameEventType = 'i' | 'w' | 'e' | 'd' | 'v';
 
 export interface GameEvent {
   id: number;

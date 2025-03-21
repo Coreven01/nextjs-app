@@ -5,20 +5,20 @@ import GameBorder from './game-border';
 import WoodenBoard from '../wooden-board';
 
 type Props = {
-  playerInfoState: PlayerNotificationState;
+  playerNotification: PlayerNotificationState;
 };
 
-export default function GameTable({ playerInfoState }: Props) {
+export default function GameTable({ playerNotification }: Props) {
   const renderOrder = [
-    playerInfoState.player2GameInfo,
-    playerInfoState.player3GameInfo,
-    playerInfoState.centerGameInfo,
-    playerInfoState.player4GameInfo,
-    playerInfoState.player1GameInfo
+    playerNotification.player2GameInfo,
+    playerNotification.player3GameInfo,
+    playerNotification.centerGameInfo,
+    playerNotification.player4GameInfo,
+    playerNotification.player1GameInfo
   ];
 
   return (
-    <GameBorder innerClass="bg-yellow-800 relative">
+    <GameBorder innerClass="bg-yellow-800 relative" className="shadow-md shadow-black">
       <WoodenBoard className="absolute h-full w-full top-0 left-0 overflow-hidden" rows={25} />
       <div className="grid grid-flow-col grid-rows-[150px,150px,150px] gap-1 h-full w-full text-black grid-cols-[1fr,175px,1fr]">
         <div id="player2-region" className="col-span-1 col-start-2 relative flex justify-center items-center">

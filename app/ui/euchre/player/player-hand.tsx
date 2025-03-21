@@ -1,4 +1,4 @@
-import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
 import { getPlayerAndCard } from '@/app/lib/euchre/game';
@@ -8,7 +8,7 @@ import GameCard from '../game/game-card';
 
 type Props = {
   game: EuchreGameInstance;
-  gameFlow: GameFlowState;
+  gameFlow: EuchreGameFlowState;
   gameSettings: EuchreSettings;
   player: EuchrePlayer;
   onCardClick: (card: Card) => void;
@@ -28,9 +28,14 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
   const cardBackSvg = player.location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
   let availableCards: Card[];
 
-  if (!gameSettings.allowRenege && player.human && gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT) {
+  if (
+    !gameSettings.allowRenege &&
+    player.human &&
+    gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT &&
+    game.trump
+  ) {
     const leadCard = game.currentTrick?.cardsPlayed.at(0)?.card ?? null;
-    availableCards = getCardsAvailableToPlay(game, leadCard, player.availableCards).map((c) => c.card);
+    availableCards = getCardsAvailableToPlay(game.trump, leadCard, player.availableCards).map((c) => c.card);
   } else {
     availableCards = displayCards;
   }
@@ -50,6 +55,7 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
     images.push(
       <div className={`relative ${hidden}`} key={keyval}>
         <GameCard
+          player={player}
           enableShadow={true}
           card={card}
           width={width}
@@ -67,7 +73,7 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
 }
 
 function getCardCssForPlayerLocation(
-  gameFlow: GameFlowState,
+  gameFlow: EuchreGameFlowState,
   player: EuchrePlayer,
   index: number,
   isAvailable: boolean
@@ -86,7 +92,7 @@ function getCardCssForPlayerLocation(
       : 'cursor-not-allowed';
 
   let retval = '';
-  const baseClasses = `contain relative transition duration-300 ease-in-out ${activeClasses}`;
+  const baseClasses = `contain transition duration-300 ease-in-out ${activeClasses}`;
   switch (player.playerNumber) {
     case 1:
       retval = `${baseClasses} rotate-[${initDeg + rotateVal * index}deg]

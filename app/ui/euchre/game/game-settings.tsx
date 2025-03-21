@@ -7,54 +7,27 @@ import {
   TEAM_COLOR_MAP,
   TeamColor
 } from '@/app/lib/euchre/definitions';
-import { useEffect, useRef, useState } from 'react';
+import { ChangeEvent, useState } from 'react';
 
 type Props = {
-  settings: EuchreSettings | undefined;
+  settings: EuchreSettings;
   onNewGame: () => void;
   onApplySettings: (settings: EuchreSettings) => void;
+  onRunFullGame: () => void;
 };
 
-export default function GameSettings({ settings, onNewGame, onApplySettings }: Props) {
-  const [newGameStart, setNewGameStart] = useState(false);
-  const animate = useRef<HTMLInputElement>(null);
-  const debugAlwaysPass = useRef<HTMLInputElement>(null);
-  const gameSpeed = useRef<HTMLSelectElement>(null);
-  const showHandResult = useRef<HTMLInputElement>(null);
-  const allowRenege = useRef<HTMLInputElement>(null);
-  const autoPlayLastCard = useRef<HTMLInputElement>(null);
-  const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings?.teamOneColor ?? 'blue');
-  const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings?.teamTwoColor ?? 'red');
-
+export default function GameSettings({ settings, onNewGame, onApplySettings, onRunFullGame }: Props) {
+  const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings.teamOneColor ?? 'blue');
+  const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings.teamTwoColor ?? 'red');
   const teamColors = [...TEAM_COLOR_MAP.keys()];
   const gameSpeedValues = [...GAME_SPEED_MAP.entries()];
 
-  useEffect(() => {
-    if (newGameStart) onNewGame();
-  }, [newGameStart, onNewGame]);
-
-  const getSettings = (): EuchreSettings => {
-    const newSettings: EuchreSettings = {
-      ...settings,
-      shouldAnimate: animate.current?.checked ?? true,
-      debugAlwaysPass: debugAlwaysPass.current?.checked ?? true,
-      gameSpeed: (parseInt(gameSpeed.current?.value ?? '300') as GameSpeed) ?? 300,
-      showHandResult: showHandResult.current?.checked ?? true,
-      allowRenege: allowRenege.current?.checked ?? true,
-      teamOneColor: teamOneColor,
-      teamTwoColor: teamTwoColor,
-      autoPlayLastCard: autoPlayLastCard.current?.checked ?? true
-    };
-
-    return newSettings;
-  };
   const handleNewGame = () => {
-    onApplySettings(getSettings());
-    setNewGameStart(true);
+    onNewGame();
   };
 
-  const handleApplySettings = () => {
-    onApplySettings(getSettings());
+  const handleRunTestGame = () => {
+    onRunFullGame();
   };
 
   const handleTeamColorChange = (teamNumber: number, value: TeamColor) => {
@@ -71,6 +44,16 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
       }
       setTeamTwoColor(value);
     }
+
+    onApplySettings({ ...settings, teamOneColor: teamOneColor, teamTwoColor: teamTwoColor });
+  };
+
+  const handleSpeedChanged = (value: string) => {
+    onApplySettings({ ...settings, gameSpeed: parseInt(value) as GameSpeed });
+  };
+
+  const handleCheckChanged = (e: ChangeEvent<HTMLInputElement>) => {
+    onApplySettings({ ...settings, [e.target.name]: e.target.checked });
   };
 
   const handleTestButtonClick = () => {
@@ -124,32 +107,79 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
   };
 
   return (
-    <div>
+    <div className="bg-stone-800 text-white p-1">
       <div className="flex gap-4 my-2 justify-center">
         <div>
           <label>Animate: </label>
-          <input type="checkbox" ref={animate} defaultChecked={settings?.shouldAnimate} />
+          <input
+            type="checkbox"
+            name="shouldAnimate"
+            checked={settings.shouldAnimate}
+            onChange={(e) => handleCheckChanged(e)}
+          />
         </div>
         <div>
           <label>Show Hand Results: </label>
-          <input type="checkbox" ref={showHandResult} defaultChecked={settings?.showHandResult} />
+          <input
+            type="checkbox"
+            name="showHandResult"
+            checked={settings.showHandResult}
+            onChange={(e) => handleCheckChanged(e)}
+          />
         </div>
         <div>
           <label>Allow Renege: </label>
-          <input type="checkbox" ref={allowRenege} defaultChecked={settings?.allowRenege} />
+          <input
+            type="checkbox"
+            name="allowRenege"
+            checked={settings.allowRenege}
+            onChange={(e) => handleCheckChanged(e)}
+          />
         </div>
         <div>
-          <label>Auto Play Last Card: </label>
-          <input type="checkbox" ref={autoPlayLastCard} defaultChecked={settings?.autoPlayLastCard} />
+          <label>Auto Follow Suit: </label>
+          <input
+            type="checkbox"
+            name="autoFollowSuit"
+            checked={settings.autoFollowSuit}
+            onChange={(e) => handleCheckChanged(e)}
+          />
         </div>
         <div>
           <label>Debug Always Pass: </label>
-          <input type="checkbox" ref={debugAlwaysPass} defaultChecked={settings?.debugAlwaysPass} />
+          <input
+            type="checkbox"
+            name="debugAlwaysPass"
+            checked={settings.debugAlwaysPass}
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
+        <div>
+          <label>Debug Show Hands When Passed: </label>
+          <input
+            type="checkbox"
+            name="debugShowHandsWhenPassed"
+            checked={settings.debugShowHandsWhenPassed}
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
+        <div>
+          <label>Debug Show Player Hands: </label>
+          <input
+            type="checkbox"
+            name="debugShowPlayersHand"
+            checked={settings.debugShowPlayersHand}
+            onChange={(e) => handleCheckChanged(e)}
+          />
         </div>
       </div>
       <div className="my-4 flex justify-center gap-2">
         <label>Game Speed: </label>
-        <select className="text-black" ref={gameSpeed} defaultValue={settings?.gameSpeed}>
+        <select
+          value={settings.gameSpeed}
+          className="text-black"
+          onChange={(e) => handleSpeedChanged(e.target.value)}
+        >
           {gameSpeedValues.map((value) => {
             return (
               <option key={value[1]} value={value[1]}>
@@ -185,17 +215,20 @@ export default function GameSettings({ settings, onNewGame, onApplySettings }: P
       </div>
       <div className="flex justify-center gap-2">
         <button className="text-white border border-white p-2" onClick={handleNewGame}>
-          Create Game
+          Start Game
         </button>
-        <button className="text-white border border-white p-2" onClick={handleApplySettings}>
-          Apply Settings
+        <button className="text-white border border-white p-2" onClick={handleRunTestGame}>
+          Run Test Game
         </button>
+        {/* <button className="text-white border border-white p-2" onClick={handleApplySettings}>
+      Apply Settings
+    </button> */}
       </div>
-      <div className="flex justify-center my-2">
-        <button className="text-white border border-white p-2" onClick={handleTestButtonClick2}>
-          Run Test
-        </button>
-      </div>
+      {/* <div className="flex justify-center my-2">
+    <button className="text-white border border-white p-2" onClick={handleTestButtonClick2}>
+      Run Test
+    </button>
+  </div> */}
     </div>
   );
 }

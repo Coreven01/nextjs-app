@@ -18,7 +18,7 @@ import {
   getCardValuesExcludeSuit,
   cardIsRightBower
 } from './game';
-import { EuchreGameFlow, GameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import { GamePlayLogic, OffsuitLogic, TeamLogic, TrickLogic, TrumpLogic } from './logic-definitions';
 
 /** Return a object of important values when making a decision during regular game play.
@@ -614,10 +614,10 @@ function determineCurrentWinnerForTrick(
 }
 
 const getGameStateForNextHand = (
-  gameState: GameFlowState,
+  gameState: EuchreGameFlowState,
   settings: EuchreSettings,
   game: EuchreGameInstance
-): GameFlowState => {
+): EuchreGameFlowState => {
   const showAllCards = game.gamePlayers.filter((p) => !p.human).length === 4;
   const showCardValues = showAllCards
     ? game.gamePlayers.map((p) => {
@@ -629,7 +629,7 @@ const getGameStateForNextHand = (
           return { player: p, value: true };
         });
 
-  const newGameState: GameFlowState = {
+  const newGameState: EuchreGameFlowState = {
     ...gameState,
     hasGameStarted: true,
     shouldShowDeckImages: settings.shouldAnimate ? [{ player: game.player1, value: true }] : [],
@@ -680,18 +680,16 @@ const didPlayerFollowSuit = (game: EuchreGameInstance, playedCard: Card): boolea
   return true;
 };
 
-const getCardsAvailableToPlay = (game: EuchreGameInstance, leadCard: Card | null, playerCards: Card[]) => {
-  if (!game.trump) throw new Error('Trump card not found for cards available to play.');
-
-  const leadCardIsLeftBower = leadCard ? cardIsLeftBower(leadCard, game.trump) : false;
-  const suitToFollow = leadCardIsLeftBower ? game.trump.suit : leadCard?.suit;
-  const suitCount = getSuitCount(playerCards, game.trump);
+const getCardsAvailableToPlay = (trump: Card, leadCard: Card | null, playerCards: Card[]) => {
+  const leadCardIsLeftBower = leadCard ? cardIsLeftBower(leadCard, trump) : false;
+  const suitToFollow = leadCardIsLeftBower ? trump.suit : leadCard?.suit;
+  const suitCount = getSuitCount(playerCards, trump);
   const mustFollowSuit: boolean = suitCount.filter((s) => s.suit === suitToFollow && s.count > 0).length > 0;
 
   // if must follow suit, then only return cards that match the lead card.
   const cardsAvailableToPlay = getCardValuesForSuit(
     playerCards,
-    game.trump,
+    trump,
     mustFollowSuit ? (suitToFollow ?? null) : null
   );
 

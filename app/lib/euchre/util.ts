@@ -3,7 +3,7 @@ import { BidResult, EuchreGameInstance, EuchrePlayer, EuchreSettings } from './d
 
 const ENABLE_LOGGING = true;
 
-export function logBidResult(game: EuchreGameInstance, result: BidResult) {
+function logBidResult(game: EuchreGameInstance, result: BidResult) {
   if (!ENABLE_LOGGING) return;
 
   const logValue = {
@@ -17,7 +17,7 @@ export function logBidResult(game: EuchreGameInstance, result: BidResult) {
   console.table(logValue);
 }
 
-export function logDebugEvent(
+function logDebugEvent(
   message: object | string | null | undefined,
   ...params: (object | string | null | undefined)[]
 ) {
@@ -25,7 +25,7 @@ export function logDebugEvent(
   console.log(message, params);
 }
 
-export function createEvent(
+function createEvent(
   type: GameEventType,
   settings?: EuchreSettings,
   player?: EuchrePlayer,
@@ -46,7 +46,7 @@ export function createEvent(
 }
 
 /** Create range of numbers between the given start and end. Includes both start and end value. */
-export function createRange(start: number, end: number): number[] {
+function createRange(start: number, end: number): number[] {
   const result = [];
 
   for (let i = start; i <= end; i++) {
@@ -55,3 +55,35 @@ export function createRange(start: number, end: number): number[] {
 
   return result;
 }
+
+function isElementFullyVisible(element: HTMLElement, container: HTMLElement) {
+  const elementRect = element.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+
+  const isFullyVisible =
+    elementRect.top >= containerRect.top &&
+    elementRect.left >= containerRect.left &&
+    elementRect.bottom <= containerRect.bottom &&
+    elementRect.right <= containerRect.right;
+
+  return isFullyVisible;
+}
+
+function scrollElementIntoViewIfNeeded(element: HTMLElement, container: HTMLElement) {
+  if (!isElementFullyVisible(element, container)) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'center'
+    });
+  }
+}
+
+export {
+  scrollElementIntoViewIfNeeded,
+  isElementFullyVisible,
+  createEvent,
+  createRange,
+  logDebugEvent,
+  logBidResult
+};

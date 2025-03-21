@@ -1,11 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { EuchreSettings } from '@/app/lib/euchre/definitions';
+import { EuchreGameInstance, EuchreSettings, PromptType } from '@/app/lib/euchre/definitions';
 import { SECTION_STYLE } from '../../home/home-description';
-import PlayerGameDeck from '../player/players-game-deck';
 import GameSettings from './game-settings';
-import GameTable from './game-table';
 import useEuchreGame from '@/app/hooks/euchre/useEuchreGame';
 import GameScore from './game-score';
 import GameBorder from './game-border';
@@ -14,26 +12,22 @@ import DiscardPrompt from '../prompt/discard-prompt';
 import HandResults from '../prompt/hand-results';
 import GameResults from './game-results';
 import GameEvents from './game-events';
-import { Varela_Round } from 'next/font/google';
-import GameMenu from './game-menu';
-
-const verela = Varela_Round({
-  weight: '400',
-  subsets: ['latin']
-});
+import GameArea from './game-area';
+import { verela } from '../../fonts';
+import GamePrompt from './game-prompt';
+import useMenuItems from '@/app/hooks/euchre/useMenuItems';
+import useEuchreGameAuto from '@/app/hooks/euchre/useEuchreGameAuto';
+import { INIT_GAME_SETTINGS } from '@/app/lib/euchre/game-setup-logic';
 
 export default function EuchreGame() {
   // #region Hooks
   const {
-    gameInstance,
+    euchreGame,
     gameFlow,
     gameAnimationFlow,
     playerNotification,
-    shouldPromptBid,
-    shouldPromptDiscard,
-    shouldShowHandResults,
-    shouldShowGameResults,
-    gameSettings,
+    promptValue,
+    euchreSettings,
     events,
     clearEvents,
     beginNewGame,
@@ -48,85 +42,104 @@ export default function EuchreGame() {
     handleCardPlayed,
     handleReplayHand
   } = useEuchreGame();
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  const [showEvents, setShowEvents] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
 
-  const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
-  const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
-  const menuSvg =
-    (isFullScreen ? arrowDownSvg : arrowUpSvg) +
-    ` bg-no-repeat bg-center bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)] 
-  dark:bg-[rgba(25,115,25,0.9)] border border-black appearance-none cursor-pointer border rounded w-8 h-8 checked:dark:bg-stone-500`;
+  const { isFullScreen, showEvents, showSettings, toggleFullScreen, toggleEvents, toggleSettings } =
+    useMenuItems();
+
+  const gameSettings: EuchreSettings = { ...INIT_GAME_SETTINGS };
+  const { runFullGame } = useEuchreGameAuto(gameSettings);
+  const [fullGameInstance, setFullGameInstance] = useState<EuchreGameInstance | null>(null);
+
   // #endregion
 
   //#region Event Handlers
   const changeSettings = (settings: EuchreSettings) => {
     handleSettingsChange(settings);
+    console.log('game settings: ', settings);
   };
 
-  const toggleFullScreen = (value: boolean) => {
-    setIsFullScreen(value);
+  const handleNewGame = () => {
+    //handleSettingsChange(settings);
+    toggleSettings(false);
+    beginNewGame();
   };
 
-  const toggleEvents = (value: boolean) => {
-    setShowEvents(value);
+  const handleRunFullGame = () => {
+    const game = runFullGame();
+    setFullGameInstance(game);
+  };
+
+  const handleCloseRunFullGame = () => {
+    setFullGameInstance(null);
   };
   //#endregion
 
   //#region Conditional prompts to render.
 
-  const renderBidPrompt =
-    shouldPromptBid && gameInstance.current?.trump ? (
-      <BidPrompt
-        game={gameInstance.current}
-        firstRound={!gameFlow.hasFirstBiddingPassed}
-        onBidSubmit={handleBidSubmit}
-        settings={gameSettings.current}
-      />
-    ) : (
-      <></>
-    );
+  const renderSettings = showSettings && (
+    <GameSettings
+      key={euchreGame !== null ? 'modal' : 'init'}
+      settings={euchreSettings}
+      onNewGame={handleNewGame}
+      onApplySettings={changeSettings}
+      onRunFullGame={handleRunFullGame}
+    />
+  );
 
-  const renderDiscardPrompt =
-    shouldPromptDiscard && gameInstance.current?.trump && gameInstance.current.dealer ? (
+  const renderBidPrompt = promptValue.find((v) => v.type === PromptType.BID) && euchreGame?.trump && (
+    <BidPrompt
+      game={euchreGame}
+      firstRound={!gameFlow.hasFirstBiddingPassed}
+      onBidSubmit={handleBidSubmit}
+      settings={euchreSettings}
+    />
+  );
+
+  const renderDiscardPrompt = promptValue.find((v) => v.type === PromptType.DISCARD) &&
+    euchreGame?.trump &&
+    euchreGame.dealer && (
       <DiscardPrompt
-        pickedUpCard={gameInstance.current.trump}
-        playerHand={gameInstance.current.dealer.availableCards}
+        pickedUpCard={euchreGame.trump}
+        playerHand={euchreGame.dealer.availableCards}
         onDiscardSubmit={handleDiscardSubmit}
       />
-    ) : (
-      <></>
     );
 
-  const renderHandResults =
-    shouldShowHandResults &&
-    gameSettings.current &&
-    gameInstance.current &&
-    gameInstance.current.allGameResults.length > 0 ? (
+  const renderHandResults = promptValue.find((v) => v.type === PromptType.HAND_RESULT) &&
+    euchreGame &&
+    euchreGame.allGameResults.length > 0 && (
       <HandResults
-        game={gameInstance.current}
-        settings={gameSettings.current}
-        handResult={gameInstance.current.allGameResults.at(-1) ?? null}
+        game={euchreGame}
+        settings={euchreSettings}
+        handResult={euchreGame.allGameResults.at(-1) ?? null}
         onClose={handleCloseHandResults}
         onReplayHand={handleReplayHand}
       />
-    ) : (
-      <></>
     );
 
-  const renderGameResults =
-    shouldShowGameResults && gameInstance.current && gameInstance.current.allGameResults.length > 0 ? (
+  const renderGameResults = promptValue.find((v) => v.type === PromptType.GAME_RESULT) &&
+    euchreGame &&
+    euchreGame.allGameResults.length > 0 && (
       <GameResults
-        game={gameInstance.current}
-        settings={gameSettings.current}
-        gameResults={gameInstance.current.allGameResults}
+        game={euchreGame}
+        settings={euchreSettings}
+        gameResults={euchreGame.allGameResults}
         onClose={handleCloseGameResults}
         onReplayHand={handleReplayHand}
       />
-    ) : (
-      <></>
     );
+
+  const renderFullGameResults = fullGameInstance && (
+    <div className="relative text-white">
+      <GameResults
+        game={fullGameInstance}
+        settings={gameSettings}
+        gameResults={fullGameInstance.allGameResults}
+        onClose={handleCloseRunFullGame}
+        onReplayHand={() => null}
+      />
+    </div>
+  );
 
   //#endregion
 
@@ -134,114 +147,65 @@ export default function EuchreGame() {
 
   return (
     <>
-      {!gameInstance.current ? (
-        <div className={`m-2 p-2 ${SECTION_STYLE} mx-2`}>
-          <GameSettings
-            settings={gameSettings.current}
-            onNewGame={beginNewGame}
-            onApplySettings={changeSettings}
-          />
-        </div>
-      ) : (
-        <></>
-      )}
-      {gameInstance.current ? (
-        <>
-          {isFullScreen && <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg !z-50" />}
+      {isFullScreen && <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg !z-50" />}
 
-          <div
-            id="euchre-game"
-            className={`flex p-1 ${isFullScreen ? 'fixed top-0 left-0 w-full h-full z-50 overflow-auto' : 'relative'} ${verela.className}`}
-          >
-            <GameBorder className="relative">
-              <GameMenu
-                isFullScreen={isFullScreen}
-                showEvents={showEvents}
-                onFullScreenToggle={toggleFullScreen}
-                onEventsToggle={toggleEvents}
-              />
-              <div className={`m-2 ${SECTION_STYLE} mx-2 flex-grow relative bg-[url(/felt1.png)] bg-auto`}>
-                <div className="m-2">
-                  <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[1fr,600px,1fr] gap-4 h-full">
-                    <div className="row-span-4 min-w-[175px]">
-                      <PlayerGameDeck
-                        player={gameInstance.current.player3}
-                        game={gameInstance.current}
-                        gameFlow={gameFlow}
-                        settings={gameSettings.current}
-                        onCardClick={handleCardPlayed}
-                        dealDeck={gameInstance.current.deck}
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <PlayerGameDeck
-                        player={gameInstance.current.player2}
-                        game={gameInstance.current}
-                        gameFlow={gameFlow}
-                        settings={gameSettings.current}
-                        onCardClick={handleCardPlayed}
-                        dealDeck={gameInstance.current.deck}
-                      />
-                    </div>
-                    <div className="col-span-1 row-span-2">
-                      <GameTable playerInfoState={playerNotification} />
-                    </div>
-                    <div className="col-span-1 ">
-                      <PlayerGameDeck
-                        player={gameInstance.current.player1}
-                        game={gameInstance.current}
-                        gameFlow={gameFlow}
-                        settings={gameSettings.current}
-                        onCardClick={handleCardPlayed}
-                        dealDeck={gameInstance.current.deck}
-                      />
-                    </div>
-                    <div className="row-span-4 min-w-[175px]">
-                      <PlayerGameDeck
-                        player={gameInstance.current.player4}
-                        game={gameInstance.current}
-                        gameFlow={gameFlow}
-                        settings={gameSettings.current}
-                        onCardClick={handleCardPlayed}
-                        dealDeck={gameInstance.current.deck}
-                      />
-                    </div>
-                  </div>
-                  {renderBidPrompt}
-                  {renderDiscardPrompt}
-                  {renderHandResults}
-                  {renderGameResults}
-                  {showEvents && (
-                    <GameEvents
-                      events={events}
-                      onClear={clearEvents}
-                      onClose={() => toggleEvents(false)}
-                      className="-left-2 top-0"
+      <div
+        id="euchre-game"
+        className={`flex p-1 ${isFullScreen ? 'fixed top-0 left-0 w-full h-full z-50 overflow-auto' : 'relative'} ${verela.className}`}
+      >
+        <GameBorder className="relative">
+          {showSettings && !euchreGame ? (
+            <>
+              {renderSettings}
+              {renderFullGameResults}
+            </>
+          ) : (
+            <div className={`m-2 ${SECTION_STYLE} mx-2 flex-grow relative bg-[url(/felt1.png)] bg-auto`}>
+              <div className="m-2">
+                {euchreGame ? (
+                  <>
+                    <GameArea
+                      gameInstance={euchreGame}
+                      gameFlow={gameFlow}
+                      gameSettings={euchreSettings}
+                      isFullScreen={isFullScreen}
+                      showEvents={showEvents}
+                      showSettings={showSettings}
+                      playerNotification={playerNotification}
+                      onToggleFullscreeen={toggleFullScreen}
+                      onToggleEvents={toggleEvents}
+                      onCardPlayed={handleCardPlayed}
+                      onSettingsToggle={toggleSettings}
                     />
-                  )}
+                    {showSettings && <GamePrompt zIndex={100}>{renderSettings}</GamePrompt>}
+                  </>
+                ) : (
+                  <></>
+                )}
+                {renderBidPrompt}
+                {renderDiscardPrompt}
+                {renderHandResults}
+                {renderGameResults}
+                {showEvents && (
+                  <GameEvents
+                    events={events}
+                    onClear={clearEvents}
+                    onClose={() => toggleEvents(false)}
+                    className="-left-2 top-0"
+                  />
+                )}
+                {euchreGame && (
                   <GameScore
-                    game={gameInstance.current}
+                    game={euchreGame}
+                    settings={euchreSettings}
                     className="min-h-16 min-w-16 absolute top-2 right-2"
                   />
-                </div>
+                )}
               </div>
-            </GameBorder>
-          </div>
-          <div className={`${SECTION_STYLE} m-2`}>
-            <div>
-              <button onClick={handleResetGame}>Go to Settings</button>
             </div>
-            <div>
-              <button onClick={handleCancelGame}>Cancel</button>
-            </div>
-            <div>
-              <button onClick={resaveGameState}>Re-save Game State</button>
-            </div>
-          </div>
-        </>
-      ) : (
-        <></>
-      )}
+          )}
+        </GameBorder>
+      </div>
     </>
   );
 }

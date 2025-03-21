@@ -12,16 +12,12 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 export default function HandResult({ game, settings, handResult, className, ...rest }: Props) {
   if (!handResult) throw new Error('No hand result was found');
-  if (!game.dealer) throw new Error('Dealer not found');
-  if (!game.maker) throw new Error('Maker not found');
 
   let pointsDisplay: string = `Points for Team ${handResult.teamWon}: ${handResult.points}`;
-  const winningTeamPlayer = game.gamePlayers.find((p) => p.team === handResult.teamWon);
   const BASE_CLASS = 'border dark:border-white text-center dark:bg-stone-900 dark:text-white p-1 mb-1';
+  const winningTeamPlayer = game.gamePlayers.filter((p) => p.team === handResult.teamWon)[0];
 
-  if (!winningTeamPlayer) throw new Error();
-
-  if (winningTeamPlayer && winningTeamPlayer.team === game.maker.team) {
+  if (handResult.teamWon === handResult.maker.team) {
     pointsDisplay = `Points for Maker: ${handResult.points}`;
   } else {
     pointsDisplay = `Points for Defenders: ${handResult.points}`;
@@ -31,16 +27,16 @@ export default function HandResult({ game, settings, handResult, className, ...r
     <div {...rest} className={clsx('md:flex md:flex-row gap-1', className)}>
       <div className="md:min-w-48">
         <div className="mb-1">
-          <PlayerColor player={game.maker} settings={settings}>
+          <PlayerColor player={handResult.maker} settings={settings}>
             <div className="bg-stone-900 p-1 text-center">
-              Maker: {game.maker === game.player1 ? 'You' : game.maker.name}
+              Maker: {handResult.maker === game.player1 ? 'You' : handResult.maker.name}
             </div>
           </PlayerColor>
         </div>
         <div className=" mb-1">
-          <PlayerColor player={game.dealer} settings={settings}>
+          <PlayerColor player={handResult.dealer} settings={settings}>
             <div className="bg-stone-900 p-1 text-center">
-              Dealer: {game.dealer === game.player1 ? 'You' : game.dealer.name}
+              Dealer: {handResult.dealer === game.player1 ? 'You' : handResult.dealer.name}
             </div>
           </PlayerColor>
         </div>

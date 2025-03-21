@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="150"
+   height="100"
+   version="1.1"
+   id="svg6"
+   sodipodi:docname="cardback3.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs6">
+    <filter
+       inkscape:label="Frost"
+       inkscape:menu="Overlays"
+       inkscape:menu-tooltip="Flake-like white splotches"
+       height="1.3436831"
+       y="-0.17184153"
+       width="1.529702"
+       x="-0.264851"
+       style="color-interpolation-filters:sRGB;"
+       id="filter90">
+      <feGaussianBlur
+         stdDeviation="3"
+         in="SourceGraphic"
+         result="result1"
+         id="feGaussianBlur88" />
+      <feTurbulence
+         type="turbulence"
+         baseFrequency="0.05"
+         numOctaves="5"
+         result="result0"
+         id="feTurbulence88" />
+      <feDisplacementMap
+         in2="result0"
+         in="result1"
+         xChannelSelector="R"
+         yChannelSelector="G"
+         scale="3"
+         result="result2"
+         id="feDisplacementMap88" />
+      <feBlend
+         result="result5"
+         in="result2"
+         mode="multiply"
+         in2="result2"
+         id="feBlend88" />
+      <feGaussianBlur
+         stdDeviation="5"
+         in="result2"
+         result="result4"
+         id="feGaussianBlur89" />
+      <feComposite
+         operator="arithmetic"
+         in2="result5"
+         in="result4"
+         k2="0.25"
+         k3="1"
+         k1="1"
+         id="feComposite89" />
+      <feComposite
+         operator="in"
+         in2="result2"
+         id="feComposite90"
+         result="fbSourceGraphic" />
+      <feColorMatrix
+         result="fbSourceGraphicAlpha"
+         in="fbSourceGraphic"
+         values="0 0 0 -1 0 0 0 0 -1 0 0 0 0 -1 0 0 0 0 1 0"
+         id="feColorMatrix95" />
+      <feTurbulence
+         id="feTurbulence95"
+         type="fractalNoise"
+         numOctaves="5"
+         baseFrequency="0.143"
+         in="fbSourceGraphic" />
+      <feColorMatrix
+         id="feColorMatrix96"
+         values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 5 -3" />
+      <feComposite
+         id="feComposite96"
+         operator="in"
+         in2="fbSourceGraphicAlpha" />
+      <feMorphology
+         id="feMorphology96"
+         operator="dilate"
+         radius="2.7"
+         result="result3" />
+      <feTurbulence
+         id="feTurbulence96"
+         numOctaves="2"
+         baseFrequency="0.121"
+         result="result91" />
+      <feDisplacementMap
+         id="feDisplacementMap96"
+         in="result3"
+         xChannelSelector="R"
+         yChannelSelector="A"
+         scale="10"
+         result="result4"
+         in2="result91" />
+      <feFlood
+         id="feFlood96"
+         flood-opacity="1"
+         flood-color="rgb(255,255,255)" />
+      <feComposite
+         id="feComposite97"
+         result="result2"
+         operator="in"
+         in2="result4" />
+      <feComposite
+         id="feComposite98"
+         in="result2"
+         operator="over"
+         in2="fbSourceGraphic" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="namedview6"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="7.94"
+     inkscape:cx="50"
+     inkscape:cy="44.7733"
+     inkscape:window-width="2560"
+     inkscape:window-height="1472"
+     inkscape:window-x="-11"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg6" />
+  <!-- Outer Border -->
+  <rect
+     width="96.321968"
+     height="146.26765"
+     rx="14.448295"
+     ry="14.626765"
+     fill="lightblue"
+     stroke="#000000"
+     stroke-width="2.90745"
+     id="rect1"
+     style="fill:#005500"
+     x="1.998512"
+     y="-148.34908"
+     transform="rotate(90)" />
+  <!-- Inner Border -->
+  <!-- Simple Decorative Lines -->
+  <rect
+     style="display:inline;fill:#333333;stroke-width:1.11213;filter:url(#filter90)"
+     id="rect16"
+     width="82.688004"
+     height="127.443"
+     x="5.5415621"
+     y="8.8161221"
+     ry="10.771431"
+     rx="11.48265"
+     transform="matrix(0,0.96321957,-0.97511771,0,148.34908,1.9985139)" />
+  <rect
+     style="fill:#000000;stroke-width:0.96915"
+     id="rect17"
+     width="0.84918606"
+     height="3.1930811"
+     x="58.166107"
+     y="-106.47057"
+     ry="0.42983779"
+     transform="rotate(90)" />
+</svg>
