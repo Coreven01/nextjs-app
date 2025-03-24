@@ -1,18 +1,8 @@
 'use client';
 
 import UserInfo from '@/app/ui/euchre/player/user-info';
-import {
-  ActionDispatch,
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-  useState
-} from 'react';
-import { CardTransformation, FadeOutOptions } from './useMoveCard';
+import { ActionDispatch, Dispatch, SetStateAction, useCallback, useMemo, useReducer, useState } from 'react';
+import { CardTransformation } from './useMoveCard';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/16/solid';
 import {
   getPlayerNotificationType,
@@ -31,7 +21,6 @@ import {
   GameFlowAction
 } from './gameFlowReducer';
 import {
-  EuchreAnimateType,
   EuchreActionType,
   gameAnimationFlowReducer,
   initialGameAnimationState,
@@ -46,36 +35,21 @@ import {
   EuchrePlayer,
   EuchreSettings,
   EuchreTrick,
-  GameSpeed,
-  PromptType,
   PromptValue,
   Suit
 } from '@/app/lib/euchre/definitions';
-import {
-  dealCardsForDealer,
-  decrementSpeed,
-  getGameStateForInitialDeal,
-  incrementSpeed,
-  INIT_GAME_SETTINGS,
-  initDeckForInitialDeal,
-  orderTrump,
-  shuffleAndDealHand
-} from '@/app/lib/euchre/game-setup-logic';
-import { createEvent, logDebugEvent } from '@/app/lib/euchre/util';
-import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { getPlayerRotation } from '@/app/lib/euchre/game';
-import { didPlayerFollowSuit, getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
-import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
+import { incrementSpeed, INIT_GAME_SETTINGS } from '@/app/lib/euchre/game-setup-logic';
 import EphemeralModal from '@/app/ui/euchre/ephemeral-modal';
 import { GameEvent, useEventLog } from './useEventLog';
 import GameCard from '@/app/ui/euchre/game/game-card';
-import GameBorder from '@/app/ui/euchre/game/game-border';
 import useEuchreGameInit from './useEuchreGameInit';
 import useEuchreGameInitDeal from './useEuchreGameInitDeal';
 import useEuchreGameShuffle from './useEuchreGameShuffle';
 import useEuchreGameBid from './useEuchreGameBid';
 import useEuchreGameOrder from './useEuchreGameOrder';
 import useEuchreGamePlay from './useEuchreGamePlay';
+import { getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
+import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 
 export type EuchreGameState = {
   euchreGame: EuchreGameInstance | null;
@@ -209,9 +183,6 @@ export default function useEuchreGame() {
     setEuchreGame(newGame);
   };
 
-  const handlePlayFullGame = () => {
-    beginNewGame();
-  };
   //#endregion
 
   return {

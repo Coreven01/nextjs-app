@@ -14,9 +14,16 @@ type Props = {
   onNewGame: () => void;
   onApplySettings: (settings: EuchreSettings) => void;
   onRunFullGame: () => void;
+  onRunFullGameLoop: () => void;
 };
 
-export default function GameSettings({ settings, onNewGame, onApplySettings, onRunFullGame }: Props) {
+export default function GameSettings({
+  settings,
+  onNewGame,
+  onApplySettings,
+  onRunFullGame,
+  onRunFullGameLoop
+}: Props) {
   const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings.teamOneColor ?? 'blue');
   const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings.teamTwoColor ?? 'red');
   const teamColors = [...TEAM_COLOR_MAP.keys()];
@@ -28,6 +35,10 @@ export default function GameSettings({ settings, onNewGame, onApplySettings, onR
 
   const handleRunTestGame = () => {
     onRunFullGame();
+  };
+
+  const handleRunTestGameLoop = () => {
+    onRunFullGameLoop();
   };
 
   const handleTeamColorChange = (teamNumber: number, value: TeamColor) => {
@@ -54,56 +65,6 @@ export default function GameSettings({ settings, onNewGame, onApplySettings, onR
 
   const handleCheckChanged = (e: ChangeEvent<HTMLInputElement>) => {
     onApplySettings({ ...settings, [e.target.name]: e.target.checked });
-  };
-
-  const handleTestButtonClick = () => {
-    // const game = createEuchreGame();
-    // game.currentPlayer = game.player1;
-    // game.dealer = game.player1;
-    // game.player1.assignCards = [
-    //   new Card('♠', 'Q'),
-    //   new Card('♠', 'J'),
-    //   new Card('♣', 'J'),
-    //   new Card('♣', 'K'),
-    //   new Card('♥', 'A')
-    // ];
-    // game.trump = new Card('♠', '9');
-    // const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
-  };
-
-  const handleTestButtonClick2 = () => {
-    // const suits: Suit[] = ['♠', '♣', '♥', '♦'];
-    // const game = createEuchreGame();
-    // game.currentPlayer = game.player1;
-    // game.dealer = game.player1;
-    // const t1 = new EuchreTrick(1);
-    // t1.cardsPlayed.push(new EuchreCard(game.player2, new Card('♦', 'A')));
-    // game.currentTricks.push(new EuchreTrick(1));
-    // game.player1.assignCards = [
-    //   new Card('♦', '9'),
-    //   new Card('♥', 'Q'),
-    //   new Card('♥', 'J'),
-    //   new Card('♠', 'J'),
-    //   new Card('♣', '10')
-    // ];
-    // game.trump = new Card('♥', '2');
-    // const computerChoice = game.currentPlayer.determineCardToPlay(game);
-  };
-
-  const handleTestButtonClick3 = () => {
-    // const game = createEuchreGame();
-    // game.currentPlayer = game.player1;
-    // game.dealer = game.player1;
-    // game.currentTricks.push(new EuchreTrick(1));
-    // game.player1.assignCards = [
-    //   new Card('♥', '9'),
-    //   new Card('♥', 'A'),
-    //   new Card('♣', 'J'),
-    //   new Card('♥', 'K'),
-    //   new Card('♠', 'Q')
-    // ];
-    // game.trump = new Card('♠', 'J');
-    // const computerChoice = game.currentPlayer.determineBid(game, game.trump, false);
   };
 
   return (
@@ -220,15 +181,10 @@ export default function GameSettings({ settings, onNewGame, onApplySettings, onR
         <button className="text-white border border-white p-2" onClick={handleRunTestGame}>
           Run Test Game
         </button>
-        {/* <button className="text-white border border-white p-2" onClick={handleApplySettings}>
-      Apply Settings
-    </button> */}
+        <button className="text-white border border-white p-2" onClick={handleRunTestGameLoop}>
+          Run Test Game Loop
+        </button>
       </div>
-      {/* <div className="flex justify-center my-2">
-    <button className="text-white border border-white p-2" onClick={handleTestButtonClick2}>
-      Run Test
-    </button>
-  </div> */}
     </div>
   );
 }

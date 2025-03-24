@@ -39,8 +39,6 @@ export default function useEuchreGameBid(state: EuchreGameState, onReset: (value
     const biddingRoundFinished = newGame.dealer === newGame.currentPlayer;
     // simulate flipping over the trump card.
     if (biddingRoundFinished && !state.euchreGameFlow.hasSecondBiddingPassed) {
-      newGame.turnedDown = newGame.trump;
-
       // remove the card from the DOM
       setTimeout(
         () =>

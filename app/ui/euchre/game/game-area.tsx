@@ -33,7 +33,10 @@ export default function GameArea({
   onCardPlayed
 }: Props) {
   return (
-    <div className="grid grid-flow-col grid-rows-[150px,1fr,1fr,150px] grid-cols-[1fr,600px,1fr] gap-4 h-full">
+    <div
+      className={`grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,auto)_minmax(50px,auto)_minmax(50px,auto)] grid-cols-[minmax(50px,auto)_minmax(60%,600px)_minmax(50px,auto)] 
+    md:gap-4 md:grid-rows-[150px,1fr,1fr,150px] md:grid-cols-[1fr,600px,1fr]`}
+    >
       <GameMenu
         isFullScreen={isFullScreen}
         showEvents={showEvents}
@@ -42,7 +45,7 @@ export default function GameArea({
         onEventsToggle={onToggleEvents}
         onSettingsToggle={onSettingsToggle}
       />
-      <div className="row-span-4 min-w-[175px]">
+      <div className="row-span-4 relative">
         <PlayerGameDeck
           player={gameInstance.player3}
           game={gameInstance}
@@ -53,37 +56,37 @@ export default function GameArea({
         />
       </div>
       <div className="col-span-1">
-        <PlayerGameDeck
+        {/* <PlayerGameDeck
           player={gameInstance.player2}
           game={gameInstance}
           gameFlow={gameFlow}
           settings={gameSettings}
           onCardClick={onCardPlayed}
           dealDeck={gameInstance.deck}
-        />
+        /> */}
       </div>
       <div className="col-span-1 row-span-2">
         <GameTable playerNotification={playerNotification} />
       </div>
-      <div className="col-span-1 ">
-        <PlayerGameDeck
+      <div className="col-span-1">
+        {/* <PlayerGameDeck
           player={gameInstance.player1}
           game={gameInstance}
           gameFlow={gameFlow}
           settings={gameSettings}
           onCardClick={onCardPlayed}
           dealDeck={gameInstance.deck}
-        />
+        /> */}
       </div>
-      <div className="row-span-4 min-w-[175px]">
-        <PlayerGameDeck
+      <div className="row-span-4 relative">
+        {/* <PlayerGameDeck
           player={gameInstance.player4}
           game={gameInstance}
           gameFlow={gameFlow}
           settings={gameSettings}
           onCardClick={onCardPlayed}
           dealDeck={gameInstance.deck}
-        />
+        /> */}
       </div>
     </div>
   );

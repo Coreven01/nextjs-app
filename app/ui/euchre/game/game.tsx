@@ -47,7 +47,7 @@ export default function EuchreGame() {
     useMenuItems();
 
   const gameSettings: EuchreSettings = { ...INIT_GAME_SETTINGS };
-  const { runFullGame } = useEuchreGameAuto(gameSettings);
+  const { runFullGame, runFullGameLoop } = useEuchreGameAuto(gameSettings);
   const [fullGameInstance, setFullGameInstance] = useState<EuchreGameInstance | null>(null);
 
   // #endregion
@@ -69,6 +69,11 @@ export default function EuchreGame() {
     setFullGameInstance(game);
   };
 
+  const handleRunFullGameLoop = () => {
+    const game = runFullGameLoop(100);
+    setFullGameInstance(game);
+  };
+
   const handleCloseRunFullGame = () => {
     setFullGameInstance(null);
   };
@@ -83,6 +88,7 @@ export default function EuchreGame() {
       onNewGame={handleNewGame}
       onApplySettings={changeSettings}
       onRunFullGame={handleRunFullGame}
+      onRunFullGameLoop={handleRunFullGameLoop}
     />
   );
 
@@ -125,7 +131,7 @@ export default function EuchreGame() {
         settings={euchreSettings}
         gameResults={euchreGame.allGameResults}
         onClose={handleCloseGameResults}
-        onReplayHand={handleReplayHand}
+        onNewGame={handleNewGame}
       />
     );
 
@@ -136,7 +142,7 @@ export default function EuchreGame() {
         settings={gameSettings}
         gameResults={fullGameInstance.allGameResults}
         onClose={handleCloseRunFullGame}
-        onReplayHand={() => null}
+        onNewGame={() => null}
       />
     </div>
   );
@@ -151,16 +157,18 @@ export default function EuchreGame() {
 
       <div
         id="euchre-game"
-        className={`flex p-1 ${isFullScreen ? 'fixed top-0 left-0 w-full h-full z-50 overflow-auto' : 'relative'} ${verela.className}`}
+        className={`flex md:p-1 ${isFullScreen ? 'fixed top-0 left-0 w-full h-full z-50' : 'relative'} ${verela.className}`}
       >
-        <GameBorder className="relative">
+        <GameBorder className="w-full h-full md:w-auto md:h-auto">
           {showSettings && !euchreGame ? (
             <>
               {renderSettings}
               {renderFullGameResults}
             </>
           ) : (
-            <div className={`m-2 ${SECTION_STYLE} mx-2 flex-grow relative bg-[url(/felt1.png)] bg-auto`}>
+            <div
+              className={`${SECTION_STYLE} md:m-2 md:h-auto flex-grow relative bg-[url(/felt1.png)] h-full`}
+            >
               <div className="m-2">
                 {euchreGame ? (
                   <>
@@ -182,10 +190,10 @@ export default function EuchreGame() {
                 ) : (
                   <></>
                 )}
-                {renderBidPrompt}
+                {/* {renderBidPrompt}
                 {renderDiscardPrompt}
                 {renderHandResults}
-                {renderGameResults}
+                {renderGameResults} */}
                 {showEvents && (
                   <GameEvents
                     events={events}
@@ -194,13 +202,13 @@ export default function EuchreGame() {
                     className="-left-2 top-0"
                   />
                 )}
-                {euchreGame && (
+                {/* {euchreGame && (
                   <GameScore
                     game={euchreGame}
                     settings={euchreSettings}
                     className="min-h-16 min-w-16 absolute top-2 right-2"
                   />
-                )}
+                )} */}
               </div>
             </div>
           )}

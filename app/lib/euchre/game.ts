@@ -89,39 +89,23 @@ export function createPlaceholderCards(deckSize: number): Card[] {
   return retval;
 }
 
-/** Shuffle a deck of cards using random number renerator */
+/** Shuffle a deck of cards using random number generator */
 export function shuffleDeck(deck: Card[]): Card[] {
   const deckSize = deck.length;
   const newDeck: Card[] = [];
   const randomNumbers: number[] = [];
-  const validIndexes = createRange(0, deckSize - 1);
-  let counter = 0;
+  let remainingIndexes = createRange(0, deckSize - 1);
 
   while (randomNumbers.length < deckSize) {
-    let randomNum = Math.floor(Math.random() * (deckSize - 1));
-    if (!randomNumbers.includes(randomNum)) randomNumbers.push(randomNum);
-
-    if (randomNumbers.length > deckSize - 5) {
-      const remainingIndexes = validIndexes.filter((val) => !randomNumbers.includes(val));
-
-      if (remainingIndexes.length === 2) {
-        const lastTwoIndexes = [randomNum % 2, (randomNum + 1) % 2];
-        randomNumbers.push(remainingIndexes[lastTwoIndexes[0]]);
-        randomNumbers.push(remainingIndexes[lastTwoIndexes[1]]);
-      } else {
-        randomNum = Math.floor(Math.random() * (remainingIndexes.length - 1));
-        randomNumbers.push(remainingIndexes[randomNum]);
-      }
-    }
-    counter++;
-
-    if (counter > 100) throw Error('Error shuffling deck. Random number count exceeded.');
+    remainingIndexes = remainingIndexes.filter((val) => !randomNumbers.includes(val));
+    const randomNum = Math.floor(Math.random() * (remainingIndexes.length - 1));
+    randomNumbers.push(remainingIndexes[randomNum]);
   }
 
   for (let num = 0; num < deckSize; num++) {
     const card = deck[randomNumbers[num]];
     card.index = num;
-    newDeck.push(deck[randomNumbers[num]]);
+    newDeck.push(card);
   }
 
   if (newDeck.length < deckSize) throw Error('Logic error: wrong deck size');

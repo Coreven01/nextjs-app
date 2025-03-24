@@ -14,6 +14,7 @@ import PromptSelection from './prompt-selection';
 import GamePrompt from '../game/game-prompt';
 import PlayerColor from '../player/player-team-color';
 import GameBorder from '../game/game-border';
+import GameBorderBare from '../game/game-border-bare';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   firstRound: boolean;
@@ -104,7 +105,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
           </div>
 
           {firstRound ? (
-            <GameBorder>
+            <GameBorderBare>
               <div className="p-2 bg-green-950 flex items-center justify-center">
                 <Image
                   className={`contain row-span-1 col-span-1`}
@@ -116,7 +117,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
                   title={getCardFullName(game.trump)}
                 />
               </div>
-            </GameBorder>
+            </GameBorderBare>
           ) : (
             <></>
           )}

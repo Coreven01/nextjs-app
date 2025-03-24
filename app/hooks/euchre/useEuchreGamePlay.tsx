@@ -10,7 +10,6 @@ import {
 } from './playerNotificationReducer';
 import { EuchreActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreGameState } from './useEuchreGame';
-import { incrementSpeed } from '@/app/lib/euchre/game-setup-logic';
 import { useCallback, useEffect, useRef } from 'react';
 import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import GameCard from '@/app/ui/euchre/game/game-card';

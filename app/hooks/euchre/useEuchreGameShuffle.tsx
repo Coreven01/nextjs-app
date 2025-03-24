@@ -3,7 +3,7 @@
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './gameFlowReducer';
 import { EuchreActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreGameState } from './useEuchreGame';
-import { dealCardsForDealer, shuffleAndDealHand } from '@/app/lib/euchre/game-setup-logic';
+import { shuffleAndDealHand } from '@/app/lib/euchre/game-setup-logic';
 import { useCallback, useEffect } from 'react';
 import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import { createEvent } from '@/app/lib/euchre/util';
@@ -116,7 +116,7 @@ const getFaceUpCard = (id: string, card: Card, player: EuchrePlayer, fadeOut: bo
       durationMs={150}
       delayMs={150}
       fadeType={fadeOut ? 'out' : 'in'}
-      className={fadeOut ? 'opacity-100' : 'opacity-0'}
+      className={`hidden ${fadeOut ? 'opacity-100' : 'opacity-0'}`}
     >
       <GameBorder innerClass="p-2 bg-stone-800" className="shadow-md shadow-black">
         <GameCard

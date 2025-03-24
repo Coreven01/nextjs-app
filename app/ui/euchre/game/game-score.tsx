@@ -4,6 +4,7 @@ import GameBorder from './game-border';
 import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
 import PlayerColor from '../player/player-team-color';
 import { getSuitName } from '@/app/lib/euchre/card-data';
+import GameBorderBare from './game-border-bare';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -28,20 +29,20 @@ export default function GameScore({ children, className, game, settings, ...rest
       onDrag={handleDrag}
     >
       <div ref={draggableRef} className="cursor-move flex max-h-64">
-        <GameBorder className="shadow-md shadow-black">
+        <GameBorderBare className="shadow-md shadow-black">
           <h3 className="text-yellow-200 font-bold text-center">Score</h3>
           <div className="p-1 text-sm">
-            <PlayerColor player={game.player1} settings={settings} className="border border-white mb-1 p-1">
+            <PlayerColor player={game.player1} settings={settings} className="mb-1 p-1">
               <div className="bg-stone-900 p-1">Points {Math.min(teamOnePoints, 10)} / 10</div>
             </PlayerColor>
-            <PlayerColor player={game.player3} settings={settings} className="border border-white mb-1 p-1">
+            <PlayerColor player={game.player3} settings={settings} className="mb-1 p-1">
               <div className="bg-stone-900 p-1">Points {Math.min(teamTwoPoints, 10)} / 10</div>
             </PlayerColor>
           </div>
           {game.maker && game.trump && (
             <div className="p-1 text-sm">Trump {getSuitName(game.trump.suit)}s</div>
           )}
-        </GameBorder>
+        </GameBorderBare>
       </div>
     </Draggable>
   );

@@ -35,7 +35,7 @@ export default function WoodenBoard({ rows, className }: Props) {
           return (
             <Image
               key={`${v}${i}`}
-              src={`/wooden/wooden${i}.jpg`}
+              src={`/wooden/wooden-${i}.jpg`}
               width={width}
               height={height}
               alt="wooden board"

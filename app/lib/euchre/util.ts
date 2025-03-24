@@ -22,7 +22,12 @@ function logDebugEvent(
   ...params: (object | string | null | undefined)[]
 ) {
   if (!ENABLE_LOGGING) return;
-  console.log(message, params);
+
+  const temp = message as GameEvent;
+
+  if (temp && temp.type === 'e') {
+    console.log(message, params);
+  }
 }
 
 function createEvent(

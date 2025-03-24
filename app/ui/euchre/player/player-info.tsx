@@ -3,6 +3,7 @@ import GameBorder from '../game/game-border';
 import GameHighlight from '../game/game-hightlight';
 import PlayerColor from './player-team-color';
 import { getSuitName } from '@/app/lib/euchre/card-data';
+import GameBorderBare from '../game/game-border-bare';
 
 type Props = {
   player: EuchrePlayer;
@@ -57,11 +58,11 @@ export default function PlayerInfo({ player, game, settings }: Props) {
         game.currentPlayer === player ? 'shadow-xl shadow-yellow-300' : 'shadow-md shadow-black'
       }
     >
-      <GameBorder className="relative">
+      <GameBorderBare className="relative">
         <PlayerColor player={player} settings={settings}>
           <div className="bg-stone-800 p-1 h-full w-full text-md">{infoToRender}</div>
         </PlayerColor>
-      </GameBorder>
+      </GameBorderBare>
     </GameHighlight>
   );
 }

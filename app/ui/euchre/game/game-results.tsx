@@ -7,20 +7,21 @@ import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import GameOverview from './game-overview';
 import { scrollElementIntoViewIfNeeded } from '@/app/lib/euchre/util';
+import PromptHeader from '../prompt/prompt-header';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
   settings: EuchreSettings;
   gameResults: EuchreHandResult[] | null;
   onClose: () => void;
-  onReplayHand: () => void;
+  onNewGame: () => void;
 }
 
 export default function GameResults({
   game,
   settings,
   gameResults,
-  onReplayHand,
+  onNewGame,
   onClose,
   className,
   ...rest
@@ -43,12 +44,7 @@ export default function GameResults({
 
     if (gameResults && newSelection >= gameResults.length) return;
 
-    const btn: HTMLElement | null = document.getElementById(
-      newSelection === -1 ? 'btn-overview' : `btn-hand-${newSelection}`
-    );
     handleButtonClick(newSelection);
-
-    if (btn) scrollElementIntoViewIfNeeded(btn, menu.current);
   };
 
   useEffect(() => {
@@ -67,6 +63,12 @@ export default function GameResults({
   if (!gameResults) throw new Error('No game results were found');
 
   const handleButtonClick = (index: number): void => {
+    const btn: HTMLElement | null = document.getElementById(
+      index === -1 ? 'btn-overview' : `btn-hand-${index}`
+    );
+
+    if (btn) scrollElementIntoViewIfNeeded(btn, menu.current);
+
     if (index === -1) {
       setShowOverview(true);
       setSelection(-1);
@@ -82,7 +84,7 @@ export default function GameResults({
         <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,300px,1fr]">
           <div className="flex">
             <button ref={buttonLeft}>&lt;</button>
-            <h2 className="text-yellow-200 font-bold p-1 text-center flex-grow">Game Results</h2>
+            <PromptHeader className="flex-grow">Game Results</PromptHeader>
             <button ref={buttonRight}>&gt;</button>
           </div>
           <ul
@@ -133,9 +135,20 @@ export default function GameResults({
             <HandResult game={game} settings={settings} handResult={gameResults[selection ?? 0]}></HandResult>
           )}
 
-          <button onClick={onClose} className="border border-white w-full mt-2">
-            Close
-          </button>
+          <div className="flex gap-1">
+            <button
+              onClick={onClose}
+              className="w-full border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
+            >
+              Close
+            </button>
+            <button
+              onClick={onNewGame}
+              className="w-full border border-white bg-green-950 hover:bg-amber-200 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+            >
+              New Game
+            </button>
+          </div>
         </div>
       </div>
     </GamePrompt>

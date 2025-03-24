@@ -3,7 +3,6 @@
 import { EuchreGameFlowState, INIT_GAME_FLOW_STATE } from './gameFlowReducer';
 import {
   dealCardsForDealer,
-  INIT_GAME_SETTINGS,
   initDeckForInitialDeal,
   orderTrump,
   shuffleAndDealHand
@@ -131,5 +130,15 @@ export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
     return newGame;
   };
 
-  return { runFullGame };
+  const runFullGameLoop = (loopCount: number): EuchreGameInstance | null => {
+    let game: EuchreGameInstance | null = null;
+
+    for (let i = 0; i < loopCount; i++) {
+      game = runFullGame();
+    }
+
+    return game;
+  };
+
+  return { runFullGame, runFullGameLoop };
 }

@@ -248,7 +248,11 @@ const orderTrump = (gameInstance: EuchreGameInstance | undefined, result: BidRes
   newGame.addTrickForNewHand();
   newGame.assignPlayer(rotation[0]);
 
-  if (result.calledSuit) newGame.trump = new Card(result.calledSuit, 'JK');
+  if (result.calledSuit) {
+    newGame.turnedDown = newGame.trump;
+    newGame.trump = new Card(result.calledSuit, 'JK');
+  }
+
   newGame.gamePlayers.forEach((p) => p.sortCards(newGame.trump));
 
   return newGame;

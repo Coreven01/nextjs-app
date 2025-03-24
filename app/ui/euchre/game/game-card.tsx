@@ -24,9 +24,11 @@ export default function GameCard({
   onClick,
   ...rest
 }: Props) {
+  const sidePlayer = player.team === 2;
   const handleCardClick = (e: React.MouseEvent<HTMLImageElement, MouseEvent>) => {
     if (onClick) onClick(e);
   };
+
   return (
     <div className={clsx('relative', className)} id={id}>
       <Image
@@ -38,20 +40,20 @@ export default function GameCard({
         alt={'base card'}
         style={{
           width: '100%',
-          height: 'auto'
+          height: '100%'
         }}
       />
+
       <Image
-        className={clsx(`absolute contain ${getOffsetForPlayer(player.playerNumber)}`)}
+        className={clsx(`absolute ${getOffsetForPlayer(player.playerNumber)}`)}
         quality={50}
         width={width}
         height={height}
-        src={'/card-shadow.png'}
+        src={sidePlayer ? '/card-shadow-side.png' : '/card-shadow.png'}
         alt={'card shadow'}
         style={{
           width: '100%',
-          height: 'auto',
-          maxWidth: `100px`
+          height: 'auto'
         }}
       />
       <Image
@@ -61,12 +63,12 @@ export default function GameCard({
         width={width}
         height={height}
         src={src}
-        alt={getCardFullName(card)}
+        alt={player.human ? getCardFullName(card) : 'Player Card'}
         unoptimized={true}
         onClick={(e) => handleCardClick(e)}
         style={{
           width: '100%',
-          height: 'auto'
+          height: '100%'
         }}
       ></Image>
     </div>
@@ -80,9 +82,9 @@ function getOffsetForPlayer(playerNumber: number): string {
     case 2:
       return '-top-3 left-3';
     case 3:
-      return '-top-2 left-3 rotate-90';
+      return 'top-2 -left-3';
     case 4:
-      return '-top-2 right-3 rotate-90';
+      return 'top-2 -right-3';
   }
 
   return 'top-3 left-2';

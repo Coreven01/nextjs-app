@@ -3,7 +3,6 @@ import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
 import { getPlayerAndCard } from '@/app/lib/euchre/game';
 import { getCardsAvailableToPlay } from '@/app/lib/euchre/game-play-logic';
-import Image from 'next/image';
 import GameCard from '../game/game-card';
 
 type Props = {
@@ -53,7 +52,7 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
     const isAvailable: boolean = availableCards.includes(card);
 
     images.push(
-      <div className={`relative ${hidden}`} key={keyval}>
+      <div className={`z-10 ${hidden} ${getDivCssForPlayerLocation(player)}`} key={keyval}>
         <GameCard
           player={player}
           enableShadow={true}
@@ -96,7 +95,7 @@ function getCardCssForPlayerLocation(
   switch (player.playerNumber) {
     case 1:
       retval = `${baseClasses} rotate-[${initDeg + rotateVal * index}deg]
-    translate-x-[${offsetStart - offset * index}px] translate-y-[${[1, 3].includes(index) ? -10 : index === 2 ? -15 : 0}px]`;
+      translate-x-[${offsetStart - offset * index}px] translate-y-[${[1, 3].includes(index) ? -10 : index === 2 ? -15 : 0}px]`;
       break;
     case 2:
       retval = `${baseClasses} rotate-[${-initDeg - rotateVal * index}deg]
@@ -109,6 +108,27 @@ function getCardCssForPlayerLocation(
     case 4:
       retval = `${baseClasses} transition rotate-[${-initDeg + -rotateVal * index}deg]
     translate-y-[${offsetStart - offset * index}px] translate-x-[${[1, 3].includes(index) ? -10 : index === 2 ? -15 : 0}px]`;
+      break;
+  }
+
+  return retval;
+}
+
+function getDivCssForPlayerLocation(player: EuchrePlayer): string {
+  let retval = '';
+
+  switch (player.playerNumber) {
+    case 1:
+      retval = `max-w-20 md:h-full md:relative`;
+      break;
+    case 2:
+      retval = `max-h-24 md:h-full md:relative`;
+      break;
+    case 3:
+      retval = `max-w-24 md:max-w-full md:relative`;
+      break;
+    case 4:
+      retval = `max-w-24 md:w-full md:relative`;
       break;
   }
 
