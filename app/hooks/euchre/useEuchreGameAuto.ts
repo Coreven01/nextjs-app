@@ -11,7 +11,9 @@ import { BidResult, Card, EuchreGameInstance, EuchreSettings } from '@/app/lib/e
 import { getPlayerRotation } from '@/app/lib/euchre/game';
 import { createEvent, logDebugEvent } from '@/app/lib/euchre/util';
 
+/**  */
 export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
+  /** Run through a full game with AI players. */
   const runFullGame = (): EuchreGameInstance => {
     let newGame: EuchreGameInstance = initDeckForInitialDeal(false);
     const gameFlow: EuchreGameFlowState = { ...INIT_GAME_FLOW_STATE };
@@ -95,8 +97,8 @@ export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
               newGame.addTrickForNewHand();
             }
 
-            const playedCard: Card = newGame.currentPlayer.determineCardToPlay(newGame);
-            const cardPlayed = newGame.currentPlayer.playGameCard(playedCard);
+            const chosenCard: Card = newGame.currentPlayer.determineCardToPlay(newGame);
+            const cardPlayed = newGame.currentPlayer.playGameCard(chosenCard);
 
             if (!newGame.currentTrick) throw Error();
 
@@ -130,6 +132,7 @@ export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
     return newGame;
   };
 
+  /** Run a full game for the given loop count. Used to debug logic for selecting cards to play. */
   const runFullGameLoop = (loopCount: number): EuchreGameInstance | null => {
     let game: EuchreGameInstance | null = null;
 

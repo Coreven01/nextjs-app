@@ -1,17 +1,16 @@
 import { EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
-import GameBorder from '../game/game-border';
 import GameHighlight from '../game/game-hightlight';
 import PlayerColor from './player-team-color';
 import { getSuitName } from '@/app/lib/euchre/card-data';
 import GameBorderBare from '../game/game-border-bare';
 
-type Props = {
+interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
   game: EuchreGameInstance;
   settings: EuchreSettings;
-};
+}
 
-export default function PlayerInfo({ player, game, settings }: Props) {
+export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
   const isDealer = game.dealer && player.equal(game.dealer);
   const isMaker = game.maker && player.equal(game.maker);
   const isSittingOut = game.loner && game.maker?.team === player.team && game.maker !== player;
@@ -58,9 +57,9 @@ export default function PlayerInfo({ player, game, settings }: Props) {
         game.currentPlayer === player ? 'shadow-xl shadow-yellow-300' : 'shadow-md shadow-black'
       }
     >
-      <GameBorderBare className="relative">
+      <GameBorderBare {...rest} className="">
         <PlayerColor player={player} settings={settings}>
-          <div className="bg-stone-800 p-1 h-full w-full text-md">{infoToRender}</div>
+          <div className="bg-stone-800 md:p-2 p-1 h-full w-full">{infoToRender}</div>
         </PlayerColor>
       </GameBorderBare>
     </GameHighlight>

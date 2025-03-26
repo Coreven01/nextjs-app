@@ -17,7 +17,7 @@ export default function GameHighlight({
 }: DivProps) {
   return (
     <div {...rest} className={clsx('relative', className)}>
-      {enableHighlight ? (
+      {enableHighlight && (
         <div
           className={clsx(
             'w-full h-full absolute',
@@ -28,8 +28,6 @@ export default function GameHighlight({
             highlightColorCss
           )}
         ></div>
-      ) : (
-        <></>
       )}
       {children}
     </div>

@@ -29,18 +29,20 @@ export default function GameScore({ children, className, game, settings, ...rest
       onDrag={handleDrag}
     >
       <div ref={draggableRef} className="cursor-move flex max-h-64">
-        <GameBorderBare className="shadow-md shadow-black">
-          <h3 className="text-yellow-200 font-bold text-center">Score</h3>
-          <div className="p-1 text-sm">
-            <PlayerColor player={game.player1} settings={settings} className="mb-1 p-1">
-              <div className="bg-stone-900 p-1">Points {Math.min(teamOnePoints, 10)} / 10</div>
+        <GameBorderBare className="shadow-md shadow-black md:min-w-32">
+          <h3 className="text-yellow-200 font-bold text-center md:text-base text-sm">Score</h3>
+          <div className="flex md:flex-col gap-1 md:text-base text-xs md:mx-1">
+            <PlayerColor player={game.player1} settings={settings}>
+              <div className="bg-stone-900">Pts. {Math.min(teamOnePoints, 10)} / 10</div>
             </PlayerColor>
-            <PlayerColor player={game.player3} settings={settings} className="mb-1 p-1">
-              <div className="bg-stone-900 p-1">Points {Math.min(teamTwoPoints, 10)} / 10</div>
+            <PlayerColor player={game.player3} settings={settings}>
+              <div className="bg-stone-900">Pts. {Math.min(teamTwoPoints, 10)} / 10</div>
             </PlayerColor>
           </div>
           {game.maker && game.trump && (
-            <div className="p-1 text-sm">Trump {getSuitName(game.trump.suit)}s</div>
+            <div className="mx-1 md:text-base text-xs text-center">
+              Trump: {getSuitName(game.trump.suit)}s
+            </div>
           )}
         </GameBorderBare>
       </div>

@@ -8,7 +8,7 @@ export default {
   ],
   safelist: [
     'rotate-[-10deg],rotate-[-5deg],rotate-[10deg],rotate-[5deg]',
-    'translate-y-[-10px],translate-y-[-15px],translate-y-[10px],translate-y-[15px]',
+    'translate-y-[-10px],translate-y-[-15px],translate-y-[10px],translate-y-[15px],translate-y-[25px]',
     'translate-x-[-10px],translate-x-[-15px],translate-x-[10px],translate-x-[15px]',
     'translate-x-[60px],translate-x-[30px],translate-x-[-60px],translate-x-[-30px],',
     'translate-y-[60px],translate-y-[30px],translate-y-[-60px],translate-y-[-30px],'

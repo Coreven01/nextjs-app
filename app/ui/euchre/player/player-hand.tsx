@@ -87,7 +87,7 @@ function getCardCssForPlayerLocation(
     player.human &&
     gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT &&
     isAvailable
-      ? 'cursor-pointer hover:scale-[1.15] hover:-translate-y-4'
+      ? 'cursor-pointer md:hover:scale-[1.15] md:hover:translate-y-0'
       : 'cursor-not-allowed';
 
   let retval = '';
@@ -95,7 +95,7 @@ function getCardCssForPlayerLocation(
   switch (player.playerNumber) {
     case 1:
       retval = `${baseClasses} rotate-[${initDeg + rotateVal * index}deg]
-      translate-x-[${offsetStart - offset * index}px] translate-y-[${[1, 3].includes(index) ? -10 : index === 2 ? -15 : 0}px]`;
+      translate-x-[${offsetStart - offset * index}px] translate-y-[${[0, 4].includes(index) ? 25 : [1, 3].includes(index) ? 15 : 10}px]`;
       break;
     case 2:
       retval = `${baseClasses} rotate-[${-initDeg - rotateVal * index}deg]
@@ -119,16 +119,16 @@ function getDivCssForPlayerLocation(player: EuchrePlayer): string {
 
   switch (player.playerNumber) {
     case 1:
-      retval = `max-w-20 md:h-full md:relative`;
+      retval = `max-w-20 md:max-h-full md:max-w-full md:relative`;
       break;
     case 2:
-      retval = `max-h-24 md:h-full md:relative`;
+      retval = `max-w-16 md:max-h-full md:max-w-full md:relative`;
       break;
     case 3:
       retval = `max-w-24 md:max-w-full md:relative`;
       break;
     case 4:
-      retval = `max-w-24 md:w-full md:relative`;
+      retval = `max-w-24 md:max-w-full md:relative`;
       break;
   }
 

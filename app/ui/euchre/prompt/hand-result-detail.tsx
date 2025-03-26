@@ -15,7 +15,7 @@ export default function HandResultDetail({ cardsPlayed, playerWon, className, ..
           <div
             {...rest}
             className={clsx(
-              `flex flex-col min-w-16 text-black border mx-1`,
+              `flex flex-col md:min-w-16 min-w-12 text-black border mr-1`,
               className,
               { 'bg-amber-200 border-orange-300 shadow-lg': c.player === playerWon },
               { 'bg-white': c.player !== playerWon }
@@ -37,11 +37,11 @@ interface DetailProps {
 function CardDetail({ card }: DetailProps) {
   return (
     <>
-      <div className="text-md">
+      <div>
         <span>{card.card.value}</span>-
         <span className={getCardClassColorFromSuit(card.card.suit)}>{card.card.suit}</span>
       </div>
-      <div className="text-sm">{card.player.name}</div>
+      <div>{card.player.name}</div>
     </>
   );
 }

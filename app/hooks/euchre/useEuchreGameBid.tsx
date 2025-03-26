@@ -261,7 +261,7 @@ export default function useEuchreGameBid(state: EuchreGameState, onReset: (value
 
     state.dispatchPlayerNotification(getPlayerNotificationForAllPassed(newGame.dealer));
 
-    await new Promise((resolve) => setTimeout(resolve, incrementSpeed(state.euchreSettings.gameSpeed, 1)));
+    await new Promise((resolve) => setTimeout(resolve, incrementSpeed(state.euchreSettings.gameSpeed, 2)));
 
     onReset(false);
     const newGameFlow = getGameStateForInitialDeal(state.euchreGameFlow, state.euchreSettings, newGame);
@@ -315,16 +315,16 @@ export const getPlayerNotificationForBidding = (
 
   switch (player.playerNumber) {
     case 1:
-      messageLocation = 'top-5';
+      messageLocation = 'md:top-3';
       break;
     case 2:
-      messageLocation = 'bottom-5';
+      messageLocation = 'md:bottom-5 top-3';
       break;
     case 3:
-      messageLocation = 'right-3';
+      messageLocation = 'md:right-3 left-3';
       break;
     case 4:
-      messageLocation = 'left-3';
+      messageLocation = 'md:left-3 right-3';
       break;
   }
 
@@ -346,12 +346,12 @@ export const getPlayerNotificationForBidding = (
 
   const infoDetail = (
     <EphemeralModal
-      className={`w-auto absolute whitespace-nowrap shadow-lg shadow-black ${messageLocation}`}
+      className={`w-auto absolute whitespace-nowrap shadow-lg shadow-black z-30 ${messageLocation}`}
       durationMs={settings.gameSpeed}
       delayMs={delay}
       fadeType="both"
     >
-      <UserInfo className="text-sm">
+      <UserInfo className="md:text-base text-xs">
         <div className="bg-stone-900 p-2">
           <div className="flex gap-2 items-center">
             {icon}
@@ -381,7 +381,11 @@ const getPlayerNotificationForAllPassed = (player: EuchrePlayer) => {
   };
   const id = player.generateElementId();
   const infoDetail = (
-    <UserInfo className="p-2 text-md w-auto whitespace-nowrap shadow-lg shadow-black" id={id} key={id}>
+    <UserInfo
+      className="p-2 md:text-base text-sm w-auto whitespace-nowrap shadow-lg shadow-black"
+      id={id}
+      key={id}
+    >
       <div className="flex gap-2 items-center">All Players Passed</div>
     </UserInfo>
   );

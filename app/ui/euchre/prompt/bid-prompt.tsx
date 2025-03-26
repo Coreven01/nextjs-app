@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  getCardClassColorFromSuit,
-  getCardFullName,
-  getEncodedCardSvg,
-  getSuitName
-} from '@/app/lib/euchre/card-data';
+import { getCardFullName, getEncodedCardSvg, getSuitName } from '@/app/lib/euchre/card-data';
 import { BidResult, EuchreGameInstance, EuchreSettings, Suit } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 import Image from 'next/image';
@@ -13,7 +8,6 @@ import { useState } from 'react';
 import PromptSelection from './prompt-selection';
 import GamePrompt from '../game/game-prompt';
 import PlayerColor from '../player/player-team-color';
-import GameBorder from '../game/game-border';
 import GameBorderBare from '../game/game-border-bare';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
@@ -77,72 +71,104 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
     <GamePrompt {...rest} zIndex={50} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
         <div
-          className={`grid ${
-            firstRound
-              ? 'grid-rows-[1fr,190px,30px,30px] grid-cols-[130px,100px]'
-              : 'grid-rows-[1fr,140px,30px,30px] grid-cols-[100px,100px]'
-          } gap-1`}
+          className={clsx(
+            `grid gap-1`,
+            {
+              'md:grid-rows-[1fr,auto,auto,auto,auto] md:grid-cols-[130px,100px] grid-rows-[1fr,auto,auto] grid-cols-[130px,100px,auto]':
+                firstRound
+            },
+            {
+              'md:grid-rows-[1fr,130px,30px,30px] md:grid-cols-[100px,100px] grid-rows-[1fr,auto,auto,auto] grid-cols-[auto]':
+                !firstRound
+            }
+          )}
         >
-          <div className="col-span-2">
-            <div
-              title={`Choose if the dealer should pick up ${cardName}`}
-              className="flex items-center justify-center cursor-default"
-            >
-              <h2 className="text-yellow-200 font-bold p-1">Bid for Trump</h2>
-            </div>
+          <div
+            title={`Choose if the dealer should pick up ${cardName}`}
+            className={clsx(
+              'flex items-center justify-center cursor-default',
+              {
+                'md:col-span-2 col-span-3': firstRound
+              },
+              { 'md:col-span-2 md:w-full w-64': !firstRound }
+            )}
+          >
+            <h2 className="text-yellow-200 font-bold md:p-1 md:text-lg text-sm">Bid for Trump</h2>
+          </div>
 
-            {firstRound ? (
+          {firstRound && (
+            <div className="md:col-span-2 col-span-1">
               <div title={dealerTitle} className="text-center cursor-default">
                 <PlayerColor player={game.dealer} settings={settings}>
-                  <div className="bg-stone-800 p-1 h-full flex items-center justify-center">
+                  <div className="bg-stone-800 md:p-1 h-full flex items-center justify-center md:text-base text-xs">
                     Dealer: {game.dealer === game.currentPlayer ? 'You' : game.dealer.name}
                   </div>
                 </PlayerColor>
               </div>
-            ) : (
-              <></>
-            )}
-          </div>
+            </div>
+          )}
 
-          {firstRound ? (
-            <GameBorderBare>
+          {firstRound && (
+            <GameBorderBare className="col-start-1" innerClass="w-20 md:w-full">
               <div className="p-2 bg-green-950 flex items-center justify-center">
                 <Image
-                  className={`contain row-span-1 col-span-1`}
+                  className={`contain`}
                   quality={100}
                   width={game.trump.getDisplayWidth('center')}
                   height={game.trump.getDisplayHeight('center')}
                   src={getEncodedCardSvg(game.trump, 'center')}
                   alt={getCardFullName(game.trump)}
                   title={getCardFullName(game.trump)}
+                  style={{
+                    width: '100%',
+                    height: 'auto'
+                  }}
                 />
               </div>
             </GameBorderBare>
-          ) : (
-            <></>
           )}
           <SuitSelection
-            className="p-1 justify-center"
+            className={clsx(
+              'p-1 justify-center',
+              { 'col-span-1 col-start-2 row-start-3': firstRound },
+              { 'md:col-span-2 w-32 m-auto': !firstRound }
+            )}
             firstRound={firstRound}
             trumpSuit={game.trump.suit}
             onSelectionChange={handleSuitSelectionChange}
           />
-          <div className={`${firstRound ? 'col-span-2' : 'col-span-3'} text-center`} title={aloneTitle}>
+          <div
+            className={clsx(
+              'text-center md:text-base text-xs',
+              { 'md:col-span-2 md:col-start-1 md:row-start-4 col-start-2 row-start-2': firstRound },
+              { 'md:col-span-2': !firstRound }
+            )}
+            title={aloneTitle}
+          >
             <label htmlFor="checkAlone">Go Alone: </label>
             <input id="checkAlone" type="checkbox" onChange={(e) => setLonerSelection(e.target.checked)} />
           </div>
-          <div className="flex gap-1 col-span-2">
+          <div
+            className={clsx(
+              'flex gap-2 md:text-base text-xs',
+              {
+                'md:flex-row flex-col md:col-span-2 md:col-start-1 md:row-start-5 md:row-span-1 col-start-3 row-start-2 row-span-2':
+                  firstRound
+              },
+              { 'md:col-span-2': !firstRound }
+            )}
+          >
             <button
               title={passTitle}
               onClick={() => handleBidSubmit(true)}
-              className="w-full border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
+              className="w-full flex-grow px-1 border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
             >
               Pass
             </button>
             <button
               title={orderTrumpTitle}
               onClick={() => handleBidSubmit(false)}
-              className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+              className="w-full flex-grow px-1 border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
               disabled={!submitEnabled}
             >
               {firstRound ? (game.dealer === game.currentPlayer ? 'Pick Up' : 'Order Up') : 'Name Suit'}
@@ -163,55 +189,23 @@ interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 function SuitSelection({ trumpSuit, firstRound, onSelectionChange, className, ...rest }: SelectionProps) {
   const suits: Suit[] = ['♠', '♣', '♥', '♦'];
 
-  const buttonSvg =
-    'checked:bg-none bg-none bg-[rgba(150,150,150,0.3)] focus:outline-none focus:ring-2 focus:ring-red-500';
-  const retval: React.ReactNode[] = [];
-
-  for (const suit of suits) {
-    if (!firstRound && trumpSuit === suit) continue;
-
-    const suitDisabled: boolean = firstRound && trumpSuit !== suit;
-
-    retval.push(
-      <div key={suit} className="flex relative items-center justify-center">
-        <div className={`absolute pointer-events-none ${getCardClassColorFromSuit(suit)} text-3xl font-bold`}>
-          {suit}
-        </div>
-        <input
-          onChange={(e) => onSelectionChange(e.target.value)}
-          disabled={suitDisabled}
-          defaultChecked={firstRound && suit === trumpSuit}
-          type="radio"
-          name="suit"
-          value={suit}
-          title={getSuitName(suit)}
-          className={`appearance-none ${!firstRound && !suitDisabled ? 'cursor-pointer hover:bg-amber-100' : ''} ${buttonSvg} border 
-          rounded w-full h-8 inset-shadow-sm shadow-xl checked:bg-red-200 hover:checked:bg-red-200 focus:bg-amber-300 text-white 
-          focus:active:bg-red-200 disabled:cursor-not-allowed`}
-        />
-      </div>
-    );
-  }
   return (
-    <div
-      {...rest}
-      className={clsx(`flex flex-col gap-2 ${firstRound ? 'col-span-1' : 'col-span-2'}`, className)}
-    >
-      {suits.map((s) => {
-        if (firstRound || trumpSuit !== s) {
-          const suitDisabled: boolean = firstRound && trumpSuit !== s;
+    <div {...rest} className={clsx(`flex flex-col gap-1 md:gap-2`, className)}>
+      {suits.map((suit) => {
+        if (firstRound || trumpSuit !== suit) {
+          const suitDisabled: boolean = firstRound && trumpSuit !== suit;
 
           return (
             <PromptSelection
-              key={s}
-              suit={s}
-              value={s}
+              key={suit}
+              suit={suit}
+              value={suit}
               isEnabled={!suitDisabled}
-              defaultChecked={firstRound && s === trumpSuit}
+              defaultChecked={firstRound && suit === trumpSuit}
               onSelectionChanged={onSelectionChange}
-              title={`${getSuitName(s)}s`}
+              title={`${getSuitName(suit)}s`}
             >
-              {s}
+              {suit}
             </PromptSelection>
           );
         }

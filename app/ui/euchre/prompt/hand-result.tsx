@@ -14,7 +14,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
   if (!handResult) throw new Error('No hand result was found');
 
   let pointsDisplay: string = `Points for Team ${handResult.teamWon}: ${handResult.points}`;
-  const BASE_CLASS = 'border dark:border-white text-center dark:bg-stone-900 dark:text-white p-1 mb-1';
+  const BASE_CLASS = 'text-center dark:bg-stone-900 dark:text-white mb-1';
   const winningTeamPlayer = game.gamePlayers.filter((p) => p.team === handResult.teamWon)[0];
 
   if (handResult.teamWon === handResult.maker.team) {
@@ -24,29 +24,31 @@ export default function HandResult({ game, settings, handResult, className, ...r
   }
 
   return (
-    <div {...rest} className={clsx('md:flex md:flex-row gap-1', className)}>
+    <div {...rest} className={clsx('flex flex-row gap-1 overflow-auto', className)}>
       <div className="md:min-w-48">
         <div className="mb-1">
-          <PlayerColor player={handResult.maker} settings={settings}>
+          <PlayerColor className="md:text-base text-xs" player={handResult.maker} settings={settings}>
             <div className="bg-stone-900 p-1 text-center">
               Maker: {handResult.maker === game.player1 ? 'You' : handResult.maker.name}
             </div>
           </PlayerColor>
         </div>
         <div className=" mb-1">
-          <PlayerColor player={handResult.dealer} settings={settings}>
+          <PlayerColor className="md:text-base text-xs" player={handResult.dealer} settings={settings}>
             <div className="bg-stone-900 p-1 text-center">
               Dealer: {handResult.dealer === game.player1 ? 'You' : handResult.dealer.name}
             </div>
           </PlayerColor>
         </div>
         <div className="mb-1">
-          <PlayerColor player={winningTeamPlayer} settings={settings}>
+          <PlayerColor className="md:text-base text-xs" player={winningTeamPlayer} settings={settings}>
             <div className="bg-stone-900 p-1 text-center">{pointsDisplay}</div>
           </PlayerColor>
         </div>
-        <div className={`${BASE_CLASS}`}>Went Alone: {handResult.loner ? 'Yes' : 'No'}</div>
-        <div className={`${BASE_CLASS}`}>
+        <div className={`${BASE_CLASS} md:text-base text-xs border dark:border-white`}>
+          Went Alone: {handResult.loner ? 'Yes' : 'No'}
+        </div>
+        <div className={`${BASE_CLASS} md:text-base text-xs border dark:border-white`}>
           Trump:{' '}
           <span
             title={`${getSuitName(handResult.trump.suit)}s`}
@@ -55,14 +57,16 @@ export default function HandResult({ game, settings, handResult, className, ...r
             {handResult.trump.suit}
           </span>
         </div>
-        <div className={`${BASE_CLASS}`}>Named By Suit: {handResult.trumpWasNamed ? 'Yes' : 'No'}</div>
+        <div className={`${BASE_CLASS} md:text-base text-xs border dark:border-white`}>
+          Named By Suit: {handResult.trumpWasNamed ? 'Yes' : 'No'}
+        </div>
       </div>
       <div>
         {handResult.tricks.map((t) => {
           return (
             <div
               key={`${t.round}-${t.cardsPlayed.map((c, index) => `${c.player.playerNumber}-${c.card.value}-${c.card.suit}`).join('')}`}
-              className={`flex items-center ${BASE_CLASS}`}
+              className={`flex items-center ${BASE_CLASS} md:text-base text-xs`}
             >
               <HandResultDetail cardsPlayed={t.cardsPlayed} playerWon={t.taker} />
               <div className="w-full">

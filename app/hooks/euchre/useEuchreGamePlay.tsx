@@ -374,16 +374,16 @@ const getPlayerNotificationForPlayedCard = (card: Card, player: EuchrePlayer) =>
   let cardLocation = '';
   switch (player.playerNumber) {
     case 1:
-      cardLocation = '-top-5';
+      cardLocation = '-top-8 md:-top-5 md:w-auto w-16';
       break;
     case 2:
-      cardLocation = '-bottom-5';
+      cardLocation = '-bottom-4 md:-bottom-5 md:w-auto w-16';
       break;
     case 3:
-      cardLocation = '-right-5';
+      cardLocation = '-right-16 md:-right-5 md:h-auto h-16';
       break;
     case 4:
-      cardLocation = '-left-5';
+      cardLocation = '-left-16 md:-left-5 md:h-auto h-16';
       break;
   }
 
@@ -404,7 +404,7 @@ const getPlayerNotificationForPlayedCard = (card: Card, player: EuchrePlayer) =>
       player={player}
       enableShadow={true}
       height={card.getDisplayHeight(player.location)}
-      className={`absolute ${rotateValues[Math.round(Math.random() * 5)]} ${cardLocation}`}
+      className={`!absolute z-30 ${rotateValues[Math.round(Math.random() * 5)]} ${cardLocation}`}
       id={card.generateElementId()}
       key={`${card.generateElementId()}-${Math.floor(Math.random() * 1000)}`}
     ></GameCard>
@@ -428,23 +428,23 @@ const getPlayerNotificationForTrickWon = (result: EuchreTrick) => {
 
   switch (result.taker?.playerNumber) {
     case 1:
-      messageLocation = 'bottom-3';
+      messageLocation = 'md:bottom-3 -bottom-8';
       break;
     case 2:
-      messageLocation = 'top-3';
+      messageLocation = 'md:top-3 -top-8';
       break;
     case 3:
-      messageLocation = 'left-3';
+      messageLocation = 'md:left-3 -left-8';
       break;
     case 4:
-      messageLocation = 'right-3';
+      messageLocation = 'md:right-3 -right-8';
       break;
   }
 
   const id = result.taker?.generateElementId();
   const infoDetail = (
     <UserInfo
-      className={`p-2 text-lg w-auto absolute whitespace-nowrap z-40 shadow-lg shadow-black ${messageLocation}`}
+      className={`p-2 md:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg shadow-black ${messageLocation}`}
       id={id}
       key={`${id}-${Math.floor(Math.random() * 1000)}`}
     >

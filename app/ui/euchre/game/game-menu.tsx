@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 
 interface Props {
@@ -25,33 +25,48 @@ export default function GameMenu({
 }: Props) {
   const [showMenu, setShowMenu] = useState(false);
 
+  useEffect(() => {
+    const nav = document.getElementById('site-top-nav');
+    if (nav) {
+      nav.style.zIndex = isFullScreen ? '10' : '500';
+    }
+
+    return () => {
+      if (nav) nav.style.zIndex = '500';
+    };
+  });
+
   const handleMenuClick = () => {
     setShowMenu(!showMenu);
   };
 
   return (
     <>
-      <div className="flex p-1 absolute z-20">
+      <div className="flex p-1 absolute" style={{ zIndex: 100 }}>
         <div className="bg-stone-800">
           <input
             checked={showMenu}
             type="checkbox"
             title="Toggle Menu"
-            className={`appearance-none cursor-pointer block bg-black peer/menu border rounded w-6 h-6 md:w-8 md:h-8 right-1 top-1 ${menuSvg} checked:dark:bg-neutral-500}`}
+            className={clsx(
+              `appearance-none cursor-pointer block bg-black peer/menu border rounded w-6 h-6 md:w-8 md:h-8 right-1 top-1 checked:dark:bg-neutral-500}`,
+              menuSvg
+            )}
             onChange={handleMenuClick}
           />
         </div>
       </div>
       <div
         className={clsx(
-          'flex flex-col absolute min-w-32 z-20 bg-black bg-opacity-50 left-3 top-12 transition ease-in-out duration-300',
+          'flex flex-col absolute min-w-32 bg-black bg-opacity-50 left-3 top-12 transition ease-in-out duration-300',
           {
             hidden: !showMenu
           }
         )}
+        style={{ zIndex: 100 }}
       >
         <div className="p-2 text-white">
-          Toggle Fullscreen
+          <label>Toggle Fullscreen</label>
           <input
             checked={isFullScreen}
             type="checkbox"

@@ -2,7 +2,7 @@
 
 import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/euchre/definitions';
 import HandResult from '../prompt/hand-result';
-import { useEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import GameOverview from './game-overview';
@@ -81,61 +81,31 @@ export default function GameResults({
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,300px,1fr]">
+        <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,300px,auto]">
           <div className="flex">
             <button ref={buttonLeft}>&lt;</button>
-            <PromptHeader className="flex-grow">Game Results</PromptHeader>
+            <PromptHeader className="flex-grow md:text-base text-sm">Game Results</PromptHeader>
             <button ref={buttonRight}>&gt;</button>
           </div>
-          <ul
-            ref={menu}
-            className="flex gap-2 overflow-x-scroll w-full text-sm mb-2"
-            style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
-          >
-            <li
-              className={clsx('whitespace-nowrap hover:text-yellow-500', {
-                'text-yellow-500': selection === -1
-              })}
-            >
-              <button
-                className={clsx('', {
-                  'underline decoration-solid decoration-red-600': selection === -1
-                })}
-                id="btn-overview"
-                onClick={() => handleButtonClick(-1)}
-              >
-                Overview
-              </button>
-            </li>
-            {gameResults.map((r, i) => {
-              return (
-                <li
-                  className={clsx('whitespace-nowrap hover:text-yellow-500', {
-                    'text-yellow-500': selection === i
-                  })}
-                  key={i}
-                >
-                  <button
-                    className={clsx('', {
-                      'underline decoration-solid decoration-red-600': selection === i
-                    })}
-                    id={`btn-hand-${i}`}
-                    onClick={() => handleButtonClick(i)}
-                  >
-                    Hand ({i + 1})
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <HandResultNavigation
+            menuRef={menu}
+            onButtonClick={handleButtonClick}
+            gameResults={gameResults}
+            selection={selection}
+          />
 
           {showOverview ? (
             <GameOverview game={game} gameResults={gameResults} />
           ) : (
-            <HandResult game={game} settings={settings} handResult={gameResults[selection ?? 0]}></HandResult>
+            <HandResult
+              className="mx-auto"
+              game={game}
+              settings={settings}
+              handResult={gameResults[selection ?? 0]}
+            ></HandResult>
           )}
 
-          <div className="flex gap-1">
+          <div className="flex gap-1 md:text-base text-xs">
             <button
               onClick={onClose}
               className="w-full border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
@@ -152,5 +122,57 @@ export default function GameResults({
         </div>
       </div>
     </GamePrompt>
+  );
+}
+
+interface NavProps {
+  menuRef: RefObject<HTMLUListElement>;
+  selection: number;
+  gameResults: EuchreHandResult[];
+  onButtonClick: (selection: number) => void;
+}
+function HandResultNavigation({ menuRef, selection, gameResults, onButtonClick }: NavProps) {
+  return (
+    <ul
+      ref={menuRef}
+      className="flex gap-2 overflow-x-scroll w-full md:text-sm text-xs mb-2"
+      style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+    >
+      <li
+        className={clsx('whitespace-nowrap hover:text-yellow-500', {
+          'text-yellow-500': selection === -1
+        })}
+      >
+        <button
+          className={clsx('', {
+            'underline decoration-solid decoration-red-600': selection === -1
+          })}
+          id="btn-overview"
+          onClick={() => onButtonClick(-1)}
+        >
+          Overview
+        </button>
+      </li>
+      {gameResults.map((r, i) => {
+        return (
+          <li
+            className={clsx('whitespace-nowrap hover:text-yellow-500', {
+              'text-yellow-500': selection === i
+            })}
+            key={i}
+          >
+            <button
+              className={clsx('', {
+                'underline decoration-solid decoration-red-600': selection === i
+              })}
+              id={`btn-hand-${i}`}
+              onClick={() => onButtonClick(i)}
+            >
+              Hand ({i + 1})
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

@@ -24,13 +24,9 @@ export default function PromptSelection({
   ...rest
 }: Props) {
   return (
-    <div
-      key={suit}
-      className={clsx('flex relative items-center justify-center', className)}
-      {...rest}
-    >
+    <div key={suit} className={clsx('flex relative items-center justify-center', className)} {...rest}>
       <div
-        className={`absolute pointer-events-none ${getCardClassColorFromSuit(suit)} text-2xl font-bold`}
+        className={`absolute pointer-events-none ${getCardClassColorFromSuit(suit)} md:text-2xl text-xl font-bold`}
       >
         {children}
       </div>
@@ -42,7 +38,7 @@ export default function PromptSelection({
         name="prompt-selection"
         value={value}
         className={`appearance-none ${isEnabled ? 'cursor-pointer hover:bg-amber-100' : ''} ${buttonSvg} border 
-            rounded w-full h-8 inset-shadow-sm shadow-xl checked:bg-red-200 hover:checked:bg-red-200 focus:bg-amber-300 text-white 
+            rounded w-full md:h-8 h-6 inset-shadow-sm shadow-xl checked:bg-red-200 hover:checked:bg-red-200 focus:bg-amber-300 text-white 
             focus:active:bg-red-200 disabled:cursor-not-allowed checked:focus:bg-red-200`}
       />
     </div>

@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next';
+import type { Viewport } from 'next';
 import '@/app/ui/global.css';
 import SideNav from './ui/sidenav';
 import TopNav from './ui/topnav';

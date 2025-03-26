@@ -25,10 +25,10 @@ export default function HandResults({
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
-        <h3 className="text-lg text-center font-bold text-yellow-200">Hand Results</h3>
-        <div className="p-1 ">
+        <h3 className="md:text-lg text-sm text-center font-bold text-yellow-200">Hand Results</h3>
+        <div className="p-1">
           <HandResult game={game} settings={settings} handResult={handResult}></HandResult>
-          <div className="flex gap-1">
+          <div className="flex gap-1 md:text-base text-xs">
             <button
               onClick={onReplayHand}
               className="border border-white bg-red-950 hover:bg-amber-100 hover:text-black w-full mt-2"

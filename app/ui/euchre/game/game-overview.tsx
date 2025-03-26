@@ -12,14 +12,14 @@ export default function GameOverview({ game, gameResults }: Props) {
   const rounds = gameResults.length;
 
   return (
-    <div className="p-1 overflow-auto">
+    <div className="p-1">
       <div className="flex">
-        <div className="flex flex-col">
+        <div className="flex flex-col md:text-base text-xs">
           <PromptHeader>Final Score</PromptHeader>
           <div>Team One: {teamOneScore}</div>
           <div>Team Two: {teamTwoScore}</div>
         </div>
-        <div className="flex flex-col">
+        <div className="flex flex-col md:text-base text-xs">
           <PromptHeader>Rounds Played</PromptHeader>
           <div className="text-center">{rounds}</div>
         </div>
@@ -47,7 +47,7 @@ const TeamStats = ({ game, gameResults, teamNumber }: TeamProps) => {
   const teamPlayers = game.gamePlayers.filter((p) => p.team === teamNumber);
 
   return (
-    <table className="text-sm">
+    <table className="md:text-sm text-xs">
       <thead>
         <tr className="border-b border-white">
           <th>Player</th>

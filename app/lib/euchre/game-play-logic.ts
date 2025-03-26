@@ -589,6 +589,8 @@ function getBestCardWhenDefender(game: EuchreGameInstance, gameLogic: GamePlayLo
       cardToPlay = trumpLow;
     } else if (gameLogic.trickInfo.losingHighLow.low) {
       cardToPlay = gameLogic.trickInfo.losingHighLow.low;
+    } else if (gameLogic.trickInfo.winningHighLow.high) {
+      cardToPlay = gameLogic.trickInfo.winningHighLow.high;
     }
   } else if (gameLogic.trickInfo.winningHighLow.low && !gameLogic.teamInfo.teammateYetToPlay) {
     // play weak winning card if available if teammate already played.

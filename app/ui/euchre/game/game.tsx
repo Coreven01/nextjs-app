@@ -59,7 +59,6 @@ export default function EuchreGame() {
   };
 
   const handleNewGame = () => {
-    //handleSettingsChange(settings);
     toggleSettings(false);
     beginNewGame();
   };
@@ -149,8 +148,6 @@ export default function EuchreGame() {
 
   //#endregion
 
-  console.log('Render Euchre Game Component');
-
   return (
     <>
       {isFullScreen && <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg !z-50" />}
@@ -159,7 +156,7 @@ export default function EuchreGame() {
         id="euchre-game"
         className={`flex md:p-1 ${isFullScreen ? 'fixed top-0 left-0 w-full h-full z-50' : 'relative'} ${verela.className}`}
       >
-        <GameBorder className="w-full h-full md:w-auto md:h-auto">
+        <GameBorder className="w-full md:w-auto md:h-auto overflow-auto">
           {showSettings && !euchreGame ? (
             <>
               {renderSettings}
@@ -169,7 +166,7 @@ export default function EuchreGame() {
             <div
               className={`${SECTION_STYLE} md:m-2 md:h-auto flex-grow relative bg-[url(/felt1.png)] h-full`}
             >
-              <div className="m-2">
+              <div className="md:m-2">
                 {euchreGame ? (
                   <>
                     <GameArea
@@ -185,15 +182,15 @@ export default function EuchreGame() {
                       onCardPlayed={handleCardPlayed}
                       onSettingsToggle={toggleSettings}
                     />
-                    {showSettings && <GamePrompt zIndex={100}>{renderSettings}</GamePrompt>}
+                    {showSettings && <GamePrompt zIndex={90}>{renderSettings}</GamePrompt>}
                   </>
                 ) : (
                   <></>
                 )}
-                {/* {renderBidPrompt}
+                {renderBidPrompt}
                 {renderDiscardPrompt}
                 {renderHandResults}
-                {renderGameResults} */}
+                {renderGameResults}
                 {showEvents && (
                   <GameEvents
                     events={events}
@@ -202,13 +199,13 @@ export default function EuchreGame() {
                     className="-left-2 top-0"
                   />
                 )}
-                {/* {euchreGame && (
+                {euchreGame && (
                   <GameScore
                     game={euchreGame}
                     settings={euchreSettings}
-                    className="min-h-16 min-w-16 absolute top-2 right-2"
+                    className="md:min-h-16 md:min-w-16 absolute top-2 md:right-2 left-8"
                   />
-                )} */}
+                )}
               </div>
             </div>
           )}

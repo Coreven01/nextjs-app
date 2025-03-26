@@ -8,7 +8,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   innerClass?: string;
 }
 
-const height = 10;
+const height = 8;
 const width = 300;
 
 const boardVals = [
@@ -22,9 +22,9 @@ export default function GameBorder({ children, className, innerClass, ...rest }:
   const cornerImg = (
     <div>
       <Image
-        src={`/wooden/square-2.png`}
-        width={10}
-        height={10}
+        src={`/wooden/square-2.jpg`}
+        width={8}
+        height={8}
         alt="border"
         loading="eager"
         quality={100}
@@ -81,7 +81,7 @@ function BorderHorizontal({ location, values }: Props) {
         return (
           <Image
             key={`${location}-${i}-${v}`}
-            src={`/wooden/bar-${v}.png`}
+            src={`/wooden/bar-${v}.jpg`}
             width={width}
             height={height}
             alt="border"
@@ -111,7 +111,7 @@ function BorderVertical({ location, values }: Props) {
         return (
           <Image
             key={`${location}${i}${v}`}
-            src={`/wooden/bar-v-${v}.png`}
+            src={`/wooden/bar-v-${v}.jpg`}
             width={height}
             height={width}
             alt="border"

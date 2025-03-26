@@ -43,7 +43,7 @@ export default function WoodenBoard({ rows, className }: Props) {
               quality={100}
               unoptimized={true}
               placeholder="blur"
-              blurDataURL="/wooden/wooden0.jpg"
+              blurDataURL="/wooden/wooden-0.jpg"
               priority={true}
               className={`contain border-r border-b border-black relative ${offset}`}
               style={{
