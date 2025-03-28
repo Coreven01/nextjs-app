@@ -78,7 +78,6 @@ function scrollElementIntoViewIfNeeded(element: HTMLElement, container: HTMLElem
   if (!isElementFullyVisible(element, container)) {
     element.scrollIntoView({
       behavior: 'smooth',
-      block: 'center',
       inline: 'center'
     });
   }

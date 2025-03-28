@@ -155,7 +155,8 @@ export default function useEuchreGameBid(state: EuchreGameState, onReset: (value
       const computerChoice: BidResult = newGame.currentPlayer.determineBid(
         newGame,
         newGame.trump,
-        !state.euchreGameFlow.hasFirstBiddingPassed
+        !state.euchreGameFlow.hasFirstBiddingPassed,
+        state.euchreSettings.difficulty
       );
       handlePlayerSelectionForBid(computerChoice);
     }
@@ -315,16 +316,16 @@ export const getPlayerNotificationForBidding = (
 
   switch (player.playerNumber) {
     case 1:
-      messageLocation = 'md:top-3';
+      messageLocation = 'md:bottom-8 md:top-auto top-3';
       break;
     case 2:
-      messageLocation = 'md:bottom-5 top-3';
+      messageLocation = 'md:top-8 top-3';
       break;
     case 3:
-      messageLocation = 'md:right-3 left-3';
+      messageLocation = 'md:right-8 md:left-auto left-3';
       break;
     case 4:
-      messageLocation = 'md:left-3 right-3';
+      messageLocation = 'md:left-8 md:right-auto right-3';
       break;
   }
 
@@ -346,7 +347,7 @@ export const getPlayerNotificationForBidding = (
 
   const infoDetail = (
     <EphemeralModal
-      className={`w-auto absolute whitespace-nowrap shadow-lg shadow-black z-30 ${messageLocation}`}
+      className={`w-fit h-fit absolute whitespace-nowrap shadow-lg shadow-black z-30 ${messageLocation}`}
       durationMs={settings.gameSpeed}
       delayMs={delay}
       fadeType="both"
@@ -357,7 +358,7 @@ export const getPlayerNotificationForBidding = (
             {icon}
             <div>{messageDetail}</div>
           </div>
-          {loner ? <div className="w-full text-center text-yellow-200">Going Alone!</div> : <></>}
+          {loner ? <div className="w-full text-center text-yellow-200 md:text-xl">Going Alone!</div> : <></>}
         </div>
       </UserInfo>
     </EphemeralModal>

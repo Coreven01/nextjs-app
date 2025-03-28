@@ -30,6 +30,8 @@ export enum EuchreGameFlow {
 
 export enum EuchreFlowActionType {
   UPDATE_ALL = 1,
+
+  /** Used to prevent game from continuing to execute during its state is batching updates. When an action is started, this should be be the first state that's set. */
   SET_WAIT,
   SET_AWAIT_USER_INPUT,
   SET_BEGIN_INIT_DEAL,

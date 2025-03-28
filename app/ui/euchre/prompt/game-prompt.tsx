@@ -1,6 +1,6 @@
 'use client';
 
-import GameBorder from './game-border';
+import GameBorder from '../game/game-border';
 import GameModal from '../game-modal';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {

@@ -1,13 +1,13 @@
 'use client';
 
 import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/euchre/definitions';
-import HandResult from '../prompt/hand-result';
+import HandResult from './hand-result';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import GamePrompt from './game-prompt';
 import clsx from 'clsx';
-import GameOverview from './game-overview';
+import GameOverview from '../game/game-overview';
 import { scrollElementIntoViewIfNeeded } from '@/app/lib/euchre/util';
-import PromptHeader from '../prompt/prompt-header';
+import PromptHeader from './prompt-header';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -81,7 +81,7 @@ export default function GameResults({
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,300px,auto]">
+        <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,350px,auto]">
           <div className="flex">
             <button ref={buttonLeft}>&lt;</button>
             <PromptHeader className="flex-grow md:text-base text-sm">Game Results</PromptHeader>
@@ -95,7 +95,7 @@ export default function GameResults({
           />
 
           {showOverview ? (
-            <GameOverview game={game} gameResults={gameResults} />
+            <GameOverview game={game} gameSettings={settings} gameResults={gameResults} />
           ) : (
             <HandResult
               className="mx-auto"
@@ -114,7 +114,7 @@ export default function GameResults({
             </button>
             <button
               onClick={onNewGame}
-              className="w-full border border-white bg-green-950 hover:bg-amber-200 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+              className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
             >
               New Game
             </button>
@@ -155,15 +155,11 @@ function HandResultNavigation({ menuRef, selection, gameResults, onButtonClick }
       </li>
       {gameResults.map((r, i) => {
         return (
-          <li
-            className={clsx('whitespace-nowrap hover:text-yellow-500', {
-              'text-yellow-500': selection === i
-            })}
-            key={i}
-          >
+          <li className={clsx('whitespace-nowrap')} key={i}>
+            |{' '}
             <button
-              className={clsx('', {
-                'underline decoration-solid decoration-red-600': selection === i
+              className={clsx('hover:text-yellow-500', {
+                'underline decoration-solid decoration-red-600 text-yellow-500': selection === i
               })}
               id={`btn-hand-${i}`}
               onClick={() => onButtonClick(i)}

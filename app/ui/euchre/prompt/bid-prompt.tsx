@@ -6,9 +6,10 @@ import clsx from 'clsx';
 import Image from 'next/image';
 import { useState } from 'react';
 import PromptSelection from './prompt-selection';
-import GamePrompt from '../game/game-prompt';
+import GamePrompt from './game-prompt';
 import PlayerColor from '../player/player-team-color';
-import GameBorderBare from '../game/game-border-bare';
+import GameBorder from '../game/game-border';
+import CardSelection from './card-selection';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   firstRound: boolean;
@@ -74,7 +75,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
           className={clsx(
             `grid gap-1`,
             {
-              'md:grid-rows-[1fr,auto,auto,auto,auto] md:grid-cols-[130px,100px] grid-rows-[1fr,auto,auto] grid-cols-[130px,100px,auto]':
+              'md:grid-rows-[1fr,auto,auto,auto,auto] md:grid-cols-[130px,100px] grid-rows-[1fr,auto,auto] grid-cols-[auto,100px,auto]':
                 firstRound
             },
             {
@@ -93,7 +94,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
               { 'md:col-span-2 md:w-full w-64': !firstRound }
             )}
           >
-            <h2 className="text-yellow-200 font-bold md:p-1 md:text-lg text-sm">Bid for Trump</h2>
+            <h2 className="text-yellow-200 font-bold md:text-lg text-sm">Bid for Trump</h2>
           </div>
 
           {firstRound && (
@@ -109,34 +110,43 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
           )}
 
           {firstRound && (
-            <GameBorderBare className="col-start-1" innerClass="w-20 md:w-full">
-              <div className="p-2 bg-green-950 flex items-center justify-center">
-                <Image
-                  className={`contain`}
-                  quality={100}
-                  width={game.trump.getDisplayWidth('center')}
-                  height={game.trump.getDisplayHeight('center')}
-                  src={getEncodedCardSvg(game.trump, 'center')}
-                  alt={getCardFullName(game.trump)}
-                  title={getCardFullName(game.trump)}
-                  style={{
-                    width: '100%',
-                    height: 'auto'
-                  }}
-                />
-              </div>
-            </GameBorderBare>
+            <div>
+              <div className="text-center md:text-base text-sm">Trump Card</div>
+              <GameBorder className="col-start-1" innerClass="w-20 md:w-full">
+                <div className="p-2 bg-green-950 flex items-center justify-center">
+                  <Image
+                    className={`contain`}
+                    quality={100}
+                    width={game.trump.getDisplayWidth('center')}
+                    height={game.trump.getDisplayHeight('center')}
+                    src={getEncodedCardSvg(game.trump, 'center')}
+                    alt={getCardFullName(game.trump)}
+                    title={getCardFullName(game.trump)}
+                    style={{
+                      width: '100%',
+                      height: 'auto'
+                    }}
+                  />
+                </div>
+              </GameBorder>
+            </div>
           )}
-          <SuitSelection
-            className={clsx(
-              'p-1 justify-center',
-              { 'col-span-1 col-start-2 row-start-3': firstRound },
-              { 'md:col-span-2 w-32 m-auto': !firstRound }
-            )}
-            firstRound={firstRound}
-            trumpSuit={game.trump.suit}
-            onSelectionChange={handleSuitSelectionChange}
-          />
+          {!firstRound ? (
+            <SuitSelection
+              className={clsx(
+                'p-1 justify-center',
+                { 'col-span-1 col-start-2 row-start-3': firstRound },
+                { 'md:col-span-2 w-32 m-auto': !firstRound }
+              )}
+              firstRound={firstRound}
+              trumpSuit={game.trump.suit}
+              onSelectionChange={handleSuitSelectionChange}
+            />
+          ) : (
+            <div className="p-1 justify-center mt-2">
+              <CardSelection playerHand={game.currentPlayer?.availableCards ?? []} />
+            </div>
+          )}
           <div
             className={clsx(
               'text-center md:text-base text-xs',

@@ -37,9 +37,13 @@ export default function PromptSelection({
         type="radio"
         name="prompt-selection"
         value={value}
-        className={`appearance-none ${isEnabled ? 'cursor-pointer hover:bg-amber-100' : ''} ${buttonSvg} border 
+        className={clsx(
+          `appearance-none border 
             rounded w-full md:h-8 h-6 inset-shadow-sm shadow-xl checked:bg-red-200 hover:checked:bg-red-200 focus:bg-amber-300 text-white 
-            focus:active:bg-red-200 disabled:cursor-not-allowed checked:focus:bg-red-200`}
+            focus:active:bg-red-200 disabled:cursor-not-allowed checked:focus:bg-red-200`,
+          buttonSvg,
+          { 'cursor-pointer hover:bg-amber-100': isEnabled }
+        )}
       />
     </div>
   );

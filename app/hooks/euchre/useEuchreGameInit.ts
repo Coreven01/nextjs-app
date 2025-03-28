@@ -11,6 +11,7 @@ import { EuchreActionType } from './gameAnimationFlowReducer';
 import { EuchreGameState } from './useEuchreGame';
 import { getGameStateForInitialDeal, initDeckForInitialDeal } from '@/app/lib/euchre/game-setup-logic';
 
+/** Handles game initialization. */
 export default function useEuchreGameInit(state: EuchreGameState) {
   /**
    *
@@ -54,9 +55,11 @@ export default function useEuchreGameInit(state: EuchreGameState) {
     state.setPlayedCard(null);
   };
 
-  /** Create a new euchre game and begin intitial deal. */
+  /** Create a new euchre game and begin intitial deal.
+   *
+   */
   const createGame = () => {
-    const newGame = initDeckForInitialDeal(state.shouldCancel);
+    const newGame = initDeckForInitialDeal(state.euchreSettings.playerName, state.shouldCancel);
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
       state.euchreGameFlow,
       state.euchreSettings,
@@ -73,5 +76,10 @@ export default function useEuchreGameInit(state: EuchreGameState) {
     state.setShouldCancel(false);
   };
 
-  return { reset, beginNewGame };
+  const cancelAndReset = () => {
+    reset(true);
+    state.setEuchreGame(null);
+  };
+
+  return { reset, beginNewGame, cancelAndReset };
 }

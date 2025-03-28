@@ -7,24 +7,31 @@ import {
   EuchreSettings,
   GameSpeed
 } from './definitions';
-import { createEuchreGame, createShuffledDeck, getPlayerRotation } from './game';
+import { createEuchreGame, createShuffledDeck, getPlayerRotation, getSuitCount } from './game';
 import { logDebugEvent } from './util';
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import { InitDealResult, ShuffleResult } from './logic-definitions';
 
+/** */
 const INIT_GAME_SETTINGS: EuchreSettings = {
   shouldAnimate: false,
   debugAlwaysPass: false,
-  gameSpeed: 1000,
+  gameSpeed: 700,
   showHandResult: true,
   teamOneColor: 'blue',
   teamTwoColor: 'red',
   allowRenege: true,
-  autoFollowSuit: true,
+  autoFollowSuit: false,
   debugShowHandsWhenPassed: false,
-  debugShowPlayersHand: false
+  debugShowPlayersHand: false,
+  difficulty: 'expert',
+  stickTheDealer: false,
+  viewPlayerInfoDetail: true,
+  cardColor: 'blue',
+  playerName: 'Joe'
 };
 
+/** */
 const getGameStateForInitialDeal = (
   gameState: EuchreGameFlowState,
   settings: EuchreSettings,
@@ -49,10 +56,10 @@ const getGameStateForInitialDeal = (
 };
 
 /** Initialize the game with shuffled deck and set player 1 for deal. */
-const initDeckForInitialDeal = (cancel: boolean): EuchreGameInstance => {
+const initDeckForInitialDeal = (playerName: string, cancel: boolean): EuchreGameInstance => {
   logDebugEvent('Init deck for init deal');
 
-  const gameInstance = createEuchreGame();
+  const gameInstance = createEuchreGame(playerName);
 
   if (cancel) return gameInstance;
 
@@ -87,7 +94,6 @@ const dealCardsForDealer = (
  */
 function dealCardsForNewDealer(game: EuchreGameInstance, gameSetting: EuchreSettings): InitDealResult {
   if (!game) throw Error('Game not found.');
-
   if (!game?.dealer) throw Error('Game dealer not found for initial dealer.');
 
   let counter = 0;
@@ -147,21 +153,41 @@ const shuffleAndDealHand = (
   cancel: boolean
 ): ShuffleResult => {
   const newGame = gameInstance.shallowCopy();
-  newGame.resetForNewDeal();
-
   const retval: ShuffleResult = { transformations: [], game: newGame };
 
   if (cancel) return retval;
-
   if (!newGame.dealer) throw Error('Dealer not found.');
 
   const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
-  newGame.deck = createShuffledDeck(5);
-  newGame.dealCards();
+  const difficulty = gameSettings.difficulty;
+  let shouldReDeal = true;
+  const redealLimit = 10;
+  let counter = 0;
+
+  while (shouldReDeal) {
+    newGame.resetForNewDeal();
+    newGame.deck = createShuffledDeck(5);
+    newGame.dealCards();
+    newGame.trump = newGame.kitty[0];
+
+    if (difficulty === 'novice') {
+      const computerIsDealer = newGame.dealer.team === 2;
+      const player3SuitCount = getSuitCount(gameInstance.player3.availableCards, newGame.trump);
+      const player4SuitCount = getSuitCount(gameInstance.player4.availableCards, newGame.trump);
+      const trumpCardFlipped = newGame.trump.value === 'J' && computerIsDealer;
+
+      shouldReDeal =
+        counter < redealLimit &&
+        (trumpCardFlipped || player3SuitCount.length === 2 || player4SuitCount.length === 2);
+      counter++;
+    } else {
+      shouldReDeal = false;
+    }
+  }
   newGame.gamePlayers.forEach((p) => p.sortCards(null));
   newGame.verifyDealtCards();
   newGame.assignPlayer(rotation[0]);
-  newGame.trump = newGame.kitty[0];
+
   retval.transformations.push(getTransformationsForDealCardsForHand(newGame, gameSettings));
 
   return retval;
@@ -172,7 +198,6 @@ const getTransformationsForDealCardsForHand = (
   gameSettings: EuchreSettings
 ): CardTransformation[] => {
   if (!game) throw Error('Game not found.');
-
   if (!game?.dealer) throw Error('Game dealer not found for card animation.');
 
   const rotation = getPlayerRotation(game.gamePlayers, game.dealer);

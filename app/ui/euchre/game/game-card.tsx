@@ -2,6 +2,7 @@ import { getCardFullName } from '@/app/lib/euchre/card-data';
 import { Card, EuchrePlayer } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 import Image from 'next/image';
+import { CSSProperties } from 'react';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   card: Card;
@@ -11,6 +12,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   id: string;
   enableShadow: boolean;
   player: EuchrePlayer;
+  responsive?: boolean;
 }
 export default function GameCard({
   id,
@@ -21,6 +23,7 @@ export default function GameCard({
   className,
   enableShadow,
   player,
+  responsive,
   onClick,
   ...rest
 }: Props) {
@@ -28,6 +31,17 @@ export default function GameCard({
   const handleCardClick = (e: React.MouseEvent<HTMLImageElement, MouseEvent>) => {
     if (onClick) onClick(e);
   };
+
+  const cssValues: CSSProperties = {};
+  if (responsive) {
+    cssValues.width = '100%';
+    cssValues.height = '100%';
+  } else {
+    cssValues.width = width;
+    cssValues.height = height;
+    cssValues.maxHeight = height;
+    cssValues.maxWidth = width;
+  }
 
   return (
     <div className={clsx('relative', className)} id={id}>
@@ -38,10 +52,7 @@ export default function GameCard({
         height={height}
         src={src}
         alt={'base card'}
-        style={{
-          width: '100%',
-          height: '100%'
-        }}
+        style={cssValues}
       />
 
       <Image
@@ -51,10 +62,7 @@ export default function GameCard({
         height={height}
         src={sidePlayer ? '/card-shadow-side.png' : '/card-shadow.png'}
         alt={'card shadow'}
-        style={{
-          width: '100%',
-          height: 'auto'
-        }}
+        style={cssValues}
       />
       <Image
         {...rest}
@@ -66,10 +74,7 @@ export default function GameCard({
         alt={player.human ? getCardFullName(card) : 'Player Card'}
         unoptimized={true}
         onClick={(e) => handleCardClick(e)}
-        style={{
-          width: '100%',
-          height: '100%'
-        }}
+        style={cssValues}
       ></Image>
     </div>
   );

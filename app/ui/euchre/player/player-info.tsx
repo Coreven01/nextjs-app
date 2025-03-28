@@ -20,7 +20,7 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
   let counter = 0;
   infoToRender.push(<div key={counter++}>{player.name}</div>);
 
-  if (isSittingOut)
+  if (isSittingOut && settings.viewPlayerInfoDetail)
     infoToRender.push(
       <div key={counter++} className={`text-yellow-400`}>
         Sitting Out
@@ -28,21 +28,21 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
     );
   else infoToRender.push(<div key={counter++}>Tricks {tricksCount} / 5</div>);
 
-  if (isDealer)
+  if (isDealer && settings.viewPlayerInfoDetail)
     infoToRender.push(
       <div key={counter++} className={`text-yellow-400`}>
         Dealer
       </div>
     );
 
-  if (isMaker && suit)
+  if (isMaker && suit && settings.viewPlayerInfoDetail)
     infoToRender.push(
       <div key={counter++} className={`text-yellow-400`} title={`Trump: ${getSuitName(suit)}s`}>
         Maker ({suit})
       </div>
     );
 
-  while (infoToRender.length < 4)
+  while (infoToRender.length < 4 && settings.viewPlayerInfoDetail)
     infoToRender.push(
       <div key={counter++} className="invisible">
         X
@@ -59,7 +59,7 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
     >
       <GameBorderBare {...rest} className="">
         <PlayerColor player={player} settings={settings}>
-          <div className="bg-stone-800 md:p-2 p-1 h-full w-full">{infoToRender}</div>
+          <div className="bg-stone-800 md:p-2 p-1">{infoToRender}</div>
         </PlayerColor>
       </GameBorderBare>
     </GameHighlight>

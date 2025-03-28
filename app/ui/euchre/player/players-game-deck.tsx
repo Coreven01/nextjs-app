@@ -35,7 +35,8 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
   switch (player.playerNumber) {
     case 1:
       playerInfoOuterClass = 'relative md:w-auto md:right-8 md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass = 'md:relative absolute md:-right-4 md:left-0 md:bottom-0 right-16 bottom-4';
+      playerInfoInnerClass =
+        'md:relative absolute md:-right-4 md:left-0 md:bottom-0 right-16 bottom-4 md:min-w-32';
       classForLocation = 'flex md:items-end justify-center items-center h-full';
       playerHandClassOuter =
         'md:relative md:left-0 md:top-0 md:h-full left-4 bottom-0 absolute md:overflow-visible overflow-hidden';
@@ -43,7 +44,8 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
       break;
     case 2:
       playerInfoOuterClass = 'relative md:w-auto md:right-8 md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass = 'md:relative absolute md:-right-4 md:left-0 md:bottom-0 right-16 -bottom-8';
+      playerInfoInnerClass =
+        'md:relative absolute md:-right-4 md:left-0 md:bottom-0 right-16 -bottom-8 md:min-w-32';
       classForLocation =
         'flex md:items-end justify-center items-center h-full md:overflow-visible overflow-hidden';
       playerHandClassOuter = 'md:relative md:left-0 md:top-0 md:h-full absolute -top-24';
@@ -51,7 +53,7 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
       break;
     case 3:
       playerInfoOuterClass = 'relative w-full md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass = 'absolute md:-right-4 md:left-auto md:bottom-16 -left-2 bottom-0';
+      playerInfoInnerClass = 'absolute md:-right-4 md:left-auto md:bottom-16 -left-2 bottom-0 md:min-w-32';
       classForLocation =
         'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-end justify-center h-full -top-8';
       playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';
@@ -59,7 +61,7 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
       break;
     case 4:
       playerInfoOuterClass = 'relative w-full md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass = 'absolute md:-left-4 md:right-auto md:bottom-16 -right-2 bottom-0';
+      playerInfoInnerClass = 'absolute md:-left-4 md:right-auto md:bottom-16 -right-2 bottom-0 md:min-w-32';
       classForLocation =
         'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-start justify-center h-full -top-8';
       playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';

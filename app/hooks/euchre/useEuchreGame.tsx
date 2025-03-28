@@ -1,11 +1,8 @@
 'use client';
 
-import UserInfo from '@/app/ui/euchre/player/user-info';
 import { ActionDispatch, Dispatch, SetStateAction, useCallback, useMemo, useReducer, useState } from 'react';
 import { CardTransformation } from './useMoveCard';
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/16/solid';
 import {
-  getPlayerNotificationType,
   initialPlayerNotification,
   PlayerNotificationAction,
   PlayerNotificationActionType,
@@ -32,16 +29,11 @@ import {
   BidResult,
   Card,
   EuchreGameInstance,
-  EuchrePlayer,
   EuchreSettings,
-  EuchreTrick,
-  PromptValue,
-  Suit
+  PromptValue
 } from '@/app/lib/euchre/definitions';
-import { incrementSpeed, INIT_GAME_SETTINGS } from '@/app/lib/euchre/game-setup-logic';
-import EphemeralModal from '@/app/ui/euchre/ephemeral-modal';
+import { INIT_GAME_SETTINGS } from '@/app/lib/euchre/game-setup-logic';
 import { GameEvent, useEventLog } from './useEventLog';
-import GameCard from '@/app/ui/euchre/game/game-card';
 import useEuchreGameInit from './useEuchreGameInit';
 import useEuchreGameInitDeal from './useEuchreGameInitDeal';
 import useEuchreGameShuffle from './useEuchreGameShuffle';
@@ -49,7 +41,6 @@ import useEuchreGameBid from './useEuchreGameBid';
 import useEuchreGameOrder from './useEuchreGameOrder';
 import useEuchreGamePlay from './useEuchreGamePlay';
 import { getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
-import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 
 export type EuchreGameState = {
   euchreGame: EuchreGameInstance | null;
@@ -88,6 +79,7 @@ export default function useEuchreGame() {
     playerNotificationReducer,
     initialPlayerNotification
   );
+
   const [gameFlow, dispatchGameFlow] = useReducer(gameFlowStateReducer, { ...INIT_GAME_FLOW_STATE });
   const [gameAnimationFlow, dispatchGameAnimationFlow] = useReducer(
     gameAnimationFlowReducer,
@@ -145,7 +137,7 @@ export default function useEuchreGame() {
     shouldCancelGame
   ]);
 
-  const { reset, beginNewGame } = useEuchreGameInit(gameState);
+  const { reset, beginNewGame, cancelAndReset } = useEuchreGameInit(gameState);
   const {} = useEuchreGameInitDeal(gameState);
   const {} = useEuchreGameShuffle(gameState);
   const { handleBidSubmit } = useEuchreGameBid(gameState, reset);
@@ -169,11 +161,16 @@ export default function useEuchreGame() {
     // gameInstance.current = null;
   };
 
+  const handleCancelAndReset = () => {
+    cancelAndReset();
+  };
+
   /** Reverse game state to play the hand again. Used for testing/debugging */
   const handleReplayHand = () => {
     const newGame = euchreGame?.shallowCopy();
 
     if (!newGame) throw Error('Game not found for replay hand.');
+
     setPromptValue([]);
     newGame.reverseLastHandPlayed();
     const newGameFlow = getGameStateForNextHand(gameFlow, euchreSettings, newGame);
@@ -204,6 +201,7 @@ export default function useEuchreGame() {
     handleCloseHandResults,
     handleCloseGameResults,
     handleCardPlayed,
-    handleReplayHand
+    handleReplayHand,
+    handleCancelAndReset
   };
 }

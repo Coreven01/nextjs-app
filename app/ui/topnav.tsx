@@ -1,13 +1,8 @@
 import clsx from 'clsx';
 import ThemeToggle from './theme-toggle';
-import { Chakra_Petch } from 'next/font/google';
 import Image from 'next/image';
 import Link from 'next/link';
-
-const chakraPetch = Chakra_Petch({
-  weight: '400',
-  subsets: ['latin']
-});
+import { chakraPetch } from './fonts';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

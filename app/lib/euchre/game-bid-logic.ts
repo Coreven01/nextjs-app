@@ -1,8 +1,10 @@
-import { BidResult, Card, EuchreGameInstance, EuchrePlayer, Suit } from './definitions';
-import { cardIsLeftBower, getCardValue, getSuitCount } from './game';
+import { BidResult, Card, EuchreGameInstance, EuchrePlayer, GameDifficulty, Suit } from './definitions';
+import { cardIsLeftBower, getCardValue, getRandomScoreForDifficulty, getSuitCount } from './game';
 import { GameBidLogic } from './logic-definitions';
 
-/** Return a object of important values when making a decision during the bidding process.  */
+/** Return a object of important values when making a decision during the bidding process.
+ *
+ */
 function getGameBidLogic(playerCards: Card[], flipCard: Card, firstRoundOfBidding: boolean): GameBidLogic {
   const playerHasRight = playerCards.find((c) => c.suit === flipCard.suit && c.value === 'J') !== undefined;
   const playerHasLeft = playerCards.find((c) => cardIsLeftBower(c, flipCard)) !== undefined;
@@ -27,12 +29,14 @@ function getGameBidLogic(playerCards: Card[], flipCard: Card, firstRoundOfBiddin
 function determineBidLogic(
   game: EuchreGameInstance,
   flipCard: Card,
-  firstRoundOfBidding: boolean
+  firstRoundOfBidding: boolean,
+  difficulty: GameDifficulty
 ): BidResult {
-  if (!game?.currentPlayer) throw Error('Invalid player to determine card to play.');
-  if (!game?.dealer) throw Error('Invalid dealer to determine card to play.');
+  if (!game?.currentPlayer) throw Error('Invalid player in bid logic.');
+  if (!game?.dealer) throw Error('Invalid dealer in bid logic.');
 
   let modifiedResult: BidResult = { orderTrump: false, calledSuit: null, handScore: 0, loner: false };
+
   const suits: Suit[] = ['♠', '♥', '♦', '♣'];
   const playerWillPickup: boolean = firstRoundOfBidding && game.dealer === game.currentPlayer;
   const playerPotentialHands: Card[][] = [];
@@ -57,7 +61,14 @@ function determineBidLogic(
   for (const potentialHand of playerPotentialHands) {
     for (const potentialTrumpCard of potentialTrumpCards) {
       const bidLogic = getGameBidLogic(potentialHand, potentialTrumpCard, firstRoundOfBidding);
-      const tempResult = getBidResult(game, potentialHand, potentialTrumpCard, bidLogic);
+      const tempResult = getBidResult(
+        game,
+        potentialHand,
+        potentialTrumpCard,
+        bidLogic,
+        difficulty,
+        game.currentPlayer.team
+      );
       if (tempResult.handScore > modifiedResult.handScore) {
         modifiedResult = tempResult;
 
@@ -68,7 +79,8 @@ function determineBidLogic(
 
   if (modifiedResult.handScore >= getQualifyingScore()) {
     modifiedResult.orderTrump = true;
-    modifiedResult.loner = modifiedResult.handScore >= getQualifyingLonerScore();
+    modifiedResult.loner =
+      modifiedResult.handScore >= getQualifyingLonerScore(game.currentPlayer.team, difficulty);
   }
 
   return modifiedResult;
@@ -79,7 +91,9 @@ function getBidResult(
   game: EuchreGameInstance,
   playerCards: Card[],
   potentialTrump: Card,
-  gameLogic: GameBidLogic
+  gameLogic: GameBidLogic,
+  difficulty: GameDifficulty,
+  teamNumber: 1 | 2
 ): BidResult {
   const retval: BidResult = { orderTrump: false, loner: false, calledSuit: null, handScore: 0 };
 
@@ -88,6 +102,8 @@ function getBidResult(
   score += getPositiveModifierForBid(game, potentialTrump, gameLogic);
   score -= getNegativeModifierForBid(game, potentialTrump, gameLogic);
   score += getRiskScoreForBid(game, gameLogic);
+  score += getRandomScoreForDifficulty(teamNumber, difficulty, 0, 100);
+
   const roundValue = 25 - ((score % 25) % 25);
   retval.handScore = score + (roundValue <= 10 ? roundValue : -(25 - roundValue));
 
@@ -105,7 +121,13 @@ function getQualifyingScore() {
   return 600;
 }
 
-function getQualifyingLonerScore() {
+function getQualifyingLonerScore(teamNumber: number, difficulty: GameDifficulty) {
+  if (teamNumber === 2 && difficulty === 'novice') {
+    return 1200;
+  } else if (teamNumber === 2 && difficulty === 'intermediate') {
+    return 900;
+  }
+
   return 800;
 }
 
@@ -161,15 +183,16 @@ function getRiskScoreForBid(game: EuchreGameInstance, gameLogic: GameBidLogic): 
   return score;
 }
 
-function determineDiscard(game: EuchreGameInstance, player: EuchrePlayer): Card {
+function determineDiscard(game: EuchreGameInstance, player: EuchrePlayer, difficulty: GameDifficulty): Card {
   if (!game.trump) throw Error('Unable to determine discard. Trump card not found.');
 
   let lowestScore = 10000;
   let lowCard: Card | undefined;
   const playerCards: Card[] = player.availableCards;
 
-  for (const card of [...playerCards, game.trump]) {
-    const tempScore = getCardValue(card, game.trump);
+  for (const card of [...playerCards]) {
+    const tempScore =
+      getCardValue(card, game.trump) + getRandomScoreForDifficulty(player.team, difficulty, 0, 50);
     if (tempScore < lowestScore) {
       lowestScore = tempScore;
       lowCard = card;

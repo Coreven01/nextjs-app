@@ -80,7 +80,10 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
     if (promptForInput) {
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_AWAIT_USER_INPUT });
     } else {
-      const selectedCard: Card = newGame.currentPlayer.determineCardToPlay(newGame);
+      const selectedCard: Card = newGame.currentPlayer.determineCardToPlay(
+        newGame,
+        state.euchreSettings.difficulty
+      );
       state.setPlayedCard(selectedCard);
       state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_BEGIN_PLAY_CARD });
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
@@ -428,10 +431,10 @@ const getPlayerNotificationForTrickWon = (result: EuchreTrick) => {
 
   switch (result.taker?.playerNumber) {
     case 1:
-      messageLocation = 'md:bottom-3 -bottom-8';
+      messageLocation = 'md:bottom-0 -bottom-8';
       break;
     case 2:
-      messageLocation = 'md:top-3 -top-8';
+      messageLocation = 'md:top-0 -top-8';
       break;
     case 3:
       messageLocation = 'md:left-3 -left-8';

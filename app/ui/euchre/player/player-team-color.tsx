@@ -9,7 +9,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 export default function PlayerColor({ children, className, player, settings, ...rest }: DivProps) {
   return (
-    <div {...rest} className={clsx(`p-1 h-full w-full ${player.getTeamCssClass(settings)}`, className)}>
+    <div {...rest} className={clsx(`p-1 ${player.getTeamCssClass(settings)}`, className)}>
       {children}
     </div>
   );

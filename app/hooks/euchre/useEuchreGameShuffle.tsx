@@ -14,6 +14,7 @@ import GameBorder from '@/app/ui/euchre/game/game-border';
 import GameCard from '@/app/ui/euchre/game/game-card';
 import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
+import clsx from 'clsx';
 
 export default function useEuchreGameShuffle(state: EuchreGameState) {
   const FLIPPED_CARD_ID = 'flipped-card';
@@ -112,23 +113,29 @@ export default function useEuchreGameShuffle(state: EuchreGameState) {
 const getFaceUpCard = (id: string, card: Card, player: EuchrePlayer, fadeOut: boolean) => {
   return (
     <EphemeralModal
-      key={`${card.generateElementId()}-${Math.floor(Math.random() * 1000)}`}
+      key={`${card.cardId}`}
       durationMs={150}
       delayMs={150}
       fadeType={fadeOut ? 'out' : 'in'}
-      className={`hidden ${fadeOut ? 'opacity-100' : 'opacity-0'}`}
+      className={clsx(
+        'md:h-full md:relative md:right-auto md:top-auto absolute -right-16 -top-8 h-8',
+        { 'opacity-100': fadeOut },
+        { 'opacity-0': !fadeOut }
+      )}
     >
-      <GameBorder innerClass="p-2 bg-stone-800" className="shadow-md shadow-black">
-        <GameCard
-          id={id}
-          player={player}
-          card={card}
-          enableShadow={true}
-          width={card.getDisplayWidth('center')}
-          height={card.getDisplayHeight('center')}
-          src={getEncodedCardSvg(card, 'center')}
-          title={getCardFullName(card)}
-        ></GameCard>
+      <GameBorder innerClass="bg-stone-800 w-20 md:w-full" className="shadow-md shadow-black">
+        <div className="p-2 bg-green-950 flex items-center justify-center">
+          <GameCard
+            id={id}
+            player={player}
+            card={card}
+            enableShadow={true}
+            width={card.getDisplayWidth('center')}
+            height={card.getDisplayHeight('center')}
+            src={getEncodedCardSvg(card, 'center')}
+            title={getCardFullName(card)}
+          ></GameCard>
+        </div>
       </GameBorder>
     </EphemeralModal>
   );

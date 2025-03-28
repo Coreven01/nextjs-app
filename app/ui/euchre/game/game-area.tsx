@@ -17,6 +17,7 @@ interface Props {
   onToggleEvents: (value: boolean) => void;
   onSettingsToggle: (e: boolean) => void;
   onCardPlayed: (card: Card) => void;
+  onCancel: () => void;
 }
 
 export default function GameArea({
@@ -30,7 +31,8 @@ export default function GameArea({
   onToggleFullscreeen,
   onToggleEvents,
   onSettingsToggle,
-  onCardPlayed
+  onCardPlayed,
+  onCancel
 }: Props) {
   return (
     <div
@@ -43,6 +45,7 @@ export default function GameArea({
         onFullScreenToggle={onToggleFullscreeen}
         onEventsToggle={onToggleEvents}
         onSettingsToggle={onSettingsToggle}
+        onCancelAndReset={onCancel}
       />
       <div className="row-span-4 relative">
         <PlayerGameDeck

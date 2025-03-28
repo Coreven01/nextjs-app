@@ -87,7 +87,7 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
         )
       )
         return;
-      //logDebugEvent('Begin Animation for Order Trump');
+
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
       const newGame = state.euchreGame?.shallowCopy();
@@ -111,14 +111,19 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
       // additional delay to notify users which suit is trump
       await new Promise((resolve) => setTimeout(resolve, incrementSpeed(state.euchreSettings.gameSpeed, 2)));
 
-      const shouldDiscard = state.bidResult.calledSuit === null;
+      let shouldDiscard = state.bidResult.calledSuit === null;
+      const playerSittingOut = newGame.playerSittingOut;
+
+      if (shouldDiscard && playerSittingOut && newGame.dealer.equal(playerSittingOut)) {
+        shouldDiscard = false;
+      }
 
       if (newGame.dealer.human && shouldDiscard) {
         state.dispatchGameFlow({ type: EuchreFlowActionType.SET_AWAIT_USER_INPUT });
         state.setPromptValue([{ type: PromptType.DISCARD }]);
       } else {
         if (shouldDiscard) {
-          newGame.discard = newGame.dealer.chooseDiscard(newGame);
+          newGame.discard = newGame.dealer.chooseDiscard(newGame, state.euchreSettings.difficulty);
         }
         state.dispatchPlayerNotification({
           type: PlayerNotificationActionType.UPDATE_CENTER,
@@ -141,7 +146,7 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
       const newGame = state.euchreGame?.shallowCopy();
 
       if (newGame?.trump && state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT) {
-        newGame.dealer?.discard(card, newGame.trump);
+        newGame.dealer?.discard(card, newGame.trump, state.euchreSettings.difficulty);
         newGame.dealer?.sortCards(newGame.trump);
         newGame.discard = card;
 

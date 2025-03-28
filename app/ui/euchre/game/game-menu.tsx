@@ -10,6 +10,7 @@ interface Props {
   onFullScreenToggle: (e: boolean) => void;
   onEventsToggle: (e: boolean) => void;
   onSettingsToggle: (e: boolean) => void;
+  onCancelAndReset: () => void;
 }
 
 const menuSvg =
@@ -21,7 +22,8 @@ export default function GameMenu({
   showSettings,
   onFullScreenToggle,
   onEventsToggle,
-  onSettingsToggle
+  onSettingsToggle,
+  onCancelAndReset
 }: Props) {
   const [showMenu, setShowMenu] = useState(false);
 
@@ -94,6 +96,9 @@ export default function GameMenu({
             className={`ml-2`}
             onChange={(e) => onSettingsToggle(e.target.checked)}
           />
+        </div>
+        <div className="p-2 text-white">
+          <button onClick={onCancelAndReset}>Cancel</button>
         </div>
       </div>
     </>

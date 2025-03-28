@@ -12,10 +12,12 @@ import { getPlayerRotation } from '@/app/lib/euchre/game';
 import { createEvent, logDebugEvent } from '@/app/lib/euchre/util';
 
 /**  */
-export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
-  /** Run through a full game with AI players. */
-  const runFullGame = (): EuchreGameInstance => {
-    let newGame: EuchreGameInstance = initDeckForInitialDeal(false);
+export default function useEuchreGameAuto() {
+  /** Run through a full game with AI players.
+   *
+   */
+  const runFullGame = (gameSetting: EuchreSettings): EuchreGameInstance => {
+    let newGame: EuchreGameInstance = initDeckForInitialDeal(gameSetting.playerName, false);
     const gameFlow: EuchreGameFlowState = { ...INIT_GAME_FLOW_STATE };
 
     newGame.player1.human = false;
@@ -54,7 +56,8 @@ export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
           bidResult = newGame.currentPlayer.determineBid(
             newGame,
             newGame.trump,
-            !gameFlow.hasFirstBiddingPassed
+            !gameFlow.hasFirstBiddingPassed,
+            gameSetting.difficulty
           );
 
           if (bidResult.orderTrump) {
@@ -89,7 +92,7 @@ export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
           const shouldDiscard = bidResult.calledSuit === null;
 
           if (shouldDiscard && newGame.dealer) {
-            newGame.discard = newGame.dealer.chooseDiscard(newGame);
+            newGame.discard = newGame.dealer.chooseDiscard(newGame, gameSetting.difficulty);
           }
 
           while (!newGame.handFinished && newGame.currentPlayer) {
@@ -97,7 +100,10 @@ export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
               newGame.addTrickForNewHand();
             }
 
-            const chosenCard: Card = newGame.currentPlayer.determineCardToPlay(newGame);
+            const chosenCard: Card = newGame.currentPlayer.determineCardToPlay(
+              newGame,
+              gameSetting.difficulty
+            );
             const cardPlayed = newGame.currentPlayer.playGameCard(chosenCard);
 
             if (!newGame.currentTrick) throw Error();
@@ -132,12 +138,14 @@ export default function useEuchreGameAuto(gameSetting: EuchreSettings) {
     return newGame;
   };
 
-  /** Run a full game for the given loop count. Used to debug logic for selecting cards to play. */
-  const runFullGameLoop = (loopCount: number): EuchreGameInstance | null => {
+  /** Run a full game for the given loop count. Used to debug logic for selecting cards to play.
+   *
+   */
+  const runFullGameLoop = (loopCount: number, gameSetting: EuchreSettings): EuchreGameInstance | null => {
     let game: EuchreGameInstance | null = null;
 
     for (let i = 0; i < loopCount; i++) {
-      game = runFullGame();
+      game = runFullGame(gameSetting);
     }
 
     return game;

@@ -8,6 +8,11 @@ import { useCallback, useEffect } from 'react';
 import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import { createEvent } from '@/app/lib/euchre/util';
 
+/**
+ *
+ * @param state
+ * @returns
+ */
 export default function useEuchreGameInitDeal(state: EuchreGameState) {
   //#region Deal Cards For Initial Dealer *************************************************************************
 

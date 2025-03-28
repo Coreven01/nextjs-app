@@ -17,9 +17,17 @@ const menuSvg =
   ` bg-no-repeat bg-center bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)]
 dark:bg-[rgba(25,115,25,0.9)] border border-black appearance-none cursor-pointer border rounded w-8 h-8 checked:dark:bg-stone-500`;
 
+export const RANDOM_FOR_DIFFICULTY = new Map<GameDifficulty, number>([
+  ['novice', 0.6],
+  ['intermediate', 0.3],
+  ['expert', 0]
+]);
+
 const CARD_WIDTH = 100;
 const CARD_HEIGHT = 150;
 export type TeamColor = 'red' | 'blue' | 'orange' | 'yellow' | 'green' | 'white' | 'pink' | 'purple';
+export type GameDifficulty = 'novice' | 'intermediate' | 'expert';
+export type CardBackColor = 'green' | 'blue' | 'red' | 'black';
 
 export const TEAM_COLOR_MAP: Map<TeamColor, string> = new Map([
   ['red', 'bg-red-600'],
@@ -40,6 +48,12 @@ export const GAME_SPEED_MAP = new Map<string, GameSpeed>([
   ['Slower', 4000]
 ]);
 
+export const DIFFICULTY_MAP = new Map<string, GameDifficulty>([
+  ['Novice', 'novice'],
+  ['Intermediate', 'intermediate'],
+  ['Expert', 'expert']
+]);
+
 export enum PromptType {
   BID,
   GAME_RESULT,
@@ -57,6 +71,7 @@ export const HEART: string = '♥';
 export const DIAMOND: string = '♦';
 export const CLUB: string = '♣';
 export const LEFT_BOWER_VALUE = 250;
+export type ResultHighlight = 'player1' | 'player2' | 'player3' | 'player4' | 'winner' | 'trump';
 export type GameSpeed = 150 | 300 | 700 | 1000 | 2000 | 3000 | 4000;
 export type Suit = '♠' | '♥' | '♦' | '♣';
 export type CardValue =
@@ -101,6 +116,11 @@ export interface EuchreSettings {
   debugShowPlayersHand: boolean;
   debugShowHandsWhenPassed: boolean;
   debugAlwaysPass: boolean;
+  difficulty: GameDifficulty;
+  viewPlayerInfoDetail: boolean;
+  cardColor: CardBackColor;
+  stickTheDealer: boolean;
+  playerName: string;
 }
 
 export interface BidResult {
@@ -184,23 +204,28 @@ class EuchrePlayer {
   }
 
   /** Routine to determine if the computer should indicate if the flipped card should be picked up, or should name suit. */
-  determineBid(game: EuchreGameInstance, flipCard: Card, firstRoundOfBidding: boolean): BidResult {
-    const result = determineBidLogic(game, flipCard, firstRoundOfBidding);
+  determineBid(
+    game: EuchreGameInstance,
+    flipCard: Card,
+    firstRoundOfBidding: boolean,
+    difficulty: GameDifficulty
+  ): BidResult {
+    const result = determineBidLogic(game, flipCard, firstRoundOfBidding, difficulty);
     return result;
   }
 
-  determineCardToPlay(game: EuchreGameInstance): Card {
-    return determineCardToPlayLogic(game);
+  determineCardToPlay(game: EuchreGameInstance, difficulty: GameDifficulty): Card {
+    return determineCardToPlayLogic(game, difficulty);
   }
 
   /** */
-  chooseDiscard(game: EuchreGameInstance): Card {
-    const cardToDiscard = determineDiscard(game, this);
-    if (game.trump) this.discard(cardToDiscard, game.trump);
+  chooseDiscard(game: EuchreGameInstance, difficulty: GameDifficulty): Card {
+    const cardToDiscard = determineDiscard(game, this, difficulty);
+    if (game.trump) this.discard(cardToDiscard, game.trump, difficulty);
     return cardToDiscard;
   }
 
-  discard(cardToDiscard: Card, trump: Card) {
+  discard(cardToDiscard: Card, trump: Card, difficulty: GameDifficulty) {
     if (this.hand.find((c) => c === cardToDiscard)) {
       const tempHand = [...this.hand, trump].filter((c) => c !== cardToDiscard);
       tempHand.forEach((c, index) => (c.index = index));
@@ -422,6 +447,10 @@ class EuchreGameInstance {
     this.cardDealCount = [];
     this.currentTricks = [];
 
+    this.resetPlayerCards();
+  }
+
+  resetPlayerCards(): void {
     const players = [this.player1, this.player2, this.player3, this.player4];
 
     for (const player of players) {
@@ -481,6 +510,7 @@ class EuchreGameInstance {
     }
   }
 
+  /** Verify cards were dealt correctly. */
   verifyDealtCards(): void {
     const allCardsDealt = [
       this.player1.availableCards,

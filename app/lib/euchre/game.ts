@@ -6,13 +6,17 @@ import {
   EuchreGameInstance,
   EuchrePlayer,
   Suit,
-  LEFT_BOWER_VALUE
+  LEFT_BOWER_VALUE,
+  GameDifficulty,
+  RANDOM_FOR_DIFFICULTY
 } from './definitions';
 import { createRange } from './util';
 
-/** Create default euchre game with default players and dummy cards. */
-export function createEuchreGame(): EuchreGameInstance {
-  const player1 = new EuchrePlayer('Nolan', [], 1);
+/** Create default euchre game with default players and dummy cards.
+ *
+ */
+function createEuchreGame(player1Name: string): EuchreGameInstance {
+  const player1 = new EuchrePlayer(player1Name, [], 1);
   const player2 = new EuchrePlayer('Jerry', [], 2);
   const player3 = new EuchrePlayer('George', [], 3);
   const player4 = new EuchrePlayer('Elaine', [], 4);
@@ -28,8 +32,10 @@ export function createEuchreGame(): EuchreGameInstance {
   return newGame;
 }
 
-/** Get the rotation of players relative to the given player. */
-export function getPlayerRotation(
+/** Get the rotation of players relative to the given player.
+ *
+ */
+function getPlayerRotation(
   players: EuchrePlayer[],
   relativePlayer: EuchrePlayer,
   playerSittingOut: EuchrePlayer | null = null
@@ -51,7 +57,9 @@ export function getPlayerRotation(
   return returnRotation;
 }
 
-/** Creates a deck of shuffled cards for a euchre game. 24 cards total. */
+/** Creates a deck of shuffled cards for a euchre game. 24 cards total.
+ *
+ */
 export function createShuffledDeck(shuffleCount: number): Card[] {
   if (shuffleCount < 1) shuffleCount = 1;
 
@@ -62,7 +70,9 @@ export function createShuffledDeck(shuffleCount: number): Card[] {
   return newDeck;
 }
 
-/** Create a deck of cards used for a euchre game. */
+/** Create a deck of cards used for a euchre game.
+ *
+ */
 export function createEuchreDeck(): Card[] {
   const availableCards: CardValue[] = ['9', '10', 'J', 'Q', 'K', 'A'];
   const deck: Card[] = [];
@@ -77,7 +87,9 @@ export function createEuchreDeck(): Card[] {
   return deck;
 }
 
-/** Create cards for the given deck size. All the cards a 2 of spades. */
+/** Create cards for the given deck size.
+ *
+ */
 export function createPlaceholderCards(deckSize: number): Card[] {
   const retval: Card[] = [];
   for (let i = 0; i < deckSize; i++) {
@@ -89,7 +101,9 @@ export function createPlaceholderCards(deckSize: number): Card[] {
   return retval;
 }
 
-/** Shuffle a deck of cards using random number generator */
+/** Shuffle a deck of cards using random number generator
+ *
+ */
 export function shuffleDeck(deck: Card[]): Card[] {
   const deckSize = deck.length;
   const newDeck: Card[] = [];
@@ -296,3 +310,38 @@ function getHighAndLowFromCards(
 
   return { high: highCard, low: lowCard };
 }
+
+/**
+ * Logic to have less difficulty is to have more randomness is AI decisions.
+ *
+ * @param team
+ * @param difficulty
+ * @param minScore
+ * @param maxScore
+ * @returns
+ */
+function getRandomScoreForDifficulty(
+  team: 1 | 2,
+  difficulty: GameDifficulty,
+  minScore: number,
+  maxScore: number
+): number {
+  if (team === 1) return 0;
+
+  const randomChance = RANDOM_FOR_DIFFICULTY.get(difficulty);
+
+  if (randomChance) {
+    const randomNum = Math.random();
+
+    if (randomNum < randomChance) {
+      let randomScore = Math.floor(Math.random() * maxScore);
+      if (randomScore < minScore) randomScore = minScore;
+
+      return randomScore;
+    }
+  }
+
+  return 0;
+}
+
+export { createEuchreGame, getPlayerRotation, getRandomScoreForDifficulty };

@@ -5,9 +5,10 @@ import { Card } from '@/app/lib/euchre/definitions';
 import Image from 'next/image';
 import { useState } from 'react';
 import PromptSelection from './prompt-selection';
-import GamePrompt from '../game/game-prompt';
+import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import GameBorder from '../game/game-border';
+import CardSelection from './card-selection';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   pickedUpCard: Card;
@@ -81,32 +82,5 @@ export default function DiscardPrompt({
         </div>
       </div>
     </GamePrompt>
-  );
-}
-
-interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  playerHand: Card[];
-  onSelectionChanged: (value: string) => void;
-}
-
-function CardSelection({ playerHand, onSelectionChanged, ...rest }: SelectionProps) {
-  return (
-    <div {...rest} className="flex flex-col gap-2">
-      {playerHand.map((card, index) => {
-        return (
-          <PromptSelection
-            key={index}
-            isEnabled={true}
-            defaultChecked={false}
-            value={`${index}`}
-            onSelectionChanged={onSelectionChanged}
-            suit={card.suit}
-            title={getCardFullName(card)}
-          >
-            {card.value}-{card.suit}
-          </PromptSelection>
-        );
-      })}
-    </div>
   );
 }

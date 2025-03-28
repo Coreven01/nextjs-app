@@ -31,12 +31,12 @@ export default function GameScore({ children, className, game, settings, ...rest
       <div ref={draggableRef} className="cursor-move flex max-h-64">
         <GameBorderBare className="shadow-md shadow-black md:min-w-32">
           <h3 className="text-yellow-200 font-bold text-center md:text-base text-sm">Score</h3>
-          <div className="flex md:flex-col gap-1 md:text-base text-xs md:mx-1">
+          <div className="flex md:flex-col gap-1 md:text-base text-xs md:mx-1 whitespace-nowrap">
             <PlayerColor player={game.player1} settings={settings}>
-              <div className="bg-stone-900">Pts. {Math.min(teamOnePoints, 10)} / 10</div>
+              <div className="bg-stone-800 w-full text-center">{Math.min(teamOnePoints, 10)} / 10</div>
             </PlayerColor>
             <PlayerColor player={game.player3} settings={settings}>
-              <div className="bg-stone-900">Pts. {Math.min(teamTwoPoints, 10)} / 10</div>
+              <div className="bg-stone-800 w-full text-center">{Math.min(teamTwoPoints, 10)} / 10</div>
             </PlayerColor>
           </div>
           {game.maker && game.trump && (

@@ -5,6 +5,7 @@ import {
   EuchreGameInstance,
   EuchreSettings,
   EuchreTrick,
+  GameDifficulty,
   Suit
 } from './definitions';
 import {
@@ -16,7 +17,8 @@ import {
   getHighAndLowExcludeSuit,
   getSuitCount,
   getCardValuesExcludeSuit,
-  cardIsRightBower
+  cardIsRightBower,
+  getRandomScoreForDifficulty
 } from './game';
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import { GamePlayLogic, OffsuitLogic, TeamLogic, TrickLogic, TrumpLogic } from './logic-definitions';
@@ -264,7 +266,7 @@ function validateGamePlayLogic(logic: GamePlayLogic) {
 /** Main entry point to determine which card to play for a computer player.
  *
  */
-export function determineCardToPlayLogic(game: EuchreGameInstance): Card {
+export function determineCardToPlayLogic(game: EuchreGameInstance, difficulty: GameDifficulty): Card {
   if (!game.currentPlayer) throw Error('Invalid player to determine card to play.');
 
   const playerHand = game.currentPlayer.availableCards;
@@ -274,8 +276,11 @@ export function determineCardToPlayLogic(game: EuchreGameInstance): Card {
   const logic: GamePlayLogic = getGamePlayLogic(game);
   validateGamePlayLogic(logic);
   let cardToPlay: Card;
+  const randomChanceForDifficulty = getRandomScoreForDifficulty(game.currentPlayer.team, difficulty, 0, 100);
 
-  if (logic.teamInfo.isLeading) {
+  if (randomChanceForDifficulty > 0) {
+    cardToPlay = getRandomCardForDifficulty(game, logic, randomChanceForDifficulty);
+  } else if (logic.teamInfo.isLeading) {
     cardToPlay = getBestCardForLead(game, logic);
   } else if (logic.trickInfo.mustFollowSuit) {
     cardToPlay = getBestCardForFollowSuit(game, logic);
@@ -284,6 +289,32 @@ export function determineCardToPlayLogic(game: EuchreGameInstance): Card {
   } else if (logic.teamInfo.currentUserIsMaker || logic.teamInfo.teammateIsMaker) {
     cardToPlay = getBestCardWhenTeamIsMaker(game, logic);
   } else cardToPlay = getBestCardWhenDefender(game, logic);
+
+  return cardToPlay;
+}
+
+function getRandomCardForDifficulty(
+  game: EuchreGameInstance,
+  logic: GamePlayLogic,
+  randomNumber: number
+): Card {
+  if (!game.currentPlayer) throw Error('Invalid player to determine card to play.');
+
+  let cardToPlay: Card | undefined;
+
+  if (randomNumber % 5 === 0) {
+    cardToPlay = logic.trickInfo.winningHighLow.high ?? logic.trickInfo.losingHighLow.high ?? undefined;
+  } else if (randomNumber % 5 === 1) {
+    cardToPlay = logic.trickInfo.winningHighLow.low ?? logic.trickInfo.losingHighLow.low ?? undefined;
+  } else if (randomNumber % 3 === 1) {
+    cardToPlay = logic.trickInfo.losingHighLow.high ?? logic.trickInfo.winningHighLow.high ?? undefined;
+  }
+
+  if (!cardToPlay) {
+    cardToPlay = logic.trickInfo.losingHighLow.low ?? logic.trickInfo.winningHighLow.low ?? undefined;
+  }
+
+  if (!cardToPlay) throw Error('Error determining card to play - Random card for difficulty.');
 
   return cardToPlay;
 }
