@@ -83,7 +83,9 @@ export default function HandResult({ game, settings, handResult, className, ...r
         />
 
         {playerReneged && (
-          <div className="dark:text-red-100 text-center mb-2">Hand ended due to player renege</div>
+          <div className="dark:text-red-100 text-center mb-2 border border-white mx-2 rounded-xl border-red-200">
+            Hand ended due to player renege
+          </div>
         )}
         {handResult.tricks.map((t) => {
           if (!t.taker) throw new Error();

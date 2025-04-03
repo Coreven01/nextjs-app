@@ -1,18 +1,13 @@
-import clsx from "clsx";
-
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }
 
 export default function GameInfoDetail({ children, className, ...rest }: DivProps) {
+  return (
+    <div {...rest} className={className}>
+      {children}
+    </div>
+  );
 
-    return (
-        <div
-            {...rest}
-            className={clsx('', className,)} >
-            {children}
-        </div>
-    );
-
-    return <></>;
+  return <></>;
 }

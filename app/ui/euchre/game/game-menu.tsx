@@ -1,5 +1,3 @@
-'use client';
-
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import Switch from '@mui/material/Switch';
@@ -8,9 +6,11 @@ interface Props {
   isFullScreen: boolean;
   showEvents: boolean;
   showSettings: boolean;
+  showScore: boolean;
   onFullScreenToggle: (e: boolean) => void;
   onEventsToggle: (e: boolean) => void;
   onSettingsToggle: (e: boolean) => void;
+  onScoreToggle: (e: boolean) => void;
   onCancelAndReset: () => void;
 }
 
@@ -21,13 +21,17 @@ export default function GameMenu({
   isFullScreen,
   showEvents,
   showSettings,
+  showScore,
   onFullScreenToggle,
   onEventsToggle,
   onSettingsToggle,
+  onScoreToggle,
   onCancelAndReset
 }: Props) {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const enableToggleSettings = false;
+  const enableToggleEvents = false;
 
   useEffect(() => {
     const nav = document.getElementById('site-top-nav');
@@ -66,7 +70,7 @@ export default function GameMenu({
             type="checkbox"
             title="Toggle Menu"
             className={clsx(
-              `appearance-none cursor-pointer block bg-black peer/menu border rounded w-6 h-6 md:w-8 md:h-8 right-1 top-1 checked:dark:bg-neutral-500}`,
+              `appearance-none cursor-pointer block bg-transparent peer/menu border rounded w-6 h-6 md:w-8 md:h-8 right-1 top-1 checked:dark:bg-neutral-500}`,
               menuSvg
             )}
             onChange={handleMenuClick}
@@ -77,7 +81,7 @@ export default function GameMenu({
         id="game-menu"
         ref={menuRef}
         className={clsx(
-          'flex flex-col absolute min-w-32 bg-black bg-opacity-50 left-3 top-12 transition ease-in-out duration-300',
+          'flex flex-col absolute min-w-32 bg-stone-800 md:bg-opacity-50 left-3 top-12 transition ease-in-out duration-300',
           {
             hidden: !showMenu
           }
@@ -95,26 +99,41 @@ export default function GameMenu({
             onChange={(e) => onFullScreenToggle(e.target.checked)}
           />
         </div>
+        {enableToggleEvents && (
+          <div className="p-2 text-white">
+            <label htmlFor="showEvents">Toggle Events</label>
+            <Switch
+              id="showEvents"
+              size="small"
+              checked={showEvents}
+              name="showEvents"
+              color="success"
+              onChange={(e) => onEventsToggle(e.target.checked)}
+            />
+          </div>
+        )}
+        {enableToggleSettings && (
+          <div className="p-2 text-white">
+            <label htmlFor="showSettings">Toggle Settings</label>
+            <Switch
+              id="showSettings"
+              size="small"
+              checked={showSettings}
+              name="showSettings"
+              color="success"
+              onChange={(e) => onSettingsToggle(e.target.checked)}
+            />
+          </div>
+        )}
         <div className="p-2 text-white">
-          <label htmlFor="showEvents">Toggle Events</label>
+          <label htmlFor="showScore">Toggle Score</label>
           <Switch
-            id="showEvents"
+            id="showScore"
             size="small"
-            checked={showEvents}
-            name="showEvents"
+            checked={showScore}
+            name="showScore"
             color="success"
-            onChange={(e) => onEventsToggle(e.target.checked)}
-          />
-        </div>
-        <div className="p-2 text-white">
-          <label htmlFor="showSettings">Toggle Settings</label>
-          <Switch
-            id="showSettings"
-            size="small"
-            checked={showSettings}
-            name="showSettings"
-            color="success"
-            onChange={(e) => onSettingsToggle(e.target.checked)}
+            onChange={(e) => onScoreToggle(e.target.checked)}
           />
         </div>
         <div className="p-2 text-white">

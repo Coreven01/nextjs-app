@@ -15,7 +15,9 @@ export default function GameBorderBare({ children, className, innerClass, ...res
       <div className={borderClass}></div>
       <div className={borderClass}></div>
       <div className={borderClass}></div>
-      <div className={clsx('', innerClass, { 'bg-stone-800': innerClass === undefined })}>{children}</div>
+      <div className={clsx('', innerClass, { 'bg-white dark:bg-stone-800': innerClass === undefined })}>
+        {children}
+      </div>
       <div className={borderClass}></div>
       <div className={borderClass}></div>
       <div className={borderClass}></div>

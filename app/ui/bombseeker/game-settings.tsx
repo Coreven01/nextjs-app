@@ -22,9 +22,13 @@ type GameLevel = {
 
 type GameLevels = 'beginner' | 'intermediate' | 'expert' | 'custom';
 
-const INPUT_CLASS = 'max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
-const SELECT_CLASS = 'min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
+const INPUT_CLASS =
+  'max-w-16 rounded-l-lg p-1 border-black dark:border-gray-300 text-black bg-gray-100 dark:text-gray-600 focus:ring-2 disabled:cursor-not-allowed';
+const SELECT_CLASS =
+  'min-w-48 rounded-l-lg p-1 border-black dark:border-gray-300 text-black bg-gray-100 dark:text-gray-600 focus:ring-2';
 const LABEL_CLASS = 'block font-medium my-2 dark:text-white';
+const UP_DOWN_BUTTON_CLASS =
+  'w-4 h-4 border dark:border-white border-black disabled:bg-gray-200 disabled:text-stone-500 disabled:cursor-not-allowed';
 const MAX_ROWS = 40;
 const MIN_ROWS = 9;
 const MAX_COLUMNS = 40;
@@ -180,10 +184,10 @@ export default function GameSettings({ state, onNewGame }: Props) {
           </select>
           <div className="flex flex-col">
             <button onClick={handleLevelChangeUp}>
-              <ChevronUpIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronUpIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
             <button onClick={handleLevelChangeDown}>
-              <ChevronDownIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronDownIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
           </div>
         </div>
@@ -207,11 +211,11 @@ export default function GameSettings({ state, onNewGame }: Props) {
             placeholder="Row Count"
           ></input>
           <div className="flex flex-col">
-            <button disabled={disableSelection} onClick={handleRowCountUp}>
-              <ChevronUpIcon className="w-4 h-4 border dark:border-white" />
+            <button disabled={disableSelection} onClick={handleRowCountUp} className={UP_DOWN_BUTTON_CLASS}>
+              <ChevronUpIcon />
             </button>
             <button disabled={disableSelection} onClick={handleRowCountDown}>
-              <ChevronDownIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronDownIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
           </div>
         </div>
@@ -236,10 +240,10 @@ export default function GameSettings({ state, onNewGame }: Props) {
           ></input>
           <div className="flex flex-col">
             <button disabled={disableSelection} onClick={handleColumnCountUp}>
-              <ChevronUpIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronUpIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
             <button disabled={disableSelection} onClick={handleColumnCountDown}>
-              <ChevronDownIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronDownIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
           </div>
         </div>
@@ -262,17 +266,17 @@ export default function GameSettings({ state, onNewGame }: Props) {
           ></input>
           <div className="flex flex-col">
             <button disabled={disableSelection} onClick={handleBombCountUp}>
-              <ChevronUpIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronUpIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
             <button disabled={disableSelection} onClick={handleBombCountDown}>
-              <ChevronDownIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronDownIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
           </div>
         </div>
       </div>
       <div className="min-w-32">
         <label htmlFor="bombValue" className={LABEL_CLASS}>
-          Hint Count
+          Cheat Count
         </label>
         <div className="flex flex-row max-h-[32px]">
           <input
@@ -283,14 +287,14 @@ export default function GameSettings({ state, onNewGame }: Props) {
             value={newHintCount}
             onChange={() => null}
             onBlur={(e) => handleHintCountChange(e.target.value)}
-            placeholder="Hint Count"
+            placeholder="Cheat Count"
           ></input>
           <div className="flex flex-col">
             <button onClick={handleHintCountUp}>
-              <ChevronUpIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronUpIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
             <button onClick={handleHintCountDown}>
-              <ChevronDownIcon className="w-4 h-4 border dark:border-white" />
+              <ChevronDownIcon className={UP_DOWN_BUTTON_CLASS} />
             </button>
           </div>
         </div>

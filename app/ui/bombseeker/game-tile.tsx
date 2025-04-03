@@ -36,6 +36,7 @@ export type TileValue =
   | number;
 
 const TILE_BG_COLOR = 'bg-zinc-300';
+const TILE_BG_FLAG_COLOR = 'bg-red-100';
 const TILE_DEFAULT = 'border border-black text-xl font-bold h-7 w-7 p-0 text-center';
 const TILE_EXPOSED = 'bg-white';
 const TILE_BOMB = 'bg-white';
@@ -111,7 +112,7 @@ function getTileClass(tileValue: TileValue, highlight: boolean, exposed: boolean
     case 'trigger':
       return `${TILE_DEFAULT} ${TILE_TRIGGERED}`;
     case 'flag':
-      return `${TILE_DEFAULT} ${TILE_BG_COLOR}`;
+      return `${TILE_DEFAULT} ${TILE_BG_FLAG_COLOR}`;
     case 'unknown':
       return `${TILE_DEFAULT} ${TILE_UNKNOWN}`;
     case 1:

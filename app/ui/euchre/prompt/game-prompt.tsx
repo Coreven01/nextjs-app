@@ -12,7 +12,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 export default function GamePrompt({ children, className, innerClass, zIndex, ...rest }: DivProps) {
   return (
     <div
-      className="absolute left-0 top-0 h-full w-full bg-neutral-800 bg-opacity-20 flex md:items-center items-start justify-center"
+      className="absolute left-0 top-0 h-full w-full bg-neutral-800 bg-opacity-40 flex md:items-center items-start justify-center"
       style={{ zIndex: zIndex }}
     >
       <GameModal className="opacity-0">

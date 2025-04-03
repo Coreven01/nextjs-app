@@ -6,6 +6,7 @@ export default function useMenuItems() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
   const [showSettings, setShowSettings] = useState(true);
+  const [showScore, setShowScore] = useState(true);
 
   const toggleFullScreen = (value: boolean) => {
     setIsFullScreen(value);
@@ -19,5 +20,9 @@ export default function useMenuItems() {
     setShowSettings(value);
   };
 
-  return { isFullScreen, showEvents, showSettings, toggleFullScreen, toggleEvents, toggleSettings };
+  const toggleScore = (value: boolean) => {
+    setShowScore(value);
+  };
+
+  return { isFullScreen, showEvents, showSettings,showScore, toggleFullScreen, toggleEvents, toggleSettings,toggleScore };
 }

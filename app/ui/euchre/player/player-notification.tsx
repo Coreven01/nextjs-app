@@ -16,9 +16,9 @@ interface Props {
 const PlayerNotification = ({ dealer, player, settings, info, loner, namedSuit }: Props) => {
   const icon: React.ReactNode =
     info === 'pass' ? (
-      <XCircleIcon className="min-h-[18px] max-h-[20px] text-red-300" />
+      <XCircleIcon className="min-h-[18px] max-h-[20px] text-red-800 dark:text-red-300" />
     ) : (
-      <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />
+      <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-700 dark:text-green-400" />
     );
   let messageLocation = '';
   const delay = settings.gameSpeed;
@@ -62,14 +62,14 @@ const PlayerNotification = ({ dealer, player, settings, info, loner, namedSuit }
       delayMs={delay}
       fadeType="both"
     >
-      <UserInfo className="md:text-base text-xs">
-        <div className="bg-stone-900 p-2">
-          <div className={clsx('flex gap-2 items-center')}>
-            {icon}
-            <div>{messageDetail}</div>
-          </div>
-          {loner ? <div className="w-full text-center text-yellow-200 md:text-xl">Going Alone!</div> : <></>}
+      <UserInfo className="md:text-base text-xs bg-white dark:bg-stone-800 p-2 border border-black dark:border-white text-black dark:text-white">
+        <div className={clsx('flex gap-2 items-center')}>
+          {icon}
+          <div>{messageDetail}</div>
         </div>
+        {loner && (
+          <div className="w-full text-center text-red-800 dark:text-yellow-200 md:text-xl">Going Alone!</div>
+        )}
       </UserInfo>
     </EphemeralModal>
   );

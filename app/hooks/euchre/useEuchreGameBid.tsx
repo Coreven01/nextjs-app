@@ -314,7 +314,7 @@ const getPlayerNotificationForAllPassed = (player: EuchrePlayer) => {
   const id = player.generateElementId();
   const infoDetail = (
     <UserInfo
-      className="p-2 md:text-base text-sm w-auto whitespace-nowrap shadow-lg shadow-black"
+      className="p-2 md:text-base text-sm w-auto whitespace-nowrap shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800"
       id={id}
       key={id}
     >

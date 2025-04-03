@@ -84,7 +84,7 @@ export default function GameResults({
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,370px,auto]">
+        <div className="grid grid-cols-[95vw] grid-rows-[1fr,1fr,220px,auto] md:grid-rows-[1fr,1fr,350px,auto] md:grid-cols-[620px]">
           <div className="flex">
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
               <ChevronLeftIcon />

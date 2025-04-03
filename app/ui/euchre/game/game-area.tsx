@@ -12,10 +12,12 @@ interface Props {
   isFullScreen: boolean;
   showEvents: boolean;
   showSettings: boolean;
+  showScore: boolean;
   playerNotification: PlayerNotificationState;
   onToggleFullscreen: (value: boolean) => void;
   onToggleEvents: (value: boolean) => void;
   onSettingsToggle: (e: boolean) => void;
+  onScoreToggle: (e: boolean) => void;
   onCardPlayed: (card: Card) => void;
   onCancel: () => void;
 }
@@ -27,10 +29,12 @@ export default function GameArea({
   isFullScreen,
   showEvents,
   showSettings,
+  showScore,
   playerNotification,
   onToggleFullscreen,
   onToggleEvents,
   onSettingsToggle,
+  onScoreToggle,
   onCardPlayed,
   onCancel
 }: Props) {
@@ -42,10 +46,12 @@ export default function GameArea({
         isFullScreen={isFullScreen}
         showEvents={showEvents}
         showSettings={showSettings}
+        showScore={showScore}
         onFullScreenToggle={onToggleFullscreen}
         onEventsToggle={onToggleEvents}
         onSettingsToggle={onSettingsToggle}
         onCancelAndReset={onCancel}
+        onScoreToggle={onScoreToggle}
       />
       <div className="row-span-4 relative">
         <PlayerGameDeck

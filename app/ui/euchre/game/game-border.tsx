@@ -58,7 +58,9 @@ export default function GameBorder({ children, className, innerClass, size = 'no
       <div className="relative overflow-hidden">
         <BorderVertical location={1} values={boardVals[1]} size={size} />
       </div>
-      <div className={clsx('', innerClass, { 'bg-stone-800': innerClass === undefined })}>{children}</div>
+      <div className={clsx('', innerClass, { 'bg-white dark:bg-stone-800': innerClass === undefined })}>
+        {children}
+      </div>
       <div className="relative overflow-hidden">
         <BorderVertical location={2} values={boardVals[2]} size={size} />
       </div>

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import { SunIcon, MoonIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState } from 'react';
+import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
 
 type Props = {
-  useMobile: boolean
-}
+  useMobile: boolean;
+};
 
 const ThemeToggle = ({ useMobile }: Props) => {
   const [isDark, setIsDark] = useState(false);
@@ -16,6 +16,8 @@ const ThemeToggle = ({ useMobile }: Props) => {
     if (savedMode && savedMode === 'enabled') {
       setIsDark(true);
       document.documentElement.classList.add('dark');
+    } else if (savedMode && savedMode === 'disabled') {
+      setIsDark(false);
     } else {
       // If not found in local storage, check browser settings to see if user perfers dark mode.
       const preferDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;

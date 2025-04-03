@@ -18,7 +18,6 @@ import GamePrompt from '../prompt/game-prompt';
 import useMenuItems from '@/app/hooks/euchre/useMenuItems';
 import useEuchreGameAuto from '@/app/hooks/euchre/useEuchreGameAuto';
 import clsx from 'clsx';
-import RenderCards from '../render-cards';
 import GameErrorPrompt from '../prompt/game-error-prompt';
 
 export default function EuchreGame() {
@@ -26,7 +25,6 @@ export default function EuchreGame() {
   const {
     euchreGame,
     gameFlow,
-    gameAnimationFlow,
     playerNotification,
     promptValue,
     euchreSettings,
@@ -36,7 +34,6 @@ export default function EuchreGame() {
     beginNewGame,
     handleBidSubmit,
     handleSettingsChange,
-    handleCancelGame,
     handleDiscardSubmit,
     handleCloseHandResults,
     handleCloseGameResults,
@@ -47,8 +44,16 @@ export default function EuchreGame() {
     handleAttemptToRecover
   } = useEuchreGame();
 
-  const { isFullScreen, showEvents, showSettings, toggleFullScreen, toggleEvents, toggleSettings } =
-    useMenuItems();
+  const {
+    isFullScreen,
+    showEvents,
+    showSettings,
+    showScore,
+    toggleFullScreen,
+    toggleEvents,
+    toggleSettings,
+    toggleScore
+  } = useMenuItems();
 
   const { runFullGame, runFullGameLoop } = useEuchreGameAuto();
   const [fullGameInstance, setFullGameInstance] = useState<EuchreGameInstance | null>(null);
@@ -94,7 +99,7 @@ export default function EuchreGame() {
 
   //#endregion
 
-  //#region Conditional prompts to render.
+  //#region Conditional prompt components to render.
 
   const renderErrorMessage = errorState && euchreGame && (
     <GameErrorPrompt
@@ -195,7 +200,7 @@ export default function EuchreGame() {
               className={`${SECTION_STYLE} md:m-1 md:h-auto flex-grow relative bg-[url(/felt1.png)] h-full`}
             >
               <div className="md:m-2">
-                {euchreGame ? (
+                {euchreGame && (
                   <>
                     <GameArea
                       gameInstance={euchreGame}
@@ -204,17 +209,17 @@ export default function EuchreGame() {
                       isFullScreen={isFullScreen}
                       showEvents={showEvents}
                       showSettings={showSettings}
+                      showScore={showScore}
                       playerNotification={playerNotification}
                       onToggleFullscreen={toggleFullScreen}
                       onToggleEvents={toggleEvents}
                       onCardPlayed={handleCardPlayed}
                       onSettingsToggle={toggleSettings}
+                      onScoreToggle={toggleScore}
                       onCancel={handleCancel}
                     />
                     {showSettings && <GamePrompt zIndex={90}>{renderSettings}</GamePrompt>}
                   </>
-                ) : (
-                  <></>
                 )}
                 {renderBidPrompt}
                 {renderDiscardPrompt}
@@ -225,6 +230,7 @@ export default function EuchreGame() {
                   <GameScore
                     game={euchreGame}
                     settings={euchreSettings}
+                    showScore={showScore}
                     className="md:min-h-16 md:min-w-16 absolute top-2 md:right-4 md:left-auto left-8"
                   />
                 )}

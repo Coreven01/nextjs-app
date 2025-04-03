@@ -75,7 +75,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
   };
 
   return (
-    <GamePrompt {...rest} zIndex={50} className={clsx('bg-stone-800', className)}>
+    <GamePrompt {...rest} zIndex={50} className={clsx('bg-white dark:bg-stone-800', className)}>
       <div className="p-1">
         <div
           className={clsx(
@@ -100,14 +100,14 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
               { 'md:col-span-2 md:w-full w-64': !firstRound }
             )}
           >
-            <h2 className="text-yellow-200 font-bold md:text-lg text-sm">Bid for Trump</h2>
+            <h2 className="dark:text-yellow-200 font-bold md:text-lg text-sm">Bid for Trump</h2>
           </div>
 
           {firstRound && (
             <div className="md:col-span-2 col-span-1">
               <div title={dealerTitle} className="text-center cursor-default">
                 <PlayerColor player={game.dealer} settings={settings}>
-                  <div className="bg-stone-800 h-full flex items-center justify-center md:text-base text-xs">
+                  <div className="bg-white dark:bg-stone-800 h-full flex items-center justify-center md:text-base text-xs">
                     Dealer: {game.dealer === game.currentPlayer ? 'You' : game.dealer.name}
                   </div>
                 </PlayerColor>
@@ -173,7 +173,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
           </div>
           <div
             className={clsx(
-              'flex gap-2 md:text-base text-xs',
+              'flex gap-2 md:text-base text-xs text-white',
               {
                 'md:flex-row flex-col md:col-span-2 md:col-start-1 md:row-start-5 md:row-span-1 col-start-3 row-start-2 row-span-2':
                   firstRound

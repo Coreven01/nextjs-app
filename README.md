@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Developer Portfolio
 
-## Getting Started
+Hello and welcome to my personal developer portfolio! 🚀
 
-First, run the development server:
+This repository showcases my projects, skills, and accomplishments as a developer. Feel free to explore my work and get in touch if you're interested in collaborating or learning more about my journey.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## About Me 👨‍💻
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+I'm Nolan, a passionate and creative software developer who's worked with .NET applications for the last 9 years. I enjoy building both web and desktop applications, exploring new technologies, and solving real-world problems through code. 
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 💻 Tech Stack: .NET, HTML, CSS, Javascript, WebAPI, React, Next.js
+- 🌱 Currently Learning: React/Next.js
+- 🎯 Goals: Learn new technologies related to web development. My next short-term goal is to update the theme and main page to be more modern.
+- 📫 How to Reach Me: naappel@gmail.com
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Featured Projects 🌟
 
-## Learn More
+Here are some of the projects I've worked on while teaching myself React and Next.js.
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Bomb Seeker
+This is my faithful re-creation of Microsoft's original Minesweeper game. I have a couple optional additions that will auto start the game without clicking a bomb, and a cheat feature when the player encounters a situtation where they have to "guess". 
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+https://app.nolanappel.dev/bombseeker
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Euchre
+Simple implementation of the euchre card game. I decided to create this in Next.js to see what the framework was capable of and to test to see if I could get it working.
 
-## Deploy on Vercel
+https://app.nolanappel.dev/euchre
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Contact Me 📫
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Email: naappel@gmail.com
+- LinkedIn: https://www.linkedin.com/in/nolanappel/
+- Portfolio website: https://app.nolanappel.dev
+
+---
+
+Thanks for visiting my GitHub!

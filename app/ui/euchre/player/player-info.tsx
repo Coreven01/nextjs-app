@@ -17,19 +17,19 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
   const tricksCount = game.handTricks.filter((t) => t.taker === player).length;
   let infoToRender: React.ReactNode[] = [];
   const shortHandInfo: React.ReactNode[] = [];
-
+  const infoClass = 'text-red-800 dark:text-yellow-400';
   let counter = 0;
 
   if (isSittingOut) {
     if (settings.viewPlayerInfoDetail) {
       infoToRender.push(
-        <div key={counter++} className={`text-yellow-400`}>
+        <div key={counter++} className={infoClass}>
           Sitting Out
         </div>
       );
     } else {
       shortHandInfo.push(
-        <span className={`text-yellow-400`} title="Sitting Out" key={counter++}>
+        <span className={infoClass} title="Sitting Out" key={counter++}>
           {'(S)'}
         </span>
       );
@@ -41,13 +41,13 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
   if (isDealer) {
     if (settings.viewPlayerInfoDetail) {
       infoToRender.push(
-        <div key={counter++} className={`text-yellow-400`}>
+        <div key={counter++} className={infoClass}>
           Dealer
         </div>
       );
     } else {
       shortHandInfo.push(
-        <span className={`text-yellow-400`} title="Dealer" key={counter++}>
+        <span className={infoClass} title="Dealer" key={counter++}>
           {'(D)'}
         </span>
       );
@@ -57,13 +57,13 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
   if (isMaker && suit) {
     if (settings.viewPlayerInfoDetail) {
       infoToRender.push(
-        <div key={counter++} className={`text-yellow-400`}>
+        <div key={counter++} className={infoClass}>
           Maker ({suit})
         </div>
       );
     } else {
       shortHandInfo.push(
-        <span className={`text-yellow-400`} title="Maker" key={counter++}>
+        <span className={infoClass} title="Maker" key={counter++}>
           {'(M)'}
         </span>
       );
@@ -104,7 +104,7 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
     >
       <GameBorderBare {...rest} className="">
         <PlayerColor player={player} settings={settings}>
-          <div className="bg-stone-800 p-1">{infoToRender}</div>
+          <div className="bg-white dark:bg-stone-800 p-1">{infoToRender}</div>
         </PlayerColor>
       </GameBorderBare>
     </GameHighlight>

@@ -19,6 +19,7 @@ import { getPlayerRotation } from '@/app/lib/euchre/game';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
 import { createEvent } from '@/app/lib/euchre/util';
+import clsx from 'clsx';
 
 export default function useEuchreGamePlay(state: EuchreGameState, errorState: EuchreErrorState) {
   const playerAutoPlayed = useRef(false);
@@ -346,7 +347,8 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
         if (!lastWonTrick)
           throw new Error('Invalid state for handling play card result. Winning trick not found.');
 
-        if (lastWonTrick.playerRenege === null) {
+        const playedReneged = lastWonTrick.playerRenege !== null;
+        if (!playedReneged) {
           state.dispatchPlayerNotification(getPlayerNotificationForTrickWon(lastWonTrick));
         } else {
           const notification: PlayerNotificationAction = {
@@ -369,6 +371,10 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
         state.addEvent(createEvent('i', state.euchreSettings, lastWonTrick.taker ?? undefined, `Trick won.`));
 
         await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
+
+        // little bit longer pause so the user can see what happened.
+        if (playedReneged)
+          await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
       }
 
       if (newGame.handFinished) {
@@ -499,9 +505,12 @@ const getPlayerNotificationForTrickWon = (result: EuchreTrick) => {
   const id = result.taker?.generateElementId();
   const infoDetail = (
     <UserInfo
-      className={`p-2 md:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg shadow-black ${messageLocation}`}
+      className={clsx(
+        `p-2 md:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800`,
+        messageLocation
+      )}
       id={id}
-      key={`${id}-${Math.floor(Math.random() * 1000)}`}
+      key={`${id}`}
     >
       <div className="flex gap-2 items-center">{icon}</div>
     </UserInfo>

@@ -4,6 +4,7 @@ import PlayerInfo from './player-info';
 import GameDeck from '../game/game-deck';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import clsx from 'clsx';
+//import { env } from 'node:process';
 
 type Props = {
   player: EuchrePlayer;
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export default function PlayerGameDeck({ player, game, gameFlow, settings, dealDeck, onCardClick }: Props) {
-  const isDebugMode = process.env.REACT_APP_DEBUG === 'true';
+  const isDebugMode = true; //env.REACT_APP_DEBUG === 'true';
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
@@ -53,7 +54,7 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
       break;
     case 3:
       playerInfoOuterClass = 'w-full';
-      playerInfoInnerClass = 'md:-right-4 md:left-auto md:-top-48 -left-2 top-0 md:min-w-32';
+      playerInfoInnerClass = 'md:-right-4 md:left-auto md:-top-48 -left-2 top-inherit bottom-0 md:min-w-32';
       classForLocation =
         'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-end justify-center h-full -top-8';
       playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';
@@ -61,7 +62,7 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
       break;
     case 4:
       playerInfoOuterClass = 'w-full';
-      playerInfoInnerClass = 'md:-left-4 md:right-auto md:-top-48 -right-2 top-0 md:min-w-32';
+      playerInfoInnerClass = 'md:-left-4 md:right-auto md:-top-48 -right-2 top-inherit bottom-0 md:min-w-32';
       classForLocation =
         'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-start justify-center h-full -top-8';
       playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';

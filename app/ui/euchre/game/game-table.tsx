@@ -1,16 +1,15 @@
-'use client';
-
 import { PlayerNotificationState } from '@/app/hooks/euchre/playerNotificationReducer';
 import GameBorder from './game-border';
 import WoodenBoard from '../wooden-board';
 import clsx from 'clsx';
+//import { env } from 'node:process';
 
 type Props = {
   playerNotification: PlayerNotificationState;
 };
 
 export default function GameTable({ playerNotification }: Props) {
-  const isDebugMode = process.env.REACT_APP_DEBUG === 'true';
+  const isDebugMode = true; // env.REACT_APP_DEBUG === 'true';
   const renderOrder = [
     playerNotification.player2GameInfo,
     playerNotification.player3GameInfo,

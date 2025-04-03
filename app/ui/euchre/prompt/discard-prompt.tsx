@@ -4,7 +4,6 @@ import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { Card } from '@/app/lib/euchre/definitions';
 import Image from 'next/image';
 import { useState } from 'react';
-import PromptSelection from './prompt-selection';
 import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import GameBorder from '../game/game-border';
@@ -74,7 +73,7 @@ export default function DiscardPrompt({
 
           <button
             onClick={() => handleDiscardSubmit()}
-            className="col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+            className="col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 md:text-base text-xs"
             disabled={!submitEnabled}
           >
             Discard Selected

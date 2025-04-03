@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 //const { i18n } = require('./next-i18next.config.js');
 
+process.env.REACT_APP_DEBUG = 'true';
+
 module.exports = {
   i18n: {
     // These are all the locales you want to support in

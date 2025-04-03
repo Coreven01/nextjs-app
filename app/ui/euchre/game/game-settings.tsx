@@ -1,5 +1,3 @@
-'use client';
-
 import {
   DIFFICULTY_MAP,
   EuchreSettings,
@@ -33,7 +31,9 @@ export default function GameSettings({
   const teamColors = [...TEAM_COLOR_MAP.keys()];
   const gameSpeedValues = [...GAME_SPEED_MAP.entries()];
   const difficultyValues = [...DIFFICULTY_MAP.entries()];
+  const isDebugMode = true;
 
+  //#region Handlers
   const handleNewGame = () => {
     onNewGame();
   };
@@ -95,13 +95,14 @@ export default function GameSettings({
     setPlayerName(playerName.trim().length === 0 ? 'Joe' : playerName.trim());
     onApplySettings({ ...settings, playerName: playerName.trim().length === 0 ? 'Joe' : playerName.trim() });
   };
+  //#endregion
 
   return (
     <div className="bg-stone-800 text-white p-1">
       <div className="flex items-center gap-4 my-2 md:text-base text-sm">
         <label htmlFor="playerName">Player Name: </label>
         <input
-          className="text-black max-w-32"
+          className="text-black max-w-32 text-sm p-1 md:text-base"
           placeholder="Player Name"
           id="playerName"
           type="text"
@@ -170,41 +171,43 @@ export default function GameSettings({
           </div>
         </div>
 
-        <div className="flex-grow">
-          <div>
-            <label htmlFor="debugAlwaysPass">Debug Always Pass: </label>
-            <Switch
-              id="debugAlwaysPass"
-              size="small"
-              checked={settings.debugAlwaysPass}
-              name="debugAlwaysPass"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
+        {isDebugMode && (
+          <div className="flex-grow">
+            <div>
+              <label htmlFor="debugAlwaysPass">Debug Always Pass: </label>
+              <Switch
+                id="debugAlwaysPass"
+                size="small"
+                checked={settings.debugAlwaysPass}
+                name="debugAlwaysPass"
+                color="success"
+                onChange={(e) => handleCheckChanged(e)}
+              />
+            </div>
+            <div>
+              <label htmlFor="debugShowHandsWhenPassed">Debug Show Hands When Passed: </label>
+              <Switch
+                id="debugShowHandsWhenPassed"
+                size="small"
+                checked={settings.debugShowHandsWhenPassed}
+                name="debugShowHandsWhenPassed"
+                color="success"
+                onChange={(e) => handleCheckChanged(e)}
+              />
+            </div>
+            <div>
+              <label htmlFor="debugShowPlayersHand">Debug Show Player Hands: </label>
+              <Switch
+                id="debugShowPlayersHand"
+                size="small"
+                checked={settings.debugShowPlayersHand}
+                name="debugShowPlayersHand"
+                color="success"
+                onChange={(e) => handleCheckChanged(e)}
+              />
+            </div>
           </div>
-          <div>
-            <label htmlFor="debugShowHandsWhenPassed">Debug Show Hands When Passed: </label>
-            <Switch
-              id="debugShowHandsWhenPassed"
-              size="small"
-              checked={settings.debugShowHandsWhenPassed}
-              name="debugShowHandsWhenPassed"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
-          <div>
-            <label htmlFor="debugShowPlayersHand">Debug Show Player Hands: </label>
-            <Switch
-              id="debugShowPlayersHand"
-              size="small"
-              checked={settings.debugShowPlayersHand}
-              name="debugShowPlayersHand"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
-        </div>
+        )}
       </div>
       <div className="my-4 flex justify-center items-center gap-1 md:text-base text-sm">
         <div className="m-auto">
