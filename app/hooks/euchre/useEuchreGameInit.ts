@@ -7,7 +7,7 @@ import {
   INIT_GAME_FLOW_STATE
 } from './gameFlowReducer';
 import { PlayerNotificationActionType } from './playerNotificationReducer';
-import { EuchreActionType } from './gameAnimationFlowReducer';
+import { EuchreAnimationActionType } from './gameAnimationFlowReducer';
 import { EuchreGameState } from './useEuchreGame';
 import { getGameStateForInitialDeal, initDeckForInitialDeal } from '@/app/lib/euchre/game-setup-logic';
 
@@ -31,17 +31,17 @@ export default function useEuchreGameInit(state: EuchreGameState) {
         payload: {
           ...INIT_GAME_FLOW_STATE,
           shouldShowDeckImages: [],
-          shouldShowHandImages: [],
-          shouldShowHandValues: []
+          shouldShowCardImagesForHand: [],
+          shouldShowCardValuesForHand: []
         }
       });
 
       state.dispatchGameAnimationFlow({
-        type: EuchreActionType.SET_ANIMATE_NONE
+        type: EuchreAnimationActionType.SET_ANIMATE_NONE
       });
     } else {
       state.dispatchGameAnimationFlow({
-        type: EuchreActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
+        type: EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
       });
     }
 
@@ -76,7 +76,9 @@ export default function useEuchreGameInit(state: EuchreGameState) {
     state.setShouldCancel(false);
   };
 
+  /** Cancel the current state and set the current game to null. */
   const cancelAndReset = () => {
+    state.setShouldCancel(true);
     reset(true);
     state.setEuchreGame(null);
   };

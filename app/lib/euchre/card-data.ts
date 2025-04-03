@@ -373,7 +373,7 @@ const svgSideCardValues: Map<string, TextData> = new Map([
 ]);
 
 const svgCardColors = new Map<string, string>([
-  ['R', '#EF4444'],
+  ['R', '#DC4542'],
   ['B', '#000']
 ]);
 

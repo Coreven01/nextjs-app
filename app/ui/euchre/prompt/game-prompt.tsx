@@ -16,7 +16,7 @@ export default function GamePrompt({ children, className, innerClass, zIndex, ..
       style={{ zIndex: zIndex }}
     >
       <GameModal className="opacity-0">
-        <GameBorder {...rest} className={className} innerClass={innerClass}>
+        <GameBorder {...rest} className={className} innerClass={innerClass} size="small">
           {children}
         </GameBorder>
       </GameModal>

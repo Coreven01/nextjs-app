@@ -17,7 +17,8 @@ function logBidResult(game: EuchreGameInstance, result: BidResult) {
   console.table(logValue);
 }
 
-function logDebugEvent(
+/** Log error to console. */
+function logDebugError(
   message: object | string | null | undefined,
   ...params: (object | string | null | undefined)[]
 ) {
@@ -26,7 +27,7 @@ function logDebugEvent(
   const temp = message as GameEvent;
 
   if (temp && temp.type === 'e') {
-    console.log(message, params);
+    console.error(message, params);
   }
 }
 
@@ -37,7 +38,7 @@ function createEvent(
   message?: string,
   ...params: (object | string | null | undefined)[]
 ): GameEvent {
-  const retval: GameEvent = {
+  return {
     id: 0,
     time: new Date().toLocaleTimeString(),
     type: type,
@@ -46,8 +47,6 @@ function createEvent(
     team: player?.team,
     teamColor: player && settings ? player?.getTeamColor(settings) : undefined
   };
-
-  return retval;
 }
 
 /** Create range of numbers between the given start and end. Includes both start and end value. */
@@ -65,13 +64,11 @@ function isElementFullyVisible(element: HTMLElement, container: HTMLElement) {
   const elementRect = element.getBoundingClientRect();
   const containerRect = container.getBoundingClientRect();
 
-  const isFullyVisible =
+  return (
     elementRect.top >= containerRect.top &&
     elementRect.left >= containerRect.left &&
     elementRect.bottom <= containerRect.bottom &&
-    elementRect.right <= containerRect.right;
-
-  return isFullyVisible;
+    elementRect.right <= containerRect.right);
 }
 
 function scrollElementIntoViewIfNeeded(element: HTMLElement, container: HTMLElement) {
@@ -88,6 +85,6 @@ export {
   isElementFullyVisible,
   createEvent,
   createRange,
-  logDebugEvent,
+  logDebugError,
   logBidResult
 };

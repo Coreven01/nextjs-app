@@ -8,6 +8,7 @@ import clsx from 'clsx';
 import GameOverview from '../game/game-overview';
 import { scrollElementIntoViewIfNeeded } from '@/app/lib/euchre/util';
 import PromptHeader from './prompt-header';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -15,6 +16,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   gameResults: EuchreHandResult[] | null;
   onClose: () => void;
   onNewGame: () => void;
+  onReplayGame: () => void;
 }
 
 export default function GameResults({
@@ -23,6 +25,7 @@ export default function GameResults({
   gameResults,
   onNewGame,
   onClose,
+  onReplayGame,
   className,
   ...rest
 }: DivProps) {
@@ -81,11 +84,15 @@ export default function GameResults({
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,350px,auto]">
+        <div className="grid grid-cols-[630px] grid-rows-[1fr,1fr,370px,auto]">
           <div className="flex">
-            <button ref={buttonLeft}>&lt;</button>
+            <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
+              <ChevronLeftIcon />
+            </button>
             <PromptHeader className="flex-grow md:text-base text-sm">Game Results</PromptHeader>
-            <button ref={buttonRight}>&gt;</button>
+            <button className="w-8 h-8 hover:text-amber-400" ref={buttonRight}>
+              <ChevronRightIcon />
+            </button>
           </div>
           <HandResultNavigation
             menuRef={menu}
@@ -117,6 +124,12 @@ export default function GameResults({
               className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
             >
               New Game
+            </button>
+            <button
+              onClick={onReplayGame}
+              className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+            >
+              Replay Game
             </button>
           </div>
         </div>

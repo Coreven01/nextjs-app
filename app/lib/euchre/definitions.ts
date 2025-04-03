@@ -8,7 +8,11 @@ import {
   getSuitCount
 } from './game';
 import { determineBidLogic, determineDiscard } from './game-bid-logic';
-import { determineCardToPlayLogic, determineCurrentWinnerForTrick } from './game-play-logic';
+import {
+  determineCardToPlayLogic,
+  determineCurrentWinnerForTrick,
+  didPlayerFollowSuit
+} from './game-play-logic';
 
 const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
 const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
@@ -92,17 +96,22 @@ export type CardValue =
   | 'P';
 export type CardColor = 'R' | 'B';
 
-export interface EuchreHandResult {
+export interface EuchreHandResult extends EuchrePlayersPassedResult {
   tricks: EuchreTrick[];
   points: number;
   maker: EuchrePlayer;
-  dealer: EuchrePlayer;
   teamWon: 1 | 2;
-  roundNumber: number;
   loner: boolean;
-  trump: Card;
-  trumpWasNamed: boolean;
+  discard: Card | null;
+  turnedDown: Card | null;
   defenders: EuchrePlayer[];
+}
+export interface EuchrePlayersPassedResult {
+  dealer: EuchrePlayer;
+  roundNumber: number;
+  kitty: Card[];
+  trump: Card;
+  allPlayerCards: EuchreCard[];
 }
 
 export interface EuchreSettings {
@@ -111,7 +120,7 @@ export interface EuchreSettings {
   showHandResult: boolean;
   teamOneColor: TeamColor;
   teamTwoColor: TeamColor;
-  allowRenege: boolean;
+  enforceFollowSuit: boolean;
   autoFollowSuit: boolean;
   debugShowPlayersHand: boolean;
   debugShowHandsWhenPassed: boolean;
@@ -131,17 +140,17 @@ export interface BidResult {
 }
 
 class EuchrePlayer {
-  name: string;
-  private hand: Card[];
+  readonly name: string;
+  private hand: Card[] = [];
   placeholder: Card[] = [];
   playedCards: Card[] = [];
-  playerNumber: 1 | 2 | 3 | 4;
-  team: 1 | 2 = 1;
+  readonly playerNumber: 1 | 2 | 3 | 4;
+  readonly team: 1 | 2 = 1;
   human: boolean = false;
 
-  constructor(name: string, hand: Card[], playerNumber: 1 | 2 | 3 | 4) {
+  constructor(name: string, team: 1 | 2, playerNumber: 1 | 2 | 3 | 4) {
     this.name = name;
-    this.hand = hand;
+    this.team = team;
     this.playerNumber = playerNumber;
     this.placeholder = createPlaceholderCards(5);
   }
@@ -166,6 +175,8 @@ class EuchrePlayer {
     return this.hand.filter((c) => c.value !== 'P');
   }
 
+  /** Return 5 cards for the player's hand, however it inclues "placement" cards for cards that have already been played.
+   * These placement cards are intended to be hidden by the UI. */
   get displayCards(): Card[] {
     return [...this.hand];
   }
@@ -208,10 +219,9 @@ class EuchrePlayer {
     game: EuchreGameInstance,
     flipCard: Card,
     firstRoundOfBidding: boolean,
-    difficulty: GameDifficulty
+    gameSettings: EuchreSettings
   ): BidResult {
-    const result = determineBidLogic(game, flipCard, firstRoundOfBidding, difficulty);
-    return result;
+    return determineBidLogic(game, flipCard, firstRoundOfBidding, gameSettings);
   }
 
   determineCardToPlay(game: EuchreGameInstance, difficulty: GameDifficulty): Card {
@@ -221,11 +231,11 @@ class EuchrePlayer {
   /** */
   chooseDiscard(game: EuchreGameInstance, difficulty: GameDifficulty): Card {
     const cardToDiscard = determineDiscard(game, this, difficulty);
-    if (game.trump) this.discard(cardToDiscard, game.trump, difficulty);
+    if (game.trump) this.discard(cardToDiscard, game.trump);
     return cardToDiscard;
   }
 
-  discard(cardToDiscard: Card, trump: Card, difficulty: GameDifficulty) {
+  discard(cardToDiscard: Card, trump: Card) {
     if (this.hand.find((c) => c === cardToDiscard)) {
       const tempHand = [...this.hand, trump].filter((c) => c !== cardToDiscard);
       tempHand.forEach((c, index) => (c.index = index));
@@ -293,8 +303,8 @@ class EuchrePlayer {
 }
 
 class Card {
-  suit: Suit;
-  value: CardValue;
+  readonly suit: Suit;
+  readonly value: CardValue;
   index: number = 0;
 
   constructor(suit: Suit, value: CardValue) {
@@ -332,10 +342,10 @@ class Card {
 }
 
 class EuchreGameInstance {
-  player1: EuchrePlayer;
-  player2: EuchrePlayer;
-  player3: EuchrePlayer;
-  player4: EuchrePlayer;
+  readonly player1: EuchrePlayer;
+  readonly player2: EuchrePlayer;
+  readonly player3: EuchrePlayer;
+  readonly player4: EuchrePlayer;
 
   deck: Card[] = [];
   kitty: Card[] = [];
@@ -347,6 +357,7 @@ class EuchreGameInstance {
   turnedDown: Card | null = null;
   cardDealCount: number[] = [];
   currentRound: number = 1;
+
   private currentTricks: EuchreTrick[] = [];
   private gameResults: EuchreHandResult[] = [];
   private _currentPlayer: EuchrePlayer | null = null;
@@ -386,14 +397,19 @@ class EuchreGameInstance {
   }
 
   get handFinished(): boolean {
-    return this.currentTricks.filter((t) => t.taker !== null).length === 5;
+    const playerReneged = this.currentTrick && this.currentTrick.playerRenege !== null;
+    const allCardsPlayed = this.currentTricks.filter((t) => t.taker !== null).length === 5;
+    return playerReneged || allCardsPlayed;
   }
 
   get allGameResults(): EuchreHandResult[] {
     return [...this.gameResults];
   }
   get trickFinished(): boolean {
-    return (this.currentTrick && this.currentTrick.cardsPlayed.length === (this.loner ? 3 : 4)) ?? false;
+    const playerReneged = this.currentTrick && this.currentTrick.playerRenege !== null;
+    const allPlayersPlayed =
+      (this.currentTrick && this.currentTrick.cardsPlayed.length === (this.loner ? 3 : 4)) ?? false;
+    return playerReneged || allPlayersPlayed;
   }
 
   get isGameOver(): boolean {
@@ -510,31 +526,88 @@ class EuchreGameInstance {
     }
   }
 
+  /** Copy cards that were dealt from the passed game instance. */
+  copyCardsFromReplay(replayHand: EuchreHandResult): void {
+    const players = this.gamePlayers;
+
+    for (const player of players) {
+      player.assignCards = replayHand.allPlayerCards
+        .filter((p) => p.player.playerNumber === player.playerNumber)
+        .map((p) => new Card(p.card.suit, p.card.value));
+
+      if (player.availableCards.length < 5) {
+        throw new Error('Invalid card count for player after copy from replay.');
+      }
+
+      if (player.availableCards.find((c) => c.value === 'P')) {
+        throw new Error('Invalid card found for player after copy from replay.');
+      }
+    }
+
+    this.kitty = replayHand.kitty.map((c) => new Card(c.suit, c.value));
+
+    if (replayHand.turnedDown) {
+      this.trump = new Card(replayHand.turnedDown.suit, replayHand.turnedDown.value);
+    } else {
+      this.trump = new Card(replayHand.trump.suit, replayHand.trump.value);
+    }
+
+    const tempTrump = this.trump;
+    if (replayHand.discard && !this.turnedDown && this.dealer) {
+      this.dealer.assignCards = [
+        ...this.dealer.availableCards.filter((c) => !c.equal(tempTrump)),
+        new Card(replayHand.discard.suit, replayHand.discard.value)
+      ];
+
+      if (this.dealer.availableCards.length < 5) {
+        throw new Error('Invalid card count for dealer after copy from replay.');
+      }
+    }
+  }
+
   /** Verify cards were dealt correctly. */
   verifyDealtCards(): void {
-    const allCardsDealt = [
-      this.player1.availableCards,
-      this.player2.availableCards,
-      this.player3.availableCards,
-      this.player4.availableCards,
-      this.kitty
-    ].flat();
+    const msg = 'Card dealt verification failed.';
 
-    if (allCardsDealt.length != 24) throw Error('Verify failed. Invalid card count');
+    if (this.kitty.length !== 4) {
+      throw new Error('');
+    }
+    const allCardsDealt = [this.kitty].flat();
+
+    for (const player of this.gamePlayers) {
+      const playerHand = player.availableCards;
+      if (playerHand.length !== 5) throw new Error(msg + ' Invalid card count for player: ' + player.name);
+
+      if (playerHand.find((c) => c.value === 'P'))
+        throw Error(msg + ' Invalid cards found in player hand. (Value === P) Player: ' + player.name);
+
+      allCardsDealt.push(...playerHand);
+    }
 
     const tempSet = new Set<string>([...allCardsDealt.map((c) => `${c.value}${c.suit}`)]);
 
-    if (tempSet.size != 24) throw Error('Verify failed. Invalid card count');
+    if (tempSet.size !== 24) {
+      const missingCards = allCardsDealt.filter((c) => !tempSet.has(`${c.value}${c.suit}`));
+      throw Error(msg + '  Missing Cards: ' + missingCards.map((c) => `${c.value}${c.suit}`).join(','));
+    }
   }
 
+  /** */
   private getHandResult(): EuchreHandResult {
     if (!this.dealer || !this.maker) throw new Error('Dealer and maker not found for hand result.');
 
     const makerTricksWon = this.currentTricks.filter((t) => t.taker?.team === this.maker?.team).length;
+    const renegePlayer = this.currentTricks.find((t) => t.playerRenege !== null)?.playerRenege ?? null;
+
     let points = 0;
     let teamWon = this.maker.team;
 
-    if (this.loner && makerTricksWon === 5) {
+    if (renegePlayer && this.maker.team === renegePlayer.team) {
+      points = this.loner ? 4 : 2;
+      teamWon = teamWon === 1 ? 2 : 1;
+    } else if (renegePlayer && this.maker.team !== renegePlayer.team) {
+      points = this.loner ? 4 : 2;
+    } else if (this.loner && makerTricksWon === 5) {
       points = 4;
     } else if (makerTricksWon === 5) {
       points = 2;
@@ -545,6 +618,13 @@ class EuchreGameInstance {
       teamWon = teamWon === 1 ? 2 : 1;
     }
 
+    const allPlayerCards = this.gamePlayers
+      .map((p) => [
+        ...p.availableCards.map((c) => new EuchreCard(p, c)),
+        ...p.playedCards.map((c) => new EuchreCard(p, c))
+      ])
+      .flat();
+
     const retval: EuchreHandResult = {
       tricks: [...this.currentTricks],
       points: points,
@@ -554,20 +634,66 @@ class EuchreGameInstance {
       roundNumber: this.currentRound,
       loner: this.loner,
       trump: this.trump ?? new Card('♠', 'P'),
-      trumpWasNamed: this.turnedDown !== null,
-      defenders: this.gamePlayers.filter((p) => p.team !== teamWon)
+      turnedDown: this.turnedDown,
+      discard: this.discard,
+      defenders: this.gamePlayers.filter((p) => p.team !== this.maker?.team),
+      allPlayerCards: allPlayerCards,
+      kitty: [...this.kitty]
     };
+
+    this.validateHandResult(retval);
 
     return retval;
   }
 
+  private validateHandResult(result: EuchreHandResult): void {
+    const msg = 'Hand result validation failed.';
+    const allCards = [...result.allPlayerCards.map((c) => c.card), ...result.kitty];
+    const gameCards = new Set<string>();
+
+    const player1Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 1);
+    const player2Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 2);
+    const player3Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 3);
+    const player4Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 4);
+    const playerCards = [player1Cards, player2Cards, player3Cards, player4Cards];
+
+    for (const cards of playerCards) {
+      if (cards.length !== 5) throw new Error(msg + ' Invalid player card count.');
+    }
+
+    if (allCards.length !== 24) throw new Error(msg + ' Invalid total card count.');
+
+    for (const card of allCards) {
+      if (card.value === 'P') throw new Error(msg + ' Invalid card (Pending).');
+
+      gameCards.add(`${card.value + card.suit}`);
+    }
+
+    if (result.discard) gameCards.add(`${result.discard.value + result.discard.suit}`);
+
+    if (gameCards.size !== 24) throw new Error(msg + ' Invalid unique total card count.');
+  }
+
+  /** Update game state if trick is finished.
+   *
+1` */
   updateIfTrickOver(playerRotation: EuchrePlayer[]): void {
     if (!this.currentPlayer) throw new Error('Game player not found.');
     if (!this.trump) throw new Error('Trump not found.');
 
-    // if trick is finished, determine who the winner of the trick.
     const lastTrick = this.currentTricks.at(-1);
-    if (lastTrick && lastTrick.cardsPlayed.length === playerRotation.length) {
+    let playerFollowedSuit = true;
+
+    if (!lastTrick) throw new Error('Trick not found for playthrough');
+    const lastCardPlayed = lastTrick.cardsPlayed.at(-1);
+
+    // determine if the player followed suit when possible. if not, then the hand/trick is over and the
+    // other team wins the hand.
+    if (lastCardPlayed) {
+      playerFollowedSuit = didPlayerFollowSuit(this, lastCardPlayed.card);
+    }
+
+    if (!playerFollowedSuit || lastTrick.cardsPlayed.length === playerRotation.length) {
       const trickWinner = determineCurrentWinnerForTrick(this.trump, lastTrick);
 
       if (!trickWinner.card?.player) throw new Error('Trick winner not found.');
@@ -580,7 +706,9 @@ class EuchreGameInstance {
         playerSittingOut.sortCards(this.trump);
       }
 
-      if (this.currentTricks.length < 5) {
+      if (!playerFollowedSuit) {
+        lastTrick.playerRenege = this._currentPlayer;
+      } else if (this.currentTricks.length < 5) {
         this._currentPlayer = trickWinner.card?.player ?? null;
       }
     } else {
@@ -588,61 +716,62 @@ class EuchreGameInstance {
     }
   }
 
+  /**
+   * Update game state if hand is over.
+   */
   updateIfHandOver(): void {
-    // if hand is over update the tricks with the result.
-    if (this.currentTricks.length === 5 && this.currentTricks.filter((t) => t.taker !== null).length === 5) {
+    const handOver =
+      (this.currentTrick && this.currentTrick.playerRenege !== null) ||
+      (this.currentTricks.length === 5 && this.currentTricks.filter((t) => t.taker !== null).length === 5);
+
+    if (handOver) {
+      // if hand is over update the game results.
       this.gameResults.push(this.getHandResult());
       this.currentRound += 1;
     }
   }
 
+  /**
+   * Undo the result of the last hand and deal the same cards again as if the hand started over.
+   */
   reverseLastHandPlayed(): void {
-    const lastGameResult = this.gameResults.at(-1);
+    const lastGameResult: EuchreHandResult | undefined = this.gameResults.at(-1);
 
     if (!lastGameResult) throw new Error('Game result not found.');
     if (!this.dealer) throw new Error('Game dealer not found.');
     if (!this.trump) throw new Error('Trump card not found.');
 
-    const trumpCard = this.trump;
-    const allCards: EuchreCard[] = lastGameResult.tricks.map((t) => t.cardsPlayed).flat();
-    if (lastGameResult.loner) {
-      for (const card of lastGameResult.tricks.map((c) => c.playerSittingOut)) {
-        if (card) allCards.push(card);
-      }
-    }
-
+    const discard = this.discard;
+    const allCards: EuchreCard[] = lastGameResult.allPlayerCards;
+    const currentKitty = [...this.kitty];
+    const dealCount = [...this.cardDealCount];
     this.gameResults = [...this.gameResults.slice(0, this.gameResults.length - 1)];
+
     const player1Hand = allCards.filter((c) => c.player.equal(this.player1)).map((c) => c.card);
     const player2Hand = allCards.filter((c) => c.player.equal(this.player2)).map((c) => c.card);
     const player3Hand = allCards.filter((c) => c.player.equal(this.player3)).map((c) => c.card);
     const player4Hand = allCards.filter((c) => c.player.equal(this.player4)).map((c) => c.card);
 
+    this.resetForNewDeal();
+    this.cardDealCount = dealCount;
+    this.kitty = currentKitty;
+    this.trump = this.kitty[0];
     this.player1.assignCards = player1Hand;
     this.player2.assignCards = player2Hand;
     this.player3.assignCards = player3Hand;
     this.player4.assignCards = player4Hand;
-    this.maker = null;
-    this.loner = false;
     this._currentPlayer = getPlayerRotation(this.gamePlayers, this.dealer)[0];
+    const tempTrump = this.trump;
 
-    if (this.discard && !lastGameResult.trumpWasNamed) {
-      this.dealer.assignCards = [
-        ...this.dealer.availableCards.filter((c) => !c.equal(trumpCard)),
-        this.discard
-      ];
-    } else if (this.turnedDown) {
-      this.trump = this.turnedDown;
+    if (discard && this.trump) {
+      this.dealer.assignCards = [...this.dealer.availableCards.filter((c) => !c.equal(tempTrump)), discard];
     }
 
-    this.discard = null;
-    this.turnedDown = null;
+    this.deck = [...this.gamePlayers.map((p) => p.availableCards).flat(), ...currentKitty];
     this.currentRound = lastGameResult.roundNumber;
-    this.currentTricks = [];
+    for (const player of this.gamePlayers) player.sortCards(null);
 
-    this.player1.sortCards(this.trump);
-    this.player2.sortCards(this.trump);
-    this.player3.sortCards(this.trump);
-    this.player4.sortCards(this.trump);
+    this.verifyDealtCards();
   }
 }
 
@@ -650,6 +779,7 @@ class EuchreTrick {
   taker: EuchrePlayer | null = null;
   cardsPlayed: EuchreCard[] = [];
   playerSittingOut: EuchreCard | null = null;
+  playerRenege: EuchrePlayer | null = null;
   round: number = 0;
 
   constructor(round: number) {
@@ -671,7 +801,7 @@ class EuchreCard {
   }
 
   equal(other: EuchreCard): boolean {
-    return this.player === other.player && this.card === other.card;
+    return this.player.equal(other.player) && this.card.equal(other.card);
   }
 }
 

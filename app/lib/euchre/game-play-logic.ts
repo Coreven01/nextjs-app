@@ -293,6 +293,13 @@ export function determineCardToPlayLogic(game: EuchreGameInstance, difficulty: G
   return cardToPlay;
 }
 
+/**
+ *
+ * @param game
+ * @param logic
+ * @param randomNumber
+ * @returns
+ */
 function getRandomCardForDifficulty(
   game: EuchreGameInstance,
   logic: GamePlayLogic,
@@ -610,6 +617,22 @@ function getBestCardWhenDefender(game: EuchreGameInstance, gameLogic: GamePlayLo
     } else if (gameLogic.trickInfo.winningHighLow.low) {
       cardToPlay = gameLogic.trickInfo.winningHighLow.low;
     }
+  } else if (
+    !gameLogic.offsuitInfo.teammateLeadAce &&
+    !gameLogic.teamInfo.teammateYetToPlay &&
+    game.loner &&
+    gameLogic.trumpInfo.trumpHighLow.low
+  ) {
+    // special case when opposing team calls trump, loner, opposing team has yet to play, first trick of the hand, and partner does not lead an ace.
+    cardToPlay = gameLogic.trumpInfo.trumpHighLow.low;
+  } else if (
+    !gameLogic.trumpInfo.playerHasRight &&
+    gameLogic.trickInfo.winningHighLow.low &&
+    game.currentTrick &&
+    game.currentTrick.cardsPlayed.find((c) => game.maker && c.player.equal(game.maker))
+  ) {
+    // if maker already played, and holding a winning card, then play that card.
+    cardToPlay = gameLogic.trickInfo.winningHighLow.low;
   } else if (gameLogic.trumpInfo.totalHandTrumpCardCount > 1) {
     // if player has a low trump card that will win, then play that card.
     // else play low offsuit card.
@@ -649,6 +672,12 @@ function getBestCardWhenDefender(game: EuchreGameInstance, gameLogic: GamePlayLo
   return cardToPlay;
 }
 
+/**
+ *
+ * @param trump
+ * @param trick
+ * @returns
+ */
 function determineCurrentWinnerForTrick(
   trump: Card,
   trick: EuchreTrick
@@ -682,12 +711,19 @@ function determineCurrentWinnerForTrick(
   return winningCard;
 }
 
+/**
+ *
+ * @param gameState
+ * @param settings
+ * @param game
+ * @returns
+ */
 const getGameStateForNextHand = (
   gameState: EuchreGameFlowState,
   settings: EuchreSettings,
   game: EuchreGameInstance
 ): EuchreGameFlowState => {
-  const showAllCards = game.gamePlayers.filter((p) => !p.human).length === 4;
+  const showAllCards = settings.debugShowPlayersHand || game.gamePlayers.filter((p) => !p.human).length === 4;
   const showCardValues = showAllCards
     ? game.gamePlayers.map((p) => {
         return { player: p, value: true };
@@ -702,12 +738,12 @@ const getGameStateForNextHand = (
     ...gameState,
     hasGameStarted: true,
     shouldShowDeckImages: settings.shouldAnimate ? [{ player: game.player1, value: true }] : [],
-    shouldShowHandImages: !settings.shouldAnimate
+    shouldShowCardImagesForHand: !settings.shouldAnimate
       ? game.gamePlayers.map((p) => {
           return { player: p, value: true };
         })
       : [],
-    shouldShowHandValues: showCardValues,
+    shouldShowCardValuesForHand: showCardValues,
     hasFirstBiddingPassed: false,
     hasSecondBiddingPassed: false,
     gameFlow: EuchreGameFlow.BEGIN_SHUFFLE_CARDS
@@ -723,32 +759,33 @@ const didPlayerFollowSuit = (game: EuchreGameInstance, playedCard: Card): boolea
   if (!game.currentPlayer) throw new Error();
   if (!game.trump) throw new Error();
 
+  const cardsAvailableToBePlayed = game.currentPlayer.availableCards;
+
+  // make sure the played card is in the original array of cards available to be played
+  if (cardsAvailableToBePlayed.find((c) => c.equal(playedCard)) === undefined) {
+    cardsAvailableToBePlayed.push(playedCard);
+  }
+
   const leadCard: EuchreCard | null = game.currentTrick?.cardsPlayed.at(0) ?? null;
 
   // player does not need to follow suit if no card has yet been lead.
-  if (!leadCard) return true;
+  if (!leadCard || leadCard.player.equal(game.currentPlayer)) return true;
 
-  const leadCardIsLeftBower = leadCard ? cardIsLeftBower(leadCard.card, game.trump) : false;
-  const suitToFollow = leadCardIsLeftBower ? game.trump.suit : leadCard?.card.suit;
-  const suitCount = getSuitCount(game.currentPlayer.availableCards, game.trump);
-
-  const mustFollowSuit: boolean = suitCount.filter((s) => s.suit === suitToFollow && s.count > 0).length > 0;
-
-  if (mustFollowSuit) {
-    const cardsAvailableToFollowSuit = getCardValuesForSuit(
-      game.currentPlayer.availableCards,
-      game.trump,
-      suitToFollow
-    );
-
-    const cardFound = cardsAvailableToFollowSuit.find((c) => c.card === playedCard);
-
-    if (!cardFound) return false;
-  }
+  const cardsThatCanBePlayed = getCardsAvailableToPlay(game.trump, leadCard.card, cardsAvailableToBePlayed);
+  const cardFound = cardsThatCanBePlayed.find((c) => c.card.equal(playedCard));
+  if (!cardFound) return false;
 
   return true;
 };
 
+/**
+ * Return the cards that are available to be played for the given lead card, trump card, and player cards.
+ * If the player has cards that are the same suit as the lead card, then only return those cards available to follow suit.
+ * @param trump
+ * @param leadCard
+ * @param playerCards
+ * @returns
+ */
 const getCardsAvailableToPlay = (trump: Card, leadCard: Card | null, playerCards: Card[]) => {
   const leadCardIsLeftBower = leadCard ? cardIsLeftBower(leadCard, trump) : false;
   const suitToFollow = leadCardIsLeftBower ? trump.suit : leadCard?.suit;

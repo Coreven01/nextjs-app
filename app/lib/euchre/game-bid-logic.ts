@@ -1,4 +1,12 @@
-import { BidResult, Card, EuchreGameInstance, EuchrePlayer, GameDifficulty, Suit } from './definitions';
+import {
+  BidResult,
+  Card,
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings,
+  GameDifficulty,
+  Suit
+} from './definitions';
 import { cardIsLeftBower, getCardValue, getRandomScoreForDifficulty, getSuitCount } from './game';
 import { GameBidLogic } from './logic-definitions';
 
@@ -30,7 +38,7 @@ function determineBidLogic(
   game: EuchreGameInstance,
   flipCard: Card,
   firstRoundOfBidding: boolean,
-  difficulty: GameDifficulty
+  gameSettings: EuchreSettings
 ): BidResult {
   if (!game?.currentPlayer) throw Error('Invalid player in bid logic.');
   if (!game?.dealer) throw Error('Invalid dealer in bid logic.');
@@ -66,7 +74,7 @@ function determineBidLogic(
         potentialHand,
         potentialTrumpCard,
         bidLogic,
-        difficulty,
+        gameSettings.difficulty,
         game.currentPlayer.team
       );
       if (tempResult.handScore > modifiedResult.handScore) {
@@ -77,10 +85,12 @@ function determineBidLogic(
     }
   }
 
-  if (modifiedResult.handScore >= getQualifyingScore()) {
+  const stickTheDealerScore =
+    gameSettings.stickTheDealer && !firstRoundOfBidding && game.dealer.equal(game.currentPlayer);
+  if (stickTheDealerScore || modifiedResult.handScore >= getQualifyingScore()) {
     modifiedResult.orderTrump = true;
     modifiedResult.loner =
-      modifiedResult.handScore >= getQualifyingLonerScore(game.currentPlayer.team, difficulty);
+      modifiedResult.handScore >= getQualifyingLonerScore(game.currentPlayer.team, gameSettings.difficulty);
   }
 
   return modifiedResult;

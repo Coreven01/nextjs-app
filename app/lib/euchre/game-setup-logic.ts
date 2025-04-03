@@ -4,15 +4,16 @@ import {
   BidResult,
   Card,
   EuchreGameInstance,
+  EuchrePlayer,
   EuchreSettings,
   GameSpeed
 } from './definitions';
 import { createEuchreGame, createShuffledDeck, getPlayerRotation, getSuitCount } from './game';
-import { logDebugEvent } from './util';
+import { logDebugError } from './util';
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import { InitDealResult, ShuffleResult } from './logic-definitions';
 
-/** */
+/** Default game settings. */
 const INIT_GAME_SETTINGS: EuchreSettings = {
   shouldAnimate: false,
   debugAlwaysPass: false,
@@ -20,18 +21,18 @@ const INIT_GAME_SETTINGS: EuchreSettings = {
   showHandResult: true,
   teamOneColor: 'blue',
   teamTwoColor: 'red',
-  allowRenege: true,
+  enforceFollowSuit: false,
   autoFollowSuit: false,
   debugShowHandsWhenPassed: false,
   debugShowPlayersHand: false,
-  difficulty: 'expert',
+  difficulty: 'intermediate',
   stickTheDealer: false,
   viewPlayerInfoDetail: true,
   cardColor: 'blue',
   playerName: 'Joe'
 };
 
-/** */
+/** Get the initial game state when the game begins. */
 const getGameStateForInitialDeal = (
   gameState: EuchreGameFlowState,
   settings: EuchreSettings,
@@ -41,12 +42,12 @@ const getGameStateForInitialDeal = (
     ...gameState,
     hasGameStarted: true,
     shouldShowDeckImages: settings.shouldAnimate ? [{ player: game.player1, value: true }] : [],
-    shouldShowHandImages: !settings.shouldAnimate
+    shouldShowCardImagesForHand: !settings.shouldAnimate
       ? game.gamePlayers.map((p) => {
           return { player: p, value: true };
         })
       : [],
-    shouldShowHandValues: [],
+    shouldShowCardValuesForHand: [],
     hasFirstBiddingPassed: false,
     hasSecondBiddingPassed: false,
     gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL
@@ -57,7 +58,7 @@ const getGameStateForInitialDeal = (
 
 /** Initialize the game with shuffled deck and set player 1 for deal. */
 const initDeckForInitialDeal = (playerName: string, cancel: boolean): EuchreGameInstance => {
-  logDebugEvent('Init deck for init deal');
+  logDebugError('Init deck for init deal');
 
   const gameInstance = createEuchreGame(playerName);
 
@@ -76,16 +77,32 @@ const initDeckForInitialDeal = (playerName: string, cancel: boolean): EuchreGame
 const dealCardsForDealer = (
   gameInstance: EuchreGameInstance,
   gameState: EuchreGameFlowState,
-  gameSettings: EuchreSettings
+  gameSettings: EuchreSettings,
+  replayGameInstance: EuchreGameInstance | null
 ): InitDealResult | null => {
   if (!gameState.hasGameStarted) return null;
 
   const newGame = gameInstance?.shallowCopy();
 
   if (!newGame?.deck) throw Error('Game deck not found.');
+  let newDealerResult: InitDealResult;
 
-  // deal the cards until first Jack is dealt.
-  const newDealerResult = dealCardsForNewDealer(newGame, gameSettings);
+  if (replayGameInstance === null) {
+    // deal the cards until first Jack is dealt.
+    newDealerResult = dealCardsForNewDealer(newGame, gameSettings);
+  } else {
+    const originalDealer = newGame.gamePlayers.find(
+      (p) => p.playerNumber === replayGameInstance.allGameResults[0].dealer.playerNumber
+    );
+
+    if (originalDealer) {
+      newDealerResult = {
+        newDealer: originalDealer,
+        transformations: []
+      };
+    } else throw new Error();
+  }
+
   return newDealerResult;
 };
 
@@ -109,29 +126,15 @@ function dealCardsForNewDealer(game: EuchreGameInstance, gameSetting: EuchreSett
   // Deal until the first jack is dealt
   for (const card of gameDeck) {
     // only create transformation if it's enabled by the settings.
-    if (gameSetting.shouldAnimate) {
-      const player = rotation[counter % 4];
-      const sourceId = card.generateElementId();
-      const destinationId = player.innerPlayerBaseId;
-      const cardToMoveTransformation: CardTransformation[] = [
-        {
-          sourceId: sourceId,
-          destinationId: destinationId,
-          sourcePlayerNumber: orgDealerNumber,
-          destinationPlayerNumber: player.playerNumber,
-          location: 'inner',
-          options: {
-            msDelay: 500 * gameSetting.gameSpeed,
-            displayCardValue: true,
-            card: card,
-            cardOffsetHorizontal: 0,
-            cardOffsetVertical: 0
-          }
-        }
-      ];
+    const cardToMoveTransformation = getCardTransformationForInitialDeal(
+      card,
+      gameSetting,
+      rotation,
+      orgDealerNumber,
+      counter
+    );
 
-      retval.transformations.push(cardToMoveTransformation);
-    }
+    if (cardToMoveTransformation) retval.transformations.push(cardToMoveTransformation);
 
     // exit loop once a jack is dealt.
     if (card.value === 'J') {
@@ -145,11 +148,48 @@ function dealCardsForNewDealer(game: EuchreGameInstance, gameSetting: EuchreSett
   return retval;
 }
 
+/** */
+const getCardTransformationForInitialDeal = (
+  card: Card,
+  gameSetting: EuchreSettings,
+  rotation: EuchrePlayer[],
+  originalDealerNumber: number,
+  rotationCounter: number
+) => {
+  // only create transformation if it's enabled by the settings.
+  if (gameSetting.shouldAnimate) {
+    const player = rotation[rotationCounter % 4];
+    const sourceId = card.generateElementId();
+    const destinationId = player.innerPlayerBaseId;
+    const cardToMoveTransformation: CardTransformation[] = [
+      {
+        sourceId: sourceId,
+        destinationId: destinationId,
+        sourcePlayerNumber: originalDealerNumber,
+        destinationPlayerNumber: player.playerNumber,
+        location: 'inner',
+        options: {
+          msDelay: 500 * gameSetting.gameSpeed,
+          displayCardValue: true,
+          card: card,
+          cardOffsetHorizontal: 0,
+          cardOffsetVertical: 0
+        }
+      }
+    ];
+
+    return cardToMoveTransformation;
+  }
+
+  return null;
+};
+
 /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
  * or if a player will name suit. */
 const shuffleAndDealHand = (
   gameInstance: EuchreGameInstance,
   gameSettings: EuchreSettings,
+  replayGameInstance: EuchreGameInstance | null,
   cancel: boolean
 ): ShuffleResult => {
   const newGame = gameInstance.shallowCopy();
@@ -163,18 +203,24 @@ const shuffleAndDealHand = (
   let shouldReDeal = true;
   const redealLimit = 10;
   let counter = 0;
+  const replayHand = replayGameInstance?.allGameResults.find((r) => r.roundNumber === newGame.currentRound);
 
   while (shouldReDeal) {
     newGame.resetForNewDeal();
-    newGame.deck = createShuffledDeck(5);
-    newGame.dealCards();
-    newGame.trump = newGame.kitty[0];
 
-    if (difficulty === 'novice') {
+    if (replayHand === undefined) {
+      newGame.deck = createShuffledDeck(5);
+      newGame.dealCards();
+      newGame.trump = newGame.kitty[0];
+    } else {
+      newGame.copyCardsFromReplay(replayHand);
+    }
+
+    if (difficulty === 'novice' && replayHand === undefined) {
       const computerIsDealer = newGame.dealer.team === 2;
       const player3SuitCount = getSuitCount(gameInstance.player3.availableCards, newGame.trump);
       const player4SuitCount = getSuitCount(gameInstance.player4.availableCards, newGame.trump);
-      const trumpCardFlipped = newGame.trump.value === 'J' && computerIsDealer;
+      const trumpCardFlipped = newGame.trump?.value === 'J' && computerIsDealer;
 
       shouldReDeal =
         counter < redealLimit &&
@@ -184,8 +230,17 @@ const shuffleAndDealHand = (
       shouldReDeal = false;
     }
   }
-  newGame.gamePlayers.forEach((p) => p.sortCards(null));
-  newGame.verifyDealtCards();
+
+  for (const player of newGame.gamePlayers) player.sortCards(null);
+
+  try {
+    newGame.verifyDealtCards();
+  } catch (e) {
+    const cardsForPlayers = newGame.gamePlayers.map((p) => p.availableCards);
+    console.error(cardsForPlayers, replayHand);
+    throw e;
+  }
+
   newGame.assignPlayer(rotation[0]);
 
   retval.transformations.push(getTransformationsForDealCardsForHand(newGame, gameSettings));

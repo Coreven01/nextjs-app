@@ -2,14 +2,13 @@ import { getCardFullName } from '@/app/lib/euchre/card-data';
 import { Card, EuchrePlayer } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { CSSProperties } from 'react';
+import React, { CSSProperties } from 'react';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   card: Card;
   src: string;
   width: number;
   height: number;
-  id: string;
   enableShadow: boolean;
   player: EuchrePlayer;
   responsive?: boolean;

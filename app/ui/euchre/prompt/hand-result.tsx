@@ -24,6 +24,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
   let pointsDisplay: string = `Points for Team ${handResult.teamWon}: ${handResult.points}`;
   const BASE_CLASS = 'text-center dark:bg-stone-800 dark:text-white mb-1';
   const winningTeamPlayer = game.gamePlayers.filter((p) => p.team === handResult.teamWon)[0];
+  const playerReneged = handResult.tricks.find((t) => t.playerRenege !== null);
 
   if (handResult.teamWon === handResult.maker.team) {
     pointsDisplay = `Points for Maker: ${handResult.points}`;
@@ -70,7 +71,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
           </span>
         </div>
         <div className={`${BASE_CLASS} md:text-base text-xs border dark:border-white md:p-1`}>
-          Named By Suit: {handResult.trumpWasNamed ? 'Yes' : 'No'}
+          Named By Suit: {handResult.turnedDown !== null ? 'Yes' : 'No'}
         </div>
       </div>
       <div>
@@ -81,8 +82,13 @@ export default function HandResult({ game, settings, handResult, className, ...r
           className="flex-grow md:text-base text-sm"
         />
 
+        {playerReneged && (
+          <div className="dark:text-red-100 text-center mb-2">Hand ended due to player renege</div>
+        )}
         {handResult.tricks.map((t) => {
           if (!t.taker) throw new Error();
+
+          const playerReneged = t.playerRenege !== null;
           return (
             <div
               key={`${t.round}-${t.cardsPlayed.map((c, index) => `${c.player.playerNumber}-${c.card.value}-${c.card.suit}`).join('')}`}
@@ -94,11 +100,13 @@ export default function HandResult({ game, settings, handResult, className, ...r
                 handResult={handResult}
                 highlight={selectedHighlight}
               />
-              <div className="flex-grow md:min-w-36">
-                <PlayerColor player={t.taker} settings={settings}>
-                  <div className="bg-stone-800 p-1 text-center">Winner: {t.taker.name}</div>
-                </PlayerColor>
-              </div>
+              {!playerReneged && (
+                <div className="flex-grow md:min-w-36">
+                  <PlayerColor player={t.taker} settings={settings}>
+                    <div className="bg-stone-800 p-1 text-center">Winner: {t.taker.name}</div>
+                  </PlayerColor>
+                </div>
+              )}
             </div>
           );
         })}

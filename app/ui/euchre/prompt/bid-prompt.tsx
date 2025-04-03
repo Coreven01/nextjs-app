@@ -4,12 +4,13 @@ import { getCardFullName, getEncodedCardSvg, getSuitName } from '@/app/lib/euchr
 import { BidResult, EuchreGameInstance, EuchreSettings, Suit } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import PromptSelection from './prompt-selection';
 import GamePrompt from './game-prompt';
 import PlayerColor from '../player/player-team-color';
 import GameBorder from '../game/game-border';
 import CardSelection from './card-selection';
+import Switch from '@mui/material/Switch';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   firstRound: boolean;
@@ -21,19 +22,24 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 export default function BidPrompt({ firstRound, game, settings, onBidSubmit, className, ...rest }: DivProps) {
   if (!game?.trump) throw new Error('Trump not found for bid prompt.');
   if (!game?.dealer) throw new Error('Dealer not found for bid prompt.');
+  if (!game?.currentPlayer) throw new Error('Current player not found for bid prompt.');
 
   const [bidSelection, setBidSelection] = useState<string | null>(null);
-  const [lonerSelection, setLonerSelection] = useState<boolean | null>(false);
+  const [lonerSelection, setLonerSelection] = useState<boolean>(false);
   const submitEnabled = firstRound || bidSelection !== null;
   const aloneTitle: string = 'Select if you choose to play without your partner';
   const orderTrumpTitle: string = `Order ${getSuitName(game.trump.suit)}s as trump`;
-  const passTitle: string = 'Pass the bid to the next player';
   const cardName: string = getCardFullName(game.trump);
+  const stickTheDealer = settings.stickTheDealer && !firstRound && game.dealer.equal(game.currentPlayer);
+  const passTitle: string = stickTheDealer
+    ? 'Unable to pass - Stick the dealer enabled'
+    : 'Pass the bid to the next player';
+
   let dealerTitle: string = '';
 
   if (game.dealer === game.currentPlayer && firstRound) {
     dealerTitle = `You will pick up the ${cardName}`;
-  } else if (game.dealer.team === game.currentPlayer?.team && firstRound) {
+  } else if (game.dealer.team === game.currentPlayer.team && firstRound) {
     dealerTitle = `Your partner will pick up the ${cardName}`;
   } else if (firstRound) {
     dealerTitle = `The opposing team will pick up the ${cardName}`;
@@ -52,7 +58,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
       return;
     }
 
-    const isLoner = lonerSelection ?? false;
+    const isLoner = lonerSelection;
     const suitSelection = bidSelection ?? '';
 
     if (!firstRound && !suitSelection?.length) return;
@@ -101,7 +107,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
             <div className="md:col-span-2 col-span-1">
               <div title={dealerTitle} className="text-center cursor-default">
                 <PlayerColor player={game.dealer} settings={settings}>
-                  <div className="bg-stone-800 md:p-1 h-full flex items-center justify-center md:text-base text-xs">
+                  <div className="bg-stone-800 h-full flex items-center justify-center md:text-base text-xs">
                     Dealer: {game.dealer === game.currentPlayer ? 'You' : game.dealer.name}
                   </div>
                 </PlayerColor>
@@ -112,7 +118,7 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
           {firstRound && (
             <div>
               <div className="text-center md:text-base text-sm">Trump Card</div>
-              <GameBorder className="col-start-1" innerClass="w-20 md:w-full">
+              <GameBorder className="col-start-1" innerClass="w-20 md:w-full" size="small">
                 <div className="p-2 bg-green-950 flex items-center justify-center">
                   <Image
                     className={`contain`}
@@ -156,7 +162,14 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
             title={aloneTitle}
           >
             <label htmlFor="checkAlone">Go Alone: </label>
-            <input id="checkAlone" type="checkbox" onChange={(e) => setLonerSelection(e.target.checked)} />
+            <Switch
+              id="checkAlone"
+              size="small"
+              checked={lonerSelection}
+              name="checkAlone"
+              color="success"
+              onChange={(e) => setLonerSelection(e.target.checked)}
+            />
           </div>
           <div
             className={clsx(
@@ -171,7 +184,17 @@ export default function BidPrompt({ firstRound, game, settings, onBidSubmit, cla
             <button
               title={passTitle}
               onClick={() => handleBidSubmit(true)}
-              className="w-full flex-grow px-1 border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
+              className={clsx(
+                'w-full flex-grow px-1 border border-white bg-red-950',
+                {
+                  'hover:bg-amber-100 hover:text-black': !stickTheDealer
+                },
+                {
+                  'disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500':
+                    stickTheDealer
+                }
+              )}
+              disabled={stickTheDealer}
             >
               Pass
             </button>

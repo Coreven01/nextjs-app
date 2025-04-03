@@ -1,19 +1,17 @@
-"use client";
-
-import { RefObject, useCallback, useRef } from "react";
+import { useCallback, useRef } from 'react';
 
 type DoubleMouseEventsType = {
-  shouldHandleDoubleMouseUp: RefObject<boolean>;
-  shouldHandleMouseClick: RefObject<boolean>;
-  shouldHandleMouseRightClick: RefObject<boolean>;
-  handleDoubleMouseDown: () => void;
-  handleDoubleMouseUp: () => void;
-  handledMouseClick: () => void;
-  handledMouseRightClick: () => void;
+  shouldHandleDoubleMouseUp: boolean;
+  shouldHandleMouseClick: boolean;
+  shouldHandleMouseRightClick: boolean;
+  onDoubleMouseDown: () => void;
+  onDoubleMouseUp: () => void;
+  onMouseClicked: () => void;
+  onMouseRightClicked: () => void;
   resetMouseClicks: () => void;
 };
 
-/** Used to identify when the user is clicking/right clicking/double clicking and to
+/** Used to identify when the user is clicking/right-clicking/double-clicking and to
  * prevent multiple events from firing.
  */
 export function useMouseEvents(): DoubleMouseEventsType {
@@ -21,21 +19,21 @@ export function useMouseEvents(): DoubleMouseEventsType {
   const shouldHandleMouseClick = useRef(true);
   const shouldHandleMouseRightClick = useRef(true);
 
-  const handleDoubleMouseDown = useCallback(() => {
+  const onDoubleMouseDown = useCallback(() => {
     shouldHandleDoubleMouseUp.current = true;
     shouldHandleMouseClick.current = false;
     shouldHandleMouseRightClick.current = false;
   }, []);
 
-  const handleDoubleMouseUp = useCallback(() => {
+  const onDoubleMouseUp = useCallback(() => {
     shouldHandleDoubleMouseUp.current = false;
   }, []);
 
-  const handledMouseClick = useCallback(() => {
+  const onMouseClicked = useCallback(() => {
     shouldHandleMouseClick.current = true;
   }, []);
 
-  const handledMouseRightClick = useCallback(() => {
+  const onMouseRightClicked = useCallback(() => {
     shouldHandleMouseRightClick.current = true;
   }, []);
 
@@ -46,13 +44,13 @@ export function useMouseEvents(): DoubleMouseEventsType {
   }, []);
 
   return {
-    shouldHandleDoubleMouseUp,
-    shouldHandleMouseClick,
-    shouldHandleMouseRightClick,
-    handleDoubleMouseDown,
-    handleDoubleMouseUp,
-    handledMouseClick,
-    handledMouseRightClick,
-    resetMouseClicks,
+    shouldHandleDoubleMouseUp: shouldHandleDoubleMouseUp.current,
+    shouldHandleMouseClick: shouldHandleMouseClick.current,
+    shouldHandleMouseRightClick: shouldHandleMouseRightClick.current,
+    onDoubleMouseDown,
+    onDoubleMouseUp,
+    onMouseClicked,
+    onMouseRightClicked,
+    resetMouseClicks
   };
 }

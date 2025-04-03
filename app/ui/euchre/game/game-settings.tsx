@@ -125,12 +125,12 @@ export default function GameSettings({
             />
           </div>
           <div>
-            <label htmlFor="allowRenege">Allow Renege: </label>
+            <label htmlFor="enforceFollowSuit">Enforce Follow Suit: </label>
             <Switch
-              id="allowRenege"
+              id="enforceFollowSuit"
               size="small"
-              checked={settings.allowRenege}
-              name="allowRenege"
+              checked={settings.enforceFollowSuit}
+              name="enforceFollowSuit"
               color="success"
               onChange={(e) => handleCheckChanged(e)}
             />
@@ -142,6 +142,28 @@ export default function GameSettings({
               size="small"
               checked={settings.autoFollowSuit}
               name="autoFollowSuit"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+          <div>
+            <label htmlFor="stickTheDealer">Stick The Dealer: </label>
+            <Switch
+              id="stickTheDealer"
+              size="small"
+              checked={settings.stickTheDealer}
+              name="stickTheDealer"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+          <div>
+            <label htmlFor="viewPlayerInfoDetail">Player Info Detail: </label>
+            <Switch
+              id="viewPlayerInfoDetail"
+              size="small"
+              checked={settings.viewPlayerInfoDetail}
+              name="viewPlayerInfoDetail"
               color="success"
               onChange={(e) => handleCheckChanged(e)}
             />
@@ -193,7 +215,7 @@ export default function GameSettings({
             id="difficulty"
             name="difficulty"
             onChange={handleSelectionChanged}
-            className="text-black md:p-2 p-1 min-w-32 max-h-8 md:max-h-12 md:text-base text-sm"
+            className="text-black md:p-2 p-1 min-w-48 max-h-8 md:max-h-12 md:text-base text-sm"
             value={settings.difficulty}
           >
             {difficultyValues.map((value) => {

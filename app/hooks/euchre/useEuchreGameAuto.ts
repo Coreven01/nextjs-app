@@ -9,7 +9,7 @@ import {
 } from '@/app/lib/euchre/game-setup-logic';
 import { BidResult, Card, EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
 import { getPlayerRotation } from '@/app/lib/euchre/game';
-import { createEvent, logDebugEvent } from '@/app/lib/euchre/util';
+import { createEvent, logDebugError } from '@/app/lib/euchre/util';
 
 /**  */
 export default function useEuchreGameAuto() {
@@ -27,7 +27,7 @@ export default function useEuchreGameAuto() {
 
     try {
       //#region Begin deal cards for initial dealer
-      const dealResult = dealCardsForDealer(newGame, gameFlow, gameSetting);
+      const dealResult = dealCardsForDealer(newGame, gameFlow, gameSetting, null);
 
       if (!dealResult) throw new Error();
 
@@ -40,7 +40,7 @@ export default function useEuchreGameAuto() {
         gameFlow.hasSecondBiddingPassed = false;
 
         //#region  Shuffle cards and bidding for trump
-        const shuffleResult = shuffleAndDealHand(newGame, gameSetting, false);
+        const shuffleResult = shuffleAndDealHand(newGame, gameSetting, null, false);
 
         newGame = shuffleResult.game;
 
@@ -57,7 +57,7 @@ export default function useEuchreGameAuto() {
             newGame,
             newGame.trump,
             !gameFlow.hasFirstBiddingPassed,
-            gameSetting.difficulty
+            gameSetting
           );
 
           if (bidResult.orderTrump) {
@@ -125,13 +125,16 @@ export default function useEuchreGameAuto() {
         teamOneScore = newGame.teamPoints(1);
         teamTwoScore = newGame.teamPoints(2);
 
-        if (!newGame.dealer) throw Error();
+        if (!newGame.dealer) throw Error('Dealer not found after hand finished.');
 
         const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
         newGame.dealer = rotation[0];
       }
     } catch (e) {
-      logDebugEvent(createEvent('e', gameSetting, undefined, `${e}`, newGame));
+      const error = e as Error;
+      logDebugError(
+        createEvent('e', gameSetting, undefined, `${error ? error.message + '\n' + error.stack : e}`, newGame)
+      );
     }
     //#endregion
 

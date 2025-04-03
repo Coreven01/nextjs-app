@@ -1,5 +1,6 @@
 import { Card } from '@/app/lib/euchre/definitions';
 import Image from 'next/image';
+import React from 'react';
 
 type Props = {
   deck: Card[];

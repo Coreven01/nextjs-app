@@ -132,7 +132,7 @@ export interface TrickLogic {
   currentlyLosing: boolean;
 
   /** Array of suits that were lead for the current hand. General strategy is to avoid leading the same suit more than once
-   * becuase changes are the opposing team will not have any left to follow suit.
+   * because changes are the opposing team will not have any left to follow suit.
    */
   suitsLeadForHand: Set<Suit>;
 

@@ -13,7 +13,7 @@ interface Props {
   showEvents: boolean;
   showSettings: boolean;
   playerNotification: PlayerNotificationState;
-  onToggleFullscreeen: (value: boolean) => void;
+  onToggleFullscreen: (value: boolean) => void;
   onToggleEvents: (value: boolean) => void;
   onSettingsToggle: (e: boolean) => void;
   onCardPlayed: (card: Card) => void;
@@ -28,7 +28,7 @@ export default function GameArea({
   showEvents,
   showSettings,
   playerNotification,
-  onToggleFullscreeen,
+  onToggleFullscreen,
   onToggleEvents,
   onSettingsToggle,
   onCardPlayed,
@@ -42,7 +42,7 @@ export default function GameArea({
         isFullScreen={isFullScreen}
         showEvents={showEvents}
         showSettings={showSettings}
-        onFullScreenToggle={onToggleFullscreeen}
+        onFullScreenToggle={onToggleFullscreen}
         onEventsToggle={onToggleEvents}
         onSettingsToggle={onSettingsToggle}
         onCancelAndReset={onCancel}

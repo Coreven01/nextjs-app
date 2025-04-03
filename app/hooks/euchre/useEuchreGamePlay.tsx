@@ -8,21 +8,19 @@ import {
   PlayerNotificationAction,
   PlayerNotificationActionType
 } from './playerNotificationReducer';
-import { EuchreActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
-import { EuchreGameState } from './useEuchreGame';
+import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
+import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect, useRef } from 'react';
 import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import GameCard from '@/app/ui/euchre/game/game-card';
 import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import {
-  didPlayerFollowSuit,
-  getCardsAvailableToPlay,
-  getGameStateForNextHand
-} from '@/app/lib/euchre/game-play-logic';
+import { getCardsAvailableToPlay, getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
 import { getPlayerRotation } from '@/app/lib/euchre/game';
 import UserInfo from '@/app/ui/euchre/player/user-info';
+import PlayerNotification from '@/app/ui/euchre/player/player-notification';
+import { createEvent } from '@/app/lib/euchre/util';
 
-export default function useEuchreGamePlay(state: EuchreGameState) {
+export default function useEuchreGamePlay(state: EuchreGameState, errorState: EuchreErrorState) {
   const playerAutoPlayed = useRef(false);
 
   //#region Play Card *************************************************************************
@@ -85,14 +83,16 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
         state.euchreSettings.difficulty
       );
       state.setPlayedCard(selectedCard);
-      state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_BEGIN_PLAY_CARD });
+      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_BEGIN_PLAY_CARD });
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
     }
   }, [state]);
 
   /** Play card for AI player, or prompt if player is human. */
   useEffect(() => {
-    beginPlayCard();
+    try {
+      beginPlayCard();
+    } catch (e) {}
   }, [beginPlayCard]);
 
   /** Proxy handler to animate playing the card for the player's choice before updating the state with the choice and result.
@@ -127,12 +127,14 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
       state.dispatchPlayerNotification(
         getPlayerNotificationForPlayedCard(state.playedCard, newGame.currentPlayer)
       );
-      state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
+      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_END_PLAY_CARD });
       playerAutoPlayed.current = false;
     };
 
-    animateBeginPlayCards();
+    try {
+      animateBeginPlayCards();
+    } catch (e) {}
   }, [state]);
 
   /**
@@ -161,11 +163,16 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
-    const playerFollowedSuit = didPlayerFollowSuit(newGame, state.playedCard);
-
-    if (!playerFollowedSuit) alert('Player did not follow suit');
-
     const cardPlayed = newGame.currentPlayer.playGameCard(state.playedCard);
+
+    state.addEvent(
+      createEvent(
+        'i',
+        state.euchreSettings,
+        cardPlayed.player,
+        `Card Played: ${cardPlayed.card.value}-${cardPlayed.card.suit}`
+      )
+    );
 
     newGame.currentPlayer.sortCards(newGame.trump);
     newGame.currentTrick.cardsPlayed.push(cardPlayed);
@@ -173,14 +180,16 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
     state.setEuchreGame(newGame);
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD_RESULT });
-    state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_BEGIN_PLAY_CARD_RESULT });
+    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_BEGIN_PLAY_CARD_RESULT });
   }, [state]);
 
   /**
    *
    */
   useEffect(() => {
-    endPlayCard();
+    try {
+      endPlayCard();
+    } catch (e) {}
   }, [endPlayCard]);
 
   /**
@@ -224,7 +233,7 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
       state.setPlayedCard(cardPlayed);
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
       state.dispatchGameAnimationFlow({
-        type: EuchreActionType.SET_ANIMATE_BEGIN_PLAY_CARD
+        type: EuchreAnimationActionType.SET_ANIMATE_BEGIN_PLAY_CARD
       });
     }
   };
@@ -253,10 +262,12 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
         await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
       }
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_END_PLAY_CARD_RESULT });
-      state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
+      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
     };
 
-    animateResultOfCardPlayed();
+    try {
+      animateResultOfCardPlayed();
+    } catch (e) {}
   }, [state, handleCloseHandResults]);
 
   /**
@@ -289,7 +300,7 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
 
     newGame.updateIfTrickOver(playerRotation);
     newGame.updateIfHandOver();
-    state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_END_PLAY_CARD_RESULT });
+    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_END_PLAY_CARD_RESULT });
     state.setEuchreGame(newGame);
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_END_PLAY_CARD_RESULT });
   }, [state]);
@@ -298,7 +309,9 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
    *
    */
   useEffect(() => {
-    endPlayCardResult();
+    try {
+      endPlayCardResult();
+    } catch (e) {}
   }, [endPlayCardResult]);
 
   /** Handle UI and animation updates after a player plays a card.
@@ -324,18 +337,54 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
 
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
+      if (!newGame.currentPlayer) throw new Error();
+      if (!newGame.dealer) throw new Error();
+
       if (newGame.trickFinished) {
         const lastWonTrick: EuchreTrick | null = newGame.currentTrick;
 
         if (!lastWonTrick)
           throw new Error('Invalid state for handling play card result. Winning trick not found.');
 
-        state.dispatchPlayerNotification(getPlayerNotificationForTrickWon(lastWonTrick));
+        if (lastWonTrick.playerRenege === null) {
+          state.dispatchPlayerNotification(getPlayerNotificationForTrickWon(lastWonTrick));
+        } else {
+          const notification: PlayerNotificationAction = {
+            type: PlayerNotificationActionType.UPDATE_CENTER,
+            payload: (
+              <PlayerNotification
+                dealer={newGame.dealer}
+                player={newGame.currentPlayer}
+                settings={state.euchreSettings}
+                info={'renege'}
+                loner={false}
+                namedSuit={null}
+              />
+            )
+          };
+
+          state.dispatchPlayerNotification(notification);
+        }
+
+        state.addEvent(createEvent('i', state.euchreSettings, lastWonTrick.taker ?? undefined, `Trick won.`));
 
         await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
       }
 
       if (newGame.handFinished) {
+        const gameResult = newGame.allGameResults.at(-1);
+
+        if (gameResult) {
+          state.addEvent(
+            createEvent(
+              'i',
+              state.euchreSettings,
+              newGame.currentPlayer,
+              `Hand won team: ${gameResult.teamWon} Points: ${gameResult.points}`
+            )
+          );
+        }
+
         await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
 
         state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
@@ -354,10 +403,12 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
         state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
       }
 
-      state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
+      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
     };
 
-    animateEndResultOfCardPlayed();
+    try {
+      animateEndResultOfCardPlayed();
+    } catch (e) {}
   }, [state, handleCloseHandResults]);
 
   //#endregion
@@ -401,6 +452,7 @@ const getPlayerNotificationForPlayedCard = (card: Card, player: EuchrePlayer) =>
 
   const infoDetail = (
     <GameCard
+      responsive={true}
       src={getEncodedCardSvg(card, player.location)}
       card={card}
       width={card.getDisplayWidth(player.location)}

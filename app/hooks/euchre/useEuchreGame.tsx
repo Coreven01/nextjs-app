@@ -18,7 +18,7 @@ import {
   GameFlowAction
 } from './gameFlowReducer';
 import {
-  EuchreActionType,
+  EuchreAnimationActionType,
   gameAnimationFlowReducer,
   initialGameAnimationState,
   EuchreAnimationState,
@@ -44,6 +44,7 @@ import { getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
 
 export type EuchreGameState = {
   euchreGame: EuchreGameInstance | null;
+  euchreReplayGame: EuchreGameInstance | null;
   euchreGameFlow: EuchreGameFlowState;
   euchreSettings: EuchreSettings;
   playedCard: Card | null;
@@ -65,12 +66,28 @@ export type EuchreGameState = {
   addEvent: (e: GameEvent) => void;
 };
 
+export type EuchreErrorState = {
+  errorState: EuchreError | null;
+  setErrorState: Dispatch<SetStateAction<EuchreError | null>>;
+};
+
+export type EuchreError = {
+  time: Date;
+  id: string;
+  message: string;
+  gameFlow: EuchreFlowActionType;
+  animationType: EuchreAnimationActionType;
+};
+
 export default function useEuchreGame() {
   //#region Hooks to control game flow *************************************************************************
   const [promptValue, setPromptValue] = useState<PromptValue[]>([]);
   const [shouldCancelGame, setCancelGame] = useState(false);
+  const [euchreReplayGame, setEuchreReplayGame] = useState<EuchreGameInstance | null>(null);
   const [euchreGame, setEuchreGame] = useState<EuchreGameInstance | null>(null);
   const [euchreSettings, setEuchreSettings] = useState<EuchreSettings>({ ...INIT_GAME_SETTINGS });
+  const [errorState, setErrorState] = useState<EuchreError | null>(null);
+
   const [playedCard, setPlayedCard] = useState<Card | null>(null);
   const [bidResult, setBidResult] = useState<BidResult | null>(null);
   const { events, addEvent, clearEvents } = useEventLog();
@@ -85,24 +102,30 @@ export default function useEuchreGame() {
     gameAnimationFlowReducer,
     initialGameAnimationState
   );
-  const [animationTransformation, setAnimationTransformation] = useState<CardTransformation[][]>([]);
-  const { animateForInitialDeal, animateDealCardsForHand, animateForPlayCard, setFadeOutForPlayers } =
-    useAnimation(euchreSettings);
+  // const [animationTransformation, setAnimationTransformation] = useState<CardTransformation[][]>([]);
+  // const { animateForInitialDeal, animateDealCardsForHand, animateForPlayCard, setFadeOutForPlayers } =
+  //   useAnimation(euchreSettings);
 
   const handleCancelGame = useCallback(() => {
     if (shouldCancelGame) return;
 
     dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_INIT_DEAL });
     dispatchGameAnimationFlow({
-      type: EuchreActionType.SET_ANIMATE_NONE
+      type: EuchreAnimationActionType.SET_ANIMATE_NONE
     });
     dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
     setCancelGame(true);
   }, [shouldCancelGame]);
 
+  const gameErrorState: EuchreErrorState = {
+    errorState: errorState,
+    setErrorState: setErrorState
+  };
+
   const gameState: EuchreGameState = useMemo(() => {
     return {
       euchreGame: euchreGame,
+      euchreReplayGame: euchreReplayGame,
       euchreGameFlow: gameFlow,
       euchreSettings: euchreSettings,
       playerNotification: playerNotification,
@@ -127,6 +150,7 @@ export default function useEuchreGame() {
     addEvent,
     bidResult,
     euchreGame,
+    euchreReplayGame,
     euchreSettings,
     gameAnimationFlow,
     gameFlow,
@@ -138,27 +162,20 @@ export default function useEuchreGame() {
   ]);
 
   const { reset, beginNewGame, cancelAndReset } = useEuchreGameInit(gameState);
-  const {} = useEuchreGameInitDeal(gameState);
-  const {} = useEuchreGameShuffle(gameState);
-  const { handleBidSubmit } = useEuchreGameBid(gameState, reset);
-  const { handleDiscardSubmit } = useEuchreGameOrder(gameState);
-  const { handleCardPlayed, handleCloseGameResults, handleCloseHandResults } = useEuchreGamePlay(gameState);
+  const {} = useEuchreGameInitDeal(gameState, gameErrorState);
+  const {} = useEuchreGameShuffle(gameState, gameErrorState);
+  const { handleBidSubmit } = useEuchreGameBid(gameState, gameErrorState, reset);
+  const { handleDiscardSubmit } = useEuchreGameOrder(gameState, gameErrorState);
+  const { handleCardPlayed, handleCloseGameResults, handleCloseHandResults } = useEuchreGamePlay(
+    gameState,
+    gameErrorState
+  );
 
   //#region Other Handlers *************************************************************************
-  const resaveGameState = () => {
-    // setCancelGame(false);
-  };
 
   /** */
   const handleSettingsChange = (settings: EuchreSettings) => {
     setEuchreSettings(settings);
-  };
-
-  /** Reset to view settings */
-  const handleResetGame = () => {
-    // setCancelGame(true);
-    // reset(true);
-    // gameInstance.current = null;
   };
 
   const handleCancelAndReset = () => {
@@ -176,8 +193,21 @@ export default function useEuchreGame() {
     const newGameFlow = getGameStateForNextHand(gameFlow, euchreSettings, newGame);
     newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
     dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameFlow });
-    dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
+    dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
     setEuchreGame(newGame);
+  };
+
+  const handleReplayGame = (gameToReplay: EuchreGameInstance) => {
+    setEuchreReplayGame(gameToReplay);
+    beginNewGame();
+  };
+
+  const handleAttemptToRecover = () => {
+    if (errorState) {
+      dispatchGameFlow({ type: errorState.gameFlow });
+      dispatchGameAnimationFlow({ type: errorState.animationType });
+      setErrorState(null);
+    }
   };
 
   //#endregion
@@ -190,18 +220,19 @@ export default function useEuchreGame() {
     promptValue,
     euchreSettings,
     events,
+    errorState,
     clearEvents,
     beginNewGame,
     handleBidSubmit,
-    handleResetGame,
     handleSettingsChange,
     handleCancelGame,
     handleDiscardSubmit,
-    resaveGameState,
     handleCloseHandResults,
     handleCloseGameResults,
     handleCardPlayed,
     handleReplayHand,
-    handleCancelAndReset
+    handleCancelAndReset,
+    handleReplayGame,
+    handleAttemptToRecover
   };
 }

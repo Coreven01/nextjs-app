@@ -1,161 +1,164 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/16/solid';
 import { GameState } from '@/app/lib/bombseeker/gameStateReducer';
 
 type Props = {
   state: GameState;
-  onNewGame: (rowCount: number, columnCount: number, bombCount: number) => void;
+  onNewGame: (
+    rowCount: number,
+    columnCount: number,
+    bombCount: number,
+    hintCount: number,
+    quickStart: boolean
+  ) => void;
 };
 
 type GameLevel = {
-  level: 'b' | 'i' | 'e' | 'c';
+  level: GameLevels;
   rows: number;
   columns: number;
   bombs: number;
 };
 
-const INPUT_CLASS =
-  'max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
-const SELECT_CLASS =
-  'min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
+type GameLevels = 'beginner' | 'intermediate' | 'expert' | 'custom';
+
+const INPUT_CLASS = 'max-w-16 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
+const SELECT_CLASS = 'min-w-48 rounded-l-lg p-1 border-gray-300 bg-gray-100 text-gray-600 focus:ring-2';
 const LABEL_CLASS = 'block font-medium my-2 dark:text-white';
 const MAX_ROWS = 40;
 const MIN_ROWS = 9;
 const MAX_COLUMNS = 40;
 const MIN_COLUMNS = 9;
+const MAX_HINTS = 5;
+const MIN_HINTS = 0;
 
 const GAME_LEVELS: GameLevel[] = [
-  { level: 'b', rows: 9, columns: 9, bombs: 10 },
-  { level: 'i', rows: 16, columns: 16, bombs: 40 },
-  { level: 'e', rows: 16, columns: 30, bombs: 99 },
-  { level: 'c', rows: 16, columns: 30, bombs: 99 }
+  { level: 'beginner', rows: 9, columns: 9, bombs: 10 },
+  { level: 'intermediate', rows: 16, columns: 16, bombs: 40 },
+  { level: 'expert', rows: 16, columns: 30, bombs: 99 },
+  { level: 'custom', rows: 16, columns: 30, bombs: 99 }
 ];
 
 export default function GameSettings({ state, onNewGame }: Props) {
-  const selectedLevel = useRef<HTMLSelectElement>(null);
-  const newBombCount = useRef<HTMLInputElement>(null);
-  const newRows = useRef<HTMLInputElement>(null);
-  const newColumns = useRef<HTMLInputElement>(null);
+  const [selectedLevel, setSelectedLevel] = useState<GameLevels>('beginner');
+  const [newBombCount, setNewBombCount] = useState(state.bombCount);
+  const [newRowCount, setNewRowCount] = useState(state.rowCount);
+  const [newColumnCount, setNewColumnCount] = useState(state.columnCount);
+  const [newHintCount, setNewHintCount] = useState(state.hintCount);
   const [disableSelection, setDisableSelection] = useState(true);
 
+  // #region
   const handleRowCountUp = () => {
-    if (newRows.current && newRows.current.valueAsNumber < MAX_ROWS)
-      newRows.current.value = `${newRows.current.valueAsNumber + 1}`;
+    setNewValue('row', newRowCount + 1);
   };
 
   const handleRowCountDown = () => {
-    if (newRows.current && newRows.current.valueAsNumber > MIN_ROWS)
-      newRows.current.value = `${newRows.current.valueAsNumber - 1}`;
+    setNewValue('row', newRowCount - 1);
   };
 
-  const handleRowCountLeave = () => {
-    if (newRows.current) {
-      if (newRows.current.valueAsNumber < MIN_ROWS) newRows.current.value = `${MIN_ROWS}`;
-      else if (newRows.current.valueAsNumber > MAX_ROWS) newRows.current.value = `${MAX_ROWS}`;
-    }
+  const handleRowCountChange = (value: string) => {
+    if (value) setNewValue('row', value);
   };
 
   const handleColumnCountUp = () => {
-    if (newColumns.current && newColumns.current.valueAsNumber < MAX_ROWS)
-      newColumns.current.value = `${newColumns.current.valueAsNumber + 1}`;
+    setNewValue('column', newColumnCount + 1);
   };
 
   const handleColumnCountDown = () => {
-    if (newColumns.current && newColumns.current.valueAsNumber > MIN_ROWS)
-      newColumns.current.value = `${newColumns.current.valueAsNumber - 1}`;
+    setNewValue('column', newColumnCount - 1);
   };
 
-  const handleColumnCountLeave = () => {
-    if (newColumns.current) {
-      if (newColumns.current.valueAsNumber < MIN_ROWS) newColumns.current.value = `${MIN_ROWS}`;
-      else if (newColumns.current.valueAsNumber > MAX_ROWS)
-        newColumns.current.value = `${MAX_ROWS}`;
-    }
+  const handleColumnCountChange = (value: string) => {
+    if (value) setNewValue('column', value);
   };
 
   const handleBombCountUp = () => {
-    const max = Math.max(
-      (newColumns.current?.valueAsNumber ?? 1) * (newRows.current?.valueAsNumber ?? 1) - 1,
-      1
-    );
-
-    if (newBombCount.current && newBombCount.current.valueAsNumber < max)
-      newBombCount.current.value = `${newBombCount.current.valueAsNumber + 1}`;
+    setNewValue('bomb', newBombCount + 1);
   };
 
   const handleBombCountDown = () => {
-    if (newBombCount.current && newBombCount.current.valueAsNumber > 1)
-      newBombCount.current.value = `${newBombCount.current.valueAsNumber - 1}`;
+    setNewValue('bomb', newBombCount - 1);
   };
 
-  const handleBombCountLeave = () => {
-    const max = Math.max(
-      (newColumns.current?.valueAsNumber ?? 1) * (newRows.current?.valueAsNumber ?? 1),
-      2
-    );
+  const handleBombCountChange = (value: string) => {
+    if (value) setNewValue('bomb', value);
+  };
 
-    if (newBombCount.current) {
-      if (newBombCount.current.valueAsNumber < 1) newBombCount.current.value = `${10}`;
-      else if (newBombCount.current.valueAsNumber >= max) newBombCount.current.value = `${max - 1}`;
+  const handleHintCountUp = () => {
+    setNewValue('hint', newHintCount + 1);
+  };
+
+  const handleHintCountDown = () => {
+    setNewValue('hint', newHintCount - 1);
+  };
+
+  const handleHintCountChange = (value: string) => {
+    setNewValue('hint', value);
+  };
+
+  const setNewValue = (value: string, targetValue: string | number | undefined) => {
+    const newValue = targetValue ? parseInt(targetValue.toString()) : 0;
+    switch (value) {
+      case 'row':
+        if (newValue < MIN_ROWS) setNewRowCount(MIN_ROWS);
+        else if (newValue > MAX_ROWS) setNewRowCount(MAX_ROWS);
+        else setNewRowCount(newValue);
+        break;
+      case 'column':
+        if (newValue < MIN_COLUMNS) setNewColumnCount(MIN_COLUMNS);
+        else if (newValue > MAX_COLUMNS) setNewColumnCount(MAX_COLUMNS);
+        else setNewColumnCount(newValue);
+        break;
+      case 'bomb':
+        const max = Math.max(newColumnCount * newRowCount - 1, 2);
+        if (newValue < 1) setNewBombCount(1);
+        else if (newValue > max) setNewBombCount(max);
+        else setNewBombCount(newValue);
+        break;
+      case 'hint':
+        if (newValue < MIN_HINTS) setNewHintCount(MIN_HINTS);
+        else if (newValue > MAX_HINTS) setNewHintCount(MAX_HINTS);
+        else setNewHintCount(newValue);
     }
   };
 
   const handleLevelChangeUp = () => {
-    if (selectedLevel.current === null) return;
-
-    const selectedValue: string = selectedLevel.current.value;
-
-    if (selectedValue === 'b') selectedLevel.current.value = 'i';
-    else if (selectedValue === 'i') selectedLevel.current.value = 'e';
-    else if (selectedValue === 'e') selectedLevel.current.value = 'c';
-
-    handleLevelChange();
+    if (selectedLevel === 'beginner') handleLevelChange('intermediate');
+    else if (selectedLevel === 'intermediate') handleLevelChange('expert');
+    else if (selectedLevel === 'expert') handleLevelChange('custom');
   };
 
   const handleLevelChangeDown = () => {
-    if (selectedLevel.current === null) return;
-
-    const selectedValue: string = selectedLevel.current.value;
-
-    if (selectedValue === 'c') selectedLevel.current.value = 'e';
-    else if (selectedValue === 'e') selectedLevel.current.value = 'i';
-    else if (selectedValue === 'i') selectedLevel.current.value = 'b';
-
-    handleLevelChange();
+    if (selectedLevel === 'custom') handleLevelChange('expert');
+    else if (selectedLevel === 'expert') handleLevelChange('intermediate');
+    else if (selectedLevel === 'intermediate') handleLevelChange('beginner');
   };
 
-  const handleLevelChange = () => {
-    const selectedValue: string = selectedLevel.current?.value ?? '';
-    const selected = GAME_LEVELS.find((lvl) => lvl.level === selectedValue);
-    let baseLevel = GAME_LEVELS.find((lvl) => lvl.level === 'b');
+  const handleLevelChange = (newLevel: string) => {
+    const selected = GAME_LEVELS.find((lvl) => lvl.level === newLevel);
+    let baseLevel = GAME_LEVELS.find((lvl) => lvl.level === 'beginner');
 
     if (selected) baseLevel = selected;
 
-    if (
-      baseLevel &&
-      newRows.current &&
-      newColumns.current &&
-      newBombCount.current &&
-      baseLevel.level !== 'c'
-    ) {
-      newRows.current.value = `${baseLevel.rows}`;
-      newColumns.current.value = `${baseLevel.columns}`;
-      newBombCount.current.value = `${baseLevel.bombs}`;
+    if (baseLevel && baseLevel.level !== 'custom') {
+      setNewRowCount(baseLevel.rows);
+      setNewColumnCount(baseLevel.columns);
+      setNewBombCount(baseLevel.bombs);
     }
 
-    setDisableSelection(baseLevel?.level !== 'c');
+    setDisableSelection(baseLevel?.level !== 'custom');
+    setSelectedLevel(baseLevel?.level ?? 'beginner');
   };
 
   const handleNewGame = () => {
-    if (newBombCount.current && newRows.current && newColumns.current) {
-      const tempVals = {
-        rowCount: newRows.current.valueAsNumber,
-        columnCount: newColumns.current.valueAsNumber,
-        bombCount: newBombCount.current.valueAsNumber
-      };
-      onNewGame(tempVals.rowCount, tempVals.columnCount, tempVals.bombCount);
-    }
+    onNewGame(newRowCount, newColumnCount, newBombCount, newHintCount, false);
   };
+
+  const handleQuickStart = () => {
+    onNewGame(newRowCount, newColumnCount, newBombCount, newHintCount, true);
+  };
+
+  // #endregion
 
   return (
     <div className="flex flex-col md:flex-row justify-center items-center gap-4">
@@ -167,14 +170,13 @@ export default function GameSettings({ state, onNewGame }: Props) {
           <select
             className={SELECT_CLASS}
             id="selectLevel"
-            onChange={handleLevelChange}
-            ref={selectedLevel}
-            defaultValue={'b'}
+            onChange={(e) => handleLevelChange(e.target.value)}
+            value={selectedLevel}
           >
-            <option value={'c'}>Custom</option>
-            <option value={'e'}>Expert</option>
-            <option value={'i'}>Intermediate</option>
-            <option value={'b'}>Beginner</option>
+            <option value={'custom'}>Custom</option>
+            <option value={'expert'}>Expert</option>
+            <option value={'intermediate'}>Intermediate</option>
+            <option value={'beginner'}>Beginner</option>
           </select>
           <div className="flex flex-col">
             <button onClick={handleLevelChangeUp}>
@@ -199,9 +201,9 @@ export default function GameSettings({ state, onNewGame }: Props) {
             disabled={disableSelection}
             max={MAX_ROWS}
             min={MIN_ROWS}
-            ref={newRows}
-            defaultValue={state.rowCount}
-            onBlur={handleRowCountLeave}
+            value={newRowCount}
+            onChange={() => null}
+            onBlur={(e) => handleRowCountChange(e.target.value)}
             placeholder="Row Count"
           ></input>
           <div className="flex flex-col">
@@ -227,9 +229,9 @@ export default function GameSettings({ state, onNewGame }: Props) {
             disabled={disableSelection}
             max={MAX_COLUMNS}
             min={MIN_COLUMNS}
-            ref={newColumns}
-            defaultValue={state.columnCount}
-            onBlur={handleColumnCountLeave}
+            value={newColumnCount}
+            onChange={() => null}
+            onBlur={(e) => handleColumnCountChange(e.target.value)}
             placeholder="column Count"
           ></input>
           <div className="flex flex-col">
@@ -253,9 +255,9 @@ export default function GameSettings({ state, onNewGame }: Props) {
             type="number"
             required
             disabled={disableSelection}
-            ref={newBombCount}
-            defaultValue={state.bombCount}
-            onBlur={handleBombCountLeave}
+            value={newBombCount}
+            onChange={() => null}
+            onBlur={(e) => handleBombCountChange(e.target.value)}
             placeholder="Bomb Count"
           ></input>
           <div className="flex flex-col">
@@ -268,12 +270,45 @@ export default function GameSettings({ state, onNewGame }: Props) {
           </div>
         </div>
       </div>
-      <div className="my-2 p-2">
+      <div className="min-w-32">
+        <label htmlFor="bombValue" className={LABEL_CLASS}>
+          Hint Count
+        </label>
+        <div className="flex flex-row max-h-[32px]">
+          <input
+            className={INPUT_CLASS}
+            id="hintCount"
+            type="number"
+            required
+            value={newHintCount}
+            onChange={() => null}
+            onBlur={(e) => handleHintCountChange(e.target.value)}
+            placeholder="Hint Count"
+          ></input>
+          <div className="flex flex-col">
+            <button onClick={handleHintCountUp}>
+              <ChevronUpIcon className="w-4 h-4 border dark:border-white" />
+            </button>
+            <button onClick={handleHintCountDown}>
+              <ChevronDownIcon className="w-4 h-4 border dark:border-white" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <div>
         <button
-          className={`border border-black dark:border-white block m-auto justify-center dark:border-white font-medium dark:text-white p-2 dark:bg-neutral-800 bg-zinc-200`}
+          className={`border border-black block m-auto justify-center dark:border-white font-medium dark:text-white p-2 dark:bg-neutral-800 bg-zinc-200`}
           onClick={handleNewGame}
         >
           New Game
+        </button>
+      </div>
+      <div>
+        <button
+          className={`border border-black block m-auto justify-center dark:border-white font-medium dark:text-white p-2 dark:bg-neutral-800 bg-zinc-200`}
+          onClick={handleQuickStart}
+        >
+          Quick Start
         </button>
       </div>
     </div>

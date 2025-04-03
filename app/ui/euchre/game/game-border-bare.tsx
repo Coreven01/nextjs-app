@@ -1,6 +1,5 @@
-'use client';
-
 import clsx from 'clsx';
+import React from 'react';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;

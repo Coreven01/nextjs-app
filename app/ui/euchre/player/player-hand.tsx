@@ -4,6 +4,7 @@ import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/li
 import { getPlayerAndCard } from '@/app/lib/euchre/game';
 import { getCardsAvailableToPlay } from '@/app/lib/euchre/game-play-logic';
 import GameCard from '../game/game-card';
+import clsx from 'clsx';
 
 type Props = {
   game: EuchreGameInstance;
@@ -15,8 +16,8 @@ type Props = {
 
 export default function PlayerHand({ game, gameFlow, gameSettings, player, onCardClick }: Props) {
   const displayCards: Card[] = player.displayCards;
-  const shouldShowHandImages = gameFlow.shouldShowHandImages.find((c) => c.player === player)?.value;
-  const shouldShowHandValues = gameFlow.shouldShowHandValues.find((c) => c.player === player)?.value;
+  const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
+  const shouldShowHandValues = gameFlow.shouldShowCardValuesForHand.find((c) => c.player === player)?.value;
 
   if (shouldShowHandImages && displayCards.length === 0 && player.placeholder.length === 0)
     throw Error('Unable to show hand. No cards dealt.');
@@ -28,7 +29,7 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
   let availableCards: Card[];
 
   if (
-    !gameSettings.allowRenege &&
+    gameSettings.enforceFollowSuit &&
     player.human &&
     gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT &&
     game.trump
@@ -51,9 +52,13 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
     const hidden = !shouldShowHandImages || card.value === 'P' ? 'invisible' : '';
     const isAvailable: boolean = availableCards.includes(card);
 
+    if (card.value === 'P' && player.playerNumber === 1 && shouldShowHandValues && hidden === '')
+      console.log('double check player image values: hidden: ', hidden);
+
     images.push(
-      <div className={`z-10 ${hidden} ${getDivCssForPlayerLocation(player)}`} key={keyval}>
+      <div className={clsx('z-10', hidden, getDivCssForPlayerLocation(player))} key={keyval}>
         <GameCard
+          responsive={true}
           player={player}
           enableShadow={true}
           card={card}
@@ -81,7 +86,7 @@ function getCardCssForPlayerLocation(
   const rotateVal: number = 5;
   const offsetStart: number = 60;
   const offset: number = 30;
-  const shouldShowHandImages = gameFlow.shouldShowHandImages.find((c) => c.player === player)?.value;
+  const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
   const activeClasses =
     shouldShowHandImages &&
     player.human &&

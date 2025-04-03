@@ -12,7 +12,7 @@ export default function RenderCards({ color, size, rotate }: Props) {
   const cardValues: CardValue[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
   const suits: Suit[] = ['♠', '♥', '♦', '♣'];
   const tempCard = new Card('♠', '2');
-  const tempPlayer = new EuchrePlayer('temp', [], 1);
+  const tempPlayer = new EuchrePlayer('temp', 1, 1);
 
   return (
     <div className="bg-white p-2 overflow-auto">
@@ -84,8 +84,7 @@ export default function RenderCards({ color, size, rotate }: Props) {
               const card = new Card(s, c);
               const h = card.getDisplayHeight('side');
               const w = card.getDisplayWidth('side');
-              const p = new EuchrePlayer('temp', [], 3);
-              p.team = 2;
+              const p = new EuchrePlayer('temp', 2, 3);
               return (
                 <GameCard
                   className={clsx({ '-rotate-90': rotate })}

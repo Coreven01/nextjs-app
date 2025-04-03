@@ -21,7 +21,7 @@
   
   .tileExposed {
     background-color: snow;
-    box-shadow: -1px -1px -1px black;
+    box-shadow: -1px -1px 1px black;
   }
   
   .boardRow {

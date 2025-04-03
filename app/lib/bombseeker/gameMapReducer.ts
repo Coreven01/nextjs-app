@@ -1,4 +1,4 @@
-import { TileValue } from "@/app/ui/bombseeker/game-tile";
+import { TileValue } from '@/app/ui/bombseeker/game-tile';
 
 export interface GameMapState {
   /** 2D array of values in the bomb map. Dimensions should match the rows, columns. First index is rows, second index is columns. */
@@ -16,12 +16,12 @@ interface ActionType {
 export enum GameMapActionType {
   UPDATE_EXPOSED,
   UPDATE_BOMB,
-  UPDATE_ALL,
+  UPDATE_ALL
 }
 
 export const initialGameMapState: GameMapState = {
   bombMap: [],
-  exposedMap: [],
+  exposedMap: []
 };
 
 export function gameMapReducer(state: GameMapState, action: ActionType) {
@@ -32,6 +32,6 @@ export function gameMapReducer(state: GameMapState, action: ActionType) {
   } else if (action.type === GameMapActionType.UPDATE_ALL) {
     return { ...state, ...action.payload };
   } else {
-    throw Error("Unknown action: " + action.type);
+    throw Error('Unknown action: ' + action.type);
   }
 }

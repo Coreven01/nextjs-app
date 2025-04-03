@@ -11,37 +11,77 @@ interface Props {
 export default function GameOverview({ game, gameSettings, gameResults }: Props) {
   const teamOneScore = Math.min(game.teamPoints(1), 10);
   const teamTwoScore = Math.min(game.teamPoints(2), 10);
+  const teamOneLoners = gameResults.filter(
+    (r) => r.maker.team === 1 && r.loner && r.teamWon === 1 && r.points === 4
+  ).length;
+  const teamTwoLoners = gameResults.filter(
+    (r) => r.maker.team === 2 && r.loner && r.teamWon === 2 && r.points === 4
+  ).length;
+  const teamOneEuchred = gameResults.filter((r) => r.maker.team === 1 && r.teamWon === 2).length;
+  const teamTwoEuchred = gameResults.filter((r) => r.maker.team === 2 && r.teamWon === 1).length;
+  const teamOneTotalTricks = gameResults
+    .map((r) => r.tricks)
+    .flat()
+    .filter((t) => t.taker?.team === 1).length;
+  const teamTwoTotalTricks = gameResults
+    .map((r) => r.tricks)
+    .flat()
+    .filter((t) => t.taker?.team === 2).length;
   const rounds = gameResults.length;
 
   return (
     <div className="p-1 overflow-auto">
       <div className="flex">
-        <div className="flex flex-col md:text-base text-xs mx-1">
-          <PromptHeader>Final Score</PromptHeader>
-          <div className="flex items-center gap-2">
-            <PlayerColor
-              className="border border-white text-transparent h-4 w-4"
-              player={game.player1}
-              settings={gameSettings}
-            >
-              X
-            </PlayerColor>
-            <div>Team One: {teamOneScore}</div>
+        <div className="flex flex-col md:text-sm text-xs mx-1">
+          <div className="flex mx-1 items-center">
+            <PromptHeader>Rounds Played: </PromptHeader>
+            <div className="text-center">{rounds}</div>
           </div>
-          <div className="flex items-center gap-2">
-            <PlayerColor
-              className="border border-white text-transparent h-4 w-4"
-              player={game.player3}
-              settings={gameSettings}
-            >
-              X
-            </PlayerColor>
-            <div>Team Two: {teamTwoScore}</div>
-          </div>
-        </div>
-        <div className="flex flex-col md:text-base text-xs mx-1">
-          <PromptHeader>Rounds Played</PromptHeader>
-          <div className="text-center">{rounds}</div>
+          <table>
+            <thead>
+              <tr>
+                <th className="px-2">Team</th>
+                <th className="px-2">Final Score</th>
+                <th className="px-2">Loners Won</th>
+                <th className="px-2">Euchred</th>
+                <th className="px-2">Total Tricks</th>
+              </tr>
+            </thead>
+            <tbody className="text-center">
+              <tr>
+                <td className="flex items-center gap-1">
+                  <PlayerColor
+                    className="border border-white text-transparent h-4 w-4"
+                    player={game.player1}
+                    settings={gameSettings}
+                  >
+                    X
+                  </PlayerColor>
+                  <div>Team One</div>
+                </td>
+                <td>{teamOneScore}</td>
+                <td>{teamOneLoners}</td>
+                <td>{teamOneEuchred}</td>
+                <td>{teamOneTotalTricks}</td>
+              </tr>
+              <tr>
+                <td className="flex items-center gap-1">
+                  <PlayerColor
+                    className="border border-white text-transparent h-4 w-4"
+                    player={game.player3}
+                    settings={gameSettings}
+                  >
+                    X
+                  </PlayerColor>
+                  <div>Team Two</div>
+                </td>
+                <td>{teamTwoScore}</td>
+                <td>{teamTwoLoners}</td>
+                <td>{teamTwoEuchred}</td>
+                <td>{teamTwoTotalTricks}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       <div>

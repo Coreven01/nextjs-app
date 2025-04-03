@@ -13,7 +13,7 @@ export enum EuchreAnimateType {
   ANIMATE_TAKE_TRICK
 }
 
-export enum EuchreActionType {
+export enum EuchreAnimationActionType {
   SET_ANIMATE_NONE = 1,
   SET_ANIMATE_DEAL_FOR_DEALER,
   SET_ANIMATE_RETURN_CARDS_TO_DEALER,
@@ -28,22 +28,34 @@ export enum EuchreActionType {
   SET_ANIMATE_TAKE_TRICK
 }
 
-const actionTypeMap: Map<EuchreActionType, EuchreAnimateType> = new Map([
-  [EuchreActionType.SET_ANIMATE_NONE, EuchreAnimateType.ANIMATE_NONE],
-  [EuchreActionType.SET_ANIMATE_DEAL_FOR_DEALER, EuchreAnimateType.ANIMATE_DEAL_FOR_DEALER],
-  [EuchreActionType.SET_ANIMATE_RETURN_CARDS_TO_DEALER, EuchreAnimateType.ANIMATE_RETURN_CARDS_TO_DEALER],
-  [EuchreActionType.SET_ANIMATE_PASS_CARDS_TO_PLAYERS, EuchreAnimateType.ANIMATE_PASS_CARDS_TO_PLAYERS],
+const actionTypeMap: Map<EuchreAnimationActionType, EuchreAnimateType> = new Map([
+  [EuchreAnimationActionType.SET_ANIMATE_NONE, EuchreAnimateType.ANIMATE_NONE],
+  [EuchreAnimationActionType.SET_ANIMATE_DEAL_FOR_DEALER, EuchreAnimateType.ANIMATE_DEAL_FOR_DEALER],
   [
-    EuchreActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY,
+    EuchreAnimationActionType.SET_ANIMATE_RETURN_CARDS_TO_DEALER,
+    EuchreAnimateType.ANIMATE_RETURN_CARDS_TO_DEALER
+  ],
+  [
+    EuchreAnimationActionType.SET_ANIMATE_PASS_CARDS_TO_PLAYERS,
+    EuchreAnimateType.ANIMATE_PASS_CARDS_TO_PLAYERS
+  ],
+  [
+    EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY,
     EuchreAnimateType.ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
   ],
-  [EuchreActionType.SET_ANIMATE_ORDER_TRUMP, EuchreAnimateType.ANIMATE_ORDER_TRUMP],
-  [EuchreActionType.SET_ANIMATE_BEGIN_BID_FOR_TRUMP, EuchreAnimateType.ANIMATE_BEGIN_BID_FOR_TRUMP],
-  [EuchreActionType.SET_ANIMATE_BEGIN_PLAY_CARD_RESULT, EuchreAnimateType.ANIMATE_BEGIN_PLAY_CARD_RESULT],
-  [EuchreActionType.SET_ANIMATE_END_PLAY_CARD_RESULT, EuchreAnimateType.ANIMATE_END_PLAY_CARD_RESULT],
-  [EuchreActionType.SET_ANIMATE_BEGIN_PLAY_CARD, EuchreAnimateType.ANIMATE_BEGIN_PLAY_CARD],
-  [EuchreActionType.SET_ANIMATE_END_PLAY_CARD, EuchreAnimateType.ANIMATE_END_PLAY_CARD],
-  [EuchreActionType.SET_ANIMATE_TAKE_TRICK, EuchreAnimateType.ANIMATE_TAKE_TRICK]
+  [EuchreAnimationActionType.SET_ANIMATE_ORDER_TRUMP, EuchreAnimateType.ANIMATE_ORDER_TRUMP],
+  [EuchreAnimationActionType.SET_ANIMATE_BEGIN_BID_FOR_TRUMP, EuchreAnimateType.ANIMATE_BEGIN_BID_FOR_TRUMP],
+  [
+    EuchreAnimationActionType.SET_ANIMATE_BEGIN_PLAY_CARD_RESULT,
+    EuchreAnimateType.ANIMATE_BEGIN_PLAY_CARD_RESULT
+  ],
+  [
+    EuchreAnimationActionType.SET_ANIMATE_END_PLAY_CARD_RESULT,
+    EuchreAnimateType.ANIMATE_END_PLAY_CARD_RESULT
+  ],
+  [EuchreAnimationActionType.SET_ANIMATE_BEGIN_PLAY_CARD, EuchreAnimateType.ANIMATE_BEGIN_PLAY_CARD],
+  [EuchreAnimationActionType.SET_ANIMATE_END_PLAY_CARD, EuchreAnimateType.ANIMATE_END_PLAY_CARD],
+  [EuchreAnimationActionType.SET_ANIMATE_TAKE_TRICK, EuchreAnimateType.ANIMATE_TAKE_TRICK]
 ]);
 
 export interface EuchreAnimationState {
@@ -51,7 +63,7 @@ export interface EuchreAnimationState {
 }
 
 export interface EuchreAnimationAction {
-  type: EuchreActionType;
+  type: EuchreAnimationActionType;
 }
 
 export const initialGameAnimationState: EuchreAnimationState = {

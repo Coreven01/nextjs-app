@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type TimerEventType = {
   time: number;
@@ -29,13 +29,12 @@ export function useTimer(): TimerEventType {
     if (isRunning) return; // Prevent starting if already running
 
     // Create a new interval to update the time every second
-    const newIntervalId = setInterval(() => {
+    intervalId.current = setInterval(() => {
       setTime((prevTime) => {
         if (prevTime < 1000) return prevTime + 1;
         else return prevTime;
       }); // Increment time every second
     }, 1000);
-    intervalId.current = newIntervalId; // Store interval ID
     setIsRunning(true); // Set running state to true
   }, [isRunning]);
 

@@ -19,6 +19,7 @@ import useMenuItems from '@/app/hooks/euchre/useMenuItems';
 import useEuchreGameAuto from '@/app/hooks/euchre/useEuchreGameAuto';
 import clsx from 'clsx';
 import RenderCards from '../render-cards';
+import GameErrorPrompt from '../prompt/game-error-prompt';
 
 export default function EuchreGame() {
   // #region Hooks
@@ -30,19 +31,20 @@ export default function EuchreGame() {
     promptValue,
     euchreSettings,
     events,
+    errorState,
     clearEvents,
     beginNewGame,
     handleBidSubmit,
-    handleResetGame,
     handleSettingsChange,
     handleCancelGame,
     handleDiscardSubmit,
-    resaveGameState,
     handleCloseHandResults,
     handleCloseGameResults,
     handleCardPlayed,
     handleReplayHand,
-    handleCancelAndReset
+    handleCancelAndReset,
+    handleReplayGame,
+    handleAttemptToRecover
   } = useEuchreGame();
 
   const { isFullScreen, showEvents, showSettings, toggleFullScreen, toggleEvents, toggleSettings } =
@@ -50,6 +52,7 @@ export default function EuchreGame() {
 
   const { runFullGame, runFullGameLoop } = useEuchreGameAuto();
   const [fullGameInstance, setFullGameInstance] = useState<EuchreGameInstance | null>(null);
+  const enableFullScreen = euchreGame && isFullScreen;
 
   // #endregion
 
@@ -83,9 +86,23 @@ export default function EuchreGame() {
     toggleSettings(true);
   };
 
+  const handleBeginReplayGame = (gameToReplay: EuchreGameInstance) => {
+    setFullGameInstance(null);
+    toggleSettings(false);
+    handleReplayGame(gameToReplay);
+  };
+
   //#endregion
 
   //#region Conditional prompts to render.
+
+  const renderErrorMessage = errorState && euchreGame && (
+    <GameErrorPrompt
+      key={euchreGame !== null ? 'modal' : 'init'}
+      errorState={errorState}
+      onAttemptToRecover={handleAttemptToRecover}
+    />
+  );
 
   const renderSettings = showSettings && (
     <GameSettings
@@ -138,6 +155,7 @@ export default function EuchreGame() {
         gameResults={euchreGame.allGameResults}
         onClose={handleCloseGameResults}
         onNewGame={handleNewGame}
+        onReplayGame={() => handleBeginReplayGame(euchreGame)}
       />
     );
 
@@ -149,6 +167,7 @@ export default function EuchreGame() {
         gameResults={fullGameInstance.allGameResults}
         onClose={handleCloseRunFullGame}
         onNewGame={() => null}
+        onReplayGame={() => handleBeginReplayGame(fullGameInstance)}
       />
     </div>
   );
@@ -157,25 +176,23 @@ export default function EuchreGame() {
 
   return (
     <>
-      {isFullScreen && euchreGame && (
-        <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg !z-50" />
-      )}
+      {enableFullScreen && <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg !z-50" />}
 
       <div
         id="euchre-game"
         className={clsx(
           `flex md:p-1 overflow-auto`,
-          { 'fixed top-0 left-0 w-full h-full z-50': isFullScreen },
-          { relative: !isFullScreen },
+          { 'fixed top-0 left-0 w-full h-full z-50': enableFullScreen },
+          { relative: !enableFullScreen },
           inter.className
         )}
       >
-        <GameBorder className="w-full md:w-auto md:h-auto overflow-auto">
+        <GameBorder className={clsx('w-full md:w-auto md:h-auto overflow-auto', { 'm-auto': !showEvents })}>
           {showSettings && !euchreGame ? (
             <>{renderSettings}</>
           ) : (
             <div
-              className={`${SECTION_STYLE} md:m-2 md:h-auto flex-grow relative bg-[url(/felt1.png)] h-full`}
+              className={`${SECTION_STYLE} md:m-1 md:h-auto flex-grow relative bg-[url(/felt1.png)] h-full`}
             >
               <div className="md:m-2">
                 {euchreGame ? (
@@ -188,7 +205,7 @@ export default function EuchreGame() {
                       showEvents={showEvents}
                       showSettings={showSettings}
                       playerNotification={playerNotification}
-                      onToggleFullscreeen={toggleFullScreen}
+                      onToggleFullscreen={toggleFullScreen}
                       onToggleEvents={toggleEvents}
                       onCardPlayed={handleCardPlayed}
                       onSettingsToggle={toggleSettings}
@@ -203,14 +220,7 @@ export default function EuchreGame() {
                 {renderDiscardPrompt}
                 {renderHandResults}
                 {renderGameResults}
-                {showEvents && (
-                  <GameEvents
-                    events={events}
-                    onClear={clearEvents}
-                    onClose={() => toggleEvents(false)}
-                    className="-left-2 top-0"
-                  />
-                )}
+                {renderErrorMessage}
                 {euchreGame && (
                   <GameScore
                     game={euchreGame}
@@ -222,6 +232,14 @@ export default function EuchreGame() {
             </div>
           )}
         </GameBorder>
+        {showEvents && (
+          <GameEvents
+            events={events}
+            onClear={clearEvents}
+            onClose={() => toggleEvents(false)}
+            className="right-16 top-0 dark:text-white"
+          />
+        )}
       </div>
       {showSettings && !euchreGame && renderFullGameResults}
       {/* <RenderCards color="red" size="12" rotate={true} /> */}

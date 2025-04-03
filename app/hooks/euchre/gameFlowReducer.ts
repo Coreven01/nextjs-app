@@ -1,5 +1,6 @@
 import { EuchrePlayer } from '@/app/lib/euchre/definitions';
 
+/** Values used to identify if certain values should be displayed for a player's hand. */
 interface PlayerDisplayValue {
   player: EuchrePlayer;
   value: boolean;
@@ -8,6 +9,7 @@ interface PlayerDisplayValue {
 export enum EuchreGameFlow {
   AWAIT_USER_INPUT = 1,
   WAIT,
+  ERROR,
   BEGIN_INIT_DEAL,
   END_INIT_DEAL,
   BEGIN_DEAL_FOR_DEALER,
@@ -33,6 +35,7 @@ export enum EuchreFlowActionType {
 
   /** Used to prevent game from continuing to execute during its state is batching updates. When an action is started, this should be be the first state that's set. */
   SET_WAIT,
+  SET_ERROR,
   SET_AWAIT_USER_INPUT,
   SET_BEGIN_INIT_DEAL,
   SET_END_INIT_DEAL,
@@ -77,7 +80,9 @@ const actionTypeMap: Map<EuchreFlowActionType, EuchreGameFlow> = new Map([
   [EuchreFlowActionType.SET_END_BID_FOR_TRUMP, EuchreGameFlow.END_BID_FOR_TRUMP],
   [EuchreFlowActionType.SET_BEGIN_PLAY_CARD_RESULT, EuchreGameFlow.BEGIN_PLAY_CARD_RESULT],
   [EuchreFlowActionType.SET_END_PLAY_CARD_RESULT, EuchreGameFlow.END_PLAY_CARD_RESULT],
-  [EuchreFlowActionType.SET_WAIT, EuchreGameFlow.WAIT]
+  [EuchreFlowActionType.SET_WAIT, EuchreGameFlow.WAIT],
+
+  [EuchreFlowActionType.SET_ERROR, EuchreGameFlow.ERROR]
 ]);
 export interface EuchreGameFlowState {
   /** Boolean value to identify if a game has yet been created. */
@@ -89,10 +94,10 @@ export interface EuchreGameFlowState {
   shouldShowDeckImages: PlayerDisplayValue[];
 
   /** Should show the images for cards for the player. This does not show the value of the cards, but the back of the card. */
-  shouldShowHandImages: PlayerDisplayValue[];
+  shouldShowCardImagesForHand: PlayerDisplayValue[];
 
-  /** Should show the cards face up. */
-  shouldShowHandValues: PlayerDisplayValue[];
+  /** Should show the cards face up card values for a player. */
+  shouldShowCardValuesForHand: PlayerDisplayValue[];
   gameFlow: EuchreGameFlow;
 }
 
@@ -104,8 +109,8 @@ export interface GameFlowAction {
 export const INIT_GAME_FLOW_STATE: EuchreGameFlowState = {
   hasGameStarted: false,
   shouldShowDeckImages: [],
-  shouldShowHandImages: [],
-  shouldShowHandValues: [],
+  shouldShowCardImagesForHand: [],
+  shouldShowCardValuesForHand: [],
   hasSecondBiddingPassed: false,
   hasFirstBiddingPassed: false,
   gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL

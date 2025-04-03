@@ -26,9 +26,9 @@ export function useEventLog() {
       counter.current++;
 
       if (events.length > 200) {
-        setEvents([...events.slice(1), event]);
+        setEvents((prev) => [...prev.slice(1), event]);
       } else {
-        setEvents([...events, event]);
+        setEvents((prev) => [...prev, event]);
       }
     },
     [events]

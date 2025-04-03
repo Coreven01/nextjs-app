@@ -3,6 +3,7 @@ import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
 import GameDeck from '../game/game-deck';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import clsx from 'clsx';
 
 type Props = {
   player: EuchrePlayer;
@@ -14,12 +15,13 @@ type Props = {
 };
 
 export default function PlayerGameDeck({ player, game, gameFlow, settings, dealDeck, onCardClick }: Props) {
+  const isDebugMode = process.env.REACT_APP_DEBUG === 'true';
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
   const position = player.location === 'center' ? positionCenter : positionSide;
   const shouldShowDeckImages = gameFlow.shouldShowDeckImages.find((c) => c.player === player)?.value;
-  const shouldShowHandImages = gameFlow.shouldShowHandImages.find((c) => c.player === player)?.value;
+  const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
   const gameDeck = shouldShowDeckImages && (
     <div id={`game-deck-${playerNumber}`} className={position}>
       <GameDeck deck={dealDeck} location={player.location} />
@@ -34,34 +36,32 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
 
   switch (player.playerNumber) {
     case 1:
-      playerInfoOuterClass = 'relative md:w-auto md:right-8 md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass =
-        'md:relative absolute md:-right-4 md:left-0 md:bottom-0 right-16 bottom-4 md:min-w-32';
+      playerInfoOuterClass = 'md:w-auto md:right-8';
+      playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 bottom-4 md:min-w-32';
       classForLocation = 'flex md:items-end justify-center items-center h-full';
       playerHandClassOuter =
         'md:relative md:left-0 md:top-0 md:h-full left-4 bottom-0 absolute md:overflow-visible overflow-hidden';
       playerHandClassInner = 'flex relative md:-top-8 top-4';
       break;
     case 2:
-      playerInfoOuterClass = 'relative md:w-auto md:right-8 md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass =
-        'md:relative absolute md:-right-4 md:left-0 md:bottom-0 right-16 -bottom-8 md:min-w-32';
+      playerInfoOuterClass = 'md:w-auto md:right-8';
+      playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 -bottom-8 md:min-w-32';
       classForLocation =
         'flex md:items-end justify-center items-center h-full md:overflow-visible overflow-hidden';
       playerHandClassOuter = 'md:relative md:left-0 md:top-0 md:h-full absolute -top-24';
       playerHandClassInner = 'flex relative top-8 md:top-0';
       break;
     case 3:
-      playerInfoOuterClass = 'relative w-full md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass = 'absolute md:-right-4 md:left-auto md:bottom-16 -left-2 bottom-0 md:min-w-32';
+      playerInfoOuterClass = 'w-full';
+      playerInfoInnerClass = 'md:-right-4 md:left-auto md:-top-48 -left-2 top-0 md:min-w-32';
       classForLocation =
         'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-end justify-center h-full -top-8';
       playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';
       playerHandClassInner = '';
       break;
     case 4:
-      playerInfoOuterClass = 'relative w-full md:text-base text-xs z-20 whitespace-nowrap';
-      playerInfoInnerClass = 'absolute md:-left-4 md:right-auto md:bottom-16 -right-2 bottom-0 md:min-w-32';
+      playerInfoOuterClass = 'w-full';
+      playerInfoInnerClass = 'md:-left-4 md:right-auto md:-top-48 -right-2 top-0 md:min-w-32';
       classForLocation =
         'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-start justify-center h-full -top-8';
       playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';
@@ -70,8 +70,8 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
   }
 
   const playerInfo = gameFlow.hasGameStarted && (
-    <div className={`${playerInfoOuterClass}`}>
-      <div className={playerInfoInnerClass}>
+    <div className={clsx('relative md:text-sm text-xs whitespace-nowrap z-20', playerInfoOuterClass)}>
+      <div className={clsx('absolute', playerInfoInnerClass)}>
         <PlayerInfo
           id={`player-info-${player.playerNumber}`}
           game={game}
@@ -96,7 +96,10 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
             />
           </div>
         </div>
-        <div id={`player-base-${playerNumber}`} className={position}>
+        <div
+          id={`player-base-${playerNumber}`}
+          className={clsx(position, { 'text-transparent': !isDebugMode })}
+        >
           X
         </div>
         {gameDeck}

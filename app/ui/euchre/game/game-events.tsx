@@ -38,11 +38,11 @@ export default function GameEvents({ className, events, onClear, onClose }: Prop
     <Draggable
       grid={[15, 15]}
       defaultPosition={{ x: 25, y: 25 }}
-      defaultClassName={clsx('absolute z-20', className)}
+      defaultClassName={clsx('absolute', className)}
       nodeRef={draggableRef}
       onDrag={handleDrag}
     >
-      <div ref={draggableRef} className="cursor-move flex w-[500px]">
+      <div ref={draggableRef} className="cursor-move flex w-[500px]" style={{ zIndex: 1000 }}>
         <GameBorder className="w-full relative">
           <h2 className="text-yellow-200 font-bold text-center">Events</h2>
           <div ref={divRef} className="p-2 border border-white m-1 h-[200px] overflow-y-auto text-sm">
@@ -50,7 +50,7 @@ export default function GameEvents({ className, events, onClear, onClose }: Prop
               {events.map((e) => {
                 return (
                   <li key={e.id}>
-                    {e.time}: {e.message}
+                    {e.time} {`(${e.type})`}: {e.message}
                   </li>
                 );
               })}

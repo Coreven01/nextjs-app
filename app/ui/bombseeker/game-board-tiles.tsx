@@ -1,5 +1,5 @@
-import { JSX, useMemo } from 'react';
-import { GameLostProps } from '@/app/lib/bombseeker/game';
+import React, { useMemo } from 'react';
+import { GameLostProps, getDirectAdjacentTiles } from '@/app/lib/bombseeker/game';
 import { GameState } from '@/app/lib/bombseeker/gameStateReducer';
 import { GameMapState } from '@/app/lib/bombseeker/gameMapReducer';
 import GameTile, { TileValue } from './game-tile';
@@ -8,28 +8,13 @@ type Props = {
   state: GameState;
   mapState: GameMapState;
   gameLost: GameLostProps;
-  adjacentTiles: number[][];
+  tilesToHighlight: number[][];
   disabled: boolean;
-  onClick: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    row: number,
-    column: number
-  ) => void;
-  onRightClick: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    row: number,
-    column: number
-  ) => void;
-  onMouseUp: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    row: number,
-    column: number
-  ) => void;
-  onMouseDown: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    row: number,
-    column: number
-  ) => void;
+  hintActivated: boolean;
+  onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void;
+  onRightClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void;
+  onMouseUp: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void;
+  onMouseDown: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void;
   onMouseLeave: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
 };
 
@@ -42,8 +27,9 @@ export default function GameBoardTiles({
   state,
   mapState,
   gameLost,
-  adjacentTiles,
+  tilesToHighlight,
   disabled,
+  hintActivated,
   onClick,
   onRightClick,
   onMouseUp,
@@ -56,8 +42,9 @@ export default function GameBoardTiles({
         state,
         mapState,
         gameLost,
-        adjacentTiles,
+        tilesToHighlight,
         disabled,
+        hintActivated,
         onClick,
         onRightClick,
         onMouseUp,
@@ -68,8 +55,9 @@ export default function GameBoardTiles({
       state,
       mapState,
       gameLost,
-      adjacentTiles,
+      tilesToHighlight,
       disabled,
+      hintActivated,
       onClick,
       onRightClick,
       onMouseUp,
@@ -86,13 +74,10 @@ function createGameTiles(
   state: GameState,
   mapState: GameMapState,
   gameLost: GameLostProps,
-  adjacentTiles: number[][],
+  tilesToHighlight: number[][],
   disabled: boolean,
-  onClickEvent: (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    row: number,
-    column: number
-  ) => void,
+  hintActivated: boolean,
+  onClickEvent: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, row: number, column: number) => void,
   onRightClickEvent: (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     row: number,
@@ -110,21 +95,21 @@ function createGameTiles(
   ) => void,
   onMouseLeave: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void
 ) {
-  const rowCells: JSX.Element[] = []; // array of jsx GameTile to display
+  const rowCells: React.ReactNode[] = []; // array of jsx GameTile to display
 
   for (let row = 0; row < state.rowCount; row++) {
-    const tileCells: JSX.Element[] = [];
+    const tileCells: React.ReactNode[] = [];
 
     for (let col = 0; col < state.columnCount; col++) {
       const exposedTile: TileValue = mapState.exposedMap[row][col];
       const bombTile: TileValue = mapState.bombMap[row][col];
 
       const keyVal: number = row * state.columnCount + col;
-      const isExposed: boolean = exposedTile === 'E' && bombTile !== 'X';
-      const isFlagged: boolean = exposedTile === 'F' || exposedTile === '?';
+      const isExposed: boolean = exposedTile === 'exposed' && bombTile !== 'bomb';
+      const isFlagged: boolean = exposedTile === 'flag' || exposedTile === 'unknown';
       const isGameOverBomb =
         gameLost.gameLost &&
-        bombTile === 'X' &&
+        bombTile === 'bomb' &&
         gameLost.bombTile &&
         gameLost.bombTile[0] === row &&
         gameLost.bombTile[1] === col;
@@ -142,19 +127,36 @@ function createGameTiles(
           if (tile[0] === row && tile[1] === col) incorrectFlag = true;
       }
 
-      if (incorrectFlag) displayValue = 'I';
-      else if (clickedBomb) displayValue = 'T';
-      else if (isGameOverBomb) displayValue = 'T';
+      if (incorrectFlag) displayValue = 'incorrect';
+      else if (clickedBomb) displayValue = 'trigger';
+      else if (isGameOverBomb) displayValue = 'trigger';
       else if (isExposed) displayValue = bombTile;
       else if (isFlagged) displayValue = exposedTile;
-      else if (gameLost.gameLost && bombTile === 'X') displayValue = 'X';
+      else if (gameLost.gameLost && bombTile === 'bomb') displayValue = 'bomb';
 
       let isAdjacentTileHighlight = false;
+      let isDisabled = disabled;
+      let isHintActivated = false;
 
-      for (const tile of adjacentTiles) {
+      for (const tile of tilesToHighlight) {
         if (tile[0] === row && tile[1] === col && !mapState.exposedMap[row][col]) {
           isAdjacentTileHighlight = true;
           break;
+        }
+      }
+
+      if (hintActivated) {
+        const bombTileValue = bombTile ? parseInt(bombTile.toString()) : 0;
+        if (isExposed && bombTileValue > 0 && bombTileValue < 9) {
+          const adjacentHintTiles = getDirectAdjacentTiles(row, col, state, mapState);
+          const count = adjacentHintTiles
+            .map((t) => mapState.exposedMap[t[0]][t[1]])
+            .filter((t) => t === 'exposed' || t === 'unknown' || t === 'flag').length;
+
+          isHintActivated = count !== adjacentHintTiles.length;
+          isDisabled = !isHintActivated;
+        } else {
+          isDisabled = true;
         }
       }
 
@@ -165,6 +167,7 @@ function createGameTiles(
           displayValue={displayValue}
           exposed={isExposed}
           highlight={isAdjacentTileHighlight}
+          hintActivated={isHintActivated}
           onTileClick={(event) => onClickEvent(event, row, col)}
           onTileRightClick={(event) => {
             event.preventDefault();
@@ -173,7 +176,7 @@ function createGameTiles(
           onMouseUp={(event) => onMouseUpEvent(event, row, col)}
           onMouseDown={(event) => onMouseDownEvent(event, row, col)}
           onMouseLeave={(event) => onMouseLeave(event)}
-          disabled={disabled}
+          disabled={isDisabled}
         ></GameTile>
       );
     }

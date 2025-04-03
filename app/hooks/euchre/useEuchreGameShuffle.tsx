@@ -1,8 +1,8 @@
 'use client';
 
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './gameFlowReducer';
-import { EuchreActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
-import { EuchreGameState } from './useEuchreGame';
+import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
+import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { shuffleAndDealHand } from '@/app/lib/euchre/game-setup-logic';
 import { useCallback, useEffect } from 'react';
 import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
@@ -16,7 +16,7 @@ import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
 import clsx from 'clsx';
 
-export default function useEuchreGameShuffle(state: EuchreGameState) {
+export default function useEuchreGameShuffle(state: EuchreGameState, errorState: EuchreErrorState) {
   const FLIPPED_CARD_ID = 'flipped-card';
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
@@ -39,14 +39,19 @@ export default function useEuchreGameShuffle(state: EuchreGameState) {
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
+    let newGame = state.euchreGame?.shallowCopy();
+    if (!newGame?.dealer) throw new Error('Dealer not found for shuffle and deal.');
+
     state.addEvent(
-      createEvent('i', state.euchreSettings, undefined, 'Begin shuffle and deal for regular play')
+      createEvent('v', state.euchreSettings, newGame.dealer, 'Begin shuffle and deal for regular play.')
     );
 
-    let newGame = state.euchreGame?.shallowCopy();
-    if (!newGame) throw new Error();
-
-    const shuffleResult = shuffleAndDealHand(newGame, state.euchreSettings, state.shouldCancel);
+    const shuffleResult = shuffleAndDealHand(
+      newGame,
+      state.euchreSettings,
+      state.euchreReplayGame,
+      state.shouldCancel
+    );
 
     newGame = shuffleResult.game;
 
@@ -68,14 +73,28 @@ export default function useEuchreGameShuffle(state: EuchreGameState) {
     newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameState });
-    state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY });
-    //setAnimationTransformation([...animationTransformation, ...shuffleResult.transformations]);
+    state.dispatchGameAnimationFlow({
+      type: EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
+    });
     state.setEuchreGame(newGame);
   }, [state]);
 
   useEffect(() => {
-    beginShuffleAndDealHand();
-  }, [beginShuffleAndDealHand]);
+    try {
+      beginShuffleAndDealHand();
+    } catch (e) {
+      const error = e as Error;
+
+      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_ERROR });
+      errorState.setErrorState({
+        time: new Date(),
+        id: '12',
+        message: error ? error.message : 'unknown error',
+        gameFlow: EuchreFlowActionType.SET_BEGIN_SHUFFLE_CARDS,
+        animationType: EuchreAnimationActionType.SET_ANIMATE_NONE
+      });
+    }
+  }, [beginShuffleAndDealHand, errorState, state]);
 
   /**  */
   useEffect(() => {
@@ -97,7 +116,7 @@ export default function useEuchreGameShuffle(state: EuchreGameState) {
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
       //await animateDealCardsForHand(newGame);
 
-      state.dispatchGameAnimationFlow({ type: EuchreActionType.SET_ANIMATE_NONE });
+      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
     };
 
@@ -123,9 +142,10 @@ const getFaceUpCard = (id: string, card: Card, player: EuchrePlayer, fadeOut: bo
         { 'opacity-0': !fadeOut }
       )}
     >
-      <GameBorder innerClass="bg-stone-800 w-20 md:w-full" className="shadow-md shadow-black">
+      <GameBorder innerClass="bg-stone-800 w-20 md:w-full" className="shadow-md shadow-black" size="small">
         <div className="p-2 bg-green-950 flex items-center justify-center">
           <GameCard
+            responsive={true}
             id={id}
             player={player}
             card={card}

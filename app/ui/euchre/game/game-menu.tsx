@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
+import Switch from '@mui/material/Switch';
 
 interface Props {
   isFullScreen: boolean;
@@ -26,6 +27,7 @@ export default function GameMenu({
   onCancelAndReset
 }: Props) {
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const nav = document.getElementById('site-top-nav');
@@ -33,10 +35,23 @@ export default function GameMenu({
       nav.style.zIndex = isFullScreen ? '10' : '500';
     }
 
+    const exitMenu = (event: MouseEvent) => {
+      if (showMenu) {
+        const target = event.target as HTMLElement;
+        if (target && menuRef.current && !menuRef.current.contains(target)) {
+          event.stopPropagation();
+          setShowMenu(false);
+        }
+      }
+    };
+
+    document.addEventListener('click', exitMenu);
+
     return () => {
       if (nav) nav.style.zIndex = '500';
+      document.removeEventListener('click', exitMenu);
     };
-  });
+  }, [isFullScreen, showMenu]);
 
   const handleMenuClick = () => {
     setShowMenu(!showMenu);
@@ -59,6 +74,8 @@ export default function GameMenu({
         </div>
       </div>
       <div
+        id="game-menu"
+        ref={menuRef}
         className={clsx(
           'flex flex-col absolute min-w-32 bg-black bg-opacity-50 left-3 top-12 transition ease-in-out duration-300',
           {
@@ -68,37 +85,40 @@ export default function GameMenu({
         style={{ zIndex: 100 }}
       >
         <div className="p-2 text-white">
-          <label>Toggle Fullscreen</label>
-          <input
+          <label htmlFor="isFullScreen">Toggle Fullscreen</label>
+          <Switch
+            id="isFullScreen"
+            size="small"
             checked={isFullScreen}
-            type="checkbox"
-            title="Toggle Fullscreen"
-            className={``}
+            name="isFullScreen"
+            color="success"
             onChange={(e) => onFullScreenToggle(e.target.checked)}
           />
         </div>
         <div className="p-2 text-white">
-          Toggle Events
-          <input
+          <label htmlFor="showEvents">Toggle Events</label>
+          <Switch
+            id="showEvents"
+            size="small"
             checked={showEvents}
-            type="checkbox"
-            title="Toggle Events"
-            className={`ml-2`}
+            name="showEvents"
+            color="success"
             onChange={(e) => onEventsToggle(e.target.checked)}
           />
         </div>
         <div className="p-2 text-white">
-          Toggle Settings
-          <input
+          <label htmlFor="showSettings">Toggle Settings</label>
+          <Switch
+            id="showSettings"
+            size="small"
             checked={showSettings}
-            type="checkbox"
-            title="Toggle Settings"
-            className={`ml-2`}
+            name="showSettings"
+            color="success"
             onChange={(e) => onSettingsToggle(e.target.checked)}
           />
         </div>
         <div className="p-2 text-white">
-          <button onClick={onCancelAndReset}>Cancel</button>
+          <button onClick={onCancelAndReset}>Cancel Game</button>
         </div>
       </div>
     </>

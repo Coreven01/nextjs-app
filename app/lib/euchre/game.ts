@@ -5,10 +5,10 @@ import {
   CardValue,
   EuchreGameInstance,
   EuchrePlayer,
-  Suit,
-  LEFT_BOWER_VALUE,
   GameDifficulty,
-  RANDOM_FOR_DIFFICULTY
+  LEFT_BOWER_VALUE,
+  RANDOM_FOR_DIFFICULTY,
+  Suit
 } from './definitions';
 import { createRange } from './util';
 
@@ -16,14 +16,12 @@ import { createRange } from './util';
  *
  */
 function createEuchreGame(player1Name: string): EuchreGameInstance {
-  const player1 = new EuchrePlayer(player1Name, [], 1);
-  const player2 = new EuchrePlayer('Jerry', [], 2);
-  const player3 = new EuchrePlayer('George', [], 3);
-  const player4 = new EuchrePlayer('Elaine', [], 4);
+  const player1 = new EuchrePlayer(player1Name, 1, 1);
+  const player2 = new EuchrePlayer('Jerry', 1, 2);
+  const player3 = new EuchrePlayer('George', 2, 3);
+  const player4 = new EuchrePlayer('Elaine', 2, 4);
 
   player1.human = true;
-  player3.team = 2;
-  player4.team = 2;
 
   const newGame = new EuchreGameInstance(player1, player2, player3, player4);
   newGame.deck = createPlaceholderCards(24);
@@ -131,11 +129,10 @@ export function shuffleDeck(deck: Card[]): Card[] {
 export function getPlayerAndCard(playerInfo: string): { playerNumber: number; index: number } {
   if (!playerInfo) return { playerNumber: 0, index: -1 };
 
-  const retval = {
+  return {
     playerNumber: parseInt(playerInfo.charAt(5)),
     index: parseInt(playerInfo.charAt(6))
   };
-  return retval;
 }
 
 /** Get the card color from the given suit.  */

@@ -22,27 +22,30 @@ export default function HandResultDetail({
     <>
       {cardsPlayed.map((c) => {
         let shouldHighlight: boolean = false;
+        const playerReneged = handResult.tricks.find((t) => t.playerRenege !== null) !== undefined;
 
-        switch (highlight) {
-          case 'player1':
-            shouldHighlight = c.player.playerNumber === 1;
-            break;
-          case 'player2':
-            shouldHighlight = c.player.playerNumber === 2;
-            break;
-          case 'player3':
-            shouldHighlight = c.player.playerNumber === 3;
-            break;
-          case 'player4':
-            shouldHighlight = c.player.playerNumber === 4;
-            break;
-          case 'winner':
-            shouldHighlight = c.player.equal(playerWon);
-            break;
-          case 'trump':
-            shouldHighlight =
-              c.card.suit === handResult.trump.suit || cardIsLeftBower(c.card, handResult.trump);
-            break;
+        if (!playerReneged) {
+          switch (highlight) {
+            case 'player1':
+              shouldHighlight = c.player.playerNumber === 1;
+              break;
+            case 'player2':
+              shouldHighlight = c.player.playerNumber === 2;
+              break;
+            case 'player3':
+              shouldHighlight = c.player.playerNumber === 3;
+              break;
+            case 'player4':
+              shouldHighlight = c.player.playerNumber === 4;
+              break;
+            case 'winner':
+              shouldHighlight = c.player.equal(playerWon);
+              break;
+            case 'trump':
+              shouldHighlight =
+                c.card.suit === handResult.trump.suit || cardIsLeftBower(c.card, handResult.trump);
+              break;
+          }
         }
 
         return (

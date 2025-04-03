@@ -1,13 +1,14 @@
-'use client';
-
 import clsx from 'clsx';
 import Image from 'next/image';
+import React from 'react';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   innerClass?: string;
+  size?: 'small' | 'normal';
 }
 
+const maxHeight = 12;
 const height = 8;
 const width = 300;
 
@@ -18,7 +19,7 @@ const boardVals = [
   [4, 2, 1, 5, 3, 4, 2]
 ];
 
-export default function GameBorder({ children, className, innerClass, ...rest }: DivProps) {
+export default function GameBorder({ children, className, innerClass, size = 'normal', ...rest }: DivProps) {
   const cornerImg = (
     <div>
       <Image
@@ -32,8 +33,10 @@ export default function GameBorder({ children, className, innerClass, ...rest }:
         priority={true}
         className={`contain border border-black`}
         style={{
-          width: '100%',
-          height: 'auto'
+          width: size === 'small' ? height : maxHeight,
+          height: size === 'small' ? height : maxHeight,
+          maxHeight: size === 'small' ? height : maxHeight,
+          maxWidth: size === 'small' ? height : maxHeight
         }}
       />
     </div>
@@ -43,25 +46,25 @@ export default function GameBorder({ children, className, innerClass, ...rest }:
     <div
       {...rest}
       className={clsx(
-        'grid grid-rows-[12px,auto,12px] grid-cols-[12px,auto,12px] m-auto relative',
+        'grid grid-rows-[minmax(8px,max-content)_auto_minmax(8px,max-content)] grid-cols-[minmax(8px,max-content)_auto_minmax(8px,max-content)] relative',
         className
       )}
     >
       {cornerImg}
       <div className="relative">
-        <BorderHorizontal location={1} values={boardVals[0]} />
+        <BorderHorizontal location={1} values={boardVals[0]} size={size} />
       </div>
       {cornerImg}
       <div className="relative overflow-hidden">
-        <BorderVertical location={1} values={boardVals[1]} />
+        <BorderVertical location={1} values={boardVals[1]} size={size} />
       </div>
       <div className={clsx('', innerClass, { 'bg-stone-800': innerClass === undefined })}>{children}</div>
       <div className="relative overflow-hidden">
-        <BorderVertical location={2} values={boardVals[2]} />
+        <BorderVertical location={2} values={boardVals[2]} size={size} />
       </div>
       {cornerImg}
       <div className="relative">
-        <BorderHorizontal location={2} values={boardVals[3]} />
+        <BorderHorizontal location={2} values={boardVals[3]} size={size} />
       </div>
       {cornerImg}
     </div>
@@ -70,9 +73,10 @@ export default function GameBorder({ children, className, innerClass, ...rest }:
 interface Props {
   location: 1 | 2;
   values: number[];
+  size: 'small' | 'normal';
 }
 
-function BorderHorizontal({ location, values }: Props) {
+function BorderHorizontal({ location, values, size }: Props) {
   const boardRow: React.ReactNode[] = [];
 
   boardRow.push(
@@ -91,7 +95,9 @@ function BorderHorizontal({ location, values }: Props) {
             className={`border-r border-t border-b border-black relative ${location === 1 ? '-left-32' : '-left-8'}`}
             style={{
               width: '100%',
-              height: '100%'
+              height: 'auto',
+              maxWidth: size === 'small' ? width : '100%',
+              maxHeight: size === 'small' ? height : maxHeight
             }}
           />
         );
@@ -102,7 +108,7 @@ function BorderHorizontal({ location, values }: Props) {
   return <>{boardRow}</>;
 }
 
-function BorderVertical({ location, values }: Props) {
+function BorderVertical({ location, values, size }: Props) {
   const boardRow: React.ReactNode[] = [];
 
   boardRow.push(
@@ -120,8 +126,10 @@ function BorderVertical({ location, values }: Props) {
             priority={true}
             className={`border-r border-l border-b border-black relative ${location === 1 ? '-top-32' : '-top-8'}`}
             style={{
-              width: '100%',
-              height: '100%'
+              width: 'auto',
+              height: '100%',
+              maxWidth: size === 'small' ? height : maxHeight,
+              maxHeight: size === 'small' ? width : '100%'
             }}
           />
         );
