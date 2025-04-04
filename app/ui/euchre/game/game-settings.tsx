@@ -31,7 +31,7 @@ export default function GameSettings({
   const teamColors = [...TEAM_COLOR_MAP.keys()];
   const gameSpeedValues = [...GAME_SPEED_MAP.entries()];
   const difficultyValues = [...DIFFICULTY_MAP.entries()];
-  const isDebugMode = true;
+  const isDebugMode = false;
 
   //#region Handlers
   const handleNewGame = () => {
@@ -98,7 +98,7 @@ export default function GameSettings({
   //#endregion
 
   return (
-    <div className="bg-stone-800 text-white p-1">
+    <div className="bg-stone-800 text-white md:p-2 p-1">
       <div className="flex items-center gap-4 my-2 md:text-base text-sm">
         <label htmlFor="playerName">Player Name: </label>
         <input
@@ -112,63 +112,61 @@ export default function GameSettings({
           onBlur={handleLoseFocus}
         />
       </div>
-      <div className="flex gap-4 my-2 md:text-base text-sm">
-        <div className="flex-grow">
-          <div>
-            <label htmlFor="showHandResult">Show Hand Results: </label>
-            <Switch
-              id="showHandResult"
-              size="small"
-              checked={settings.showHandResult}
-              name="showHandResult"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
-          <div>
-            <label htmlFor="enforceFollowSuit">Enforce Follow Suit: </label>
-            <Switch
-              id="enforceFollowSuit"
-              size="small"
-              checked={settings.enforceFollowSuit}
-              name="enforceFollowSuit"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
-          <div>
-            <label htmlFor="autoFollowSuit">Auto Follow Suit: </label>
-            <Switch
-              id="autoFollowSuit"
-              size="small"
-              checked={settings.autoFollowSuit}
-              name="autoFollowSuit"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
-          <div>
-            <label htmlFor="stickTheDealer">Stick The Dealer: </label>
-            <Switch
-              id="stickTheDealer"
-              size="small"
-              checked={settings.stickTheDealer}
-              name="stickTheDealer"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
-          <div>
-            <label htmlFor="viewPlayerInfoDetail">Player Info Detail: </label>
-            <Switch
-              id="viewPlayerInfoDetail"
-              size="small"
-              checked={settings.viewPlayerInfoDetail}
-              name="viewPlayerInfoDetail"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
+      <div className="grid gap-2 grid-cols-2 my-2 md:text-base text-sm">
+        <div>
+          <label htmlFor="showHandResult">Show Hand Results: </label>
+          <Switch
+            id="showHandResult"
+            size="small"
+            checked={settings.showHandResult}
+            name="showHandResult"
+            color="success"
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
+        <div>
+          <label htmlFor="enforceFollowSuit">Enforce Follow Suit: </label>
+          <Switch
+            id="enforceFollowSuit"
+            size="small"
+            checked={settings.enforceFollowSuit}
+            name="enforceFollowSuit"
+            color="success"
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
+        <div>
+          <label htmlFor="autoFollowSuit">Auto Follow Suit: </label>
+          <Switch
+            id="autoFollowSuit"
+            size="small"
+            checked={settings.autoFollowSuit}
+            name="autoFollowSuit"
+            color="success"
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
+        <div>
+          <label htmlFor="stickTheDealer">Stick The Dealer: </label>
+          <Switch
+            id="stickTheDealer"
+            size="small"
+            checked={settings.stickTheDealer}
+            name="stickTheDealer"
+            color="success"
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
+        <div>
+          <label htmlFor="viewPlayerInfoDetail">Player Info Detail: </label>
+          <Switch
+            id="viewPlayerInfoDetail"
+            size="small"
+            checked={settings.viewPlayerInfoDetail}
+            name="viewPlayerInfoDetail"
+            color="success"
+            onChange={(e) => handleCheckChanged(e)}
+          />
         </div>
 
         {isDebugMode && (
@@ -291,12 +289,16 @@ export default function GameSettings({
         >
           Start Game
         </button>
-        <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGame}>
-          Run Test Game
-        </button>
-        <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGameLoop}>
-          Run Test Game Loop
-        </button>
+        {isDebugMode && (
+          <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGame}>
+            Run Test Game
+          </button>
+        )}
+        {isDebugMode && (
+          <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGameLoop}>
+            Run Test Game Loop
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import type { Viewport } from 'next';
 import '@/app/ui/global.css';
-import SideNav from './ui/sidenav';
-import TopNav from './ui/topnav';
+import SideNav from './ui/common/sidenav';
+import TopNav from './ui/common/topnav';
 import AppLink from './ui/link';
 
 export const viewport: Viewport = {
@@ -15,7 +15,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`antialiased`}>
+      <body>
         <div className="fixed top-0 left-0 h-full w-full pl-bg dark:dk-bg"></div>
 
         <SideNav />

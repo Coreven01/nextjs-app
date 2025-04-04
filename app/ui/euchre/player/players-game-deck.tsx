@@ -16,7 +16,7 @@ type Props = {
 };
 
 export default function PlayerGameDeck({ player, game, gameFlow, settings, dealDeck, onCardClick }: Props) {
-  const isDebugMode = true; //env.REACT_APP_DEBUG === 'true';
+  const isDebugMode = false; //env.REACT_APP_DEBUG === 'true';
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;

@@ -1,8 +1,8 @@
 import clsx from 'clsx';
-import ThemeToggle from './theme-toggle';
+import ThemeToggle from '../theme-toggle';
 import Image from 'next/image';
 import Link from 'next/link';
-import { chakraPetch } from './fonts';
+import { chakraPetch } from '../fonts';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;

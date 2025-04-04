@@ -9,7 +9,7 @@ type Props = {
 };
 
 export default function GameTable({ playerNotification }: Props) {
-  const isDebugMode = true; // env.REACT_APP_DEBUG === 'true';
+  const isDebugMode = false; // env.REACT_APP_DEBUG === 'true';
   const renderOrder = [
     playerNotification.player2GameInfo,
     playerNotification.player3GameInfo,

@@ -35,8 +35,13 @@ export default function GameMenu({
 
   useEffect(() => {
     const nav = document.getElementById('site-top-nav');
+    const navMenu = document.getElementById('nav-menu');
     if (nav) {
       nav.style.zIndex = isFullScreen ? '10' : '500';
+    }
+
+    if (navMenu) {
+      navMenu.style.zIndex = isFullScreen ? '20' : '600';
     }
 
     const exitMenu = (event: MouseEvent) => {
@@ -53,6 +58,7 @@ export default function GameMenu({
 
     return () => {
       if (nav) nav.style.zIndex = '500';
+      if (navMenu) navMenu.style.zIndex = '600';
       document.removeEventListener('click', exitMenu);
     };
   }, [isFullScreen, showMenu]);

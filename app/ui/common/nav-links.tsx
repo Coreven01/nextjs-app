@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  HomeIcon,
-  DocumentDuplicateIcon,
-  SparklesIcon,
-  FireIcon
-} from '@heroicons/react/24/outline';
+import { HomeIcon, DocumentDuplicateIcon, SparklesIcon, FireIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
@@ -14,11 +9,16 @@ import clsx from 'clsx';
 // Depending on the size of the application, this would be stored in a database.
 const links = [
   { name: 'Home', href: '/', icon: HomeIcon },
-  {
-    name: 'Dashboard',
-    href: '/dashboard',
-    icon: DocumentDuplicateIcon
-  },
+  // {
+  //   name: 'Courses',
+  //   href: '/courses',
+  //   icon: DocumentDuplicateIcon
+  // },
+  // {
+  //   name: 'Dashboard',
+  //   href: '/dashboard',
+  //   icon: DocumentDuplicateIcon
+  // },
   {
     name: 'Bomb Seeker',
     href: '/bombseeker',
@@ -49,8 +49,7 @@ export default function NavLinks({ onClick }: Props) {
             key={link.name}
             href={link.href}
             className={clsx(`${itemClass}`, {
-              'bg-green-100 text-green-950 dark:bg-green-950 dark:text-white':
-                pathname === link.href,
+              'bg-green-100 text-green-950 dark:bg-green-950 dark:text-white': pathname === link.href,
               'bg-white text-green-950 dark:bg-neutral-900 dark:text-white': pathname !== link.href
             })}
           >
