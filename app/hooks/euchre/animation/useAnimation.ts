@@ -6,15 +6,20 @@ import {
   EuchreSettings,
   GameSpeed
 } from '../../../lib/euchre/definitions';
-import { getPlayerRotation } from '../../../lib/euchre/game';
+
 import useOtherAnimation from './useOtherAnimation';
 import usePlayer1Animation from './usePlayer1Animation';
 import usePlayer2Animation from './usePlayer2Animation';
 import usePlayer3Animation from './usePlayer3Animation';
 import usePlayer4Animation from './usePlayer4Animation';
 import { useCallback } from 'react';
+import useGameStateLogic from '../logic/useGameStateLogic';
+import usePlayerData from '../data/usePlayerData';
 
 export default function useAnimation(settings: EuchreSettings) {
+  const { generateElementId } = useGameStateLogic();
+  const { getPlayerRotation } = usePlayerData();
+
   const { setCardsToMovePlayer1, setElementsForTransformationPlayer1, setElementForFadeOutPlayer1 } =
     usePlayer1Animation();
   const { setCardsToMovePlayer2, setElementsForTransformationPlayer2, setElementForFadeOutPlayer2 } =
@@ -25,6 +30,83 @@ export default function useAnimation(settings: EuchreSettings) {
     usePlayer4Animation();
   const { setCardsToMoveOther, setElementsForTransformationOther, setElementForFadeOutOther } =
     useOtherAnimation();
+
+  interface TransformationValues {
+    location: number | 'o';
+    transformations: CardTransformation[];
+  }
+
+  const getTransformationsForDealCards = (
+    game: EuchreGameInstance,
+    settings: EuchreSettings
+  ): TransformationValues[] => {
+    if (!game) throw Error('Game not found.');
+
+    if (!game?.dealer) throw Error('Game dealer not found for card animation.');
+
+    if (!settings.shouldAnimate) return [];
+
+    const rotation = getPlayerRotation(game.gamePlayers, game.dealer);
+    const retval: TransformationValues[] = [];
+    const trumpCard = game.kitty[0];
+    const dealerNumber = game.dealer?.playerNumber ?? 1;
+
+    //#region Animation deal cards to users.
+    for (let i = 0; i < 8; i++) {
+      const player = rotation[i % 4];
+      const playerNumber = player.playerNumber;
+      const destinationId = ''; //player.innerPlayerBaseId;
+      const firstRound = i < 4;
+      const transformations: CardTransformation[] = [];
+
+      let cardCount: number = 0;
+      cardCount = firstRound ? game.cardDealCount[i % 2] : game.cardDealCount[(i + 1) % 2];
+
+      for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
+        const card = player.hand[firstRound ? cardIndex : 5 - cardCount + cardIndex];
+        const cardSrcId = generateElementId();
+
+        transformations.push({
+          sourceId: cardSrcId,
+          destinationId: destinationId,
+          sourcePlayerNumber: dealerNumber,
+          destinationPlayerNumber: playerNumber,
+          location: 'inner',
+          options: {
+            msDelay: settings.gameSpeed,
+            displayCardValue: false,
+            card: card,
+            cardOffsetHorizontal: 0,
+            cardOffsetVertical: 0
+          }
+        });
+      }
+
+      retval.push({ location: playerNumber, transformations: transformations });
+    }
+
+    retval.push({
+      location: 'o',
+      transformations: [
+        {
+          sourceId: generateElementId(),
+          destinationId: 'game-center',
+          sourcePlayerNumber: dealerNumber,
+          destinationPlayerNumber: 0,
+          location: 'outer',
+          options: {
+            card: trumpCard,
+            displayCardValue: false,
+            msDelay: settings.gameSpeed,
+            cardOffsetVertical: 0,
+            cardOffsetHorizontal: 0
+          }
+        }
+      ]
+    });
+
+    return retval;
+  };
 
   const getFadeOutFunc = useCallback(
     (location: number | 'o'): ((id: string, delay: GameSpeed, duration: GameSpeed) => void) => {
@@ -143,9 +225,9 @@ export default function useAnimation(settings: EuchreSettings) {
     sourcePlayer: EuchrePlayer,
     destinationPlayer: EuchrePlayer
   ) => {
-    const dealDestId = destinationPlayer.playerBase;
+    const dealDestId = ''; //destinationPlayer.playerBase;
     const cardsToMove = new Map<string, Card | undefined>(
-      gameDeck.map((card) => [card.generateElementId(), card])
+      gameDeck.map((card) => [generateElementId(), card])
     );
     cardsToMove.set('deal-dummy', undefined); // add the dummy card, which isn't really a card in the deck.
     const sourcePlayerNumber = sourcePlayer.playerNumber;
@@ -211,80 +293,3 @@ export default function useAnimation(settings: EuchreSettings) {
     setFadeOutForPlayers
   };
 }
-
-interface TransformationValues {
-  location: number | 'o';
-  transformations: CardTransformation[];
-}
-
-const getTransformationsForDealCards = (
-  game: EuchreGameInstance,
-  settings: EuchreSettings
-): TransformationValues[] => {
-  if (!game) throw Error('Game not found.');
-
-  if (!game?.dealer) throw Error('Game dealer not found for card animation.');
-
-  if (!settings.shouldAnimate) return [];
-
-  const rotation = getPlayerRotation(game.gamePlayers, game.dealer);
-  const retval: TransformationValues[] = [];
-  const trumpCard = game.kitty[0];
-  const dealerNumber = game.dealer?.playerNumber ?? 1;
-
-  //#region Animation deal cards to users.
-  for (let i = 0; i < 8; i++) {
-    const player = rotation[i % 4];
-    const playerNumber = player.playerNumber;
-    const destinationId = player.innerPlayerBaseId;
-    const firstRound = i < 4;
-    const transformations: CardTransformation[] = [];
-
-    let cardCount: number = 0;
-    cardCount = firstRound ? game.cardDealCount[i % 2] : game.cardDealCount[(i + 1) % 2];
-
-    for (let cardIndex = 0; cardIndex < cardCount; cardIndex++) {
-      const card = player.availableCards[firstRound ? cardIndex : 5 - cardCount + cardIndex];
-      const cardSrcId = card.generateElementId();
-
-      transformations.push({
-        sourceId: cardSrcId,
-        destinationId: destinationId,
-        sourcePlayerNumber: dealerNumber,
-        destinationPlayerNumber: playerNumber,
-        location: 'inner',
-        options: {
-          msDelay: settings.gameSpeed,
-          displayCardValue: false,
-          card: card,
-          cardOffsetHorizontal: 0,
-          cardOffsetVertical: 0
-        }
-      });
-    }
-
-    retval.push({ location: playerNumber, transformations: transformations });
-  }
-
-  retval.push({
-    location: 'o',
-    transformations: [
-      {
-        sourceId: trumpCard.generateElementId(),
-        destinationId: 'game-center',
-        sourcePlayerNumber: dealerNumber,
-        destinationPlayerNumber: 0,
-        location: 'outer',
-        options: {
-          card: trumpCard,
-          displayCardValue: false,
-          msDelay: settings.gameSpeed,
-          cardOffsetVertical: 0,
-          cardOffsetHorizontal: 0
-        }
-      }
-    ]
-  });
-
-  return retval;
-};

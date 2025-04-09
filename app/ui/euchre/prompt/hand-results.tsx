@@ -4,6 +4,7 @@ import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/
 import GamePrompt from './game-prompt';
 import HandResult from './hand-result';
 import clsx from 'clsx';
+import PromptHeader from './prompt-header';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -25,7 +26,7 @@ export default function HandResults({
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
-        <h3 className="md:text-lg text-sm text-center font-bold text-yellow-200">Hand Results</h3>
+        <PromptHeader>Hand Results</PromptHeader>
         <div className="p-1">
           <HandResult game={game} settings={settings} handResult={handResult}></HandResult>
           <div className="flex gap-1 md:text-base text-xs">

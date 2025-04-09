@@ -1,6 +1,7 @@
-import { getCardClassColorFromSuit, getCardFullName } from '@/app/lib/euchre/card-data';
+import useCardData from '@/app/hooks/euchre/data/useCardData';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
+import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import { EuchreCard, EuchreHandResult, EuchrePlayer, ResultHighlight } from '@/app/lib/euchre/definitions';
-import { cardIsLeftBower } from '@/app/lib/euchre/game';
 import clsx from 'clsx';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
@@ -18,6 +19,10 @@ export default function HandResultDetail({
   className,
   ...rest
 }: Props) {
+  const { playerEqual } = usePlayerData();
+  const { cardIsLeftBower } = useCardData();
+  const { getCardFullName } = useCardSvgData();
+
   return (
     <>
       {cardsPlayed.map((c) => {
@@ -39,7 +44,7 @@ export default function HandResultDetail({
               shouldHighlight = c.player.playerNumber === 4;
               break;
             case 'winner':
-              shouldHighlight = c.player.equal(playerWon);
+              shouldHighlight = playerEqual(c.player, playerWon);
               break;
             case 'trump':
               shouldHighlight =
@@ -72,6 +77,8 @@ interface DetailProps {
   card: EuchreCard;
 }
 function CardDetail({ card }: DetailProps) {
+  const { getCardClassColorFromSuit } = useCardSvgData();
+
   return (
     <>
       <div>

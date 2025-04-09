@@ -3,26 +3,61 @@
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './gameFlowReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
-import { incrementSpeed } from '@/app/lib/euchre/game-setup-logic';
 import { useCallback, useEffect } from 'react';
-import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import { createEvent } from '@/app/lib/euchre/util';
 import {
   getPlayerNotificationType,
   PlayerNotificationAction,
   PlayerNotificationActionType
 } from './playerNotificationReducer';
-import { BidResult, EuchrePlayer, PromptType } from '@/app/lib/euchre/definitions';
-import { getPlayerRotation } from '@/app/lib/euchre/game';
+import { BidResult, EuchreGameInstance, EuchrePlayer, PromptType } from '@/app/lib/euchre/definitions';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import { getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
+import useGameStateLogic from './logic/useGameStateLogic';
+import useGameBidLogic from './logic/useGameBidLogic';
+import usePlayerData from './data/usePlayerData';
+import useGameData from './data/useGameData';
+import useGamePlayLogic from './logic/useGamePlayLogic';
 
 export default function useEuchreGameBid(
   state: EuchreGameState,
   errorState: EuchreErrorState,
   onReset: (value: boolean) => void
 ) {
+  const { isGameStateValidToContinue, generateElementId } = useGameStateLogic();
+  const { determineBid } = useGameBidLogic();
+  const { getGameStateForNextHand } = useGamePlayLogic();
+  const { getPlayerRotation } = usePlayerData();
+  const { incrementSpeed } = useGameData();
+
+  /**
+   *
+   * @param player
+   * @returns
+   */
+  const getPlayerNotificationForAllPassed = useCallback(
+    (player: EuchrePlayer) => {
+      const newAction: PlayerNotificationAction = {
+        type: PlayerNotificationActionType.UPDATE_CENTER,
+        payload: undefined
+      };
+      const id = generateElementId();
+      const infoDetail = (
+        <UserInfo
+          className="p-2 md:text-base text-sm w-auto whitespace-nowrap shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800"
+          id={id}
+          key={id}
+        >
+          <div className="flex gap-2 items-center">All Players Passed</div>
+        </UserInfo>
+      );
+      newAction.payload = infoDetail;
+
+      return newAction;
+    },
+    [generateElementId]
+  );
+
   //#region Bid for Trump *************************************************************************
 
   /** Handle passing the bid to the next player.*/
@@ -105,7 +140,7 @@ export default function useEuchreGameBid(
     try {
       beginAnimationForBidForTrump();
     } catch (e) {}
-  }, [state]);
+  }, [isGameStateValidToContinue, state]);
 
   /** Update game flow when player orders trump.
    *
@@ -148,7 +183,7 @@ export default function useEuchreGameBid(
     )
       return;
 
-    const newGame = state.euchreGame?.shallowCopy();
+    const newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
     if (!newGame?.trump) throw Error('Trump not found for bid for trump.');
     if (!newGame?.currentPlayer) throw Error('Player not found for bid for trump.');
 
@@ -165,7 +200,7 @@ export default function useEuchreGameBid(
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_AWAIT_USER_INPUT });
       state.setPromptValue([{ type: PromptType.BID }]); // Show prompt window for choosing trump or passing for human player.
     } else {
-      const computerChoice: BidResult = newGame.currentPlayer.determineBid(
+      const computerChoice: BidResult = determineBid(
         newGame,
         newGame.trump,
         !state.euchreGameFlow.hasFirstBiddingPassed,
@@ -173,7 +208,7 @@ export default function useEuchreGameBid(
       );
       handlePlayerSelectionForBid(computerChoice);
     }
-  }, [state, handlePlayerSelectionForBid]);
+  }, [determineBid, handlePlayerSelectionForBid, isGameStateValidToContinue, state]);
 
   /** Begin bid for trump game flow.
    *
@@ -201,7 +236,7 @@ export default function useEuchreGameBid(
     )
       return;
 
-    const newGame = state.euchreGame?.shallowCopy();
+    const newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
     if (!newGame?.currentPlayer) throw Error('Current player not found for end bid for trump.');
 
     const biddingRoundFinished = newGame.dealer === newGame.currentPlayer;
@@ -215,11 +250,11 @@ export default function useEuchreGameBid(
     }
 
     const rotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
-    newGame.assignPlayer(rotation[0]);
+    newGame.currentPlayer = rotation[0];
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameFlow });
     state.setEuchreGame(newGame);
-  }, [state]);
+  }, [getPlayerRotation, isGameStateValidToContinue, state]);
 
   /**
    *
@@ -267,7 +302,7 @@ export default function useEuchreGameBid(
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
     state.addEvent(createEvent('i', state.euchreSettings, undefined, 'Deal passed.'));
 
-    const newGame = state.euchreGame?.shallowCopy();
+    const newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
     if (!newGame?.currentPlayer) throw Error('Current player not found for end bid for trump.');
     if (!newGame?.dealer) throw Error('Game dealer not found - Pass deal.');
 
@@ -286,7 +321,14 @@ export default function useEuchreGameBid(
     });
     state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
     state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
-  }, [state]);
+  }, [
+    getGameStateForNextHand,
+    getPlayerNotificationForAllPassed,
+    getPlayerRotation,
+    incrementSpeed,
+    isGameStateValidToContinue,
+    state
+  ]);
 
   useEffect(() => {
     const executePassDeal = async () => {
@@ -300,28 +342,3 @@ export default function useEuchreGameBid(
 
   return { handleBidSubmit };
 }
-
-/**
- *
- * @param player
- * @returns
- */
-const getPlayerNotificationForAllPassed = (player: EuchrePlayer) => {
-  const newAction: PlayerNotificationAction = {
-    type: PlayerNotificationActionType.UPDATE_CENTER,
-    payload: undefined
-  };
-  const id = player.generateElementId();
-  const infoDetail = (
-    <UserInfo
-      className="p-2 md:text-base text-sm w-auto whitespace-nowrap shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800"
-      id={id}
-      key={id}
-    >
-      <div className="flex gap-2 items-center">All Players Passed</div>
-    </UserInfo>
-  );
-  newAction.payload = infoDetail;
-
-  return newAction;
-};

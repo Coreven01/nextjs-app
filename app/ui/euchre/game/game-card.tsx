@@ -1,4 +1,4 @@
-import { getCardFullName } from '@/app/lib/euchre/card-data';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import { Card, EuchrePlayer } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 import Image from 'next/image';
@@ -13,7 +13,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   player: EuchrePlayer;
   responsive?: boolean;
 }
-export default function GameCard({
+const GameCard = ({
   id,
   card,
   src,
@@ -25,7 +25,8 @@ export default function GameCard({
   responsive,
   onClick,
   ...rest
-}: Props) {
+}: Props) => {
+  const { getCardFullName } = useCardSvgData();
   const sidePlayer = player.team === 2;
   const handleCardClick = (e: React.MouseEvent<HTMLImageElement, MouseEvent>) => {
     if (onClick) onClick(e);
@@ -77,7 +78,7 @@ export default function GameCard({
       ></Image>
     </div>
   );
-}
+};
 
 function getOffsetForPlayer(playerNumber: number): string {
   switch (playerNumber) {
@@ -93,3 +94,5 @@ function getOffsetForPlayer(playerNumber: number): string {
 
   return 'top-3 left-2';
 }
+
+export default GameCard;

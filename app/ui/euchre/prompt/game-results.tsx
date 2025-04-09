@@ -89,7 +89,7 @@ export default function GameResults({
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
               <ChevronLeftIcon />
             </button>
-            <PromptHeader className="flex-grow md:text-base text-sm">Game Results</PromptHeader>
+            <PromptHeader className="grow md:text-base text-sm">Game Results</PromptHeader>
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonRight}>
               <ChevronRightIcon />
             </button>

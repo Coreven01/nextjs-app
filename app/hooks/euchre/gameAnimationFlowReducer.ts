@@ -1,5 +1,6 @@
 export enum EuchreAnimateType {
   ANIMATE_NONE = 1,
+  ANIMATE_INTRO,
   ANIMATE_DEAL_FOR_DEALER,
   ANIMATE_RETURN_CARDS_TO_DEALER,
   ANIMATE_PASS_CARDS_TO_PLAYERS,
@@ -15,6 +16,7 @@ export enum EuchreAnimateType {
 
 export enum EuchreAnimationActionType {
   SET_ANIMATE_NONE = 1,
+  SET_ANIMATE_INTRO,
   SET_ANIMATE_DEAL_FOR_DEALER,
   SET_ANIMATE_RETURN_CARDS_TO_DEALER,
   SET_ANIMATE_PASS_CARDS_TO_PLAYERS,
@@ -30,6 +32,7 @@ export enum EuchreAnimationActionType {
 
 const actionTypeMap: Map<EuchreAnimationActionType, EuchreAnimateType> = new Map([
   [EuchreAnimationActionType.SET_ANIMATE_NONE, EuchreAnimateType.ANIMATE_NONE],
+  [EuchreAnimationActionType.SET_ANIMATE_INTRO, EuchreAnimateType.ANIMATE_INTRO],
   [EuchreAnimationActionType.SET_ANIMATE_DEAL_FOR_DEALER, EuchreAnimateType.ANIMATE_DEAL_FOR_DEALER],
   [
     EuchreAnimationActionType.SET_ANIMATE_RETURN_CARDS_TO_DEALER,

@@ -6,10 +6,10 @@ import {
   ResultHighlight
 } from '@/app/lib/euchre/definitions';
 import PlayerColor from '../player/player-team-color';
-import { getCardClassColorFromSuit, getSuitName } from '@/app/lib/euchre/card-data';
 import clsx from 'clsx';
 import HandResultDetail from './hand-result-detail';
 import { useState } from 'react';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -18,6 +18,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 export default function HandResult({ game, settings, handResult, className, ...rest }: Props) {
+  const { getCardClassColorFromSuit, getSuitName } = useCardSvgData();
   const [selectedHighlight, setSelectedHighlight] = useState<ResultHighlight>('winner');
   if (!handResult) throw new Error('No hand result was found');
 
@@ -79,7 +80,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
           players={[...game.gamePlayers]}
           selection={selectedHighlight}
           onSelectionChanged={handleSelectionChanged}
-          className="flex-grow md:text-base text-sm"
+          className="grow md:text-base text-sm"
         />
 
         {playerReneged && (
@@ -103,7 +104,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
                 highlight={selectedHighlight}
               />
               {!playerReneged && (
-                <div className="flex-grow md:min-w-36">
+                <div className="grow md:min-w-36">
                   <PlayerColor player={t.taker} settings={settings}>
                     <div className="bg-stone-800 p-1 text-center">Winner: {t.taker.name}</div>
                   </PlayerColor>

@@ -1,3 +1,4 @@
+import useCardData from '@/app/hooks/euchre/data/useCardData';
 import { Card } from '@/app/lib/euchre/definitions';
 import Image from 'next/image';
 import React from 'react';
@@ -7,11 +8,12 @@ type Props = {
   location: 'center' | 'side';
 };
 
-export default function GameDeck({ deck, location }: Props) {
+const GameDeck = ({ deck, location }: Props) => {
+  const { getDisplayWidth, getDisplayHeight } = useCardData();
   const images: React.ReactNode[] = [];
-  const dummyCard: Card = new Card('♠', 'P');
-  const width = dummyCard.getDisplayWidth(location);
-  const height = dummyCard.getDisplayHeight(location);
+  const dummyCard: Card = { suit: '♠', value: 'P', index: 0 };
+  const width = getDisplayWidth(location);
+  const height = getDisplayHeight(location);
   const cardBackSvg = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
 
   const dummyCardImg = (
@@ -33,7 +35,6 @@ export default function GameDeck({ deck, location }: Props) {
   for (const card of deck) {
     images.push(
       <Image
-        id={card.cardId}
         key={index}
         className={`contain absolute top-0 left-0 transition duration-500 ease-in-out h-full`}
         quality={100}
@@ -48,4 +49,6 @@ export default function GameDeck({ deck, location }: Props) {
   }
 
   return <>{images}</>;
-}
+};
+
+export default GameDeck;

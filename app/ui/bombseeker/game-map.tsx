@@ -44,10 +44,7 @@ export default function GameMap() {
   const handlePlay = (newExposedMap: TileValue[][]) => {
     dispatchGameMapState({
       type: GameMapActionType.UPDATE_EXPOSED,
-      payload: {
-        ...gameMapState,
-        exposedMap: newExposedMap
-      }
+      payload: newExposedMap
     });
   };
 
@@ -84,11 +81,12 @@ export default function GameMap() {
 
     const newBombMap = createBombMap(rowCount, columnCount, bombCount);
     dispatchGameMapState({
-      type: GameMapActionType.UPDATE_ALL,
-      payload: {
-        exposedMap: create2DArray(rowCount, columnCount),
-        bombMap: newBombMap
-      }
+      type: GameMapActionType.UPDATE_EXPOSED,
+      payload: create2DArray(rowCount, columnCount)
+    });
+    dispatchGameMapState({
+      type: GameMapActionType.UPDATE_BOMB,
+      payload: newBombMap
     });
 
     const selectedTile = { row: 0, column: 0 };

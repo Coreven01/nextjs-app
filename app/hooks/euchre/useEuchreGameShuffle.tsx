@@ -3,21 +3,68 @@
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './gameFlowReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
-import { shuffleAndDealHand } from '@/app/lib/euchre/game-setup-logic';
 import { useCallback, useEffect } from 'react';
-import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import { createEvent } from '@/app/lib/euchre/util';
 import { PlayerNotificationActionType } from './playerNotificationReducer';
-import { Card, EuchrePlayer } from '@/app/lib/euchre/definitions';
+import { Card, EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/definitions';
 import EphemeralModal from '@/app/ui/euchre/ephemeral-modal';
 import GameBorder from '@/app/ui/euchre/game/game-border';
 import GameCard from '@/app/ui/euchre/game/game-card';
-import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
-import { getGameStateForNextHand } from '@/app/lib/euchre/game-play-logic';
 import clsx from 'clsx';
+import useGameSetupLogic from './logic/useGameSetupLogic';
+import useGamePlayLogic from './logic/useGamePlayLogic';
+import useGameStateLogic from './logic/useGameStateLogic';
+import useCardSvgData from './data/useCardSvgData';
+import useCardData from './data/useCardData';
 
-export default function useEuchreGameShuffle(state: EuchreGameState, errorState: EuchreErrorState) {
+const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorState) => {
+  const { isGameStateValidToContinue, generateElementId } = useGameStateLogic();
+  const { shuffleAndDealHand } = useGameSetupLogic();
+  const { getGameStateForNextHand } = useGamePlayLogic();
+  const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
+  const { getDisplayHeight, getDisplayWidth } = useCardData();
+
   const FLIPPED_CARD_ID = 'flipped-card';
+
+  /** */
+  const getFaceUpCard = useCallback(
+    (id: string, card: Card, player: EuchrePlayer, fadeOut: boolean) => {
+      return (
+        <EphemeralModal
+          key={`${generateElementId()}`}
+          durationMs={150}
+          delayMs={150}
+          fadeType={fadeOut ? 'out' : 'in'}
+          className={clsx(
+            'md:h-full md:relative md:right-auto md:top-auto absolute -right-16 -top-8 h-8',
+            { 'opacity-100': fadeOut },
+            { 'opacity-0': !fadeOut }
+          )}
+        >
+          <GameBorder
+            innerClass="bg-stone-800 w-20 md:w-full"
+            className="shadow-md shadow-black"
+            size="small"
+          >
+            <div className="p-2 bg-green-950 flex items-center justify-center">
+              <GameCard
+                responsive={true}
+                id={id}
+                player={player}
+                card={card}
+                enableShadow={true}
+                width={getDisplayWidth('center')}
+                height={getDisplayHeight('center')}
+                src={getEncodedCardSvg(card, 'center')}
+                title={getCardFullName(card)}
+              ></GameCard>
+            </div>
+          </GameBorder>
+        </EphemeralModal>
+      );
+    },
+    [generateElementId, getCardFullName, getDisplayHeight, getDisplayWidth, getEncodedCardSvg]
+  );
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
 
@@ -39,7 +86,7 @@ export default function useEuchreGameShuffle(state: EuchreGameState, errorState:
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
-    let newGame = state.euchreGame?.shallowCopy();
+    let newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
     if (!newGame?.dealer) throw new Error('Dealer not found for shuffle and deal.');
 
     state.addEvent(
@@ -77,7 +124,7 @@ export default function useEuchreGameShuffle(state: EuchreGameState, errorState:
       type: EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
     });
     state.setEuchreGame(newGame);
-  }, [state]);
+  }, [getFaceUpCard, getGameStateForNextHand, isGameStateValidToContinue, shuffleAndDealHand, state]);
 
   useEffect(() => {
     try {
@@ -121,42 +168,11 @@ export default function useEuchreGameShuffle(state: EuchreGameState, errorState:
     };
 
     beginAnimationForDealCards();
-  }, [state]);
+  }, [isGameStateValidToContinue, state]);
 
   //#endregion
 
   return {};
-}
-
-/** */
-const getFaceUpCard = (id: string, card: Card, player: EuchrePlayer, fadeOut: boolean) => {
-  return (
-    <EphemeralModal
-      key={`${card.cardId}`}
-      durationMs={150}
-      delayMs={150}
-      fadeType={fadeOut ? 'out' : 'in'}
-      className={clsx(
-        'md:h-full md:relative md:right-auto md:top-auto absolute -right-16 -top-8 h-8',
-        { 'opacity-100': fadeOut },
-        { 'opacity-0': !fadeOut }
-      )}
-    >
-      <GameBorder innerClass="bg-stone-800 w-20 md:w-full" className="shadow-md shadow-black" size="small">
-        <div className="p-2 bg-green-950 flex items-center justify-center">
-          <GameCard
-            responsive={true}
-            id={id}
-            player={player}
-            card={card}
-            enableShadow={true}
-            width={card.getDisplayWidth('center')}
-            height={card.getDisplayHeight('center')}
-            src={getEncodedCardSvg(card, 'center')}
-            title={getCardFullName(card)}
-          ></GameCard>
-        </div>
-      </GameBorder>
-    </EphemeralModal>
-  );
 };
+
+export default useEuchreGameShuffle;

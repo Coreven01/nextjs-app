@@ -10,6 +10,8 @@ export enum EuchreGameFlow {
   AWAIT_USER_INPUT = 1,
   WAIT,
   ERROR,
+  BEGIN_INTRO,
+  END_INTRO,
   BEGIN_INIT_DEAL,
   END_INIT_DEAL,
   BEGIN_DEAL_FOR_DEALER,
@@ -37,6 +39,8 @@ export enum EuchreFlowActionType {
   SET_WAIT,
   SET_ERROR,
   SET_AWAIT_USER_INPUT,
+  SET_BEGIN_INTRO,
+  SET_END_INTRO,
   SET_BEGIN_INIT_DEAL,
   SET_END_INIT_DEAL,
   SET_BEGIN_DEAL_FOR_DEALER,
@@ -82,7 +86,9 @@ const actionTypeMap: Map<EuchreFlowActionType, EuchreGameFlow> = new Map([
   [EuchreFlowActionType.SET_END_PLAY_CARD_RESULT, EuchreGameFlow.END_PLAY_CARD_RESULT],
   [EuchreFlowActionType.SET_WAIT, EuchreGameFlow.WAIT],
 
-  [EuchreFlowActionType.SET_ERROR, EuchreGameFlow.ERROR]
+  [EuchreFlowActionType.SET_ERROR, EuchreGameFlow.ERROR],
+  [EuchreFlowActionType.SET_BEGIN_INTRO, EuchreGameFlow.BEGIN_INTRO],
+  [EuchreFlowActionType.SET_END_INTRO, EuchreGameFlow.END_INTRO]
 ]);
 export interface EuchreGameFlowState {
   /** Boolean value to identify if a game has yet been created. */
@@ -113,7 +119,7 @@ export const INIT_GAME_FLOW_STATE: EuchreGameFlowState = {
   shouldShowCardValuesForHand: [],
   hasSecondBiddingPassed: false,
   hasFirstBiddingPassed: false,
-  gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL
+  gameFlow: EuchreGameFlow.BEGIN_INTRO
 };
 
 export function gameFlowStateReducer(

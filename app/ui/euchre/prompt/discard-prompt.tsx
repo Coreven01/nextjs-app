@@ -1,6 +1,3 @@
-'use client';
-
-import { getCardFullName, getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { Card } from '@/app/lib/euchre/definitions';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -8,6 +5,8 @@ import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import GameBorder from '../game/game-border';
 import CardSelection from './card-selection';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
+import useCardData from '@/app/hooks/euchre/data/useCardData';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   pickedUpCard: Card;
@@ -22,6 +21,8 @@ export default function DiscardPrompt({
   className,
   ...rest
 }: DivProps) {
+  const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
+  const { getDisplayHeight, getDisplayWidth } = useCardData();
   const [discardSelection, setDiscardSelection] = useState<string | null>(null);
   const submitEnabled = discardSelection !== null;
 
@@ -57,8 +58,8 @@ export default function DiscardPrompt({
                 <Image
                   className={`contain row-span-1 col-span-1`}
                   quality={100}
-                  width={pickedUpCard.getDisplayWidth('center')}
-                  height={pickedUpCard.getDisplayHeight('center')}
+                  width={getDisplayWidth('center')}
+                  height={getDisplayHeight('center')}
                   src={getEncodedCardSvg(pickedUpCard, 'center')}
                   alt={getCardFullName(pickedUpCard)}
                   title={getCardFullName(pickedUpCard)}

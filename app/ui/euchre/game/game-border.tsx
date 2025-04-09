@@ -5,12 +5,15 @@ import React from 'react';
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   innerClass?: string;
-  size?: 'small' | 'normal';
+  size?: 'small' | 'medium' | 'large';
 }
 
-const maxHeight = 12;
-const height = 8;
+const smHeight = 8;
+const mdHeight = 10;
+const lgHeight = 12;
+
 const width = 300;
+const height = 8;
 
 const boardVals = [
   [2, 5, 3, 1, 4, 2, 5],
@@ -19,7 +22,20 @@ const boardVals = [
   [4, 2, 1, 5, 3, 4, 2]
 ];
 
-export default function GameBorder({ children, className, innerClass, size = 'normal', ...rest }: DivProps) {
+const GameBorder = ({ children, className, innerClass, size = 'medium', ...rest }: DivProps) => {
+  let sizeVal = 0;
+  switch (size) {
+    case 'large':
+      sizeVal = lgHeight;
+      break;
+    case 'medium':
+      sizeVal = mdHeight;
+      break;
+    case 'small':
+      sizeVal = smHeight;
+      break;
+  }
+
   const cornerImg = (
     <div>
       <Image
@@ -33,10 +49,10 @@ export default function GameBorder({ children, className, innerClass, size = 'no
         priority={true}
         className={`contain border border-black`}
         style={{
-          width: size === 'small' ? height : maxHeight,
-          height: size === 'small' ? height : maxHeight,
-          maxHeight: size === 'small' ? height : maxHeight,
-          maxWidth: size === 'small' ? height : maxHeight
+          width: sizeVal,
+          height: sizeVal,
+          maxHeight: sizeVal,
+          maxWidth: sizeVal
         }}
       />
     </div>
@@ -52,30 +68,31 @@ export default function GameBorder({ children, className, innerClass, size = 'no
     >
       {cornerImg}
       <div className="relative">
-        <BorderHorizontal location={1} values={boardVals[0]} size={size} />
+        <BorderHorizontal location={1} values={boardVals[0]} size={sizeVal} />
       </div>
       {cornerImg}
       <div className="relative overflow-hidden">
-        <BorderVertical location={1} values={boardVals[1]} size={size} />
+        <BorderVertical location={1} values={boardVals[1]} size={sizeVal} />
       </div>
       <div className={clsx('', innerClass, { 'bg-white dark:bg-stone-800': innerClass === undefined })}>
         {children}
       </div>
       <div className="relative overflow-hidden">
-        <BorderVertical location={2} values={boardVals[2]} size={size} />
+        <BorderVertical location={2} values={boardVals[2]} size={sizeVal} />
       </div>
       {cornerImg}
       <div className="relative">
-        <BorderHorizontal location={2} values={boardVals[3]} size={size} />
+        <BorderHorizontal location={2} values={boardVals[3]} size={sizeVal} />
       </div>
       {cornerImg}
     </div>
   );
-}
+};
+
 interface Props {
   location: 1 | 2;
   values: number[];
-  size: 'small' | 'normal';
+  size: number;
 }
 
 function BorderHorizontal({ location, values, size }: Props) {
@@ -98,8 +115,8 @@ function BorderHorizontal({ location, values, size }: Props) {
             style={{
               width: '100%',
               height: 'auto',
-              maxWidth: size === 'small' ? width : '100%',
-              maxHeight: size === 'small' ? height : maxHeight
+              maxWidth: '100%',
+              maxHeight: size
             }}
           />
         );
@@ -130,8 +147,8 @@ function BorderVertical({ location, values, size }: Props) {
             style={{
               width: 'auto',
               height: '100%',
-              maxWidth: size === 'small' ? height : maxHeight,
-              maxHeight: size === 'small' ? width : '100%'
+              maxWidth: size,
+              maxHeight: '100%'
             }}
           />
         );
@@ -141,3 +158,5 @@ function BorderVertical({ location, values, size }: Props) {
 
   return <>{boardRow}</>;
 }
+
+export default GameBorder;

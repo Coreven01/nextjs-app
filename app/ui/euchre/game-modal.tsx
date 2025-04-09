@@ -1,5 +1,3 @@
-'use client';
-
 import clsx from 'clsx';
 import { RefObject, useEffect, useRef } from 'react';
 

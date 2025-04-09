@@ -27,10 +27,7 @@ export default function TopNav({ children, className }: Props) {
         </Link>
       </div>
       <div
-        className={clsx(
-          `text-xl text-black dark:text-white md:text-3xl md:pl-5 flex-grow`,
-          chakraPetch.className
-        )}
+        className={clsx(`text-xl text-black dark:text-white md:text-3xl md:pl-5 grow`, chakraPetch.className)}
       >
         {children}
       </div>

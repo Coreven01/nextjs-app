@@ -2,8 +2,9 @@ import Draggable, { DraggableEvent } from 'react-draggable';
 import { RefObject, useRef } from 'react';
 import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
 import PlayerColor from '../player/player-team-color';
-import { getSuitName } from '@/app/lib/euchre/card-data';
 import GameBorderBare from './game-border-bare';
+import useGameData from '@/app/hooks/euchre/data/useGameData';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -12,12 +13,15 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   showScore: boolean;
 }
 
-export default function GameScore({ children, className, game, settings, showScore, ...rest }: DivProps) {
-  const teamOnePoints = game.teamPoints(1);
-  const teamTwoPoints = game.teamPoints(2);
+const GameScore = ({ children, className, game, settings, showScore, ...rest }: DivProps) => {
+  const { teamPoints } = useGameData();
+  const { getSuitName } = useCardSvgData();
+
+  const teamOnePoints = teamPoints(game, 1);
+  const teamTwoPoints = teamPoints(game, 2);
   const draggableRef: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
-  const tricksOneCount = game.handTricks.filter((t) => t.taker?.team === 1).length;
-  const tricksTwoCount = game.handTricks.filter((t) => t.taker?.team === 2).length;
+  const tricksOneCount = game.currentTricks.filter((t) => t.taker?.team === 1).length;
+  const tricksTwoCount = game.currentTricks.filter((t) => t.taker?.team === 2).length;
 
   const handleDrag = (e: DraggableEvent, data: object) => {
     console.log('dragging:', data);
@@ -91,4 +95,6 @@ export default function GameScore({ children, className, game, settings, showSco
       </div>
     </Draggable>
   );
-}
+};
+
+export default GameScore;

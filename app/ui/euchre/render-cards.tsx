@@ -1,7 +1,9 @@
 import { Card, CardBackColor, CardValue, EuchrePlayer, Suit } from '@/app/lib/euchre/definitions';
 import GameCard from './game/game-card';
-import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import clsx from 'clsx';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
+import useCardData from '@/app/hooks/euchre/data/useCardData';
+import useGameSetupLogic from '@/app/hooks/euchre/logic/useGameSetupLogic';
 
 interface Props {
   color: CardBackColor;
@@ -9,10 +11,14 @@ interface Props {
   rotate: boolean;
 }
 export default function RenderCards({ color, size, rotate }: Props) {
+  const { getEncodedCardSvg } = useCardSvgData();
+  const { getDisplayHeight, getDisplayWidth } = useCardData();
+  const { createPlayer } = useGameSetupLogic();
+
   const cardValues: CardValue[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
   const suits: Suit[] = ['♠', '♥', '♦', '♣'];
-  const tempCard = new Card('♠', '2');
-  const tempPlayer = new EuchrePlayer('temp', 1, 1);
+  const tempCard: Card = { suit: '♠', value: '2', index: 0 };
+  const tempPlayer: EuchrePlayer = createPlayer('temp', 1, 1);
 
   return (
     <div className="bg-white p-2 overflow-auto">
@@ -20,8 +26,8 @@ export default function RenderCards({ color, size, rotate }: Props) {
         <GameCard
           id="back-card-1"
           card={tempCard}
-          width={tempCard.getDisplayWidth('center')}
-          height={tempCard.getDisplayHeight('center')}
+          width={getDisplayWidth('center')}
+          height={getDisplayHeight('center')}
           player={tempPlayer}
           src={'/card-back.svg'}
           enableShadow={true}
@@ -29,8 +35,8 @@ export default function RenderCards({ color, size, rotate }: Props) {
         <GameCard
           id="back-card-2"
           card={tempCard}
-          width={tempCard.getDisplayWidth('side')}
-          height={tempCard.getDisplayHeight('side')}
+          width={getDisplayWidth('side')}
+          height={getDisplayHeight('side')}
           player={tempPlayer}
           src={'/card-back-side.svg'}
           enableShadow={true}
@@ -47,9 +53,9 @@ export default function RenderCards({ color, size, rotate }: Props) {
             key={s}
           >
             {cardValues.map((c) => {
-              const card = new Card(s, c);
-              const h = card.getDisplayHeight('center');
-              const w = card.getDisplayWidth('center');
+              const card: Card = { suit: s, value: c, index: 0 };
+              const h = getDisplayHeight('center');
+              const w = getDisplayWidth('center');
 
               return (
                 <div key={`${s}${c}`}>
@@ -81,10 +87,10 @@ export default function RenderCards({ color, size, rotate }: Props) {
             key={s}
           >
             {cardValues.map((c) => {
-              const card = new Card(s, c);
-              const h = card.getDisplayHeight('side');
-              const w = card.getDisplayWidth('side');
-              const p = new EuchrePlayer('temp', 2, 3);
+              const card: Card = { suit: s, value: c, index: 0 };
+              const h = getDisplayHeight('side');
+              const w = getDisplayWidth('side');
+              const p = createPlayer('temp', 2, 3);
               return (
                 <GameCard
                   className={clsx({ '-rotate-90': rotate })}

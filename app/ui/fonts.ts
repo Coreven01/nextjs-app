@@ -1,4 +1,4 @@
-import { Inter, Lusitana, Chakra_Petch, Orbitron } from 'next/font/google';
+import { Inter, Lusitana, Chakra_Petch, Orbitron, Acme } from 'next/font/google';
 
 export const orbitron = Orbitron({
   weight: '400',
@@ -17,6 +17,11 @@ export const inter = Inter({
 });
 
 export const chakraPetch = Chakra_Petch({
+  weight: '400',
+  subsets: ['latin']
+});
+
+export const caveat = Acme({
   weight: '400',
   subsets: ['latin']
 });

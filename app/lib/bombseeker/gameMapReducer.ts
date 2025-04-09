@@ -10,13 +10,12 @@ export interface GameMapState {
 
 interface ActionType {
   type: GameMapActionType;
-  payload: GameMapState;
+  payload: TileValue[][];
 }
 
 export enum GameMapActionType {
   UPDATE_EXPOSED,
-  UPDATE_BOMB,
-  UPDATE_ALL
+  UPDATE_BOMB
 }
 
 export const initialGameMapState: GameMapState = {
@@ -26,12 +25,10 @@ export const initialGameMapState: GameMapState = {
 
 export function gameMapReducer(state: GameMapState, action: ActionType) {
   if (action.type === GameMapActionType.UPDATE_EXPOSED) {
-    return { ...state, exposedMap: action.payload.exposedMap };
+    return { ...state, exposedMap: action.payload };
   } else if (action.type === GameMapActionType.UPDATE_BOMB) {
-    return { ...state, bombMap: action.payload.bombMap };
-  } else if (action.type === GameMapActionType.UPDATE_ALL) {
-    return { ...state, ...action.payload };
+    return { ...state, bombMap: action.payload };
   } else {
-    throw Error('Unknown action: ' + action.type);
+    throw Error('Unknown game map state action: ' + action.type);
   }
 }

@@ -12,7 +12,8 @@ interface Props {
   onClear: () => void;
   onClose: () => void;
 }
-export default function GameEvents({ className, events, onClear, onClose }: Props) {
+
+const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   const draggableRef: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
   const divRef = useRef<HTMLDivElement>(null);
 
@@ -30,9 +31,7 @@ export default function GameEvents({ className, events, onClear, onClose }: Prop
     onClose();
   };
 
-  const handleDrag = (e: DraggableEvent, data: object) => {
-    //console.log('dragging:', data);
-  };
+  const handleDrag = (e: DraggableEvent, data: object) => {};
 
   return (
     <Draggable
@@ -68,4 +67,6 @@ export default function GameEvents({ className, events, onClear, onClose }: Prop
       </div>
     </Draggable>
   );
-}
+};
+
+export default GameEvents;

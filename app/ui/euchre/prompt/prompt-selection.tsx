@@ -1,4 +1,4 @@
-import { getCardClassColorFromSuit } from '@/app/lib/euchre/card-data';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import { Suit } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 
@@ -23,10 +23,14 @@ export default function PromptSelection({
   onSelectionChanged,
   ...rest
 }: Props) {
+  const { getCardClassColorFromSuit } = useCardSvgData();
   return (
     <div key={suit} className={clsx('flex relative items-center justify-center', className)} {...rest}>
       <div
-        className={`absolute pointer-events-none ${getCardClassColorFromSuit(suit)} md:text-2xl text-xl font-bold`}
+        className={clsx(
+          `absolute pointer-events-none md:text-2xl text-xl font-bold`,
+          getCardClassColorFromSuit(suit)
+        )}
       >
         {children}
       </div>
@@ -39,8 +43,8 @@ export default function PromptSelection({
         value={value}
         className={clsx(
           `appearance-none border 
-            rounded w-full md:h-8 h-6 inset-shadow-sm shadow-xl checked:bg-red-200 hover:checked:bg-red-200 focus:bg-amber-300 text-white 
-            focus:active:bg-red-200 disabled:cursor-not-allowed checked:focus:bg-red-200`,
+            rounded w-full md:h-8 h-6 inset-shadow-sm shadow-xl checked:bg-red-200 hover:checked:bg-red-200 text-white checked:hover:border-red-600
+            focus:active:bg-red-200 disabled:cursor-not-allowed checked:focus:bg-red-200 checked:border checked:border-red-600`,
           buttonSvg,
           { 'cursor-pointer hover:bg-amber-100': isEnabled }
         )}

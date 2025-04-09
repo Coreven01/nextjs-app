@@ -3,11 +3,11 @@
 import { EuchreFlowActionType, EuchreGameFlow } from './gameFlowReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
-import { dealCardsForDealer } from '@/app/lib/euchre/game-setup-logic';
 import { useCallback, useEffect } from 'react';
-import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import { createEvent } from '@/app/lib/euchre/util';
 import { InitDealResult } from '@/app/lib/euchre/logic-definitions';
+import useGameStateLogic from './logic/useGameStateLogic';
+import useGameSetupLogic from './logic/useGameSetupLogic';
 
 /**
  *
@@ -15,6 +15,9 @@ import { InitDealResult } from '@/app/lib/euchre/logic-definitions';
  * @returns
  */
 export default function useEuchreGameInitDeal(state: EuchreGameState, errorState: EuchreErrorState) {
+  const { isGameStateValidToContinue } = useGameStateLogic();
+  const { dealCardsForDealer } = useGameSetupLogic();
+
   //#region Deal Cards For Initial Dealer *************************************************************************
 
   /** Deal cards to determine who the initial dealer will be for the game. First jack dealt to a user will become the initial dealer.
@@ -38,7 +41,7 @@ export default function useEuchreGameInitDeal(state: EuchreGameState, errorState
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
-    const newGame = state.euchreGame.shallowCopy();
+    const newGame = { ...state.euchreGame };
     state.addEvent(
       createEvent('v', state.euchreSettings, undefined, 'Begin deal cards to determine initial dealer.')
     );
@@ -52,12 +55,13 @@ export default function useEuchreGameInitDeal(state: EuchreGameState, errorState
 
     if (!dealResult) throw Error('Unable to determine dealer for initial dealer.');
 
-    newGame.assignDealerAndPlayer(dealResult.newDealer);
+    newGame.currentPlayer = dealResult.newDealer;
+    newGame.dealer = dealResult.newDealer;
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_DEAL_FOR_DEALER });
     state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_DEAL_FOR_DEALER });
     state.setEuchreGame(newGame);
-  }, [state]);
+  }, [dealCardsForDealer, isGameStateValidToContinue, state]);
 
   /** Animate dealing cards for initial dealer. When finished with animation, begin shuffle and deal for regular play.
    *
@@ -86,7 +90,7 @@ export default function useEuchreGameInitDeal(state: EuchreGameState, errorState
     };
 
     beginAnimationForInitDeal();
-  }, [state]);
+  }, [isGameStateValidToContinue, state]);
 
   useEffect(() => {
     try {
@@ -116,7 +120,7 @@ export default function useEuchreGameInitDeal(state: EuchreGameState, errorState
     // stub to run logic after cards are dealt for initial dealer.
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_SHUFFLE_CARDS });
-  }, [state]);
+  }, [isGameStateValidToContinue, state]);
 
   useEffect(() => {
     endDealCardsForDealer();

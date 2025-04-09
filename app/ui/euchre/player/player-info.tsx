@@ -1,7 +1,8 @@
 import { EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
-import GameHighlight from '../game/game-hightlight';
+import GameHighlight from '../game/game-highlight';
 import PlayerColor from './player-team-color';
 import GameBorderBare from '../game/game-border-bare';
+import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
@@ -9,12 +10,13 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   settings: EuchreSettings;
 }
 
-export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
-  const isDealer = game.dealer && player.equal(game.dealer);
-  const isMaker = game.maker && player.equal(game.maker);
+const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
+  const { playerEqual } = usePlayerData();
+  const isDealer = playerEqual(player, game.dealer);
+  const isMaker = game.maker && playerEqual(player, game.maker);
   const isSittingOut = game.loner && game.maker?.team === player.team && game.maker !== player;
   const suit = game.trump?.suit;
-  const tricksCount = game.handTricks.filter((t) => t.taker === player).length;
+  const tricksCount = game.currentTricks.filter((t) => t.taker === player).length;
   let infoToRender: React.ReactNode[] = [];
   const shortHandInfo: React.ReactNode[] = [];
   const infoClass = 'text-red-800 dark:text-yellow-400';
@@ -109,4 +111,6 @@ export default function PlayerInfo({ player, game, settings, ...rest }: Props) {
       </GameBorderBare>
     </GameHighlight>
   );
-}
+};
+
+export default PlayerInfo;

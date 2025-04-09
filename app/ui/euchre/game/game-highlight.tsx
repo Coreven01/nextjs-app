@@ -7,14 +7,14 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   highlightColorCss: string;
 }
 
-export default function GameHighlight({
+const GameHighlight = ({
   children,
   className,
   enablePulse,
   enableHighlight,
   highlightColorCss,
   ...rest
-}: DivProps) {
+}: DivProps) => {
   return (
     <div {...rest} className={clsx('relative', className)}>
       {enableHighlight && (
@@ -32,4 +32,6 @@ export default function GameHighlight({
       {children}
     </div>
   );
-}
+};
+
+export default GameHighlight;

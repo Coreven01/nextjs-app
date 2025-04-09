@@ -22,7 +22,7 @@ interface Props {
   onCancel: () => void;
 }
 
-export default function GameArea({
+const GameArea = ({
   gameInstance,
   gameFlow,
   gameSettings,
@@ -37,7 +37,7 @@ export default function GameArea({
   onScoreToggle,
   onCardPlayed,
   onCancel
-}: Props) {
+}: Props) => {
   return (
     <div
       className={`grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,auto)_minmax(50px,auto)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,600px)_minmax(50px,auto)] md:gap-4 md:grid-rows-[150px,1fr,1fr,150px] md:grid-cols-[150px,600px,150px]`}
@@ -98,4 +98,6 @@ export default function GameArea({
       </div>
     </div>
   );
-}
+};
+
+export default GameArea;

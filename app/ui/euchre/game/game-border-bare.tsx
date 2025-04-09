@@ -6,7 +6,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   innerClass?: string;
 }
 
-export default function GameBorderBare({ children, className, innerClass, ...rest }: DivProps) {
+const GameBorderBare = ({ children, className, innerClass, ...rest }: DivProps) => {
   const borderClass = 'h-full w-full bg-yellow-900 border border-stone-800';
 
   return (
@@ -24,4 +24,6 @@ export default function GameBorderBare({ children, className, innerClass, ...res
       <div className={borderClass}></div>
     </div>
   );
-}
+};
+
+export default GameBorderBare;

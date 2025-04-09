@@ -9,17 +9,14 @@ import {
 import { PlayerNotificationActionType } from './playerNotificationReducer';
 import { EuchreAnimationActionType } from './gameAnimationFlowReducer';
 import { EuchreGameState } from './useEuchreGame';
-import { getGameStateForInitialDeal, initDeckForInitialDeal } from '@/app/lib/euchre/game-setup-logic';
+import { PromptType } from '@/app/lib/euchre/definitions';
+import useGameSetupLogic from './logic/useGameSetupLogic';
+import { useState } from 'react';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(state: EuchreGameState) {
-  /**
-   *
-   */
-  const beginNewGame = () => {
-    reset(true);
-    createGame();
-  };
+  const { initDeckForInitialDeal, getGameStateForInitialDeal } = useGameSetupLogic();
+  const [showIntro, setShowIntro] = useState(true);
 
   /**
    * Reset game and game state flow to defaults.
@@ -50,7 +47,12 @@ export default function useEuchreGameInit(state: EuchreGameState) {
       payload: undefined
     });
 
-    state.setPromptValue([]);
+    if (showIntro) {
+      state.setPromptValue([{ type: PromptType.INTRO }]);
+    } else {
+      state.setPromptValue([]);
+    }
+
     state.setBidResult(null);
     state.setPlayedCard(null);
   };
@@ -72,6 +74,7 @@ export default function useEuchreGameInit(state: EuchreGameState) {
       type: EuchreFlowActionType.UPDATE_ALL,
       payload: newGameFlowState
     });
+    state.setPromptValue([]);
     state.setEuchreGame(newGame);
     state.setShouldCancel(false);
   };
@@ -83,5 +86,9 @@ export default function useEuchreGameInit(state: EuchreGameState) {
     state.setEuchreGame(null);
   };
 
-  return { reset, beginNewGame, cancelAndReset };
+  const handleBeginGame = () => {
+    createGame();
+  };
+
+  return { reset, handleBeginGame, cancelAndReset };
 }

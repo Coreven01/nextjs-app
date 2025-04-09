@@ -2,17 +2,28 @@
 
 import { EuchreGameFlowState, INIT_GAME_FLOW_STATE } from './gameFlowReducer';
 import {
-  dealCardsForDealer,
-  initDeckForInitialDeal,
-  orderTrump,
-  shuffleAndDealHand
-} from '@/app/lib/euchre/game-setup-logic';
-import { BidResult, Card, EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
-import { getPlayerRotation } from '@/app/lib/euchre/game';
+  BidResult,
+  Card,
+  EuchreCard,
+  EuchreGameInstance,
+  EuchreSettings
+} from '@/app/lib/euchre/definitions';
 import { createEvent, logDebugError } from '@/app/lib/euchre/util';
+import useGameSetupLogic from './logic/useGameSetupLogic';
+import useGameBidLogic from './logic/useGameBidLogic';
+import usePlayerData from './data/usePlayerData';
+import useGameData from './data/useGameData';
+import useGamePlayLogic from './logic/useGamePlayLogic';
 
 /**  */
 export default function useEuchreGameAuto() {
+  const { initDeckForInitialDeal, dealCardsForDealer, shuffleAndDealHand, createTrick } = useGameSetupLogic();
+  const { determineBid, determineDiscard, orderTrump } = useGameBidLogic();
+  const { getPlayerRotation, discard } = usePlayerData();
+  const { determineCardToPlay } = useGamePlayLogic();
+  const { teamPoints, handFinished, trickFinished, updateIfHandOver, updateIfTrickOver, playerSittingOut } =
+    useGameData();
+
   /** Run through a full game with AI players.
    *
    */
@@ -31,7 +42,8 @@ export default function useEuchreGameAuto() {
 
       if (!dealResult) throw new Error();
 
-      newGame.assignDealerAndPlayer(dealResult.newDealer);
+      newGame.dealer = dealResult.newDealer;
+      newGame.currentPlayer = dealResult.newDealer;
       //#endregion
 
       //#region  Loop over game logic until a team reaches 10 points.
@@ -53,12 +65,7 @@ export default function useEuchreGameAuto() {
         let bidResult: BidResult | null = null;
 
         while (!trumpOrdered && !allPassed) {
-          bidResult = newGame.currentPlayer.determineBid(
-            newGame,
-            newGame.trump,
-            !gameFlow.hasFirstBiddingPassed,
-            gameSetting
-          );
+          bidResult = determineBid(newGame, newGame.trump, !gameFlow.hasFirstBiddingPassed, gameSetting);
 
           if (bidResult.orderTrump) {
             trumpOrdered = true;
@@ -78,7 +85,7 @@ export default function useEuchreGameAuto() {
               newGame.dealer = rotation[0];
             } else {
               const rotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
-              newGame.assignPlayer(rotation[0]);
+              newGame.currentPlayer = rotation[0];
             }
           }
         }
@@ -92,38 +99,34 @@ export default function useEuchreGameAuto() {
           const shouldDiscard = bidResult.calledSuit === null;
 
           if (shouldDiscard && newGame.dealer) {
-            newGame.discard = newGame.dealer.chooseDiscard(newGame, gameSetting.difficulty);
+            newGame.discard = determineDiscard(newGame, newGame.dealer, gameSetting.difficulty);
+            newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
           }
 
-          while (!newGame.handFinished && newGame.currentPlayer) {
-            if (newGame.trickFinished) {
-              newGame.addTrickForNewHand();
+          while (!handFinished(newGame) && newGame.currentPlayer) {
+            if (trickFinished(newGame)) {
+              newGame.currentTricks.push(createTrick(newGame.currentRound));
             }
 
-            const chosenCard: Card = newGame.currentPlayer.determineCardToPlay(
-              newGame,
-              gameSetting.difficulty
-            );
-            const cardPlayed = newGame.currentPlayer.playGameCard(chosenCard);
+            const chosenCard: Card = determineCardToPlay(newGame, gameSetting.difficulty);
+            const cardPlayed: EuchreCard = { player: newGame.currentPlayer, card: chosenCard };
+            newGame.currentPlayer.playedCards.push(chosenCard);
 
             if (!newGame.currentTrick) throw Error();
 
             newGame.currentTrick.cardsPlayed.push(cardPlayed);
 
-            const playerRotation = getPlayerRotation(
-              newGame.gamePlayers,
-              newGame.currentPlayer,
-              newGame.playerSittingOut
-            );
+            const sittingOut = playerSittingOut(newGame);
+            const playerRotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer, sittingOut);
 
-            newGame.updateIfTrickOver(playerRotation);
-            newGame.updateIfHandOver();
+            newGame = updateIfTrickOver(newGame, playerRotation);
+            newGame = updateIfHandOver(newGame);
           }
         }
         //#endregion
 
-        teamOneScore = newGame.teamPoints(1);
-        teamTwoScore = newGame.teamPoints(2);
+        teamOneScore = teamPoints(newGame, 1);
+        teamTwoScore = teamPoints(newGame, 2);
 
         if (!newGame.dealer) throw Error('Dealer not found after hand finished.');
 

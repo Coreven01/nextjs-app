@@ -8,7 +8,7 @@ type Props = {
   playerNotification: PlayerNotificationState;
 };
 
-export default function GameTable({ playerNotification }: Props) {
+const GameTable = ({ playerNotification }: Props) => {
   const isDebugMode = false; // env.REACT_APP_DEBUG === 'true';
   const renderOrder = [
     playerNotification.player2GameInfo,
@@ -94,4 +94,6 @@ export default function GameTable({ playerNotification }: Props) {
       </div>
     </GameBorder>
   );
-}
+};
+
+export default GameTable;

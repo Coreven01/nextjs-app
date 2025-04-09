@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, PromptType } from '@/app/lib/euchre/definitions';
+import { Card, EuchreGameInstance, PromptType } from '@/app/lib/euchre/definitions';
 import { EuchreFlowActionType, EuchreGameFlow } from './gameFlowReducer';
 import {
   getPlayerNotificationType,
@@ -9,13 +9,21 @@ import {
 } from './playerNotificationReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
-import { incrementSpeed, orderTrump } from '@/app/lib/euchre/game-setup-logic';
 import { useCallback, useEffect } from 'react';
-import isGameStateValidToContinue from '@/app/lib/euchre/game-state-logic';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
 import { createEvent } from '@/app/lib/euchre/util';
+import useGameStateLogic from './logic/useGameStateLogic';
+import useGameBidLogic from './logic/useGameBidLogic';
+import useGameData from './data/useGameData';
+import usePlayerData from './data/usePlayerData';
+import useCardData from './data/useCardData';
 
 export default function useEuchreGameOrder(state: EuchreGameState, errorState: EuchreErrorState) {
+  const { isGameStateValidToContinue } = useGameStateLogic();
+  const { orderTrump, determineDiscard } = useGameBidLogic();
+  const { incrementSpeed, playerSittingOut } = useGameData();
+  const { discard, sortCards, playerEqual } = usePlayerData();
+
   //#region Order Trump *************************************************************************
 
   /** Player has ordered trump either by naming suit or telling the dealer to pick up the flipped card.
@@ -36,7 +44,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
 
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
-    let newGame = state.euchreGame?.shallowCopy();
+    let newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
 
     if (!newGame) throw new Error('Game not found for trump ordered.');
     if (!state.bidResult) throw new Error('Bid result not found.');
@@ -74,7 +82,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_ORDER_TRUMP });
     state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_ORDER_TRUMP });
     state.setEuchreGame(newGame);
-  }, [state]);
+  }, [isGameStateValidToContinue, orderTrump, state]);
 
   /**
    *
@@ -105,7 +113,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
 
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
-      const newGame = state.euchreGame?.shallowCopy();
+      const newGame = state.euchreGame ? { ...state.euchreGame } : null;
 
       if (!newGame?.dealer) throw new Error('Game dealer not found for animation trump ordered.');
       if (!state.bidResult) throw new Error('Bid result not found');
@@ -132,9 +140,9 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       await new Promise((resolve) => setTimeout(resolve, incrementSpeed(state.euchreSettings.gameSpeed, 2)));
 
       let shouldDiscard = state.bidResult.calledSuit === null;
-      const playerSittingOut = newGame.playerSittingOut;
+      const sittingOut = playerSittingOut(newGame);
 
-      if (shouldDiscard && playerSittingOut && newGame.dealer.equal(playerSittingOut)) {
+      if (shouldDiscard && sittingOut && playerEqual(newGame.dealer, sittingOut)) {
         shouldDiscard = false;
       }
 
@@ -143,7 +151,8 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
         state.setPromptValue([{ type: PromptType.DISCARD }]);
       } else {
         if (shouldDiscard) {
-          newGame.discard = newGame.dealer.chooseDiscard(newGame, state.euchreSettings.difficulty);
+          newGame.discard = determineDiscard(newGame, newGame.dealer, state.euchreSettings.difficulty);
+          newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
 
           state.addEvent(
             createEvent(
@@ -167,18 +176,26 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     try {
       beginAnimationOrderTrump();
     } catch (e) {}
-  }, [state]);
+  }, [
+    determineDiscard,
+    discard,
+    incrementSpeed,
+    isGameStateValidToContinue,
+    playerEqual,
+    playerSittingOut,
+    state
+  ]);
 
   /** Submit the resulting discard from user input after flip card has been picked up.
    *
    */
   const handleDiscardSubmit = useCallback(
     (card: Card) => {
-      const newGame = state.euchreGame?.shallowCopy();
+      const newGame = state.euchreGame ? { ...state.euchreGame } : null;
 
       if (newGame?.trump && state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT) {
-        newGame.dealer?.discard(card, newGame.trump);
-        newGame.dealer?.sortCards(newGame.trump);
+        newGame.dealer.hand = discard(newGame.dealer, card, newGame.trump);
+        newGame.dealer.hand = sortCards(newGame.dealer, newGame.trump);
         newGame.discard = card;
 
         state.addEvent(
@@ -197,7 +214,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
         state.setEuchreGame(newGame);
       }
     },
-    [state]
+    [discard, sortCards, state]
   );
 
   //#endregion

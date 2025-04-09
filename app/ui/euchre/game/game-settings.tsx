@@ -8,6 +8,7 @@ import {
 } from '@/app/lib/euchre/definitions';
 import { ChangeEvent, useState } from 'react';
 import Switch from '@mui/material/Switch';
+import PromptHeader from '../prompt/prompt-header';
 
 type Props = {
   settings: EuchreSettings;
@@ -17,13 +18,7 @@ type Props = {
   onRunFullGameLoop: () => void;
 };
 
-export default function GameSettings({
-  settings,
-  onNewGame,
-  onApplySettings,
-  onRunFullGame,
-  onRunFullGameLoop
-}: Props) {
+const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onRunFullGameLoop }: Props) => {
   const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings.teamOneColor ?? 'blue');
   const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings.teamTwoColor ?? 'red');
   const [playerName, setPlayerName] = useState(settings.playerName);
@@ -99,6 +94,7 @@ export default function GameSettings({
 
   return (
     <div className="bg-stone-800 text-white md:p-2 p-1">
+      <PromptHeader>Settings</PromptHeader>
       <div className="flex items-center gap-4 my-2 md:text-base text-sm">
         <label htmlFor="playerName">Player Name: </label>
         <input
@@ -170,7 +166,7 @@ export default function GameSettings({
         </div>
 
         {isDebugMode && (
-          <div className="flex-grow">
+          <div className="grow">
             <div>
               <label htmlFor="debugAlwaysPass">Debug Always Pass: </label>
               <Switch
@@ -302,4 +298,6 @@ export default function GameSettings({
       </div>
     </div>
   );
-}
+};
+
+export default GameSettings;

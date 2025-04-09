@@ -4,6 +4,7 @@ import PlayerInfo from './player-info';
 import GameDeck from '../game/game-deck';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import clsx from 'clsx';
+import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 //import { env } from 'node:process';
 
 type Props = {
@@ -16,16 +17,18 @@ type Props = {
 };
 
 export default function PlayerGameDeck({ player, game, gameFlow, settings, dealDeck, onCardClick }: Props) {
+  const { playerLocation } = usePlayerData();
   const isDebugMode = false; //env.REACT_APP_DEBUG === 'true';
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
-  const position = player.location === 'center' ? positionCenter : positionSide;
+  const location = playerLocation(player);
+  const position = location === 'center' ? positionCenter : positionSide;
   const shouldShowDeckImages = gameFlow.shouldShowDeckImages.find((c) => c.player === player)?.value;
   const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
   const gameDeck = shouldShowDeckImages && (
     <div id={`game-deck-${playerNumber}`} className={position}>
-      <GameDeck deck={dealDeck} location={player.location} />
+      <GameDeck deck={dealDeck} location={location} />
     </div>
   );
 

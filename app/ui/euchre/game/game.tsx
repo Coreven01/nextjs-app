@@ -19,6 +19,7 @@ import useMenuItems from '@/app/hooks/euchre/useMenuItems';
 import useEuchreGameAuto from '@/app/hooks/euchre/useEuchreGameAuto';
 import clsx from 'clsx';
 import GameErrorPrompt from '../prompt/game-error-prompt';
+import GameIntro from '../prompt/game-intro';
 
 export default function EuchreGame() {
   // #region Hooks
@@ -31,7 +32,8 @@ export default function EuchreGame() {
     events,
     errorState,
     clearEvents,
-    beginNewGame,
+    handleStartGame,
+    handleBeginNewGame,
     handleBidSubmit,
     handleSettingsChange,
     handleDiscardSubmit,
@@ -66,10 +68,10 @@ export default function EuchreGame() {
     handleSettingsChange(settings);
   };
 
-  const handleNewGame = () => {
+  const handleStartNewGame = () => {
     setFullGameInstance(null);
     toggleSettings(false);
-    beginNewGame();
+    handleStartGame();
   };
 
   const handleRunFullGame = () => {
@@ -97,6 +99,10 @@ export default function EuchreGame() {
     handleReplayGame(gameToReplay);
   };
 
+  const handleShowSettings = () => {
+    toggleSettings(true);
+  };
+
   //#endregion
 
   //#region Conditional prompt components to render.
@@ -113,11 +119,15 @@ export default function EuchreGame() {
     <GameSettings
       key={euchreGame !== null ? 'modal' : 'init'}
       settings={euchreSettings}
-      onNewGame={handleNewGame}
+      onNewGame={handleStartNewGame}
       onApplySettings={changeSettings}
       onRunFullGame={handleRunFullGame}
       onRunFullGameLoop={handleRunFullGameLoop}
     />
+  );
+
+  const renderIntro = promptValue.find((v) => v.type === PromptType.INTRO) && (
+    <GameIntro onBegin={handleBeginNewGame} onSettings={handleShowSettings} />
   );
 
   const renderBidPrompt = promptValue.find((v) => v.type === PromptType.BID) && euchreGame?.trump && (
@@ -134,18 +144,18 @@ export default function EuchreGame() {
     euchreGame.dealer && (
       <DiscardPrompt
         pickedUpCard={euchreGame.trump}
-        playerHand={euchreGame.dealer.availableCards}
+        playerHand={euchreGame.dealer.hand}
         onDiscardSubmit={handleDiscardSubmit}
       />
     );
 
   const renderHandResults = promptValue.find((v) => v.type === PromptType.HAND_RESULT) &&
     euchreGame &&
-    euchreGame.allGameResults.length > 0 && (
+    euchreGame.gameResults.length > 0 && (
       <HandResults
         game={euchreGame}
         settings={euchreSettings}
-        handResult={euchreGame.allGameResults.at(-1) ?? null}
+        handResult={euchreGame.gameResults.at(-1) ?? null}
         onClose={handleCloseHandResults}
         onReplayHand={handleReplayHand}
       />
@@ -153,13 +163,13 @@ export default function EuchreGame() {
 
   const renderGameResults = promptValue.find((v) => v.type === PromptType.GAME_RESULT) &&
     euchreGame &&
-    euchreGame.allGameResults.length > 0 && (
+    euchreGame.gameResults.length > 0 && (
       <GameResults
         game={euchreGame}
         settings={euchreSettings}
-        gameResults={euchreGame.allGameResults}
+        gameResults={euchreGame.gameResults}
         onClose={handleCloseGameResults}
-        onNewGame={handleNewGame}
+        onNewGame={handleStartGame}
         onReplayGame={() => handleBeginReplayGame(euchreGame)}
       />
     );
@@ -169,7 +179,7 @@ export default function EuchreGame() {
       <GameResults
         game={fullGameInstance}
         settings={euchreSettings}
-        gameResults={fullGameInstance.allGameResults}
+        gameResults={fullGameInstance.gameResults}
         onClose={handleCloseRunFullGame}
         onNewGame={() => null}
         onReplayGame={() => handleBeginReplayGame(fullGameInstance)}
@@ -192,13 +202,11 @@ export default function EuchreGame() {
           inter.className
         )}
       >
-        <GameBorder className={clsx('w-full md:w-auto md:h-auto overflow-auto', { 'm-auto': !showEvents })}>
+        <GameBorder className={clsx('w-auto md:w-auto md:h-auto overflow-auto', { 'm-auto': !showEvents })}>
           {showSettings && !euchreGame ? (
             <>{renderSettings}</>
           ) : (
-            <div
-              className={`${SECTION_STYLE} md:m-1 md:h-auto flex-grow relative bg-[url(/felt1.png)] h-full`}
-            >
+            <div className={`${SECTION_STYLE} md:m-1 md:h-auto grow relative bg-[url(/felt1.png)] h-full`}>
               <div className="md:m-2">
                 {euchreGame && (
                   <>
@@ -221,6 +229,7 @@ export default function EuchreGame() {
                     {showSettings && <GamePrompt zIndex={90}>{renderSettings}</GamePrompt>}
                   </>
                 )}
+                {renderIntro}
                 {renderBidPrompt}
                 {renderDiscardPrompt}
                 {renderHandResults}

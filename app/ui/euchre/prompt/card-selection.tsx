@@ -1,6 +1,6 @@
 import { Card } from '@/app/lib/euchre/definitions';
 import PromptSelection from './prompt-selection';
-import { getCardFullName } from '@/app/lib/euchre/card-data';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 
 interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   playerHand: Card[];
@@ -8,8 +8,10 @@ interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 export default function CardSelection({ playerHand, onSelectionChanged, ...rest }: SelectionProps) {
+  const { getCardFullName } = useCardSvgData();
+
   return (
-    <div {...rest} className="flex flex-col gap-2">
+    <div {...rest} className="flex flex-col md:gap-2 gap-1">
       {playerHand.map((card, index) => {
         return (
           <PromptSelection

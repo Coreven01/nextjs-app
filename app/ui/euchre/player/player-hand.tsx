@@ -1,10 +1,12 @@
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
-import { getEncodedCardSvg } from '@/app/lib/euchre/card-data';
 import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
-import { getPlayerAndCard } from '@/app/lib/euchre/game';
-import { getCardsAvailableToPlay } from '@/app/lib/euchre/game-play-logic';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
+import useCardData from '@/app/hooks/euchre/data/useCardData';
+import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
+import useGameData from '@/app/hooks/euchre/data/useGameData';
+import useGamePlayLogic from '@/app/hooks/euchre/logic/useGamePlayLogic';
+import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 
 type Props = {
   game: EuchreGameInstance;
@@ -14,8 +16,14 @@ type Props = {
   onCardClick: (card: Card) => void;
 };
 
-export default function PlayerHand({ game, gameFlow, gameSettings, player, onCardClick }: Props) {
-  const displayCards: Card[] = player.displayCards;
+const PlayerHand = ({ game, gameFlow, gameSettings, player, onCardClick }: Props) => {
+  const { getDisplayWidth, getDisplayHeight } = useCardData();
+  const { playerLocation } = usePlayerData();
+  const { getCardsAvailableToPlay } = useGameData();
+  const { getPlayerAndCard } = useGamePlayLogic();
+  const { getEncodedCardSvg } = useCardSvgData();
+
+  const displayCards: Card[] = player.hand;
   const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
   const shouldShowHandValues = gameFlow.shouldShowCardValuesForHand.find((c) => c.player === player)?.value;
 
@@ -23,9 +31,10 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
     throw Error('Unable to show hand. No cards dealt.');
 
   const images: React.ReactNode[] = [];
-  const width = player.placeholder[0].getDisplayWidth(player.location);
-  const height = player.placeholder[0].getDisplayHeight(player.location);
-  const cardBackSvg = player.location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
+  const location = playerLocation(player);
+  const width = getDisplayWidth(location);
+  const height = getDisplayHeight(location);
+  const cardBackSvg = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
   let availableCards: Card[];
 
   if (
@@ -35,14 +44,14 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
     game.trump
   ) {
     const leadCard = game.currentTrick?.cardsPlayed.at(0)?.card ?? null;
-    availableCards = getCardsAvailableToPlay(game.trump, leadCard, player.availableCards).map((c) => c.card);
+    availableCards = getCardsAvailableToPlay(game.trump, leadCard, player.hand).map((c) => c.card);
   } else {
     availableCards = displayCards;
   }
 
   const handleCardClick = (srcElementId: string, player: EuchrePlayer) => {
     const cardInfo = getPlayerAndCard(srcElementId);
-    const card = player.displayCards[cardInfo.index];
+    const card = player.hand[cardInfo.index];
     onCardClick(card);
   };
 
@@ -64,7 +73,7 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
           card={card}
           width={width}
           height={height}
-          src={shouldShowHandValues ? getEncodedCardSvg(card, player.location, !isAvailable) : cardBackSvg}
+          src={shouldShowHandValues ? getEncodedCardSvg(card, location, !isAvailable) : cardBackSvg}
           id={cardval}
           onClick={isAvailable ? () => handleCardClick(cardval, player) : () => null}
           className={`${getCardCssForPlayerLocation(gameFlow, player, card.index, isAvailable)}`}
@@ -74,7 +83,9 @@ export default function PlayerHand({ game, gameFlow, gameSettings, player, onCar
   }
 
   return <>{images}</>;
-}
+};
+
+export default PlayerHand;
 
 function getCardCssForPlayerLocation(
   gameFlow: EuchreGameFlowState,

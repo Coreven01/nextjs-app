@@ -1,16 +1,19 @@
 import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/euchre/definitions';
 import PromptHeader from '../prompt/prompt-header';
-import { getSuitCount } from '@/app/lib/euchre/game';
 import PlayerColor from '../player/player-team-color';
+import useGameData from '@/app/hooks/euchre/data/useGameData';
+import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
+import useCardData from '@/app/hooks/euchre/data/useCardData';
 
 interface Props {
   game: EuchreGameInstance;
   gameSettings: EuchreSettings;
   gameResults: EuchreHandResult[];
 }
-export default function GameOverview({ game, gameSettings, gameResults }: Props) {
-  const teamOneScore = Math.min(game.teamPoints(1), 10);
-  const teamTwoScore = Math.min(game.teamPoints(2), 10);
+const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
+  const { teamPoints } = useGameData();
+  const teamOneScore = Math.min(teamPoints(game, 1), 10);
+  const teamTwoScore = Math.min(teamPoints(game, 2), 10);
   const teamOneLoners = gameResults.filter(
     (r) => r.maker.team === 1 && r.loner && r.teamWon === 1 && r.points === 4
   ).length;
@@ -95,7 +98,7 @@ export default function GameOverview({ game, gameSettings, gameResults }: Props)
       <div></div>
     </div>
   );
-}
+};
 
 interface TeamPlayerProps {
   game: EuchreGameInstance;
@@ -104,6 +107,8 @@ interface TeamPlayerProps {
 }
 
 const TeamPlayerStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => {
+  const { getSuitCount } = useCardData();
+  const { playerEqual } = usePlayerData();
   const teamPlayers = game.gamePlayers.filter((p) => p.team === teamNumber);
 
   return (
@@ -122,17 +127,17 @@ const TeamPlayerStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => 
       </thead>
       <tbody>
         {teamPlayers.map((player) => {
-          const trumpOrdered = gameResults.filter((r) => r.maker.equal(player)).length;
+          const trumpOrdered = gameResults.filter((r) => playerEqual(r.maker, player)).length;
           const tricksWon = gameResults
             .map((r) => r.tricks)
             .flat()
-            .filter((t) => t.taker !== null && t.taker.equal(player)).length;
+            .filter((t) => t.taker !== null && playerEqual(t.taker, player)).length;
           const acesLead = gameResults
             .map((r) => r.tricks)
             .flat()
             .map((t) => t.cardsPlayed[0])
-            .filter((c) => c.player.equal(player) && c.card.value === 'A').length;
-          const lonerCount = gameResults.filter((r) => r.maker.equal(player) && r.loner).length;
+            .filter((c) => playerEqual(c.player, player) && c.card.value === 'A').length;
+          const lonerCount = gameResults.filter((r) => playerEqual(r.maker, player) && r.loner).length;
 
           const gameHandsForPlayer = gameResults.map((r) => {
             return {
@@ -140,7 +145,7 @@ const TeamPlayerStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => 
               cards: r.tricks
                 .map((t) => t.cardsPlayed)
                 .flat()
-                .filter((c) => c.player.equal(player))
+                .filter((c) => playerEqual(c.player, player))
             };
           });
 
@@ -173,6 +178,9 @@ const TeamPlayerStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => 
 };
 
 const TeamStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => {
+  const { getSuitCount } = useCardData();
+  const { playerEqual } = usePlayerData();
+
   const teamPlayers = game.gamePlayers.filter((p) => p.team === teamNumber);
 
   return (
@@ -191,17 +199,17 @@ const TeamStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => {
       </thead>
       <tbody>
         {teamPlayers.map((player) => {
-          const trumpOrdered = gameResults.filter((r) => r.maker.equal(player)).length;
+          const trumpOrdered = gameResults.filter((r) => playerEqual(r.maker, player)).length;
           const tricksWon = gameResults
             .map((r) => r.tricks)
             .flat()
-            .filter((t) => t.taker !== null && t.taker.equal(player)).length;
+            .filter((t) => t.taker !== null && playerEqual(t.taker, player)).length;
           const acesLead = gameResults
             .map((r) => r.tricks)
             .flat()
             .map((t) => t.cardsPlayed[0])
-            .filter((c) => c.player.equal(player) && c.card.value === 'A').length;
-          const lonerCount = gameResults.filter((r) => r.maker.equal(player) && r.loner).length;
+            .filter((c) => playerEqual(c.player, player) && c.card.value === 'A').length;
+          const lonerCount = gameResults.filter((r) => playerEqual(r.maker, player) && r.loner).length;
 
           const gameHandsForPlayer = gameResults.map((r) => {
             return {
@@ -209,7 +217,7 @@ const TeamStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => {
               cards: r.tricks
                 .map((t) => t.cardsPlayed)
                 .flat()
-                .filter((c) => c.player.equal(player))
+                .filter((c) => playerEqual(c.player, player))
             };
           });
 
@@ -240,3 +248,5 @@ const TeamStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => {
     </table>
   );
 };
+
+export default GameOverview;

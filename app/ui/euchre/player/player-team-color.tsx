@@ -1,3 +1,4 @@
+import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import { EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 
@@ -7,10 +8,14 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   settings: EuchreSettings;
 }
 
-export default function PlayerColor({ children, className, player, settings, ...rest }: DivProps) {
+const PlayerColor = ({ children, className, player, settings, ...rest }: DivProps) => {
+  const { getTeamCssClass } = usePlayerData();
+
   return (
-    <div {...rest} className={clsx(`p-1 ${player.getTeamCssClass(settings)}`, className)}>
+    <div {...rest} className={clsx(`p-1 ${getTeamCssClass(player, settings)}`, className)}>
       {children}
     </div>
   );
-}
+};
+
+export default PlayerColor;

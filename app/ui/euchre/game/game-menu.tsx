@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import Switch from '@mui/material/Switch';
 
@@ -17,7 +17,7 @@ interface Props {
 const menuSvg =
   "checked:bg-[url('/menu.svg')] bg-[url('/menu.svg')] bg-no-repeat bg-center bg-[length:1rem] md:bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)] dark:bg-[rgba(15,150,15,0.1)]";
 
-export default function GameMenu({
+const GameMenu = ({
   isFullScreen,
   showEvents,
   showSettings,
@@ -27,41 +27,64 @@ export default function GameMenu({
   onSettingsToggle,
   onScoreToggle,
   onCancelAndReset
-}: Props) {
+}: Props) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const eventAdded = useRef(false);
   const enableToggleSettings = false;
   const enableToggleEvents = false;
 
+  const exitMenu = useCallback((event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    if (target && menuRef.current && !menuRef.current.contains(target)) {
+      event.stopPropagation();
+      setShowMenu(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const nav = document.getElementById('site-top-nav');
-    const navMenu = document.getElementById('nav-menu');
-    if (nav) {
-      nav.style.zIndex = isFullScreen ? '10' : '500';
-    }
+    const goToFullScreen = async () => {
+      const nav = document.getElementById('site-top-nav');
+      const navMenu = document.getElementById('nav-menu');
 
-    if (navMenu) {
-      navMenu.style.zIndex = isFullScreen ? '20' : '600';
-    }
-
-    const exitMenu = (event: MouseEvent) => {
-      if (showMenu) {
-        const target = event.target as HTMLElement;
-        if (target && menuRef.current && !menuRef.current.contains(target)) {
-          event.stopPropagation();
-          setShowMenu(false);
+      try {
+        if (isFullScreen && !document.fullscreenElement) {
+          //await document.documentElement.requestFullscreen();
+          //await document.body.requestFullscreen();
+        } else if (!isFullScreen && document.fullscreenElement) {
+          //await document.exitFullscreen();
         }
+      } catch (e) {
+        console.error(e);
       }
+
+      if (nav) {
+        nav.style.zIndex = isFullScreen ? '10' : '500';
+      }
+
+      if (navMenu) {
+        navMenu.style.zIndex = isFullScreen ? '20' : '600';
+      }
+
+      if (!eventAdded.current && showMenu) {
+        document.addEventListener('click', exitMenu);
+        eventAdded.current = true;
+      } else if (eventAdded.current && !showMenu) {
+        document.removeEventListener('click', exitMenu);
+        eventAdded.current = false;
+      }
+
+      return async () => {
+        if (nav) nav.style.zIndex = '500';
+        if (navMenu) navMenu.style.zIndex = '600';
+        //if (isFullScreen && document.fullscreenElement) await document.exitFullscreen();
+        document.removeEventListener('click', exitMenu);
+        eventAdded.current = false;
+      };
     };
 
-    document.addEventListener('click', exitMenu);
-
-    return () => {
-      if (nav) nav.style.zIndex = '500';
-      if (navMenu) navMenu.style.zIndex = '600';
-      document.removeEventListener('click', exitMenu);
-    };
-  }, [isFullScreen, showMenu]);
+    goToFullScreen();
+  }, [exitMenu, isFullScreen, showMenu]);
 
   const handleMenuClick = () => {
     setShowMenu(!showMenu);
@@ -148,4 +171,6 @@ export default function GameMenu({
       </div>
     </>
   );
-}
+};
+
+export default GameMenu;

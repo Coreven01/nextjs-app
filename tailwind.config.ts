@@ -28,12 +28,33 @@ export default {
         'custom-gray': '2px 2px 1px darkgray',
         'custom-black': '2px 2px 1px black'
       },
+      transitionDuration: {
+        '150': '150ms'
+      },
       animation: {
         slideInRight: 'slideInRight 0.15s ease-out',
         slideInLeft: 'slideInLeft 0.15s ease-out',
-        slideInTop: 'slideInTop 0.75s ease-out'
+        slideInTop: 'slideInTop 0.75s ease-out',
+        wave: 'wave 20s ease-in-out infinite'
       },
       keyframes: {
+        wave: {
+          '0%': {
+            'background-position': '0% 0%'
+          },
+          '25%': {
+            'background-position': '75% 75%'
+          },
+          '50%': {
+            'background-position': '50% 50%'
+          },
+          '75%': {
+            'background-position': '25% 25%'
+          },
+          '100%': {
+            'background-position': '0% 0%'
+          }
+        },
         slideInRight: {
           '0%': { transform: 'translateX(100%)' },
           '100%': { transform: 'translateX(0)' }

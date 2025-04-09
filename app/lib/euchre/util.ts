@@ -6,15 +6,15 @@ const ENABLE_LOGGING = true;
 function logBidResult(game: EuchreGameInstance, result: BidResult) {
   if (!ENABLE_LOGGING) return;
 
-  const logValue = {
-    dealer: game.dealer?.name,
-    currentPlayer: game.currentPlayer?.name,
-    playerHand: game.currentPlayer?.availableCards.map((c) => `${c.value} - ${c.suit}`),
-    flipCard: `${game.trump?.value} - ${game.trump?.suit}`,
-    bidResult: result
-  };
+  // const logValue = {
+  //   dealer: game.dealer?.name,
+  //   currentPlayer: game.currentPlayer?.name,
+  //   playerHand: game.currentPlayer?.availableCards.map((c) => `${c.value} - ${c.suit}`),
+  //   flipCard: `${game.trump?.value} - ${game.trump?.suit}`,
+  //   bidResult: result
+  // };
 
-  console.table(logValue);
+  // console.table(logValue);
 }
 
 /** Log error to console. */
@@ -45,7 +45,7 @@ function createEvent(
     message: message,
     player: player?.name,
     team: player?.team,
-    teamColor: player && settings ? player?.getTeamColor(settings) : undefined
+    teamColor: 'orange' // player && settings ? player?.getTeamColor(settings) : undefined
   };
 }
 
@@ -68,7 +68,8 @@ function isElementFullyVisible(element: HTMLElement, container: HTMLElement) {
     elementRect.top >= containerRect.top &&
     elementRect.left >= containerRect.left &&
     elementRect.bottom <= containerRect.bottom &&
-    elementRect.right <= containerRect.right);
+    elementRect.right <= containerRect.right
+  );
 }
 
 function scrollElementIntoViewIfNeeded(element: HTMLElement, container: HTMLElement) {

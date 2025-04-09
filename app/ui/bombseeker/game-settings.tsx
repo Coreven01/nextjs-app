@@ -170,7 +170,7 @@ export default function GameSettings({ state, onNewGame }: Props) {
         <label htmlFor="selectLevel" className={LABEL_CLASS}>
           Level
         </label>
-        <div className="flex flex-row flex-grow max-h-[32px]">
+        <div className="flex flex-row grow max-h-[32px]">
           <select
             className={SELECT_CLASS}
             id="selectLevel"

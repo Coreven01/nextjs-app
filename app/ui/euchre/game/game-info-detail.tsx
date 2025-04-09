@@ -8,6 +8,4 @@ export default function GameInfoDetail({ children, className, ...rest }: DivProp
       {children}
     </div>
   );
-
-  return <></>;
 }
