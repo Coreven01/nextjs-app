@@ -5,37 +5,73 @@ import clsx from 'clsx';
 import useCardData from '@/app/hooks/euchre/data/useCardData';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import useGameData from '@/app/hooks/euchre/data/useGameData';
-import useGamePlayLogic from '@/app/hooks/euchre/logic/useGamePlayLogic';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
+import { RefObject, useRef } from 'react';
 
 type Props = {
   game: EuchreGameInstance;
   gameFlow: EuchreGameFlowState;
   gameSettings: EuchreSettings;
   player: EuchrePlayer;
+  playedCard: Card | null;
+  deckRef: RefObject<HTMLDivElement>;
+  playerTableRef: RefObject<HTMLDivElement>;
   onCardClick: (card: Card) => void;
 };
 
-const PlayerHand = ({ game, gameFlow, gameSettings, player, onCardClick }: Props) => {
-  const { getDisplayWidth, getDisplayHeight } = useCardData();
-  const { playerLocation } = usePlayerData();
-  const { getCardsAvailableToPlay } = useGameData();
-  const { getPlayerAndCard } = useGamePlayLogic();
+const PlayerHand = ({
+  game,
+  gameFlow,
+  gameSettings,
+  player,
+  playedCard,
+  deckRef,
+  playerTableRef,
+  onCardClick
+}: Props) => {
+  //#region Hooks
+  const { getDisplayWidth, getDisplayHeight, createPlaceholderCards, cardEqual } = useCardData();
+  const { playerLocation, playerEqual, availableCardsToPlay } = usePlayerData();
+  const { getCardsAvailableToPlay, isHandFinished } = useGameData();
   const { getEncodedCardSvg } = useCardSvgData();
+  const cardsPlayedRef = useRef<Card[]>([]);
+  //#endregion
 
-  const displayCards: Card[] = player.hand;
-  const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
-  const shouldShowHandValues = gameFlow.shouldShowCardValuesForHand.find((c) => c.player === player)?.value;
+  const showCardImage = gameFlow.shouldShowCardImagesForHand.find((c) =>
+    playerEqual(c.player, player)
+  )?.value;
 
-  if (shouldShowHandImages && displayCards.length === 0 && player.placeholder.length === 0)
-    throw Error('Unable to show hand. No cards dealt.');
+  const showCardValue = gameFlow.shouldShowCardValuesForHand.find((c) =>
+    playerEqual(c.player, player)
+  )?.value;
 
-  const images: React.ReactNode[] = [];
+  const gameCards: React.ReactNode[] = [];
   const location = playerLocation(player);
   const width = getDisplayWidth(location);
   const height = getDisplayHeight(location);
-  const cardBackSvg = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
-  let availableCards: Card[];
+  const cardBackSvgSrc = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
+  const cardsAvailableForFollowSuit: Card[] = [];
+  const displayHand: Card[] = [];
+  const placementCards: Card[] = createPlaceholderCards(5);
+  const playerCurrentHand: Card[] = availableCardsToPlay(player);
+  const trickFinished = isHandFinished(game);
+
+  if (!trickFinished) {
+    for (const card of placementCards) {
+      // in order to keep the display for the player area consistent, this will render 5 cards even if
+      // a card has been played. unavailable cards will be hidden.
+      let playerCard: Card | undefined = playerCurrentHand.find((c) => c.index === card.index);
+      if (!playerCard) {
+        playerCard = game.currentTrick.cardsPlayed.find(
+          (c) => c.card.index === card.index && playerEqual(c.player, player)
+        )?.card;
+      }
+
+      displayHand.push(playerCard ?? card);
+    }
+  } else {
+    displayHand.push(...placementCards);
+  }
 
   if (
     gameSettings.enforceFollowSuit &&
@@ -43,29 +79,32 @@ const PlayerHand = ({ game, gameFlow, gameSettings, player, onCardClick }: Props
     gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT &&
     game.trump
   ) {
-    const leadCard = game.currentTrick?.cardsPlayed.at(0)?.card ?? null;
-    availableCards = getCardsAvailableToPlay(game.trump, leadCard, player.hand).map((c) => c.card);
+    // only enable cards that are available for follow suit, if enabled by settings.
+    const leadCard = game.currentTrick.cardsPlayed.at(0)?.card ?? null;
+    cardsAvailableForFollowSuit.push(
+      ...getCardsAvailableToPlay(game.trump, leadCard, player.hand).map((c) => c.card)
+    );
   } else {
-    availableCards = displayCards;
+    // enable all cards to be played that have yet to be played for the current hand.
+    cardsAvailableForFollowSuit.push(...displayHand);
   }
 
-  const handleCardClick = (srcElementId: string, player: EuchrePlayer) => {
-    const cardInfo = getPlayerAndCard(srcElementId);
-    const card = player.hand[cardInfo.index];
+  const handleCardClick = (index: number, player: EuchrePlayer) => {
+    const card = player.hand[index];
+    cardsPlayedRef.current.push(card);
     onCardClick(card);
   };
 
-  for (const card of displayCards) {
-    const keyval = `${player.playerNumber}${card.index}`;
-    const cardval = `card-${keyval}`;
-    const hidden = !shouldShowHandImages || card.value === 'P' ? 'invisible' : '';
-    const isAvailable: boolean = availableCards.includes(card);
+  for (const card of displayHand) {
+    const keyval = `${game.currentRound}-${player.playerNumber}-${card.index}`;
+    const hidden = !showCardImage || card.value === 'P' ? 'invisible' : '';
+    const isAvailableToBePlayed: boolean = cardsAvailableForFollowSuit.includes(card);
+    const playCard: boolean =
+      (playedCard !== null && cardEqual(card, playedCard)) ||
+      cardsPlayedRef.current.find((c) => cardEqual(c, card)) !== undefined;
 
-    if (card.value === 'P' && player.playerNumber === 1 && shouldShowHandValues && hidden === '')
-      console.log('double check player image values: hidden: ', hidden);
-
-    images.push(
-      <div className={clsx('z-10', hidden, getDivCssForPlayerLocation(player))} key={keyval}>
+    gameCards.push(
+      <div className={clsx('z-20', hidden, getDivCssForPlayerLocation(player))} key={keyval}>
         <GameCard
           responsive={true}
           player={player}
@@ -73,64 +112,29 @@ const PlayerHand = ({ game, gameFlow, gameSettings, player, onCardClick }: Props
           card={card}
           width={width}
           height={height}
-          src={shouldShowHandValues ? getEncodedCardSvg(card, location, !isAvailable) : cardBackSvg}
-          id={cardval}
-          onClick={isAvailable ? () => handleCardClick(cardval, player) : () => null}
-          className={`${getCardCssForPlayerLocation(gameFlow, player, card.index, isAvailable)}`}
+          index={card.index}
+          playCard={playCard}
+          availableCardIndices={playerCurrentHand.map((c) => c.index)}
+          src={
+            playCard || showCardValue
+              ? getEncodedCardSvg(card, location, !isAvailableToBePlayed)
+              : cardBackSvgSrc
+          }
+          onCardClick={isAvailableToBePlayed ? handleCardClick : undefined}
+          deckRef={deckRef}
+          playerTableRef={playerTableRef}
+          gameSpeedMs={gameSettings.gameSpeed}
         />
       </div>
     );
   }
 
-  return <>{images}</>;
+  return <>{gameCards}</>;
 };
 
 export default PlayerHand;
 
-function getCardCssForPlayerLocation(
-  gameFlow: EuchreGameFlowState,
-  player: EuchrePlayer,
-  index: number,
-  isAvailable: boolean
-): string {
-  const initDeg: number = -10;
-  const rotateVal: number = 5;
-  const offsetStart: number = 60;
-  const offset: number = 30;
-  const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
-  const activeClasses =
-    shouldShowHandImages &&
-    player.human &&
-    gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT &&
-    isAvailable
-      ? 'cursor-pointer md:hover:scale-[1.15] md:hover:translate-y-0'
-      : 'cursor-not-allowed';
-
-  let retval = '';
-  const baseClasses = `contain transition duration-300 ease-in-out ${activeClasses}`;
-  switch (player.playerNumber) {
-    case 1:
-      retval = `${baseClasses} rotate-[${initDeg + rotateVal * index}deg]
-      translate-x-[${offsetStart - offset * index}px] translate-y-[${[0, 4].includes(index) ? 25 : [1, 3].includes(index) ? 15 : 10}px]`;
-      break;
-    case 2:
-      retval = `${baseClasses} rotate-[${-initDeg - rotateVal * index}deg]
-    translate-x-[${offsetStart - offset * index}px] translate-y-[${[1, 3].includes(index) ? 10 : index === 2 ? 15 : 0}px] `;
-      break;
-    case 3:
-      retval = `${baseClasses} rotate-[${initDeg + rotateVal * index}deg]
-    translate-y-[${offsetStart - offset * index}px] translate-x-[${[1, 3].includes(index) ? 10 : index === 2 ? 15 : 0}px]`;
-      break;
-    case 4:
-      retval = `${baseClasses} transition rotate-[${-initDeg + -rotateVal * index}deg]
-    translate-y-[${offsetStart - offset * index}px] translate-x-[${[1, 3].includes(index) ? -10 : index === 2 ? -15 : 0}px]`;
-      break;
-  }
-
-  return retval;
-}
-
-function getDivCssForPlayerLocation(player: EuchrePlayer): string {
+const getDivCssForPlayerLocation = (player: EuchrePlayer): string => {
   let retval = '';
 
   switch (player.playerNumber) {
@@ -149,4 +153,4 @@ function getDivCssForPlayerLocation(player: EuchrePlayer): string {
   }
 
   return retval;
-}
+};

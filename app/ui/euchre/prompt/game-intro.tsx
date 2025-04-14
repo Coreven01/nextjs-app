@@ -21,7 +21,7 @@ const GameIntro = ({ className, onBegin, onSettings }: DivProps) => {
     <div className="flex md:h-[85vh] md:w-[85vh] md:min-h-[25vh] min-h-[50vh] w-full bg-stone-900 bg-opacity-50 md:max-h-64">
       <div className="grow flex flex-col items-center justify-center">
         <div className="flex items-center grow w-full">
-          <div className="relative grow flex justify-center relative bg-neutral-700 border-t border-b border-white p-2 text-center text-5xl">
+          <div className="relative grow flex justify-center bg-neutral-700 border-t border-b border-white p-2 text-center text-5xl">
             <div
               ref={titleElement}
               id="game-title"

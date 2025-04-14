@@ -1,5 +1,3 @@
-'use client';
-
 import { EuchreFlowActionType, EuchreGameFlow } from './gameFlowReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
@@ -53,7 +51,7 @@ export default function useEuchreGameInitDeal(state: EuchreGameState, errorState
       state.euchreReplayGame
     );
 
-    if (!dealResult) throw Error('Unable to determine dealer for initial dealer.');
+    if (!dealResult?.newDealer) throw Error('Unable to determine dealer for initial dealer.');
 
     newGame.currentPlayer = dealResult.newDealer;
     newGame.dealer = dealResult.newDealer;
@@ -82,8 +80,6 @@ export default function useEuchreGameInitDeal(state: EuchreGameState, errorState
         return;
 
       if (!state.euchreGame?.dealer) throw new Error('Unable to find dealer for initial deal animation.');
-
-      //await animateForInitialDeal(animationTransformation, game, game.dealer);
 
       state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_SHUFFLE_CARDS });

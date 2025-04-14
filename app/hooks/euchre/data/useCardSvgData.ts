@@ -51,7 +51,7 @@ const useCardSvgData = () => {
 
     if (addCardOverlay)
       baseCardOverlayRect =
-        location === 'center' ? getBaseCardColor(overlayColor, 0.4) : getBaseCardSideColor(overlayColor, 0.5);
+        location === 'center' ? getBaseCardColor(overlayColor, 0.5) : getBaseCardSideColor(overlayColor, 0.5);
 
     for (const text of imageKeys) {
       const imageLocation = location === 'center' ? centerSvgVals.get(text) : sideSvgVals.get(text);

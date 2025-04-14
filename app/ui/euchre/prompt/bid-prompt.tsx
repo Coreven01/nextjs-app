@@ -25,13 +25,9 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
   const { getCardFullName, getEncodedCardSvg, getSuitName } = useCardSvgData();
   const { playerEqual } = usePlayerData();
   const { getDisplayHeight, getDisplayWidth } = useCardData();
+
   const [bidSelection, setBidSelection] = useState<string | null>(null);
   const [lonerSelection, setLonerSelection] = useState<boolean>(false);
-
-  if (!game?.trump) throw new Error('Trump not found for bid prompt.');
-  if (!game?.dealer) throw new Error('Dealer not found for bid prompt.');
-  if (!game?.currentPlayer) throw new Error('Current player not found for bid prompt.');
-
   const submitEnabled = firstRound || bidSelection !== null;
   const aloneTitle: string = 'Select if you choose to play without your partner';
   const orderTrumpTitle: string = `Order ${getSuitName(game.trump.suit)}s as trump`;
@@ -57,7 +53,9 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
       orderTrump: false,
       loner: false,
       calledSuit: null,
-      handScore: 0
+      handScore: 0,
+      cheatScore: 0,
+      discard: null
     };
 
     if (playerPassed) {
@@ -129,7 +127,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
               {firstRound ? 'Trump Card' : 'Select Suit'}
             </div>
             <div className="grow flex items-center">
-              <GameBorder innerClass="w-20 md:w-full " size="small">
+              <GameBorder innerClass="w-20 md:w-full" size="small">
                 <div className="p-2 bg-green-950 flex items-center justify-center">
                   {firstRound ? (
                     <Image
@@ -147,7 +145,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
                     />
                   ) : (
                     <SuitSelection
-                      className="w-full"
+                      className="w-20 md:w-[90px]"
                       firstRound={firstRound}
                       trumpSuit={game.trump.suit}
                       onSelectionChange={handleSuitSelectionChange}

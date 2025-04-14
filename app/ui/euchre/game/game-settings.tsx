@@ -26,7 +26,7 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
   const teamColors = [...TEAM_COLOR_MAP.keys()];
   const gameSpeedValues = [...GAME_SPEED_MAP.entries()];
   const difficultyValues = [...DIFFICULTY_MAP.entries()];
-  const isDebugMode = false;
+  const isDebugMode = true;
 
   //#region Handlers
   const handleNewGame = () => {
@@ -200,6 +200,17 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
                 onChange={(e) => handleCheckChanged(e)}
               />
             </div>
+            <div>
+              <label htmlFor="debugAllComputerPlayers">Debug All Computer Players: </label>
+              <Switch
+                id="debugAllComputerPlayers"
+                size="small"
+                checked={settings.debugAllComputerPlayers}
+                name="debugAllComputerPlayers"
+                color="success"
+                onChange={(e) => handleCheckChanged(e)}
+              />
+            </div>
           </div>
         )}
       </div>
@@ -231,7 +242,7 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
           <select
             id="gameSpeed"
             onChange={handleSpeedChanged}
-            className="text-black md:p-2 p-1 min-w-24 max-h-8 md:max-h-12 md:text-base text-sm"
+            className="text-black md:min-w-32 md:p-2 p-1 min-w-24 max-h-8 md:max-h-12 md:text-base text-sm"
             value={settings.gameSpeed}
           >
             {gameSpeedValues.map((value) => {

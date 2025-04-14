@@ -1,9 +1,10 @@
 import { Card, EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
-import PlayerGameDeck from '../player/players-game-deck';
 import GameMenu from './game-menu';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import GameTable from './game-table';
 import { PlayerNotificationState } from '@/app/hooks/euchre/playerNotificationReducer';
+import PlayerArea from '../player/player-area';
+import { useRef } from 'react';
 
 interface Props {
   gameInstance: EuchreGameInstance;
@@ -14,6 +15,7 @@ interface Props {
   showSettings: boolean;
   showScore: boolean;
   playerNotification: PlayerNotificationState;
+  playedCard: Card | null;
   onToggleFullscreen: (value: boolean) => void;
   onToggleEvents: (value: boolean) => void;
   onSettingsToggle: (e: boolean) => void;
@@ -31,6 +33,7 @@ const GameArea = ({
   showSettings,
   showScore,
   playerNotification,
+  playedCard,
   onToggleFullscreen,
   onToggleEvents,
   onSettingsToggle,
@@ -38,9 +41,14 @@ const GameArea = ({
   onCardPlayed,
   onCancel
 }: Props) => {
+  const player1TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  const player2TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  const player3TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  const player4TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+
   return (
     <div
-      className={`grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,auto)_minmax(50px,auto)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,600px)_minmax(50px,auto)] md:gap-4 md:grid-rows-[150px,1fr,1fr,150px] md:grid-cols-[150px,600px,150px]`}
+      className={`grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,auto)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,600px)_minmax(50px,auto)] md:grid-rows-[120px,1fr,120px] md:grid-cols-[120px_minmax(60%,600px)_120px]`}
     >
       <GameMenu
         isFullScreen={isFullScreen}
@@ -53,49 +61,27 @@ const GameArea = ({
         onCancelAndReset={onCancel}
         onScoreToggle={onScoreToggle}
       />
-      <div className="row-span-4 relative">
-        <PlayerGameDeck
-          player={gameInstance.player3}
-          game={gameInstance}
-          gameFlow={gameFlow}
-          settings={gameSettings}
-          onCardClick={onCardPlayed}
-          dealDeck={gameInstance.deck}
+      <div className="col-start-2 row-start-2 col-span-1 row-span-1">
+        <GameTable
+          playerNotification={playerNotification}
+          player1TableRef={player1TableRef}
+          player2TableRef={player2TableRef}
+          player3TableRef={player3TableRef}
+          player4TableRef={player4TableRef}
         />
       </div>
-      <div className="col-span-1 md:flex">
-        <PlayerGameDeck
-          player={gameInstance.player2}
-          game={gameInstance}
-          gameFlow={gameFlow}
-          settings={gameSettings}
-          onCardClick={onCardPlayed}
-          dealDeck={gameInstance.deck}
-        />
-      </div>
-      <div className="col-span-1 row-span-2">
-        <GameTable playerNotification={playerNotification} />
-      </div>
-      <div className="col-span-1 md:flex">
-        <PlayerGameDeck
-          player={gameInstance.player1}
-          game={gameInstance}
-          gameFlow={gameFlow}
-          settings={gameSettings}
-          onCardClick={onCardPlayed}
-          dealDeck={gameInstance.deck}
-        />
-      </div>
-      <div className="row-span-4 relative">
-        <PlayerGameDeck
-          player={gameInstance.player4}
-          game={gameInstance}
-          gameFlow={gameFlow}
-          settings={gameSettings}
-          onCardClick={onCardPlayed}
-          dealDeck={gameInstance.deck}
-        />
-      </div>
+      <PlayerArea
+        gameInstance={gameInstance}
+        gameFlow={gameFlow}
+        gameSettings={gameSettings}
+        playedCard={playedCard}
+        player1TableRef={player1TableRef}
+        player2TableRef={player2TableRef}
+        player3TableRef={player3TableRef}
+        player4TableRef={player4TableRef}
+        onCardPlayed={onCardPlayed}
+        className="col-start-1 row-start-1 col-span-3 row-span-3"
+      ></PlayerArea>
     </div>
   );
 };

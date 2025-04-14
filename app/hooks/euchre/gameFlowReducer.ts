@@ -8,6 +8,7 @@ interface PlayerDisplayValue {
 
 export enum EuchreGameFlow {
   AWAIT_USER_INPUT = 1,
+  AWAIT_PLAY_CARD,
   WAIT,
   ERROR,
   BEGIN_INTRO,
@@ -39,6 +40,7 @@ export enum EuchreFlowActionType {
   SET_WAIT,
   SET_ERROR,
   SET_AWAIT_USER_INPUT,
+  SET_AWAIT_PLAY_CARD,
   SET_BEGIN_INTRO,
   SET_END_INTRO,
   SET_BEGIN_INIT_DEAL,
@@ -88,7 +90,8 @@ const actionTypeMap: Map<EuchreFlowActionType, EuchreGameFlow> = new Map([
 
   [EuchreFlowActionType.SET_ERROR, EuchreGameFlow.ERROR],
   [EuchreFlowActionType.SET_BEGIN_INTRO, EuchreGameFlow.BEGIN_INTRO],
-  [EuchreFlowActionType.SET_END_INTRO, EuchreGameFlow.END_INTRO]
+  [EuchreFlowActionType.SET_END_INTRO, EuchreGameFlow.END_INTRO],
+  [EuchreFlowActionType.SET_AWAIT_PLAY_CARD, EuchreGameFlow.AWAIT_PLAY_CARD]
 ]);
 export interface EuchreGameFlowState {
   /** Boolean value to identify if a game has yet been created. */
@@ -131,7 +134,7 @@ export function gameFlowStateReducer(
   } else if (actionTypeMap.get(action.type)) {
     return {
       ...state,
-      gameFlow: actionTypeMap.get(action.type) ?? EuchreGameFlow.AWAIT_USER_INPUT
+      gameFlow: actionTypeMap.get(action.type) ?? EuchreGameFlow.ERROR
     };
   } else {
     throw Error('Unknown game flow action: ' + action.type);

@@ -25,6 +25,7 @@ const useGameData = () => {
   } = useCardData();
   const { availableCardsToPlay, playerEqual, sortCards, getPlayerRotation } = usePlayerData();
 
+  /** If the maker went alone, return the player who's sitting out. */
   const playerSittingOut = (game: EuchreGameInstance): EuchrePlayer | null => {
     if (game.maker && game.loner)
       return (
@@ -36,24 +37,21 @@ const useGameData = () => {
     return null;
   };
 
-  const handFinished = (game: EuchreGameInstance): boolean => {
-    const playerReneged: boolean = game.currentTrick && game.currentTrick.playerRenege !== null;
+  /** Returns true if all tricks are complete and winner has been determined. Also returns true if a player reneged. */
+  const isHandFinished = (game: EuchreGameInstance): boolean => {
+    const playerReneged: boolean = game.currentTrick.playerRenege !== null;
     const allCardsPlayed: boolean = game.currentTricks.filter((t) => t.taker !== null).length === 5;
     return playerReneged || allCardsPlayed;
   };
 
-  const trickFinished = (game: EuchreGameInstance): boolean => {
+  const isTrickFinished = (game: EuchreGameInstance): boolean => {
     const playerReneged: boolean = game.currentTrick && game.currentTrick.playerRenege !== null;
-    const allPlayersPlayed: boolean =
-      (game.currentTrick && game.currentTrick.cardsPlayed.length === (game.loner ? 3 : 4)) ?? false;
+    const allPlayersPlayed: boolean = game.currentTrick.cardsPlayed.length === (game.loner ? 3 : 4);
     return playerReneged || allPlayersPlayed;
   };
 
   const isGameOver = (game: EuchreGameInstance): boolean => {
-    const teamOnePoints: number = teamPoints(game, 1);
-    const teamTwoPoints: number = teamPoints(game, 2);
-
-    return teamOnePoints >= 10 || teamTwoPoints >= 10;
+    return teamPoints(game, 1) >= 10 || teamPoints(game, 2) >= 10;
   };
 
   const teamPoints = (game: EuchreGameInstance, teamNumber: 1 | 2): number => {
@@ -76,7 +74,6 @@ const useGameData = () => {
     const newGame: EuchreGameInstance = { ...game };
     newGame.kitty = [];
     newGame.deck = createPlaceholderCards(24);
-    newGame.currentPlayer = game.player1;
     newGame.maker = null;
     newGame.loner = false;
     newGame.trump = { suit: '♠', value: 'P', index: -1 };
@@ -85,27 +82,17 @@ const useGameData = () => {
     newGame.cardDealCount = [];
     newGame.currentTricks = [];
 
-    newGame.player1 = resetPlayerCard(newGame.player1);
-    newGame.player2 = resetPlayerCard(newGame.player2);
-    newGame.player3 = resetPlayerCard(newGame.player3);
-    newGame.player4 = resetPlayerCard(newGame.player4);
+    for (const player of newGame.gamePlayers) {
+      player.hand = [];
+      player.playedCards = [];
+    }
 
     return newGame;
   };
 
-  const resetPlayerCard = (player: EuchrePlayer): EuchrePlayer => {
-    const newPlayer: EuchrePlayer = { ...player };
-    newPlayer.hand = [];
-    newPlayer.playedCards = [];
-    newPlayer.placeholder = createPlaceholderCards(5);
-    return newPlayer;
-  };
-
   const dealCards = (game: EuchreGameInstance): EuchreGameInstance => {
-    if (!game.dealer) throw Error('Unable to deal cards. Dealer not found.');
-
     const newGame: EuchreGameInstance = { ...game };
-    const players: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
+    const playerRotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
     const randomNum: number = Math.floor(Math.random() * 3) + 1;
     let counter: number = 0;
 
@@ -113,11 +100,14 @@ const useGameData = () => {
 
     for (let i = 0; i < 8; i++) {
       let numberOfCards = 0;
-      const currentPlayer: EuchrePlayer = players[i % 4];
+      const currentPlayer: EuchrePlayer = playerRotation[i % 4];
       const firstRound: boolean = i < 4;
 
-      if (firstRound) numberOfCards = i % 2 ? randomNum : 5 - randomNum;
-      else numberOfCards = i % 2 ? 5 - randomNum : randomNum;
+      if (firstRound) {
+        numberOfCards = i % 2 ? 5 - randomNum : randomNum;
+      } else {
+        numberOfCards = i % 2 ? randomNum : 5 - randomNum;
+      }
 
       for (let j = 0; j < numberOfCards; j++) {
         currentPlayer.hand.push(newGame.deck[counter]);
@@ -211,7 +201,7 @@ const useGameData = () => {
 
   /** */
   const getHandResult = (game: EuchreGameInstance): EuchreHandResult => {
-    if (!game.dealer || !game.maker) throw new Error('Dealer and maker not found for hand result.');
+    if (!game.maker) throw new Error('Maker not found for hand result.');
 
     const makerTricksWon: number = game.currentTricks.filter(
       (t) => t.taker?.team === game.maker?.team
@@ -241,9 +231,6 @@ const useGameData = () => {
     const allPlayerCards: EuchreCard[] = game.gamePlayers
       .map((p) => [
         ...p.hand.map((c) => {
-          return { card: c, player: p };
-        }),
-        ...p.playedCards.map((c) => {
           return { card: c, player: p };
         })
       ])
@@ -306,17 +293,8 @@ const useGameData = () => {
     playerRotation: EuchrePlayer[]
   ): EuchreGameInstance => {
     const newGame: EuchreGameInstance = { ...game };
-
-    if (!newGame.currentPlayer) throw new Error('Game player not found.');
-    if (!newGame.trump) throw new Error('Trump not found.');
-
-    newGame.currentTricks = [...newGame.currentTricks];
-    const lastTrick: EuchreTrick | undefined = newGame.currentTricks.pop();
-    if (!lastTrick) throw new Error('Trick not found for playthrough');
-
-    const newLastTrick = { ...lastTrick };
     let playerFollowedSuit = true;
-    const lastCardPlayed = newLastTrick.cardsPlayed.at(-1);
+    const lastCardPlayed = newGame.currentTrick.cardsPlayed.at(-1);
 
     // determine if the player followed suit when possible. if not, then the hand/trick is over and the
     // other team wins the hand.
@@ -324,36 +302,40 @@ const useGameData = () => {
       playerFollowedSuit = didPlayerFollowSuit(newGame, lastCardPlayed.card);
     }
 
-    if (!playerFollowedSuit || newLastTrick.cardsPlayed.length === playerRotation.length) {
-      const trickWinner = determineCurrentWinnerForTrick(newGame.trump, newLastTrick);
+    if (!playerFollowedSuit || newGame.currentTrick.cardsPlayed.length === playerRotation.length) {
+      // enter this block when the trick is finished.
+      const trickWinner = determineCurrentWinnerForTrick(newGame.trump, newGame.currentTrick);
 
       if (!trickWinner.card?.player) throw new Error('Trick winner not found.');
-
-      newLastTrick.taker = trickWinner.card.player;
+      newGame.currentTrick.taker = trickWinner.card.player;
 
       const player = playerSittingOut(newGame);
       if (newGame.loner && player) {
         const availableCards = availableCardsToPlay(player);
         const cardToPlay = availableCards[0];
         player.playedCards.push(cardToPlay);
-        newLastTrick.playerSittingOut = { card: cardToPlay, player: player };
+        newGame.currentTrick.playerSittingOut = { card: cardToPlay, player: player };
       }
 
       if (!playerFollowedSuit) {
-        newLastTrick.playerRenege = newGame.currentPlayer;
+        newGame.currentTrick.playerRenege = newGame.currentPlayer;
       } else if (newGame.currentTricks.length < 5) {
-        newGame.currentPlayer = trickWinner.card?.player ?? null;
+        newGame.currentPlayer = trickWinner.card.player;
       }
-    } else {
+
+      // add to current tricks when trick is complete.
+      newGame.currentTricks.push(newGame.currentTrick);
+    } else if (newGame.currentTrick.cardsPlayed.length < playerRotation.length) {
       newGame.currentPlayer = playerRotation[0];
+    } else {
+      throw new Error('An error occurred while determining if trick was over. Too many cards played.');
     }
 
-    newGame.currentTricks.push(newLastTrick);
     return newGame;
   };
 
   /**
-   *
+   * Get the current winner for the trick, even if the trick has not yet been complete.
    * @param trump
    * @param trick
    * @returns
@@ -417,8 +399,6 @@ const useGameData = () => {
     const lastGameResult: EuchreHandResult | undefined = newGame.gameResults.pop();
 
     if (!lastGameResult) throw new Error('Game result not found.');
-    if (!newGame.dealer) throw new Error('Game dealer not found.');
-    if (!newGame.trump) throw new Error('Trump card not found.');
 
     const discard: Card | null = newGame.discard ? { ...newGame.discard } : null;
     const allCards: EuchreCard[] = lastGameResult.allPlayerCards;
@@ -479,9 +459,6 @@ const useGameData = () => {
    * Returns true in all other cases.
    */
   const didPlayerFollowSuit = (game: EuchreGameInstance, playedCard: Card): boolean => {
-    if (!game.currentPlayer) throw new Error();
-    if (!game.trump) throw new Error();
-
     const cardsAvailableToBePlayed = availableCardsToPlay(game.currentPlayer);
 
     // make sure the played card is in the original array of cards available to be played
@@ -489,7 +466,7 @@ const useGameData = () => {
       cardsAvailableToBePlayed.push(playedCard);
     }
 
-    const leadCard: EuchreCard | null = game.currentTrick?.cardsPlayed.at(0) ?? null;
+    const leadCard: EuchreCard | null = game.currentTrick.cardsPlayed.at(0) ?? null;
 
     // player does not need to follow suit if no card has yet been lead.
     if (!leadCard || playerEqual(leadCard.player, game.currentPlayer)) return true;
@@ -527,7 +504,7 @@ const useGameData = () => {
   };
 
   /**
-   * Logic to have less difficulty is to have more randomness is AI decisions.
+   * Logic to have less difficulty is to have more randomness in AI decisions.
    *
    * @param team
    * @param difficulty
@@ -549,8 +526,10 @@ const useGameData = () => {
       const randomNum = Math.random();
 
       if (randomNum < randomChance) {
-        let randomScore = Math.floor(Math.random() * maxScore);
-        if (randomScore < minScore) randomScore = minScore;
+        const scoreRange = maxScore - minScore;
+        let randomScore = Math.floor(Math.random() * scoreRange);
+        if (randomScore < minScore) randomScore += minScore;
+        if (randomScore > maxScore) randomScore -= maxScore;
 
         return randomScore;
       }
@@ -593,8 +572,8 @@ const useGameData = () => {
     reverseLastHandPlayed,
     incrementSpeed,
     decrementSpeed,
-    handFinished,
-    trickFinished,
+    isHandFinished,
+    isTrickFinished,
     updateIfHandOver,
     updateIfTrickOver,
     getCardsAvailableToPlay,

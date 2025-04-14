@@ -10,10 +10,28 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 export default function GameErrorPrompt({ errorState, onAttemptToRecover, className, ...rest }: Props) {
   return (
     <GamePrompt {...rest} zIndex={50} className={clsx('bg-stone-800', className)}>
-      <div className="p-1 min-w-16 min-h-16">
+      <div className="p-2 min-w-16 min-h-16">
         <PromptHeader>Error</PromptHeader>
-        <div>{errorState.message}</div>
-        <button onClick={onAttemptToRecover}>Attempt To Recover</button>
+        <div className="flex flex-col gap-3 mt-3">
+          <div>
+            <label>ID: </label>
+            {errorState.id}
+          </div>
+          <div>
+            <label>Time: </label>
+            {`${errorState.time.toLocaleDateString()} - ${errorState.time.toLocaleTimeString()}`}
+          </div>
+          <div>
+            <label>Message: </label>
+            {errorState.message}
+          </div>
+          <button
+            className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black p-1 w-48 m-auto"
+            onClick={onAttemptToRecover}
+          >
+            Attempt To Recover
+          </button>
+        </div>
       </div>
     </GamePrompt>
   );

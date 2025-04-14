@@ -36,9 +36,9 @@ const usePlayerData = () => {
     return player.hand.filter((c) => c.value !== 'P');
   };
 
-  const playerEqual = (first: EuchrePlayer, second: EuchrePlayer): boolean => {
+  const playerEqual = useCallback((first: EuchrePlayer, second: EuchrePlayer): boolean => {
     return first.playerNumber === second.playerNumber;
-  };
+  }, []);
 
   const getTeamColor = (player: EuchrePlayer, settings: EuchreSettings): TeamColor => {
     if (player.team === 1) {
@@ -120,9 +120,10 @@ const usePlayerData = () => {
       let availableCards: Card[] = availableCardsToPlay(player);
 
       if (availableCards.length < 5) {
-        availableCards = orderPlayerHand(availableCards);
-        availableCards.forEach((c, index) => (c.index = index));
+        //availableCards = orderPlayerHand(availableCards);
+        //availableCards.forEach((c, index) => (c.index = index));
 
+        throw new Error();
         return availableCards;
       }
 
@@ -157,11 +158,11 @@ const usePlayerData = () => {
         }
       }
 
-      availableCards = orderPlayerHand(availableCards);
+      //availableCards = orderPlayerHand(availableCards);
       availableCards.forEach((c, index) => (c.index = index));
       return availableCards;
     },
-    [availableCardsToPlay, cardIsLeftBower, getCardValues, getSuitCount, orderPlayerHand]
+    [availableCardsToPlay, cardIsLeftBower, getCardValues, getSuitCount]
   );
 
   /** Get the rotation of players relative to the given player.

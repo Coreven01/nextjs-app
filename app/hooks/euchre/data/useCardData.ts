@@ -32,6 +32,18 @@ const useCardData = () => {
     return suit === '♠' || suit === '♣' ? 'B' : 'R';
   };
 
+  const cardIsLeftBower = useCallback((card: Card, trumpCard: Card): boolean => {
+    return (
+      getCardColor(card.suit) === getCardColor(trumpCard.suit) &&
+      card.value === 'J' &&
+      card.suit !== trumpCard.suit
+    );
+  }, []);
+
+  const cardIsRightBower = useCallback((card: Card, trumpCard: Card): boolean => {
+    return card.value === 'J' && card.suit === trumpCard.suit;
+  }, []);
+
   /** Get the associated card values for the given cards and trump card. */
   const getCardValues = (cards: Card[], trump: Card | null): { card: Card; value: number }[] => {
     const retval: { card: Card; value: number }[] = [];
@@ -96,19 +108,22 @@ const useCardData = () => {
   };
 
   /** */
-  const getCardValueBySuit = useCallback((card: Card, trumpCard: Card | null) => {
-    let retval = 0;
+  const getCardValueBySuit = useCallback(
+    (card: Card, trumpCard: Card | null) => {
+      let retval = 0;
 
-    if (trumpCard && card.suit === trumpCard.suit) {
-      retval = trumpValues.get(card.value) ?? 0;
-    } else if (trumpCard && card.value === 'J' && getCardColor(card.suit) === getCardColor(trumpCard.suit)) {
-      retval = LEFT_BOWER_VALUE;
-    } else {
-      retval = offsuitValues.get(card.value) ?? 0;
-    }
+      if (trumpCard && card.suit === trumpCard.suit) {
+        retval = trumpValues.get(card.value) ?? 0;
+      } else if (trumpCard && cardIsLeftBower(card, trumpCard)) {
+        retval = LEFT_BOWER_VALUE;
+      } else {
+        retval = offsuitValues.get(card.value) ?? 0;
+      }
 
-    return retval;
-  }, []);
+      return retval;
+    },
+    [cardIsLeftBower]
+  );
 
   /** */
   const getCardValue = useCallback(
@@ -132,18 +147,6 @@ const useCardData = () => {
     });
 
     return retval;
-  };
-
-  const cardIsLeftBower = (card: Card, trumpCard: Card): boolean => {
-    return (
-      getCardColor(card.suit) === getCardColor(trumpCard.suit) &&
-      card.value === 'J' &&
-      card.suit !== trumpCard.suit
-    );
-  };
-
-  const cardIsRightBower = (card: Card, trumpCard: Card): boolean => {
-    return card.value === 'J' && card.suit === trumpCard.suit;
   };
 
   const getHighAndLow = (playerHand: Card[], trumpCard: Card): { high: Card | null; low: Card | null } => {
@@ -244,8 +247,7 @@ const useCardData = () => {
   const createPlaceholderCards = useCallback((deckSize: number): Card[] => {
     const retval: Card[] = [];
     for (let i = 0; i < deckSize; i++) {
-      const temp: Card = { suit: '♠', value: 'P', index: 0 };
-      temp.index = -1 - i;
+      const temp: Card = { suit: '♠', value: 'P', index: i };
       retval.push(temp);
     }
 

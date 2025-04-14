@@ -12,7 +12,7 @@ export default function SideNav() {
     <div
       id="nav-menu"
       style={{ zIndex: 600 }}
-      className="md:fixed sticky md:top-[57px] md:left-0 overflow-auto min-h-full md:w-58 border-r min-w-48"
+      className="md:fixed sticky md:top-[57px] md:left-0 overflow-auto min-h-full md:w-58 border-r min-w-48 bg-neutral-900 bg-opacity-50"
     >
       <div className="relative w-50 min-h-full peer-checked/menu:block peer-checked/menu:fixed md:block animate-slideInLeft">
         <input

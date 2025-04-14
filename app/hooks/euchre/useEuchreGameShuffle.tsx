@@ -1,5 +1,3 @@
-'use client';
-
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './gameFlowReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
@@ -16,6 +14,7 @@ import useGamePlayLogic from './logic/useGamePlayLogic';
 import useGameStateLogic from './logic/useGameStateLogic';
 import useCardSvgData from './data/useCardSvgData';
 import useCardData from './data/useCardData';
+import { v4 as uuidv4 } from 'uuid';
 
 const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorState) => {
   const { isGameStateValidToContinue, generateElementId } = useGameStateLogic();
@@ -28,7 +27,7 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
 
   /** */
   const getFaceUpCard = useCallback(
-    (id: string, card: Card, player: EuchrePlayer, fadeOut: boolean) => {
+    (id: string, card: Card, fadeOut: boolean) => {
       return (
         <EphemeralModal
           key={`${generateElementId()}`}
@@ -50,13 +49,17 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
               <GameCard
                 responsive={true}
                 id={id}
-                player={player}
                 card={card}
                 enableShadow={true}
                 width={getDisplayWidth('center')}
                 height={getDisplayHeight('center')}
                 src={getEncodedCardSvg(card, 'center')}
                 title={getCardFullName(card)}
+                playCard={false}
+                index={0}
+                availableCardIndices={[]}
+                onCardClick={() => null}
+                gameSpeedMs={1000}
               ></GameCard>
             </div>
           </GameBorder>
@@ -109,7 +112,7 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     // display trump card for bidding in the center of the table.
     state.dispatchPlayerNotification({
       type: PlayerNotificationActionType.UPDATE_CENTER,
-      payload: getFaceUpCard(FLIPPED_CARD_ID, newGame.trump, newGame.player1, false)
+      payload: getFaceUpCard(FLIPPED_CARD_ID, newGame.trump, false)
     });
 
     const newGameState: EuchreGameFlowState = getGameStateForNextHand(
@@ -135,8 +138,8 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_ERROR });
       errorState.setErrorState({
         time: new Date(),
-        id: '12',
-        message: error ? error.message : 'unknown error',
+        id: uuidv4(),
+        message: error ? error.message : 'Unknown error in beginShuffleAndDealHand',
         gameFlow: EuchreFlowActionType.SET_BEGIN_SHUFFLE_CARDS,
         animationType: EuchreAnimationActionType.SET_ANIMATE_NONE
       });
@@ -161,14 +164,26 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
 
       if (!state.euchreGame) throw new Error();
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
-      //await animateDealCardsForHand(newGame);
 
       state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
     };
 
-    beginAnimationForDealCards();
-  }, [isGameStateValidToContinue, state]);
+    try {
+      beginAnimationForDealCards();
+    } catch (e) {
+      const error = e as Error;
+
+      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_ERROR });
+      errorState.setErrorState({
+        time: new Date(),
+        id: uuidv4(),
+        message: error ? error.message : 'Unknown error in beginAnimationForDealCards',
+        gameFlow: EuchreFlowActionType.SET_BEGIN_DEAL_CARDS,
+        animationType: EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
+      });
+    }
+  }, [errorState, isGameStateValidToContinue, state]);
 
   //#endregion
 

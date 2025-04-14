@@ -37,8 +37,7 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
       <div className="flex">
         <div className="flex flex-col md:text-sm text-xs mx-1">
           <div className="flex mx-1 items-center">
-            <PromptHeader>Rounds Played: </PromptHeader>
-            <div className="text-center">{rounds}</div>
+            <PromptHeader>Rounds Played: {rounds}</PromptHeader>
           </div>
           <table>
             <thead>

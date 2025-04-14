@@ -6,39 +6,38 @@ const menuSvg =
 dark:bg-[rgba(25,115,25,0.9)] border border-black appearance-none cursor-pointer border rounded w-8 h-8 checked:dark:bg-stone-500`;
 
 export const RANDOM_FOR_DIFFICULTY = new Map<GameDifficulty, number>([
-  ['novice', 0.6],
-  ['intermediate', 0.3],
-  ['expert', 0]
+  ['novice', 0.7],
+  ['intermediate', 0.35],
+  ['expert', 0],
+  ['tabletalk', 0]
 ]);
 
 export type TeamColor = 'red' | 'blue' | 'orange' | 'yellow' | 'green' | 'white' | 'pink' | 'purple';
-export type GameDifficulty = 'novice' | 'intermediate' | 'expert';
+export type GameDifficulty = 'novice' | 'intermediate' | 'expert' | 'tabletalk';
 export type CardBackColor = 'green' | 'blue' | 'red' | 'black';
 
 export const TEAM_COLOR_MAP: Map<TeamColor, string> = new Map([
   ['red', 'bg-red-600'],
   ['blue', 'bg-blue-600'],
   ['orange', 'bg-orange-500'],
-  ['yellow', 'bg-yellow-300'],
+  ['yellow', 'bg-yellow-400'],
   ['green', 'bg-green-600'],
   ['white', 'bg-white'],
-  ['pink', 'bg-pink-300'],
-  ['purple', 'bg-purple-600']
+  ['pink', 'bg-pink-400'],
+  ['purple', 'bg-purple-700']
 ]);
 
 export const GAME_SPEED_MAP = new Map<string, GameSpeed>([
-  ['Fastest', 150],
-  ['Faster', 300],
-  ['Fast', 700],
-  ['Normal', 1000],
-  ['Slow', 2000],
-  ['Slower', 4000]
+  ['Fast', 300],
+  ['Moderate', 700],
+  ['Slow', 2000]
 ]);
 
 export const DIFFICULTY_MAP = new Map<string, GameDifficulty>([
   ['Novice', 'novice'],
   ['Intermediate', 'intermediate'],
-  ['Expert', 'expert']
+  ['Expert', 'expert'],
+  ['AI Table Talks', 'tabletalk']
 ]);
 
 export enum PromptType {
@@ -52,6 +51,7 @@ export type PromptValue = {
   type: PromptType;
 };
 
+export const MINIMUM_NOTIFICATION_SPEED = 1000;
 export const AVAILABLE_GAME_SPEED: GameSpeed[] = [150, 300, 700, 1000, 2000, 3000, 4000];
 export const AVAILABLE_SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
 export const SPADE: string = '♠';
@@ -85,6 +85,7 @@ export const INIT_GAME_SETTINGS: EuchreSettings = {
   shouldAnimate: false,
   debugAlwaysPass: false,
   gameSpeed: 700,
+  notificationSpeed: MINIMUM_NOTIFICATION_SPEED,
   showHandResult: true,
   teamOneColor: 'blue',
   teamTwoColor: 'red',
@@ -92,6 +93,7 @@ export const INIT_GAME_SETTINGS: EuchreSettings = {
   autoFollowSuit: false,
   debugShowHandsWhenPassed: false,
   debugShowPlayersHand: false,
+  debugAllComputerPlayers: false,
   difficulty: 'intermediate',
   stickTheDealer: false,
   viewPlayerInfoDetail: true,
@@ -121,6 +123,7 @@ export interface EuchrePlayersPassedResult {
 export interface EuchreSettings {
   shouldAnimate: boolean;
   gameSpeed: GameSpeed;
+  notificationSpeed: GameSpeed;
   showHandResult: boolean;
   teamOneColor: TeamColor;
   teamTwoColor: TeamColor;
@@ -129,6 +132,7 @@ export interface EuchreSettings {
   debugShowPlayersHand: boolean;
   debugShowHandsWhenPassed: boolean;
   debugAlwaysPass: boolean;
+  debugAllComputerPlayers: boolean;
   difficulty: GameDifficulty;
   viewPlayerInfoDetail: boolean;
   cardColor: CardBackColor;
@@ -141,6 +145,8 @@ export interface BidResult {
   loner: boolean;
   calledSuit: Suit | null;
   handScore: number;
+  cheatScore: number;
+  discard: Card | null;
 }
 
 export interface EuchrePlayer {
@@ -149,7 +155,6 @@ export interface EuchrePlayer {
   readonly team: 1 | 2;
 
   hand: Card[];
-  placeholder: Card[];
   playedCards: Card[];
   human: boolean;
 }

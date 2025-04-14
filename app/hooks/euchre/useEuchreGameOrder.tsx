@@ -1,5 +1,3 @@
-'use client';
-
 import { Card, EuchreGameInstance, PromptType } from '@/app/lib/euchre/definitions';
 import { EuchreFlowActionType, EuchreGameFlow } from './gameFlowReducer';
 import {
@@ -16,7 +14,7 @@ import useGameStateLogic from './logic/useGameStateLogic';
 import useGameBidLogic from './logic/useGameBidLogic';
 import useGameData from './data/useGameData';
 import usePlayerData from './data/usePlayerData';
-import useCardData from './data/useCardData';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function useEuchreGameOrder(state: EuchreGameState, errorState: EuchreErrorState) {
   const { isGameStateValidToContinue } = useGameStateLogic();
@@ -90,8 +88,19 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
   useEffect(() => {
     try {
       beginOrderTrump();
-    } catch (e) {}
-  }, [beginOrderTrump]);
+    } catch (e) {
+      const error = e as Error;
+
+      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_ERROR });
+      errorState.setErrorState({
+        time: new Date(),
+        id: uuidv4(),
+        message: error ? error.message : 'Unknown error in beginOrderTrump',
+        gameFlow: EuchreFlowActionType.SET_BEGIN_ORDER_TRUMP,
+        animationType: EuchreAnimationActionType.SET_ANIMATE_NONE
+      });
+    }
+  }, [beginOrderTrump, errorState, state]);
 
   /**
    *
@@ -175,10 +184,22 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
 
     try {
       beginAnimationOrderTrump();
-    } catch (e) {}
+    } catch (e) {
+      const error = e as Error;
+
+      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_ERROR });
+      errorState.setErrorState({
+        time: new Date(),
+        id: uuidv4(),
+        message: error ? error.message : 'Unknown error in beginAnimationOrderTrump',
+        gameFlow: EuchreFlowActionType.SET_BEGIN_ORDER_TRUMP,
+        animationType: EuchreAnimationActionType.SET_ANIMATE_ORDER_TRUMP
+      });
+    }
   }, [
     determineDiscard,
     discard,
+    errorState,
     incrementSpeed,
     isGameStateValidToContinue,
     playerEqual,

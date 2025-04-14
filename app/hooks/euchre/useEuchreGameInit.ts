@@ -1,5 +1,3 @@
-'use client';
-
 import {
   EuchreFlowActionType,
   EuchreGameFlow,
@@ -61,7 +59,7 @@ export default function useEuchreGameInit(state: EuchreGameState) {
    *
    */
   const createGame = () => {
-    const newGame = initDeckForInitialDeal(state.euchreSettings.playerName, state.shouldCancel);
+    const newGame = initDeckForInitialDeal(state.euchreSettings, state.shouldCancel);
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
       state.euchreGameFlow,
       state.euchreSettings,

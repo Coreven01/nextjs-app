@@ -1,7 +1,4 @@
-'use client';
-
 import { ActionDispatch, Dispatch, SetStateAction, useCallback, useMemo, useReducer, useState } from 'react';
-import { CardTransformation } from './useMoveCard';
 import {
   initialPlayerNotification,
   PlayerNotificationAction,
@@ -87,7 +84,6 @@ export default function useEuchreGame() {
   const [euchreGame, setEuchreGame] = useState<EuchreGameInstance | null>(null);
   const [euchreSettings, setEuchreSettings] = useState<EuchreSettings>({ ...INIT_GAME_SETTINGS });
   const [errorState, setErrorState] = useState<EuchreError | null>(null);
-
   const [playedCard, setPlayedCard] = useState<Card | null>(null);
   const [bidResult, setBidResult] = useState<BidResult | null>(null);
   const { events, addEvent, clearEvents } = useEventLog();
@@ -102,9 +98,6 @@ export default function useEuchreGame() {
     gameAnimationFlowReducer,
     initialGameAnimationState
   );
-  // const [animationTransformation, setAnimationTransformation] = useState<CardTransformation[][]>([]);
-  // const { animateForInitialDeal, animateDealCardsForHand, animateForPlayCard, setFadeOutForPlayers } =
-  //   useAnimation(euchreSettings);
 
   const handleCancelGame = useCallback(() => {
     if (shouldCancelGame) return;
@@ -161,13 +154,13 @@ export default function useEuchreGame() {
     shouldCancelGame
   ]);
 
+  const { reverseLastHandPlayed } = useGameData();
+  const { getGameStateForNextHand } = useGamePlayLogic();
   const { reset, handleBeginGame, cancelAndReset } = useEuchreGameInit(gameState);
   const {} = useEuchreGameInitDeal(gameState, gameErrorState);
   const {} = useEuchreGameShuffle(gameState, gameErrorState);
   const { handleBidSubmit } = useEuchreGameBid(gameState, gameErrorState, reset);
   const { handleDiscardSubmit } = useEuchreGameOrder(gameState, gameErrorState);
-  const { reverseLastHandPlayed } = useGameData();
-  const { getGameStateForNextHand } = useGamePlayLogic();
   const { handleCardPlayed, handleCloseGameResults, handleCloseHandResults } = useEuchreGamePlay(
     gameState,
     gameErrorState
@@ -230,6 +223,7 @@ export default function useEuchreGame() {
     euchreSettings,
     events,
     errorState,
+    playedCard,
     clearEvents,
     handleStartGame,
     handleBeginNewGame,

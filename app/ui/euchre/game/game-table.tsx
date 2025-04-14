@@ -2,14 +2,24 @@ import { PlayerNotificationState } from '@/app/hooks/euchre/playerNotificationRe
 import GameBorder from './game-border';
 import WoodenBoard from '../wooden-board';
 import clsx from 'clsx';
-//import { env } from 'node:process';
+import { RefObject } from 'react';
 
-type Props = {
+interface Props {
   playerNotification: PlayerNotificationState;
-};
+  player1TableRef: RefObject<HTMLDivElement>;
+  player2TableRef: RefObject<HTMLDivElement>;
+  player3TableRef: RefObject<HTMLDivElement>;
+  player4TableRef: RefObject<HTMLDivElement>;
+}
 
-const GameTable = ({ playerNotification }: Props) => {
-  const isDebugMode = false; // env.REACT_APP_DEBUG === 'true';
+const GameTable = ({
+  playerNotification,
+  player1TableRef,
+  player2TableRef,
+  player3TableRef,
+  player4TableRef
+}: Props) => {
+  const isDebugMode = true; // env.REACT_APP_DEBUG === 'true';
   const renderOrder = [
     playerNotification.player2GameInfo,
     playerNotification.player3GameInfo,
@@ -27,6 +37,7 @@ const GameTable = ({ playerNotification }: Props) => {
             X
           </div>
           <div
+            ref={player2TableRef}
             id={`game-base-2-inner`}
             className={clsx(`absolute bottom-0`, { 'text-transparent': !isDebugMode })}
           >
@@ -42,6 +53,7 @@ const GameTable = ({ playerNotification }: Props) => {
             X
           </div>
           <div
+            ref={player3TableRef}
             id={`game-base-3-inner`}
             className={clsx(`absolute top-auto right-0`, { 'text-transparent': !isDebugMode })}
           >
@@ -69,6 +81,7 @@ const GameTable = ({ playerNotification }: Props) => {
             X
           </div>
           <div
+            ref={player4TableRef}
             id={`game-base-4-inner`}
             className={clsx(`absolute top-auto left-0`, { 'text-transparent': !isDebugMode })}
           >
@@ -84,6 +97,7 @@ const GameTable = ({ playerNotification }: Props) => {
             X
           </div>
           <div
+            ref={player1TableRef}
             id={`game-base-1-inner`}
             className={clsx(`absolute top-0`, { 'text-transparent': !isDebugMode })}
           >

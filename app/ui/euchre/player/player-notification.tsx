@@ -58,7 +58,7 @@ const PlayerNotification = ({ dealer, player, settings, info, loner, namedSuit }
   return (
     <EphemeralModal
       className={clsx(`w-fit h-fit absolute whitespace-nowrap shadow-lg shadow-black z-50`, messageLocation)}
-      durationMs={settings.gameSpeed}
+      durationMs={settings.notificationSpeed}
       delayMs={delay}
       fadeType="both"
     >

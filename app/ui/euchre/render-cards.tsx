@@ -31,6 +31,11 @@ export default function RenderCards({ color, size, rotate }: Props) {
           player={tempPlayer}
           src={'/card-back.svg'}
           enableShadow={true}
+          index={0}
+          availableCardIndices={[]}
+          gameSpeedMs={1000}
+          onCardClick={() => null}
+          playCard={false}
         ></GameCard>
         <GameCard
           id="back-card-2"
@@ -40,6 +45,11 @@ export default function RenderCards({ color, size, rotate }: Props) {
           player={tempPlayer}
           src={'/card-back-side.svg'}
           enableShadow={true}
+          index={0}
+          availableCardIndices={[]}
+          gameSpeedMs={1000}
+          onCardClick={() => null}
+          playCard={false}
         ></GameCard>
       </div>
       {suits.map((s) => {
@@ -68,6 +78,11 @@ export default function RenderCards({ color, size, rotate }: Props) {
                     player={tempPlayer}
                     src={getEncodedCardSvg(card, 'center')}
                     enableShadow={true}
+                    index={0}
+                    availableCardIndices={[]}
+                    gameSpeedMs={1000}
+                    onCardClick={() => null}
+                    playCard={false}
                   ></GameCard>
                 </div>
               );
@@ -103,6 +118,11 @@ export default function RenderCards({ color, size, rotate }: Props) {
                   src={getEncodedCardSvg(card, 'side')}
                   enableShadow={true}
                   responsive={false}
+                  index={0}
+                  availableCardIndices={[]}
+                  gameSpeedMs={1000}
+                  onCardClick={() => null}
+                  playCard={false}
                 ></GameCard>
               );
             })}

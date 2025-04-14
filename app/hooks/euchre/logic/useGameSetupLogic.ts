@@ -25,7 +25,6 @@ const useGameSetupLogic = () => {
       team: team,
       playerNumber: playerNumber,
       hand: [],
-      placeholder: [],
       playedCards: [],
       human: false
     };
@@ -63,7 +62,7 @@ const useGameSetupLogic = () => {
         turnedDown: null,
         cardDealCount: [],
         gameResults: [],
-        gamePlayers: [],
+        gamePlayers: [player1, player2, player3, player4],
 
         currentRound: 1,
         currentTrick: createTrick(1),
@@ -78,13 +77,13 @@ const useGameSetupLogic = () => {
    *
    */
   const createEuchreGame = useCallback(
-    (player1Name: string): EuchreGameInstance => {
-      const player1: EuchrePlayer = createPlayer(player1Name, 1, 1);
+    (gameSettings: EuchreSettings): EuchreGameInstance => {
+      const player1: EuchrePlayer = createPlayer(gameSettings.playerName, 1, 1);
       const player2: EuchrePlayer = createPlayer('Jerry', 1, 2);
       const player3: EuchrePlayer = createPlayer('George', 2, 3);
       const player4: EuchrePlayer = createPlayer('Elaine', 2, 4);
 
-      player1.human = true;
+      player1.human = !gameSettings.debugAllComputerPlayers;
 
       const newGame = createBaseGame(player1, player2, player3, player4);
       newGame.deck = createPlaceholderCards(24);
@@ -121,10 +120,10 @@ const useGameSetupLogic = () => {
 
   /** Initialize the game with shuffled deck and set player 1 for deal. */
   const initDeckForInitialDeal = useCallback(
-    (playerName: string, cancel: boolean): EuchreGameInstance => {
+    (gameSettings: EuchreSettings, cancel: boolean): EuchreGameInstance => {
       logDebugError('Init deck for init deal');
 
-      const gameInstance = createEuchreGame(playerName);
+      const gameInstance = createEuchreGame(gameSettings);
 
       if (cancel) return gameInstance;
 
@@ -143,7 +142,6 @@ const useGameSetupLogic = () => {
   const dealCardsForNewDealer = useCallback(
     (game: EuchreGameInstance, gameSetting: EuchreSettings): InitDealResult => {
       if (!game) throw Error('Game not found.');
-      if (!game?.dealer) throw Error('Game dealer not found for initial dealer.');
 
       let counter = 0;
       const gameDeck = game.deck;
@@ -269,13 +267,12 @@ const useGameSetupLogic = () => {
     const retval: ShuffleResult = { transformations: [], game: newGame };
 
     if (cancel) return retval;
-    if (!newGame.dealer) throw Error('Dealer not found.');
 
     const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
     const difficulty = gameSettings.difficulty;
-    let shouldReDeal = true;
     const redealLimit = 10;
     let counter = 0;
+    let shouldReDeal = true;
     const replayHand = replayGameInstance?.gameResults.find((r) => r.roundNumber === newGame.currentRound);
 
     while (shouldReDeal) {

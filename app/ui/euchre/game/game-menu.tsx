@@ -32,7 +32,7 @@ const GameMenu = ({
   const menuRef = useRef<HTMLDivElement | null>(null);
   const eventAdded = useRef(false);
   const enableToggleSettings = false;
-  const enableToggleEvents = false;
+  const enableToggleEvents = true;
 
   const exitMenu = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;

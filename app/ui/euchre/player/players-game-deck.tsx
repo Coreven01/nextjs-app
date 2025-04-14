@@ -5,6 +5,7 @@ import GameDeck from '../game/game-deck';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
 import clsx from 'clsx';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
+import { RefObject, useRef } from 'react';
 //import { env } from 'node:process';
 
 type Props = {
@@ -13,10 +14,22 @@ type Props = {
   settings: EuchreSettings;
   gameFlow: EuchreGameFlowState;
   dealDeck: Card[];
+  playedCard: Card | null;
+  playerTableRef: RefObject<HTMLDivElement>;
   onCardClick: (card: Card) => void;
 };
 
-export default function PlayerGameDeck({ player, game, gameFlow, settings, dealDeck, onCardClick }: Props) {
+export default function PlayerGameDeck({
+  player,
+  game,
+  gameFlow,
+  settings,
+  dealDeck,
+  playedCard,
+  playerTableRef,
+  onCardClick
+}: Props) {
+  const deckRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
   const { playerLocation } = usePlayerData();
   const isDebugMode = false; //env.REACT_APP_DEBUG === 'true';
   const playerNumber = player.playerNumber;
@@ -44,11 +57,11 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
       playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 bottom-4 md:min-w-32';
       classForLocation = 'flex md:items-end justify-center items-center h-full';
       playerHandClassOuter =
-        'md:relative md:left-0 md:top-0 md:h-full left-4 bottom-0 absolute md:overflow-visible overflow-hidden';
-      playerHandClassInner = 'flex relative md:-top-8 top-4';
+        'md:relative md:left-0 md:top-0 md:h-full left-4 bottom-0 absolute md:overflow-visible overflow-hidden pointer-events-none';
+      playerHandClassInner = 'grow flex relative justify-center';
       break;
     case 2:
-      playerInfoOuterClass = 'md:w-auto md:right-8';
+      playerInfoOuterClass = 'md:w-auto md:right-48';
       playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 -bottom-8 md:min-w-32';
       classForLocation =
         'flex md:items-end justify-center items-center h-full md:overflow-visible overflow-hidden';
@@ -74,7 +87,7 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
   }
 
   const playerInfo = gameFlow.hasGameStarted && (
-    <div className={clsx('relative md:text-sm text-xs whitespace-nowrap z-20', playerInfoOuterClass)}>
+    <div className={clsx('absolute md:text-sm text-xs whitespace-nowrap z-20', playerInfoOuterClass)}>
       <div className={clsx('absolute', playerInfoInnerClass)}>
         <PlayerInfo
           id={`player-info-${player.playerNumber}`}
@@ -88,15 +101,46 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
 
   return (
     <>
-      <div id={`player-deck-${player.playerNumber}`} className={`${classForLocation} relative`}>
+      <div id={`player-hand-inner-${player.playerNumber}`} className={playerHandClassInner}>
+        <PlayerHand
+          key={`${game.currentRound}-${player.playerNumber}`}
+          game={game}
+          gameSettings={settings}
+          gameFlow={gameFlow}
+          player={player}
+          playedCard={playedCard}
+          onCardClick={onCardClick}
+          deckRef={deckRef}
+          playerTableRef={playerTableRef}
+        />
+        <div
+          id={`player-base-${playerNumber}`}
+          className={clsx(position, { 'text-transparent': !isDebugMode })}
+        >
+          X
+        </div>
+        {gameDeck}
+        {playerInfo}
+      </div>
+    </>
+  );
+}
+
+{
+  /* <>
+      <div id={`player-deck-${player.playerNumber}`} className={`${classForLocation} relative`} ref={deckRef}>
         <div id={`player-hand-outer-${player.playerNumber}`} className={playerHandClassOuter}>
           <div id={`player-hand-inner-${player.playerNumber}`} className={playerHandClassInner}>
             <PlayerHand
+              key={`${game.currentRound}-${player.playerNumber}`}
               game={game}
               gameSettings={settings}
               gameFlow={gameFlow}
               player={player}
+              playedCard={playedCard}
               onCardClick={onCardClick}
+              deckRef={deckRef}
+              playerTableRef={playerTableRef}
             />
           </div>
         </div>
@@ -109,6 +153,5 @@ export default function PlayerGameDeck({ player, game, gameFlow, settings, dealD
         {gameDeck}
       </div>
       {playerInfo}
-    </>
-  );
+    </> */
 }

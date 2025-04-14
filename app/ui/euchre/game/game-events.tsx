@@ -49,7 +49,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
               {events.map((e) => {
                 return (
                   <li key={e.id}>
-                    {e.time} {`(${e.type})`}: {e.message}
+                    {e.time} {`(${e.type})`}: {e.message} {e.player ? `(${e.player})` : ''}
                   </li>
                 );
               })}
