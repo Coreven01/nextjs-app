@@ -7,13 +7,13 @@ import {
   PromptType
 } from '@/app/lib/euchre/definitions';
 import { CheckCircleIcon } from '@heroicons/react/16/solid';
-import { EuchreFlowActionType, EuchreGameFlow } from './gameFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlow } from './reducers/gameFlowReducer';
 import {
   getPlayerNotificationType,
   PlayerNotificationAction,
   PlayerNotificationActionType
-} from './playerNotificationReducer';
-import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
+} from './reducers/playerNotificationReducer';
+import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect, useRef } from 'react';
 import GameCard from '@/app/ui/euchre/game/game-card';
@@ -34,7 +34,7 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
   const playerAutoPlayed = useRef(false);
   const { isGameStateValidToContinue, generateElementId } = useGameStateLogic();
   const { createTrick } = useGameSetupLogic();
-  const { getPlayerRotation, availableCardsToPlay, sortCards, playerLocation } = usePlayerData();
+  const { getPlayerRotation, availableCardsToPlay, playerLocation } = usePlayerData();
   const { determineCardToPlay, getGameStateForNextHand } = useGamePlayLogic();
   const { getEncodedCardSvg } = useCardSvgData();
   const { getDisplayHeight, getDisplayWidth } = useCardData();
@@ -86,30 +86,31 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
       const key: string = generateElementId();
       const location = playerLocation(player);
       const infoDetail = (
-        <GameCard
-          responsive={true}
-          src={getEncodedCardSvg(card, location)}
-          card={card}
-          width={getDisplayWidth(location)}
-          player={player}
-          enableShadow={true}
-          height={getDisplayHeight(location)}
-          className={`!absolute z-30 ${rotateValues[Math.round(Math.random() * 5)]} ${cardLocation}`}
-          playCard={false}
-          index={0}
-          availableCardIndices={[]}
-          onCardClick={() => null}
-          id={key}
-          key={key}
-          gameSpeedMs={1000}
-        ></GameCard>
+        <div></div>
+        // <GameCard
+        //   responsive={true}
+        //   src={getEncodedCardSvg(card, location)}
+        //   card={card}
+        //   width={getDisplayWidth(location)}
+        //   player={player}
+        //   enableShadow={true}
+        //   height={getDisplayHeight(location)}
+        //   className={`!absolute z-30 ${rotateValues[Math.round(Math.random() * 5)]} ${cardLocation}`}
+        //   playCard={false}
+        //   index={0}
+        //   onCardClick={() => null}
+        //   id={key}
+        //   key={key}
+        //   gameSpeedMs={1000}
+        //   faceDown={false}
+        // ></GameCard>
       );
 
       newAction.type = getPlayerNotificationType(player.playerNumber);
       newAction.payload = infoDetail;
       return newAction;
     },
-    [generateElementId, getDisplayHeight, getDisplayWidth, getEncodedCardSvg, playerLocation]
+    [generateElementId, playerLocation]
   );
 
   /**
@@ -284,9 +285,6 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
 
       if (!state.playedCard) throw new Error('Unable to animate play card - player card not found.');
 
-      // state.dispatchPlayerNotification(
-      //   getPlayerNotificationForPlayedCard(state.playedCard, newGame.currentPlayer)
-      // );
       state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_END_PLAY_CARD });
       playerAutoPlayed.current = false;
@@ -306,7 +304,7 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
         animationType: EuchreAnimationActionType.SET_ANIMATE_BEGIN_PLAY_CARD
       });
     }
-  }, [errorState, getPlayerNotificationForPlayedCard, isGameStateValidToContinue, state]);
+  }, [errorState, isGameStateValidToContinue, state]);
 
   /**
    *
@@ -385,8 +383,8 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
       state.setPromptValue([{ type: PromptType.GAME_RESULT }]);
     } else {
       const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
-
       newGame.dealer = rotation[0];
+      newGame.currentRound += 1;
       state.setEuchreGame(newGame);
       state.setPromptValue([]);
       state.dispatchGameFlow({
@@ -437,9 +435,6 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
       if (!state.euchreGame) throw Error('Game not found.');
 
-      if (isHandFinished(state.euchreGame) || isTrickFinished(state.euchreGame)) {
-        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
-      }
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_END_PLAY_CARD_RESULT });
       state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
     };
@@ -580,11 +575,11 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
 
         state.addEvent(createEvent('i', state.euchreSettings, lastWonTrick.taker, `Trick won.`));
 
-        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
+        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
 
         // little bit longer pause so the user can see what happened.
         if (playedReneged)
-          await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
+          await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
       }
 
       if (isHandFinished(newGame)) {
@@ -601,7 +596,7 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
           )
         );
 
-        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
+        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
 
         state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
         state.dispatchGameFlow({ type: EuchreFlowActionType.SET_AWAIT_USER_INPUT });

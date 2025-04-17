@@ -1,15 +1,17 @@
 import { Card, EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
 import GameMenu from './game-menu';
-import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import GameTable from './game-table';
-import { PlayerNotificationState } from '@/app/hooks/euchre/playerNotificationReducer';
+import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import PlayerArea from '../player/player-area';
 import { useRef } from 'react';
+import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 
 interface Props {
-  gameInstance: EuchreGameInstance;
+  game: EuchreGameInstance;
   gameFlow: EuchreGameFlowState;
   gameSettings: EuchreSettings;
+  gameAnimation: EuchreAnimationState;
   isFullScreen: boolean;
   showEvents: boolean;
   showSettings: boolean;
@@ -22,12 +24,14 @@ interface Props {
   onScoreToggle: (e: boolean) => void;
   onCardPlayed: (card: Card) => void;
   onCancel: () => void;
+  onBeginComplete: () => void;
 }
 
 const GameArea = ({
-  gameInstance,
+  game,
   gameFlow,
   gameSettings,
+  gameAnimation,
   isFullScreen,
   showEvents,
   showSettings,
@@ -39,7 +43,8 @@ const GameArea = ({
   onSettingsToggle,
   onScoreToggle,
   onCardPlayed,
-  onCancel
+  onCancel,
+  onBeginComplete
 }: Props) => {
   const player1TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
   const player2TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
@@ -71,15 +76,18 @@ const GameArea = ({
         />
       </div>
       <PlayerArea
-        gameInstance={gameInstance}
+        key={`${game.dealPassedCount}-${game.currentRound}`}
+        game={game}
         gameFlow={gameFlow}
         gameSettings={gameSettings}
+        gameAnimation={gameAnimation}
         playedCard={playedCard}
         player1TableRef={player1TableRef}
         player2TableRef={player2TableRef}
         player3TableRef={player3TableRef}
         player4TableRef={player4TableRef}
         onCardPlayed={onCardPlayed}
+        onBeginComplete={onBeginComplete}
         className="col-start-1 row-start-1 col-span-3 row-span-3"
       ></PlayerArea>
     </div>

@@ -11,45 +11,38 @@ interface Props {
   rotate: boolean;
 }
 export default function RenderCards({ color, size, rotate }: Props) {
-  const { getEncodedCardSvg } = useCardSvgData();
+  const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
   const { getDisplayHeight, getDisplayWidth } = useCardData();
   const { createPlayer } = useGameSetupLogic();
 
   const cardValues: CardValue[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
   const suits: Suit[] = ['♠', '♥', '♦', '♣'];
   const tempCard: Card = { suit: '♠', value: '2', index: 0 };
-  const tempPlayer: EuchrePlayer = createPlayer('temp', 1, 1);
 
   return (
     <div className="bg-white p-2 overflow-auto">
       <div className={clsx('flex justify-center mb-2 gap-2')}>
         <GameCard
           id="back-card-1"
+          cardState={{
+            src: '/card-back.svg',
+            cardFullName: getCardFullName(tempCard),
+            cardIndex: 1
+          }}
           card={tempCard}
           width={getDisplayWidth('center')}
           height={getDisplayHeight('center')}
-          player={tempPlayer}
-          src={'/card-back.svg'}
-          enableShadow={true}
-          index={0}
-          availableCardIndices={[]}
-          gameSpeedMs={1000}
-          onCardClick={() => null}
-          playCard={false}
         ></GameCard>
         <GameCard
           id="back-card-2"
+          cardState={{
+            src: '/card-back-side.svg',
+            cardFullName: getCardFullName(tempCard),
+            cardIndex: 0
+          }}
           card={tempCard}
           width={getDisplayWidth('side')}
           height={getDisplayHeight('side')}
-          player={tempPlayer}
-          src={'/card-back-side.svg'}
-          enableShadow={true}
-          index={0}
-          availableCardIndices={[]}
-          gameSpeedMs={1000}
-          onCardClick={() => null}
-          playCard={false}
         ></GameCard>
       </div>
       {suits.map((s) => {
@@ -72,17 +65,14 @@ export default function RenderCards({ color, size, rotate }: Props) {
                   <GameCard
                     className={clsx({ 'rotate-90': rotate })}
                     id={`${s}${c}`}
-                    card={card}
+                    cardState={{
+                      src: getEncodedCardSvg(card, 'center'),
+                      cardFullName: getCardFullName(tempCard),
+                      cardIndex: 0
+                    }}
+                    card={tempCard}
                     width={w}
                     height={h}
-                    player={tempPlayer}
-                    src={getEncodedCardSvg(card, 'center')}
-                    enableShadow={true}
-                    index={0}
-                    availableCardIndices={[]}
-                    gameSpeedMs={1000}
-                    onCardClick={() => null}
-                    playCard={false}
                   ></GameCard>
                 </div>
               );
@@ -111,18 +101,14 @@ export default function RenderCards({ color, size, rotate }: Props) {
                   className={clsx({ '-rotate-90': rotate })}
                   key={`${s}${c}`}
                   id={`${s}${c}`}
-                  card={card}
+                  cardState={{
+                    src: getEncodedCardSvg(card, 'side'),
+                    cardFullName: getCardFullName(tempCard),
+                    cardIndex: 0
+                  }}
+                  card={tempCard}
                   width={w}
                   height={h}
-                  player={p}
-                  src={getEncodedCardSvg(card, 'side')}
-                  enableShadow={true}
-                  responsive={false}
-                  index={0}
-                  availableCardIndices={[]}
-                  gameSpeedMs={1000}
-                  onCardClick={() => null}
-                  playCard={false}
                 ></GameCard>
               );
             })}

@@ -1,5 +1,5 @@
-import { EuchreFlowActionType, EuchreGameFlow } from './gameFlowReducer';
-import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlow } from './reducers/gameFlowReducer';
+import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
 import { createEvent } from '@/app/lib/euchre/util';

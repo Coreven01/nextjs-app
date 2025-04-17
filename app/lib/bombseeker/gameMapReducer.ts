@@ -18,7 +18,7 @@ export enum GameMapActionType {
   UPDATE_BOMB
 }
 
-export const initialGameMapState: GameMapState = {
+export const INIT_GAME_MAP_STATE: GameMapState = {
   bombMap: [],
   exposedMap: []
 };

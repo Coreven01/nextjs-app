@@ -28,17 +28,20 @@ const useCardData = () => {
   };
 
   /** Get the card color from the given suit.  */
-  const getCardColor = (suit: Suit): CardColor => {
+  const getCardColor = useCallback((suit: Suit): CardColor => {
     return suit === '♠' || suit === '♣' ? 'B' : 'R';
-  };
-
-  const cardIsLeftBower = useCallback((card: Card, trumpCard: Card): boolean => {
-    return (
-      getCardColor(card.suit) === getCardColor(trumpCard.suit) &&
-      card.value === 'J' &&
-      card.suit !== trumpCard.suit
-    );
   }, []);
+
+  const cardIsLeftBower = useCallback(
+    (card: Card, trumpCard: Card): boolean => {
+      return (
+        getCardColor(card.suit) === getCardColor(trumpCard.suit) &&
+        card.value === 'J' &&
+        card.suit !== trumpCard.suit
+      );
+    },
+    [getCardColor]
+  );
 
   const cardIsRightBower = useCallback((card: Card, trumpCard: Card): boolean => {
     return card.value === 'J' && card.suit === trumpCard.suit;

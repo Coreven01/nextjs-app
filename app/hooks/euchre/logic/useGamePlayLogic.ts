@@ -7,7 +7,7 @@ import {
   GameDifficulty,
   Suit
 } from '@/app/lib/euchre/definitions';
-import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import {
   GamePlayLogic,
   OffsuitLogic,

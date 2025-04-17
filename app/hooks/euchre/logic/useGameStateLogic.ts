@@ -1,5 +1,8 @@
-import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
-import { EuchreAnimateType, EuchreAnimationState } from '@/app/hooks/euchre/gameAnimationFlowReducer';
+import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
+import {
+  EuchreAnimateType,
+  EuchreAnimationState
+} from '@/app/hooks/euchre/reducers/gameAnimationFlowReducer';
 import { EuchreGameInstance } from '@/app/lib/euchre/definitions';
 import { useCallback } from 'react';
 

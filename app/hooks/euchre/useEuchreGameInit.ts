@@ -3,9 +3,9 @@ import {
   EuchreGameFlow,
   EuchreGameFlowState,
   INIT_GAME_FLOW_STATE
-} from './gameFlowReducer';
-import { PlayerNotificationActionType } from './playerNotificationReducer';
-import { EuchreAnimationActionType } from './gameAnimationFlowReducer';
+} from './reducers/gameFlowReducer';
+import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
+import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
 import { EuchreGameState } from './useEuchreGame';
 import { PromptType } from '@/app/lib/euchre/definitions';
 import useGameSetupLogic from './logic/useGameSetupLogic';

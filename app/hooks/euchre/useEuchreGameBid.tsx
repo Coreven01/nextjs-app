@@ -1,5 +1,5 @@
-import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './gameFlowReducer';
-import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './reducers/gameFlowReducer';
+import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
 import { createEvent } from '@/app/lib/euchre/util';
@@ -7,7 +7,7 @@ import {
   getPlayerNotificationType,
   PlayerNotificationAction,
   PlayerNotificationActionType
-} from './playerNotificationReducer';
+} from './reducers/playerNotificationReducer';
 import { BidResult, EuchreGameInstance, EuchrePlayer, PromptType } from '@/app/lib/euchre/definitions';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
@@ -128,7 +128,7 @@ export default function useEuchreGameBid(
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
       // delay for animation between players
-      await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
+      await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
 
       state.addEvent(createEvent('v', state.euchreSettings, undefined, 'End Animation for bid for trump'));
       state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
@@ -337,6 +337,7 @@ export default function useEuchreGameBid(
 
     const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
     newGame.dealer = rotation[0];
+    newGame.dealPassedCount += 1;
 
     state.dispatchPlayerNotification(getPlayerNotificationForAllPassed(newGame.dealer));
 

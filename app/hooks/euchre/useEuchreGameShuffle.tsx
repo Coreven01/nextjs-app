@@ -1,9 +1,9 @@
-import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './gameFlowReducer';
-import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './reducers/gameFlowReducer';
+import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
 import { createEvent } from '@/app/lib/euchre/util';
-import { PlayerNotificationActionType } from './playerNotificationReducer';
+import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
 import { Card, EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/definitions';
 import EphemeralModal from '@/app/ui/euchre/ephemeral-modal';
 import GameBorder from '@/app/ui/euchre/game/game-border';
@@ -35,31 +35,26 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
           delayMs={150}
           fadeType={fadeOut ? 'out' : 'in'}
           className={clsx(
-            'md:h-full md:relative md:right-auto md:top-auto absolute -right-16 -top-8 h-8',
+            'md:relative md:right-auto md:top-auto absolute -right-16 -top-8',
             { 'opacity-100': fadeOut },
             { 'opacity-0': !fadeOut }
           )}
         >
-          <GameBorder
-            innerClass="bg-stone-800 w-20 md:w-full"
-            className="shadow-md shadow-black"
-            size="small"
-          >
+          <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
             <div className="p-2 bg-green-950 flex items-center justify-center">
               <GameCard
+                cardState={{
+                  src: getEncodedCardSvg(card, 'center'),
+                  cardFullName: getCardFullName(card),
+                  cardIndex: card.index
+                }}
+                className="lg:h-[125px] md:h-[115px] h-[95px]"
+                card={card}
                 responsive={true}
                 id={id}
-                card={card}
-                enableShadow={true}
                 width={getDisplayWidth('center')}
                 height={getDisplayHeight('center')}
-                src={getEncodedCardSvg(card, 'center')}
                 title={getCardFullName(card)}
-                playCard={false}
-                index={0}
-                availableCardIndices={[]}
-                onCardClick={() => null}
-                gameSpeedMs={1000}
               ></GameCard>
             </div>
           </GameBorder>
@@ -165,8 +160,8 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
       if (!state.euchreGame) throw new Error();
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
 
-      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
+      //state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
+      //state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
     };
 
     try {
@@ -185,9 +180,13 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     }
   }, [errorState, isGameStateValidToContinue, state]);
 
+  const handleShuffleAndDealComplete = () => {
+    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
+    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
+  };
   //#endregion
 
-  return {};
+  return { handleShuffleAndDealComplete };
 };
 
 export default useEuchreGameShuffle;

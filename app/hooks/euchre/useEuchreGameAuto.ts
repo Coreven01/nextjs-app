@@ -1,4 +1,4 @@
-import { EuchreGameFlowState, gameFlowStateReducer, INIT_GAME_FLOW_STATE } from './gameFlowReducer';
+import { EuchreGameFlowState, gameFlowStateReducer, INIT_GAME_FLOW_STATE } from './reducers/gameFlowReducer';
 import {
   BidResult,
   Card,
@@ -13,8 +13,8 @@ import usePlayerData from './data/usePlayerData';
 import useGameData from './data/useGameData';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import { useReducer, useState } from 'react';
-import { initialPlayerNotification, playerNotificationReducer } from './playerNotificationReducer';
-import { gameAnimationFlowReducer, initialGameAnimationState } from './gameAnimationFlowReducer';
+import { initialPlayerNotification, playerNotificationReducer } from './reducers/playerNotificationReducer';
+import { gameAnimationFlowReducer, initialGameAnimationState } from './reducers/gameAnimationFlowReducer';
 
 /**  */
 export default function useEuchreGameAuto() {

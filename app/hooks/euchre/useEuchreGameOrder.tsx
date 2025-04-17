@@ -1,11 +1,11 @@
 import { Card, EuchreGameInstance, PromptType } from '@/app/lib/euchre/definitions';
-import { EuchreFlowActionType, EuchreGameFlow } from './gameFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlow } from './reducers/gameFlowReducer';
 import {
   getPlayerNotificationType,
   PlayerNotificationAction,
   PlayerNotificationActionType
-} from './playerNotificationReducer';
-import { EuchreAnimationActionType, EuchreAnimateType } from './gameAnimationFlowReducer';
+} from './reducers/playerNotificationReducer';
+import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
@@ -144,9 +144,9 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       };
 
       state.dispatchPlayerNotification(notification);
-
-      // additional delay to notify users which suit is trump
-      await new Promise((resolve) => setTimeout(resolve, incrementSpeed(state.euchreSettings.gameSpeed, 2)));
+      await new Promise((resolve) =>
+        setTimeout(resolve, incrementSpeed(state.euchreSettings.notificationSpeed, 1))
+      );
 
       let shouldDiscard = state.bidResult.calledSuit === null;
       const sittingOut = playerSittingOut(newGame);

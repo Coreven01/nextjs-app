@@ -12,8 +12,8 @@ import GameBoardTiles from './game-board-tiles';
 import GameInfo from './game-info';
 import GameSettings from './game-settings';
 import { SECTION_STYLE } from '../home/home-description';
-import { GameActionType, gameStateReducer, initialGameState } from '@/app/lib/bombseeker/gameStateReducer';
-import { GameMapActionType, gameMapReducer, initialGameMapState } from '@/app/lib/bombseeker/gameMapReducer';
+import { GameActionType, gameStateReducer, INIT_GAME_STATE } from '@/app/lib/bombseeker/gameStateReducer';
+import { GameMapActionType, gameMapReducer, INIT_GAME_MAP_STATE } from '@/app/lib/bombseeker/gameMapReducer';
 import useTileClick from '@/app/lib/bombseeker/useTileClick';
 import React, { useEffect, useMemo, useReducer, useState } from 'react';
 import { useTimer } from '@/app/lib/bombseeker/useTimer';
@@ -25,21 +25,21 @@ import { orbitron } from '@/app/ui/fonts';
  * @returns
  */
 export default function GameMap() {
-  const [gameState, dispatchGameState] = useReducer(gameStateReducer, initialGameState);
-  const [gameMapState, dispatchGameMapState] = useReducer(gameMapReducer, initialGameMapState);
+  const [gameState, dispatchGameState] = useReducer(gameStateReducer, { ...INIT_GAME_STATE });
+  const [gameMapState, dispatchGameMapState] = useReducer(gameMapReducer, { ...INIT_GAME_MAP_STATE });
   const [hintsUsed, setHintsUsed] = useState<number>(0);
   const gameLost = useMemo(() => isGameLost(gameState, gameMapState), [gameState, gameMapState]);
   const gameWon = useMemo(
     () => !gameLost.gameLost && isGameWon(gameState, gameMapState),
     [gameState, gameMapState, gameLost]
   );
+
+  const [hintActivated, setHintActivated] = useState<boolean>(false);
+  const [showGameOverScreen, setShowGameOverScreen] = useState<boolean>(true);
+  const [quickStartValue, setQuickStartValue] = useState<{ row: number; column: number } | null>(null);
+  const { time, startTimer, pauseTimer, resetTimer } = useTimer();
   const bombsRemaining = useMemo(() => getBombsRemaining(gameState, gameMapState), [gameState, gameMapState]);
   const hintsRemaining = gameState.hintCount - hintsUsed;
-  const [hintActivated, setHintActivated] = useState<boolean>(false);
-
-  const [showGameOverScreen, setShowGameOverScreen] = useState<boolean>(true);
-  const { time, startTimer, pauseTimer, resetTimer } = useTimer();
-  const [quickStartValue, setQuickStartValue] = useState<{ row: number; column: number } | null>(null);
 
   const handlePlay = (newExposedMap: TileValue[][]) => {
     dispatchGameMapState({
@@ -65,6 +65,7 @@ export default function GameMap() {
     }
   }, [onTileClick, quickStartValue]);
 
+  /** */
   const handleNewGame = (
     rowCount: number,
     columnCount: number,
@@ -79,7 +80,7 @@ export default function GameMap() {
     dispatchGameState({ type: GameActionType.SET_HINT_COUNT, payload: hintCount });
     setHintsUsed(0);
 
-    const newBombMap = createBombMap(rowCount, columnCount, bombCount);
+    const newBombMap: TileValue[][] = createBombMap(rowCount, columnCount, bombCount);
     dispatchGameMapState({
       type: GameMapActionType.UPDATE_EXPOSED,
       payload: create2DArray(rowCount, columnCount)
@@ -89,22 +90,25 @@ export default function GameMap() {
       payload: newBombMap
     });
 
+    if (quickStart) handleSetQuickStartValue(newBombMap, rowCount, columnCount);
+  };
+
+  /** */
+  const handleSetQuickStartValue = (newBombMap: TileValue[][], rowCount: number, columnCount: number) => {
     const selectedTile = { row: 0, column: 0 };
     let shouldBreak = false;
-    if (quickStart) {
-      for (let r = 0; r < rowCount; r++) {
-        for (let c = 0; c < columnCount; c++) {
-          if (newBombMap[r][c] === undefined) {
-            selectedTile.row = r;
-            selectedTile.column = c;
-            shouldBreak = true;
-            break;
-          }
+    for (let r = 0; r < rowCount; r++) {
+      for (let c = 0; c < columnCount; c++) {
+        if (newBombMap[r][c] === undefined) {
+          selectedTile.row = r;
+          selectedTile.column = c;
+          shouldBreak = true;
+          break;
         }
-        if (shouldBreak) break;
       }
-      setQuickStartValue(selectedTile);
+      if (shouldBreak) break;
     }
+    setQuickStartValue(selectedTile);
   };
 
   /** Hide the overlay if the game over screen is clicked */
@@ -129,10 +133,12 @@ export default function GameMap() {
     setHintActivated(false);
   };
 
+  /** */
   const handleActivateHint = () => {
     if (hintsRemaining > 0) setHintActivated((prev) => !prev);
   };
 
+  /** */
   const handleTileClick = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     row: number,

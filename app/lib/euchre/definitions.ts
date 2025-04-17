@@ -182,6 +182,7 @@ export interface EuchreGameInstance {
   cardDealCount: number[];
   gameResults: EuchreHandResult[];
   gamePlayers: EuchrePlayer[];
+  dealPassedCount: number;
 
   currentRound: number;
   currentTrick: EuchreTrick;

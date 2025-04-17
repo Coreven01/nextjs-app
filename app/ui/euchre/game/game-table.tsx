@@ -1,4 +1,4 @@
-import { PlayerNotificationState } from '@/app/hooks/euchre/playerNotificationReducer';
+import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import GameBorder from './game-border';
 import WoodenBoard from '../wooden-board';
 import clsx from 'clsx';

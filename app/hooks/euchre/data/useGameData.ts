@@ -66,6 +66,7 @@ const useGameData = () => {
 
     newGame.gameResults = [];
     newGame.dealer = newGame.player1;
+    newGame.dealPassedCount = 0;
 
     return newGame;
   };
@@ -374,7 +375,7 @@ const useGameData = () => {
   }
 
   /**
-   * Update game state if hand is over.
+   * Update game state with hand result if hand is over.
    */
   const updateIfHandOver = (game: EuchreGameInstance): EuchreGameInstance => {
     const newGame: EuchreGameInstance = { ...game };
@@ -386,7 +387,6 @@ const useGameData = () => {
     if (handOver) {
       // if hand is over update the game results.
       newGame.gameResults.push(getHandResult(newGame));
-      newGame.currentRound += 1;
     }
     return newGame;
   };

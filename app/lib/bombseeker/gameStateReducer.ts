@@ -30,7 +30,7 @@ export enum GameActionType {
   SET_GAME_CREATED_FALSE
 }
 
-export const initialGameState: GameState = {
+export const INIT_GAME_STATE: GameState = {
   bombCount: 10,
   rowCount: 9,
   columnCount: 9,

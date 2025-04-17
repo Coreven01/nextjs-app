@@ -6,7 +6,7 @@ import {
   EuchreSettings,
   EuchreTrick
 } from '@/app/lib/euchre/definitions';
-import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import { InitDealResult, ShuffleResult } from '@/app/lib/euchre/logic-definitions';
 import { logDebugError } from '@/app/lib/euchre/util';
 import useGameData from '../data/useGameData';
@@ -63,6 +63,7 @@ const useGameSetupLogic = () => {
         cardDealCount: [],
         gameResults: [],
         gamePlayers: [player1, player2, player3, player4],
+        dealPassedCount: 0,
 
         currentRound: 1,
         currentTrick: createTrick(1),

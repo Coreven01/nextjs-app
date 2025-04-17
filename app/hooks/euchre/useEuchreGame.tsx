@@ -5,7 +5,7 @@ import {
   PlayerNotificationActionType,
   playerNotificationReducer,
   PlayerNotificationState
-} from './playerNotificationReducer';
+} from './reducers/playerNotificationReducer';
 import {
   EuchreGameFlow,
   EuchreFlowActionType,
@@ -13,14 +13,14 @@ import {
   gameFlowStateReducer,
   INIT_GAME_FLOW_STATE,
   GameFlowAction
-} from './gameFlowReducer';
+} from './reducers/gameFlowReducer';
 import {
   EuchreAnimationActionType,
   gameAnimationFlowReducer,
   initialGameAnimationState,
   EuchreAnimationState,
   EuchreAnimationAction
-} from './gameAnimationFlowReducer';
+} from './reducers/gameAnimationFlowReducer';
 import {
   BidResult,
   Card,
@@ -158,7 +158,7 @@ export default function useEuchreGame() {
   const { getGameStateForNextHand } = useGamePlayLogic();
   const { reset, handleBeginGame, cancelAndReset } = useEuchreGameInit(gameState);
   const {} = useEuchreGameInitDeal(gameState, gameErrorState);
-  const {} = useEuchreGameShuffle(gameState, gameErrorState);
+  const { handleShuffleAndDealComplete } = useEuchreGameShuffle(gameState, gameErrorState);
   const { handleBidSubmit } = useEuchreGameBid(gameState, gameErrorState, reset);
   const { handleDiscardSubmit } = useEuchreGameOrder(gameState, gameErrorState);
   const { handleCardPlayed, handleCloseGameResults, handleCloseHandResults } = useEuchreGamePlay(
@@ -237,6 +237,7 @@ export default function useEuchreGame() {
     handleReplayHand,
     handleCancelAndReset,
     handleReplayGame,
-    handleAttemptToRecover
+    handleAttemptToRecover,
+    handleShuffleAndDealComplete
   };
 }

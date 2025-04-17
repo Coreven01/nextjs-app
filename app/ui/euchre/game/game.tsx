@@ -26,6 +26,7 @@ export default function EuchreGame() {
   const {
     euchreGame,
     gameFlow,
+    gameAnimationFlow,
     playerNotification,
     promptValue,
     euchreSettings,
@@ -44,7 +45,8 @@ export default function EuchreGame() {
     handleReplayHand,
     handleCancelAndReset,
     handleReplayGame,
-    handleAttemptToRecover
+    handleAttemptToRecover,
+    handleShuffleAndDealComplete
   } = useEuchreGame();
 
   const {
@@ -219,7 +221,8 @@ export default function EuchreGame() {
               {euchreGame && (
                 <>
                   <GameArea
-                    gameInstance={euchreGame}
+                    game={euchreGame}
+                    gameAnimation={gameAnimationFlow}
                     gameFlow={gameFlow}
                     gameSettings={euchreSettings}
                     isFullScreen={isFullScreen}
@@ -234,6 +237,7 @@ export default function EuchreGame() {
                     onSettingsToggle={toggleSettings}
                     onScoreToggle={toggleScore}
                     onCancel={handleCancel}
+                    onBeginComplete={handleShuffleAndDealComplete}
                   />
                   {showSettings && <GamePrompt zIndex={90}>{renderSettings}</GamePrompt>}
                 </>

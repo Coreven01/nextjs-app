@@ -2,32 +2,37 @@ import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/li
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
 import GameDeck from '../game/game-deck';
-import { EuchreGameFlowState } from '@/app/hooks/euchre/gameFlowReducer';
+import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import clsx from 'clsx';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import { RefObject, useRef } from 'react';
+import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 //import { env } from 'node:process';
 
 type Props = {
   player: EuchrePlayer;
   game: EuchreGameInstance;
-  settings: EuchreSettings;
   gameFlow: EuchreGameFlowState;
+  gameSettings: EuchreSettings;
+  gameAnimation: EuchreAnimationState;
   dealDeck: Card[];
   playedCard: Card | null;
   playerTableRef: RefObject<HTMLDivElement>;
   onCardClick: (card: Card) => void;
+  onBeginComplete: () => void;
 };
 
 export default function PlayerGameDeck({
   player,
   game,
   gameFlow,
-  settings,
+  gameSettings,
+  gameAnimation,
   dealDeck,
   playedCard,
   playerTableRef,
-  onCardClick
+  onCardClick,
+  onBeginComplete
 }: Props) {
   const deckRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
   const { playerLocation } = usePlayerData();
@@ -47,53 +52,37 @@ export default function PlayerGameDeck({
 
   let playerInfoOuterClass = '';
   let playerInfoInnerClass = '';
-  let classForLocation = '';
-  let playerHandClassOuter = '';
-  let playerHandClassInner = '';
+  let playerHandClass = '';
 
   switch (player.playerNumber) {
     case 1:
       playerInfoOuterClass = 'md:w-auto md:right-8';
       playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 bottom-4 md:min-w-32';
-      classForLocation = 'flex md:items-end justify-center items-center h-full';
-      playerHandClassOuter =
-        'md:relative md:left-0 md:top-0 md:h-full left-4 bottom-0 absolute md:overflow-visible overflow-hidden pointer-events-none';
-      playerHandClassInner = 'grow flex relative justify-center';
+      playerHandClass = 'grow flex relative justify-center';
       break;
     case 2:
-      playerInfoOuterClass = 'md:w-auto md:right-48';
+      playerInfoOuterClass = 'md:w-auto md:right-16';
       playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 -bottom-8 md:min-w-32';
-      classForLocation =
-        'flex md:items-end justify-center items-center h-full md:overflow-visible overflow-hidden';
-      playerHandClassOuter = 'md:relative md:left-0 md:top-0 md:h-full absolute -top-24';
-      playerHandClassInner = 'flex relative top-8 md:top-0';
+      playerHandClass = 'grow flex relative justify-center';
       break;
     case 3:
-      playerInfoOuterClass = 'w-full';
-      playerInfoInnerClass = 'md:-right-4 md:left-auto md:-top-48 -left-2 top-inherit bottom-0 md:min-w-32';
-      classForLocation =
-        'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-end justify-center h-full -top-8';
-      playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';
-      playerHandClassInner = '';
+      playerInfoInnerClass = 'md:top-[-100px] md:left-0 md:min-w-32';
+      playerHandClass = 'flex flex-col grow relative justify-center h-full';
       break;
     case 4:
-      playerInfoOuterClass = 'w-full';
-      playerInfoInnerClass = 'md:-left-4 md:right-auto md:-top-48 -right-2 top-inherit bottom-0 md:min-w-32';
-      classForLocation =
-        'md:top-0 md:flex md:overflow-visible overflow-hidden flex-col items-start justify-center h-full -top-8';
-      playerHandClassOuter = 'md:relative md:left-0 absolute -left-16';
-      playerHandClassInner = 'relative left-20 md:left-0';
+      playerInfoInnerClass = 'md:top-[-100px] md:right-0 md:min-w-32';
+      playerHandClass = 'flex flex-col grow relative justify-center items-end h-full';
       break;
   }
 
   const playerInfo = gameFlow.hasGameStarted && (
-    <div className={clsx('absolute md:text-sm text-xs whitespace-nowrap z-20', playerInfoOuterClass)}>
+    <div className={clsx('relative md:text-sm text-xs whitespace-nowrap z-20', playerInfoOuterClass)}>
       <div className={clsx('absolute', playerInfoInnerClass)}>
         <PlayerInfo
           id={`player-info-${player.playerNumber}`}
           game={game}
           player={player}
-          settings={settings}
+          settings={gameSettings}
         />
       </div>
     </div>
@@ -101,15 +90,16 @@ export default function PlayerGameDeck({
 
   return (
     <>
-      <div id={`player-hand-inner-${player.playerNumber}`} className={playerHandClassInner}>
+      <div id={`player-hand-${player.playerNumber}`} className={playerHandClass}>
         <PlayerHand
-          key={`${game.currentRound}-${player.playerNumber}`}
           game={game}
-          gameSettings={settings}
+          gameSettings={gameSettings}
           gameFlow={gameFlow}
+          gameAnimation={gameAnimation}
           player={player}
           playedCard={playedCard}
           onCardClick={onCardClick}
+          onBeginComplete={onBeginComplete}
           deckRef={deckRef}
           playerTableRef={playerTableRef}
         />
@@ -124,34 +114,4 @@ export default function PlayerGameDeck({
       </div>
     </>
   );
-}
-
-{
-  /* <>
-      <div id={`player-deck-${player.playerNumber}`} className={`${classForLocation} relative`} ref={deckRef}>
-        <div id={`player-hand-outer-${player.playerNumber}`} className={playerHandClassOuter}>
-          <div id={`player-hand-inner-${player.playerNumber}`} className={playerHandClassInner}>
-            <PlayerHand
-              key={`${game.currentRound}-${player.playerNumber}`}
-              game={game}
-              gameSettings={settings}
-              gameFlow={gameFlow}
-              player={player}
-              playedCard={playedCard}
-              onCardClick={onCardClick}
-              deckRef={deckRef}
-              playerTableRef={playerTableRef}
-            />
-          </div>
-        </div>
-        <div
-          id={`player-base-${playerNumber}`}
-          className={clsx(position, { 'text-transparent': !isDebugMode })}
-        >
-          X
-        </div>
-        {gameDeck}
-      </div>
-      {playerInfo}
-    </> */
 }

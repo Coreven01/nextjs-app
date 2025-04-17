@@ -41,6 +41,17 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
     onRunFullGameLoop();
   };
 
+  const handleRunAuto = () => {
+    onApplySettings({
+      ...settings,
+      showHandResult: false,
+      stickTheDealer: true,
+      debugAllComputerPlayers: true,
+      gameSpeed: 700
+    });
+    onNewGame();
+  };
+
   const handleTeamColorChange = (teamNumber: number, value: TeamColor) => {
     let tempTeamOne = teamOneColor;
     let tempTeamTwo = teamTwoColor;
@@ -304,6 +315,11 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
         {isDebugMode && (
           <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGameLoop}>
             Run Test Game Loop
+          </button>
+        )}
+        {isDebugMode && (
+          <button className="text-white border border-white md:p-2 p-1" onClick={handleRunAuto}>
+            Run Auto Game
           </button>
         )}
       </div>

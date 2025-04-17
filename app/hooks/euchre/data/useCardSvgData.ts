@@ -13,6 +13,7 @@ import {
 } from '@/app/lib/euchre/card-data';
 import { Card, CardValue, Suit } from '@/app/lib/euchre/definitions';
 import useCardData from './useCardData';
+import { useCallback } from 'react';
 
 const useCardSvgData = () => {
   const { getCardColor } = useCardData();
@@ -25,76 +26,84 @@ const useCardSvgData = () => {
    * @param opacity Default card opacity.
    * @returns
    */
-  function getCardSvg(
-    card: Card,
-    location: 'center' | 'side',
-    addOpaqueOverlay?: boolean,
-    color?: string,
-    opacity?: number
-  ): string {
-    let retval = location === 'center' ? baseCard : baseCardSide;
+  const getCardSvg = useCallback(
+    (
+      card: Card,
+      location: 'center' | 'side',
+      addOpaqueOverlay?: boolean,
+      color?: string,
+      opacity?: number
+    ): string => {
+      let retval = location === 'center' ? baseCard : baseCardSide;
 
-    const cardColor = color ?? '#ffffff';
-    const cardOpacity = opacity ?? 1;
-    const addCardOverlay = addOpaqueOverlay ?? false;
+      const cardColor = color ?? '#ffffff';
+      const cardOpacity = opacity ?? 1;
+      const addCardOverlay = addOpaqueOverlay ?? false;
 
-    const textValues = [];
-    const imageKeys: string[] = cardSvgValues.get(card.value) ?? [];
-    const imageColor: string = svgCardColors.get(getCardColor(card.suit)) ?? '#000';
-    const cardValues = location === 'center' ? svgCenterCardValues : svgSideCardValues;
-    const baseCardRect =
-      location === 'center'
-        ? getBaseCardColor(cardColor, cardOpacity)
-        : getBaseCardSideColor(cardColor, cardOpacity);
-    const overlayColor: string = '#333333';
-    let baseCardOverlayRect = '';
+      const textValues = [];
+      const imageKeys: string[] = cardSvgValues.get(card.value) ?? [];
+      const imageColor: string = svgCardColors.get(getCardColor(card.suit)) ?? '#000';
+      const cardValues = location === 'center' ? svgCenterCardValues : svgSideCardValues;
+      const baseCardRect =
+        location === 'center'
+          ? getBaseCardColor(cardColor, cardOpacity)
+          : getBaseCardSideColor(cardColor, cardOpacity);
+      const overlayColor: string = '#333333';
+      let baseCardOverlayRect = '';
 
-    if (addCardOverlay)
-      baseCardOverlayRect =
-        location === 'center' ? getBaseCardColor(overlayColor, 0.5) : getBaseCardSideColor(overlayColor, 0.5);
+      if (addCardOverlay)
+        baseCardOverlayRect =
+          location === 'center'
+            ? getBaseCardColor(overlayColor, 0.5)
+            : getBaseCardSideColor(overlayColor, 0.5);
 
-    for (const text of imageKeys) {
-      const imageLocation = location === 'center' ? centerSvgVals.get(text) : sideSvgVals.get(text);
+      for (const text of imageKeys) {
+        const imageLocation = location === 'center' ? centerSvgVals.get(text) : sideSvgVals.get(text);
 
-      if (imageLocation) {
-        const xml = getCardText(imageLocation, imageColor, text === 's2-b' ? card.value : card.suit);
-        textValues.push(xml);
+        if (imageLocation) {
+          const xml = getCardText(imageLocation, imageColor, text === 's2-b' ? card.value : card.suit);
+          textValues.push(xml);
+        }
       }
-    }
 
-    for (const imageLocation of cardValues) {
-      if (imageLocation) {
-        const xml = getCardText(
-          imageLocation[1],
-          imageColor,
-          imageLocation[0].charAt(0) === 's' ? card.suit : card.value
-        );
-        textValues.push(xml);
+      for (const imageLocation of cardValues) {
+        if (imageLocation) {
+          const xml = getCardText(
+            imageLocation[1],
+            imageColor,
+            imageLocation[0].charAt(0) === 's' ? card.suit : card.value
+          );
+          textValues.push(xml);
+        }
       }
-    }
 
-    retval += baseCardRect;
+      retval += baseCardRect;
 
-    for (const val of textValues) retval += val;
+      for (const val of textValues) retval += val;
 
-    retval += baseCardOverlayRect + '</svg>';
+      retval += baseCardOverlayRect + '</svg>';
 
-    return retval;
-  }
+      return retval;
+    },
+    [getCardColor]
+  );
 
   /** */
-  function getEncodedCardSvg(
-    card: Card,
-    location: 'center' | 'side',
-    addOpaqueOverlay?: boolean,
-    color?: string,
-    opacity?: number
-  ) {
-    const cardSvg = getCardSvg(card, location, addOpaqueOverlay, color, opacity);
-    const dynamicSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cardSvg)}`;
+  const getEncodedCardSvg = useCallback(
+    (
+      card: Card,
+      location: 'center' | 'side',
+      addOpaqueOverlay?: boolean,
+      color?: string,
+      opacity?: number
+    ) => {
+      const cardSvg = getCardSvg(card, location, addOpaqueOverlay, color, opacity);
+      const dynamicSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cardSvg)}`;
 
-    return dynamicSvg;
-  }
+      return dynamicSvg;
+    },
+    [getCardSvg]
+  );
 
   /** Get text element for svg for a card value.
    *
@@ -169,9 +178,9 @@ const useCardSvgData = () => {
     return '';
   }
 
-  function getCardFullName(card: Card): string {
+  const getCardFullName = useCallback((card: Card): string => {
     return `${getCardValueName(card.value)} of ${getSuitName(card.suit)}s`;
-  }
+  }, []);
 
   return { getEncodedCardSvg, getCardFullName, getSuitName, getCardClassColorFromSuit };
 };
