@@ -1,7 +1,6 @@
 import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
-import GameDeck from '../game/game-deck';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import clsx from 'clsx';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
@@ -42,13 +41,6 @@ export default function PlayerGameDeck({
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
   const location = playerLocation(player);
   const position = location === 'center' ? positionCenter : positionSide;
-  const shouldShowDeckImages = gameFlow.shouldShowDeckImages.find((c) => c.player === player)?.value;
-  const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
-  const gameDeck = shouldShowDeckImages && (
-    <div id={`game-deck-${playerNumber}`} className={position}>
-      <GameDeck deck={dealDeck} location={location} />
-    </div>
-  );
 
   let playerInfoOuterClass = '';
   let playerInfoInnerClass = '';
@@ -75,7 +67,7 @@ export default function PlayerGameDeck({
       break;
   }
 
-  const playerInfo = gameFlow.hasGameStarted && (
+  const playerInfo = gameFlow.hasGameStarted && player.hand.length > 0 && (
     <div className={clsx('relative md:text-sm text-xs whitespace-nowrap z-20', playerInfoOuterClass)}>
       <div className={clsx('absolute', playerInfoInnerClass)}>
         <PlayerInfo
@@ -109,7 +101,6 @@ export default function PlayerGameDeck({
         >
           X
         </div>
-        {gameDeck}
         {playerInfo}
       </div>
     </>

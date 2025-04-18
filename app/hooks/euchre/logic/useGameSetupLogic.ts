@@ -74,6 +74,17 @@ const useGameSetupLogic = () => {
     []
   );
 
+  const createDefaultEuchreGame = () => {
+    const player1: EuchrePlayer = createPlayer('Player 1', 1, 1);
+    const player2: EuchrePlayer = createPlayer('Player 2', 1, 2);
+    const player3: EuchrePlayer = createPlayer('Player 3', 2, 3);
+    const player4: EuchrePlayer = createPlayer('Player 4', 2, 4);
+
+    const newGame = createBaseGame(player1, player2, player3, player4);
+
+    return newGame;
+  };
+
   /** Create default euchre game with default players and dummy cards.
    *
    */
@@ -392,7 +403,8 @@ const useGameSetupLogic = () => {
     initDeckForInitialDeal,
     dealCardsForDealer,
     createTrick,
-    createPlayer
+    createPlayer,
+    createDefaultEuchreGame
   };
 };
 

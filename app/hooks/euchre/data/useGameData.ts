@@ -5,6 +5,7 @@ import {
   EuchreGameInstance,
   EuchreHandResult,
   EuchrePlayer,
+  EuchreSettings,
   EuchreTrick,
   GameDifficulty,
   GameSpeed,
@@ -287,6 +288,9 @@ const useGameData = () => {
   };
 
   /** Update game state if trick is finished.
+   * Determines if the trick ended early due to player renege.
+   * If trick is over, updated the current trick with player that won.
+   * Sets the new current player in the rotation if the trick is not finished.
    *
    */
   const updateIfTrickOver = (
@@ -560,6 +564,32 @@ const useGameData = () => {
     return gameSpeed;
   };
 
+  const gameDelay = useCallback(
+    async (gameSettings: EuchreSettings, increment?: number) => {
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          increment ? incrementSpeed(gameSettings.gameSpeed, increment) : gameSettings.gameSpeed
+        )
+      );
+    },
+    [incrementSpeed]
+  );
+
+  const notificationDelay = useCallback(
+    async (gameSettings: EuchreSettings, increment?: number) => {
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          increment
+            ? incrementSpeed(gameSettings.notificationSpeed, increment)
+            : gameSettings.notificationSpeed
+        )
+      );
+    },
+    [incrementSpeed]
+  );
+
   return {
     teamPoints,
     determineCurrentWinnerForTrick,
@@ -577,442 +607,10 @@ const useGameData = () => {
     updateIfHandOver,
     updateIfTrickOver,
     getCardsAvailableToPlay,
-    isGameOver
+    isGameOver,
+    gameDelay,
+    notificationDelay
   };
 };
 
 export default useGameData;
-
-// class EuchreGameInstance {
-//     readonly player1: EuchrePlayer;
-//     readonly player2: EuchrePlayer;
-//     readonly player3: EuchrePlayer;
-//     readonly player4: EuchrePlayer;
-
-//     deck: Card[] = [];
-//     kitty: Card[] = [];
-//     dealer: EuchrePlayer | null = null;
-//     maker: EuchrePlayer | null = null;
-//     loner: boolean = false;
-//     trump: Card | null = null;
-//     discard: Card | null = null;
-//     turnedDown: Card | null = null;
-//     cardDealCount: number[] = [];
-//     currentRound: number = 1;
-
-//     currentTricks: EuchreTrick[] = [];
-//     gameResults: EuchreHandResult[] = [];
-//     currentPlayer: EuchrePlayer | null = null;
-
-//     constructor(player1: EuchrePlayer, player2: EuchrePlayer, player3: EuchrePlayer, player4: EuchrePlayer) {
-//       this.player1 = player1;
-//       this.player2 = player2;
-//       this.player3 = player3;
-//       this.player4 = player4;
-//     }
-
-//     get gamePlayers(): EuchrePlayer[] {
-//       return [this.player1, this.player2, this.player3, this.player4];
-//     }
-
-//     get playerSittingOut(): EuchrePlayer | null {
-//       if (this.maker && this.loner)
-//         return (
-//           this.gamePlayers.find(
-//             (p) => p.team === this.maker?.team && p.playerNumber !== this.maker.playerNumber
-//           ) ?? null
-//         );
-
-//       return null;
-//     }
-
-//     get currentTrick(): EuchreTrick | null {
-//       const lastTrick = this.currentTricks.at(-1);
-
-//       if (!lastTrick) return null;
-
-//       return { ...lastTrick };
-//     }
-
-//     get handTricks(): EuchreTrick[] {
-//       return [...this.currentTricks];
-//     }
-
-//     get handFinished(): boolean {
-//       const playerReneged = this.currentTrick && this.currentTrick.playerRenege !== null;
-//       const allCardsPlayed = this.currentTricks.filter((t) => t.taker !== null).length === 5;
-//       return playerReneged || allCardsPlayed;
-//     }
-
-//     get allGameResults(): EuchreHandResult[] {
-//       return [...this.gameResults];
-//     }
-//     get trickFinished(): boolean {
-//       const playerReneged = this.currentTrick && this.currentTrick.playerRenege !== null;
-//       const allPlayersPlayed =
-//         (this.currentTrick && this.currentTrick.cardsPlayed.length === (this.loner ? 3 : 4)) ?? false;
-//       return playerReneged || allPlayersPlayed;
-//     }
-
-//     get isGameOver(): boolean {
-//       const teamOnePoints = this.teamPoints(1);
-//       const teamTwoPoints = this.teamPoints(2);
-
-//       return teamOnePoints >= 10 || teamTwoPoints >= 10;
-//     }
-
-//     // get currentPlayer(): EuchrePlayer | null {
-//     //   return this._currentPlayer;
-//     // }
-
-//     assignDealerAndPlayer(player: EuchrePlayer): void {
-//       this.dealer = player;
-//       this._currentPlayer = player;
-//     }
-
-//     /** Set the current player */
-//     assignPlayer(player: EuchrePlayer): void {
-//       this._currentPlayer = player;
-//     }
-
-//     teamPoints(teamNumber: 1 | 2): number {
-//       return this.gameResults
-//         .filter((t) => t.teamWon === teamNumber)
-//         .map((t) => t.points)
-//         .reduce((acc, curr) => acc + curr, 0);
-//     }
-
-//     addTrickForNewHand(): void {
-//       this.currentTricks.push(new EuchreTrick(this.currentRound));
-//     }
-
-//     resetForNewGame(): void {
-//       this.gameResults = [];
-//       this.dealer = null;
-//       this.deck = createPlaceholderCards(24);
-//       this.resetForNewDeal();
-//     }
-
-//     resetForNewDeal(): void {
-//       this.kitty = [];
-//       this.deck = createPlaceholderCards(24);
-//       this._currentPlayer = null;
-//       this.maker = null;
-//       this.loner = false;
-//       this.trump = null;
-//       this.discard = null;
-//       this.turnedDown = null;
-//       this.cardDealCount = [];
-//       this.currentTricks = [];
-
-//       this.resetPlayerCards();
-//     }
-
-//     resetPlayerCards(): void {
-//       const players = [this.player1, this.player2, this.player3, this.player4];
-
-//       for (const player of players) {
-//         player.assignCards = [];
-//         player.playedCards = [];
-//         player.placeholder = createPlaceholderCards(5);
-//       }
-//     }
-
-//     shallowCopy(): EuchreGameInstance {
-//       const game = new EuchreGameInstance(this.player1, this.player2, this.player3, this.player4);
-//       game.deck = this.deck;
-//       game.kitty = this.kitty;
-//       game.dealer = this.dealer;
-//       game._currentPlayer = this.currentPlayer;
-//       game.loner = this.loner;
-//       game.trump = this.trump;
-//       game.maker = this.maker;
-//       game.cardDealCount = this.cardDealCount;
-//       game.currentTricks = this.currentTricks;
-//       game.gameResults = this.gameResults;
-//       game.currentRound = this.currentRound;
-//       game.discard = this.discard;
-//       game.turnedDown = this.turnedDown;
-
-//       return game;
-//     }
-
-//     dealCards(): void {
-//       if (!this.dealer) throw Error('Unable to deal cards. Dealer not found.');
-
-//       const players: EuchrePlayer[] = getPlayerRotation(this.gamePlayers, this.dealer);
-//       const randomNum = Math.floor(Math.random() * 3) + 1;
-//       let counter = 0;
-
-//       this.cardDealCount = [randomNum, 5 - randomNum];
-
-//       for (let i = 0; i < 8; i++) {
-//         let numberOfCards = 0;
-//         const currentPlayer = players[i % 4];
-//         const firstRound = i < 4;
-//         const tempHand: Card[] = [];
-
-//         if (firstRound) numberOfCards = i % 2 ? randomNum : 5 - randomNum;
-//         else numberOfCards = i % 2 ? 5 - randomNum : randomNum;
-
-//         for (let j = 0; j < numberOfCards; j++) {
-//           tempHand.push(this.deck[counter]);
-//           counter++;
-//         }
-//         currentPlayer.addToHand(tempHand);
-//       }
-
-//       while (counter < this.deck.length) {
-//         this.kitty.push(this.deck[counter]);
-//         counter++;
-//       }
-//     }
-
-//     /** Copy cards that were dealt from the passed game instance. */
-//     copyCardsFromReplay(replayHand: EuchreHandResult): void {
-//       const players = this.gamePlayers;
-
-//       for (const player of players) {
-//         player.assignCards = replayHand.allPlayerCards
-//           .filter((p) => p.player.playerNumber === player.playerNumber)
-//           .map((p) => new Card(p.card.suit, p.card.value));
-
-//         if (player.availableCards.length < 5) {
-//           throw new Error('Invalid card count for player after copy from replay.');
-//         }
-
-//         if (player.availableCards.find((c) => c.value === 'P')) {
-//           throw new Error('Invalid card found for player after copy from replay.');
-//         }
-//       }
-
-//       this.kitty = replayHand.kitty.map((c) => new Card(c.suit, c.value));
-
-//       if (replayHand.turnedDown) {
-//         this.trump = new Card(replayHand.turnedDown.suit, replayHand.turnedDown.value);
-//       } else {
-//         this.trump = new Card(replayHand.trump.suit, replayHand.trump.value);
-//       }
-
-//       const tempTrump = this.trump;
-//       if (replayHand.discard && !this.turnedDown && this.dealer) {
-//         this.dealer.assignCards = [
-//           ...this.dealer.availableCards.filter((c) => !c.equal(tempTrump)),
-//           new Card(replayHand.discard.suit, replayHand.discard.value)
-//         ];
-
-//         if (this.dealer.availableCards.length < 5) {
-//           throw new Error('Invalid card count for dealer after copy from replay.');
-//         }
-//       }
-//     }
-
-//     /** Verify cards were dealt correctly. */
-//     verifyDealtCards(): void {
-//       const msg = 'Card dealt verification failed.';
-
-//       if (this.kitty.length !== 4) {
-//         throw new Error('');
-//       }
-//       const allCardsDealt = [this.kitty].flat();
-
-//       for (const player of this.gamePlayers) {
-//         const playerHand = player.availableCards;
-//         if (playerHand.length !== 5) throw new Error(msg + ' Invalid card count for player: ' + player.name);
-
-//         if (playerHand.find((c) => c.value === 'P'))
-//           throw Error(msg + ' Invalid cards found in player hand. (Value === P) Player: ' + player.name);
-
-//         allCardsDealt.push(...playerHand);
-//       }
-
-//       const tempSet = new Set<string>([...allCardsDealt.map((c) => `${c.value}${c.suit}`)]);
-
-//       if (tempSet.size !== 24) {
-//         const missingCards = allCardsDealt.filter((c) => !tempSet.has(`${c.value}${c.suit}`));
-//         throw Error(msg + '  Missing Cards: ' + missingCards.map((c) => `${c.value}${c.suit}`).join(','));
-//       }
-//     }
-
-//     /** */
-//     private getHandResult(): EuchreHandResult {
-//       if (!this.dealer || !this.maker) throw new Error('Dealer and maker not found for hand result.');
-
-//       const makerTricksWon = this.currentTricks.filter((t) => t.taker?.team === this.maker?.team).length;
-//       const renegePlayer = this.currentTricks.find((t) => t.playerRenege !== null)?.playerRenege ?? null;
-
-//       let points = 0;
-//       let teamWon = this.maker.team;
-
-//       if (renegePlayer && this.maker.team === renegePlayer.team) {
-//         points = this.loner ? 4 : 2;
-//         teamWon = teamWon === 1 ? 2 : 1;
-//       } else if (renegePlayer && this.maker.team !== renegePlayer.team) {
-//         points = this.loner ? 4 : 2;
-//       } else if (this.loner && makerTricksWon === 5) {
-//         points = 4;
-//       } else if (makerTricksWon === 5) {
-//         points = 2;
-//       } else if (makerTricksWon >= 3) {
-//         points = 1;
-//       } else {
-//         points = 2;
-//         teamWon = teamWon === 1 ? 2 : 1;
-//       }
-
-//       const allPlayerCards = this.gamePlayers
-//         .map((p) => [
-//           ...p.availableCards.map((c) => new EuchreCard(p, c)),
-//           ...p.playedCards.map((c) => new EuchreCard(p, c))
-//         ])
-//         .flat();
-
-//       const retval: EuchreHandResult = {
-//         tricks: [...this.currentTricks],
-//         points: points,
-//         teamWon: teamWon,
-//         dealer: this.dealer,
-//         maker: this.maker,
-//         roundNumber: this.currentRound,
-//         loner: this.loner,
-//         trump: this.trump ?? new Card('♠', 'P'),
-//         turnedDown: this.turnedDown,
-//         discard: this.discard,
-//         defenders: this.gamePlayers.filter((p) => p.team !== this.maker?.team),
-//         allPlayerCards: allPlayerCards,
-//         kitty: [...this.kitty]
-//       };
-
-//       this.validateHandResult(retval);
-
-//       return retval;
-//     }
-
-//     private validateHandResult(result: EuchreHandResult): void {
-//       const msg = 'Hand result validation failed.';
-//       const allCards = [...result.allPlayerCards.map((c) => c.card), ...result.kitty];
-//       const gameCards = new Set<string>();
-
-//       const player1Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 1);
-//       const player2Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 2);
-//       const player3Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 3);
-//       const player4Cards = result.allPlayerCards.filter((c) => c.player.playerNumber === 4);
-//       const playerCards = [player1Cards, player2Cards, player3Cards, player4Cards];
-
-//       for (const cards of playerCards) {
-//         if (cards.length !== 5) throw new Error(msg + ' Invalid player card count.');
-//       }
-
-//       if (allCards.length !== 24) throw new Error(msg + ' Invalid total card count.');
-
-//       for (const card of allCards) {
-//         if (card.value === 'P') throw new Error(msg + ' Invalid card (Pending).');
-
-//         gameCards.add(`${card.value + card.suit}`);
-//       }
-
-//       if (result.discard) gameCards.add(`${result.discard.value + result.discard.suit}`);
-
-//       if (gameCards.size !== 24) throw new Error(msg + ' Invalid unique total card count.');
-//     }
-
-//     /** Update game state if trick is finished.
-//      *
-//   1` */
-//     updateIfTrickOver(playerRotation: EuchrePlayer[]): void {
-//       if (!this.currentPlayer) throw new Error('Game player not found.');
-//       if (!this.trump) throw new Error('Trump not found.');
-
-//       const lastTrick = this.currentTricks.at(-1);
-//       let playerFollowedSuit = true;
-
-//       if (!lastTrick) throw new Error('Trick not found for playthrough');
-//       const lastCardPlayed = lastTrick.cardsPlayed.at(-1);
-
-//       // determine if the player followed suit when possible. if not, then the hand/trick is over and the
-//       // other team wins the hand.
-//       if (lastCardPlayed) {
-//         playerFollowedSuit = didPlayerFollowSuit(this, lastCardPlayed.card);
-//       }
-
-//       if (!playerFollowedSuit || lastTrick.cardsPlayed.length === playerRotation.length) {
-//         const trickWinner = determineCurrentWinnerForTrick(this.trump, lastTrick);
-
-//         if (!trickWinner.card?.player) throw new Error('Trick winner not found.');
-
-//         lastTrick.taker = trickWinner.card.player;
-
-//         if (this.loner && this.playerSittingOut) {
-//           const playerSittingOut = this.playerSittingOut;
-//           lastTrick.playerSittingOut = playerSittingOut.playGameCard(playerSittingOut.availableCards[0]);
-//           playerSittingOut.sortCards(this.trump);
-//         }
-
-//         if (!playerFollowedSuit) {
-//           lastTrick.playerRenege = this._currentPlayer;
-//         } else if (this.currentTricks.length < 5) {
-//           this._currentPlayer = trickWinner.card?.player ?? null;
-//         }
-//       } else {
-//         this._currentPlayer = playerRotation[0];
-//       }
-//     }
-
-//     /**
-//      * Update game state if hand is over.
-//      */
-//     updateIfHandOver(): void {
-//       const handOver =
-//         (this.currentTrick && this.currentTrick.playerRenege !== null) ||
-//         (this.currentTricks.length === 5 && this.currentTricks.filter((t) => t.taker !== null).length === 5);
-
-//       if (handOver) {
-//         // if hand is over update the game results.
-//         this.gameResults.push(this.getHandResult());
-//         this.currentRound += 1;
-//       }
-//     }
-
-//     /**
-//      * Undo the result of the last hand and deal the same cards again as if the hand started over.
-//      */
-//     reverseLastHandPlayed(): void {
-//       const lastGameResult: EuchreHandResult | undefined = this.gameResults.at(-1);
-
-//       if (!lastGameResult) throw new Error('Game result not found.');
-//       if (!this.dealer) throw new Error('Game dealer not found.');
-//       if (!this.trump) throw new Error('Trump card not found.');
-
-//       const discard = this.discard;
-//       const allCards: EuchreCard[] = lastGameResult.allPlayerCards;
-//       const currentKitty = [...this.kitty];
-//       const dealCount = [...this.cardDealCount];
-//       this.gameResults = [...this.gameResults.slice(0, this.gameResults.length - 1)];
-
-//       const player1Hand = allCards.filter((c) => c.player.equal(this.player1)).map((c) => c.card);
-//       const player2Hand = allCards.filter((c) => c.player.equal(this.player2)).map((c) => c.card);
-//       const player3Hand = allCards.filter((c) => c.player.equal(this.player3)).map((c) => c.card);
-//       const player4Hand = allCards.filter((c) => c.player.equal(this.player4)).map((c) => c.card);
-
-//       this.resetForNewDeal();
-//       this.cardDealCount = dealCount;
-//       this.kitty = currentKitty;
-//       this.trump = this.kitty[0];
-//       this.player1.assignCards = player1Hand;
-//       this.player2.assignCards = player2Hand;
-//       this.player3.assignCards = player3Hand;
-//       this.player4.assignCards = player4Hand;
-//       this._currentPlayer = getPlayerRotation(this.gamePlayers, this.dealer)[0];
-//       const tempTrump = this.trump;
-
-//       if (discard && this.trump) {
-//         this.dealer.assignCards = [...this.dealer.availableCards.filter((c) => !c.equal(tempTrump)), discard];
-//       }
-
-//       this.deck = [...this.gamePlayers.map((p) => p.availableCards).flat(), ...currentKitty];
-//       this.currentRound = lastGameResult.roundNumber;
-//       for (const player of this.gamePlayers) player.sortCards(null);
-
-//       this.verifyDealtCards();
-//     }
-//   }

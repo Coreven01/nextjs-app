@@ -23,46 +23,44 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
   const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
   const { getDisplayHeight, getDisplayWidth } = useCardData();
 
-  const FLIPPED_CARD_ID = 'flipped-card';
-
-  /** */
-  const getFaceUpCard = useCallback(
-    (id: string, card: Card, fadeOut: boolean) => {
-      return (
-        <EphemeralModal
-          key={`${generateElementId()}`}
-          durationMs={150}
-          delayMs={150}
-          fadeType={fadeOut ? 'out' : 'in'}
-          className={clsx(
-            'md:relative md:right-auto md:top-auto absolute -right-16 -top-8',
-            { 'opacity-100': fadeOut },
-            { 'opacity-0': !fadeOut }
-          )}
-        >
-          <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
-            <div className="p-2 bg-green-950 flex items-center justify-center">
-              <GameCard
-                cardState={{
-                  src: getEncodedCardSvg(card, 'center'),
-                  cardFullName: getCardFullName(card),
-                  cardIndex: card.index
-                }}
-                className="lg:h-[125px] md:h-[115px] h-[95px]"
-                card={card}
-                responsive={true}
-                id={id}
-                width={getDisplayWidth('center')}
-                height={getDisplayHeight('center')}
-                title={getCardFullName(card)}
-              ></GameCard>
-            </div>
-          </GameBorder>
-        </EphemeralModal>
-      );
-    },
-    [generateElementId, getCardFullName, getDisplayHeight, getDisplayWidth, getEncodedCardSvg]
-  );
+  // /** */
+  // const getFaceUpCard = useCallback(
+  //   (id: string, card: Card, fadeOut: boolean) => {
+  //     return (
+  //       <EphemeralModal
+  //         key={`${generateElementId()}`}
+  //         durationMs={150}
+  //         delayMs={150}
+  //         fadeType={fadeOut ? 'out' : 'in'}
+  //         className={clsx(
+  //           'md:relative md:right-auto md:top-auto absolute -right-16 -top-8',
+  //           { 'opacity-100': fadeOut },
+  //           { 'opacity-0': !fadeOut }
+  //         )}
+  //       >
+  //         <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
+  //           <div className="p-2 bg-green-950 flex items-center justify-center">
+  //             <GameCard
+  //               cardState={{
+  //                 src: getEncodedCardSvg(card, 'center'),
+  //                 cardFullName: getCardFullName(card),
+  //                 cardIndex: card.index
+  //               }}
+  //               className="lg:h-[125px] md:h-[115px] h-[95px]"
+  //               card={card}
+  //               responsive={true}
+  //               id={id}
+  //               width={getDisplayWidth('center')}
+  //               height={getDisplayHeight('center')}
+  //               title={getCardFullName(card)}
+  //             ></GameCard>
+  //           </div>
+  //         </GameBorder>
+  //       </EphemeralModal>
+  //     );
+  //   },
+  //   [generateElementId, getCardFullName, getDisplayHeight, getDisplayWidth, getEncodedCardSvg]
+  // );
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
 
@@ -105,10 +103,10 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
 
     // display trump card for bidding in the center of the table.
-    state.dispatchPlayerNotification({
-      type: PlayerNotificationActionType.UPDATE_CENTER,
-      payload: getFaceUpCard(FLIPPED_CARD_ID, newGame.trump, false)
-    });
+    // state.dispatchPlayerNotification({
+    //   type: PlayerNotificationActionType.UPDATE_CENTER,
+    //   payload: getFaceUpCard(FLIPPED_CARD_ID, newGame.trump, false)
+    // });
 
     const newGameState: EuchreGameFlowState = getGameStateForNextHand(
       state.euchreGameFlow,
@@ -120,7 +118,7 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameState });
     state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
     state.setEuchreGame(newGame);
-  }, [getFaceUpCard, getGameStateForNextHand, isGameStateValidToContinue, shuffleAndDealHand, state]);
+  }, [getGameStateForNextHand, isGameStateValidToContinue, shuffleAndDealHand, state]);
 
   useEffect(() => {
     try {
@@ -157,9 +155,6 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
 
       if (!state.euchreGame) throw new Error();
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
-
-      //state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
-      //state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
     };
 
     try {

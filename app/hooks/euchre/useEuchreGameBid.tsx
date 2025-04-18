@@ -27,8 +27,7 @@ export default function useEuchreGameBid(
   const { determineBid } = useGameBidLogic();
   const { getGameStateForNextHand } = useGamePlayLogic();
   const { getPlayerRotation, playerEqual } = usePlayerData();
-  const { incrementSpeed } = useGameData();
-
+  const { notificationDelay } = useGameData();
   /**
    *
    * @param player
@@ -130,8 +129,8 @@ export default function useEuchreGameBid(
 
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
 
-      // delay for animation between players
-      await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
+      // delay for animation between players when passing bid.
+      await notificationDelay(state.euchreSettings);
 
       state.addEvent(createEvent('v', state.euchreSettings, undefined, 'End Animation for bid for trump'));
       state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
@@ -155,7 +154,7 @@ export default function useEuchreGameBid(
         animationType: EuchreAnimationActionType.SET_ANIMATE
       });
     }
-  }, [errorState, isGameStateValidToContinue, state]);
+  }, [errorState, isGameStateValidToContinue, notificationDelay, state]);
 
   /** Update game flow when player orders trump.
    *
@@ -356,7 +355,7 @@ export default function useEuchreGameBid(
 
     state.dispatchPlayerNotification(getPlayerNotificationForAllPassed(newGame.dealer));
 
-    await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
+    await notificationDelay(state.euchreSettings);
 
     state.setEuchreGame(newGame);
     state.setPromptValue([]);
@@ -371,6 +370,7 @@ export default function useEuchreGameBid(
     getPlayerNotificationForAllPassed,
     getPlayerRotation,
     isGameStateValidToContinue,
+    notificationDelay,
     state
   ]);
 

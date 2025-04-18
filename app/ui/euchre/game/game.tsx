@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Card, EuchreGameInstance, EuchreSettings, PromptType } from '@/app/lib/euchre/definitions';
 import { SECTION_STYLE } from '../../home/home-description';
 import { inter } from '../../fonts';
@@ -95,10 +95,10 @@ export default function EuchreGame() {
     setFullGameInstance(null);
   };
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     handleCancelAndReset();
-    toggleSettings(true);
-  };
+    toggleSettings(false);
+  }, [handleCancelAndReset, toggleSettings]);
 
   const handleBeginReplayGame = (gameToReplay: EuchreGameInstance) => {
     setFullGameInstance(null);
@@ -130,15 +130,17 @@ export default function EuchreGame() {
     <GameSettings
       key={euchreGame !== null ? 'modal' : 'init'}
       settings={euchreSettings}
-      onNewGame={handleStartNewGame}
+      onReturn={handleStartNewGame}
       onApplySettings={changeSettings}
       onRunFullGame={handleRunFullGame}
       onRunFullGameLoop={handleRunFullGameLoop}
     />
   );
 
-  const renderIntro = promptValue.find((v) => v.type === PromptType.INTRO) && (
-    <GameIntro onBegin={handleBeginNewGame} onSettings={handleShowSettings} />
+  const renderIntro = !showSettings && promptValue.find((v) => v.type === PromptType.INTRO) && (
+    <GamePrompt zIndex={90}>
+      <GameIntro onBegin={handleBeginNewGame} onSettings={handleShowSettings} />
+    </GamePrompt>
   );
 
   const renderBidPrompt = promptValue.find((v) => v.type === PromptType.BID) && euchreGame?.trump && (
@@ -225,6 +227,9 @@ export default function EuchreGame() {
                     gameAnimation={gameAnimationFlow}
                     gameFlow={gameFlow}
                     gameSettings={euchreSettings}
+                    className={clsx('transition-opacity opacity-10 duration-1000', {
+                      '!opacity-100': renderIntro === undefined
+                    })}
                     isFullScreen={isFullScreen}
                     showEvents={showEvents}
                     showSettings={showSettings}
@@ -240,15 +245,15 @@ export default function EuchreGame() {
                     onBeginComplete={handleShuffleAndDealComplete}
                   />
                   {showSettings && <GamePrompt zIndex={90}>{renderSettings}</GamePrompt>}
+                  {renderIntro}
                 </>
               )}
-              {renderIntro}
               {renderBidPrompt}
               {renderDiscardPrompt}
               {renderHandResults}
               {renderGameResults}
               {renderErrorMessage}
-              {euchreGame && (
+              {euchreGame && gameFlow.hasGameStarted && (
                 <GameScore
                   game={euchreGame}
                   settings={euchreSettings}

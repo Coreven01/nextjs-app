@@ -9,46 +9,49 @@ import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
 import { EuchreGameState } from './useEuchreGame';
 import { PromptType } from '@/app/lib/euchre/definitions';
 import useGameSetupLogic from './logic/useGameSetupLogic';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(state: EuchreGameState) {
-  const { initDeckForInitialDeal, getGameStateForInitialDeal } = useGameSetupLogic();
+  const { initDeckForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } = useGameSetupLogic();
   const [showIntro, setShowIntro] = useState(true);
 
   /**
    * Reset game and game state flow to defaults.
    * */
-  const reset = (resetForBeginGame: boolean) => {
-    if (resetForBeginGame) {
-      state.dispatchGameFlow({
-        type: EuchreFlowActionType.SET_STATE,
-        state: {
-          ...INIT_GAME_FLOW_STATE,
-          shouldShowDeckImages: [],
-          shouldShowCardImagesForHand: [],
-          shouldShowCardValuesForHand: []
-        }
-      });
+  const reset = useCallback(
+    (resetForBeginGame: boolean) => {
+      if (resetForBeginGame) {
+        state.dispatchGameFlow({
+          type: EuchreFlowActionType.SET_STATE,
+          state: {
+            ...INIT_GAME_FLOW_STATE,
+            shouldShowDeckImages: [],
+            shouldShowCardImagesForHand: [],
+            shouldShowCardValuesForHand: []
+          }
+        });
 
-      state.dispatchGameAnimationFlow({
-        type: EuchreAnimationActionType.SET_NONE
-      });
-    } else {
-      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
-    }
+        state.dispatchGameAnimationFlow({
+          type: EuchreAnimationActionType.SET_NONE
+        });
+      } else {
+        state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+      }
 
-    state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET, payload: undefined });
+      state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET, payload: undefined });
 
-    if (showIntro) {
-      state.setPromptValue([{ type: PromptType.INTRO }]);
-    } else {
-      state.setPromptValue([]);
-    }
+      if (showIntro) {
+        state.setPromptValue([{ type: PromptType.INTRO }]);
+      } else {
+        state.setPromptValue([]);
+      }
 
-    state.setBidResult(null);
-    state.setPlayedCard(null);
-  };
+      state.setBidResult(null);
+      state.setPlayedCard(null);
+    },
+    [showIntro, state]
+  );
 
   /** Create a new euchre game and begin intitial deal.
    *
@@ -73,15 +76,15 @@ export default function useEuchreGameInit(state: EuchreGameState) {
   };
 
   /** Cancel the current state and set the current game to null. */
-  const cancelAndReset = () => {
+  const cancelAndReset = useCallback(() => {
     state.setShouldCancel(true);
     reset(true);
-    state.setEuchreGame(null);
-  };
+    state.setEuchreGame(createDefaultEuchreGame());
+  }, [createDefaultEuchreGame, reset, state]);
 
   const handleBeginGame = () => {
     createGame();
   };
 
-  return { reset, handleBeginGame, cancelAndReset };
+  return { reset, handleBeginGame, cancelAndReset, createDefaultEuchreGame };
 }

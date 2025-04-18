@@ -6,8 +6,9 @@ import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotif
 import PlayerArea from '../player/player-area';
 import { useRef } from 'react';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
+import clsx from 'clsx';
 
-interface Props {
+interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
   gameFlow: EuchreGameFlowState;
   gameSettings: EuchreSettings;
@@ -38,6 +39,7 @@ const GameArea = ({
   showScore,
   playerNotification,
   playedCard,
+  className,
   onToggleFullscreen,
   onToggleEvents,
   onSettingsToggle,
@@ -53,7 +55,10 @@ const GameArea = ({
 
   return (
     <div
-      className={`grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,auto)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,600px)_minmax(50px,auto)] md:grid-rows-[120px,1fr,120px] md:grid-cols-[120px_minmax(60%,600px)_120px]`}
+      className={clsx(
+        `grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,auto)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,600px)_minmax(50px,auto)] md:grid-rows-[120px,1fr,120px] md:grid-cols-[120px_minmax(60%,600px)_120px]`,
+        className
+      )}
     >
       <GameMenu
         isFullScreen={isFullScreen}
@@ -68,6 +73,8 @@ const GameArea = ({
       />
       <div className="col-start-2 row-start-2 col-span-1 row-span-1">
         <GameTable
+          game={game}
+          gameFlow={gameFlow}
           playerNotification={playerNotification}
           player1TableRef={player1TableRef}
           player2TableRef={player2TableRef}

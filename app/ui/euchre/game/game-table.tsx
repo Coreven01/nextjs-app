@@ -3,8 +3,16 @@ import GameBorder from './game-border';
 import WoodenBoard from '../wooden-board';
 import clsx from 'clsx';
 import { RefObject } from 'react';
+import GameFlippedCard from './game-flipped-card';
+import { EuchreGameInstance } from '../../../lib/euchre/definitions';
+import { EuchreGameFlow, EuchreGameFlowState } from '../../../hooks/euchre/reducers/gameFlowReducer';
+import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
+import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
+import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
 
 interface Props {
+  game: EuchreGameInstance;
+  gameFlow: EuchreGameFlowState;
   playerNotification: PlayerNotificationState;
   player1TableRef: RefObject<HTMLDivElement>;
   player2TableRef: RefObject<HTMLDivElement>;
@@ -13,12 +21,15 @@ interface Props {
 }
 
 const GameTable = ({
+  game,
+  gameFlow,
   playerNotification,
   player1TableRef,
   player2TableRef,
   player3TableRef,
   player4TableRef
 }: Props) => {
+  const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
   const isDebugMode = true; // env.REACT_APP_DEBUG === 'true';
   const renderOrder = [
     playerNotification.player2GameInfo,
@@ -27,6 +38,27 @@ const GameTable = ({
     playerNotification.player4GameInfo,
     playerNotification.player1GameInfo
   ];
+  const keyval = `${game.dealPassedCount}-${game.currentRound}`;
+  const gameBidding =
+    game.maker === null &&
+    (gameFlow.gameFlow === EuchreGameFlow.BEGIN_BID_FOR_TRUMP ||
+      gameFlow.gameFlow === EuchreGameFlow.END_BID_FOR_TRUMP ||
+      gameFlow.gameFlow === EuchreGameFlow.WAIT ||
+      gameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT);
+
+  const cardState: CardState = {
+    src:
+      gameBidding && !gameFlow.hasFirstBiddingPassed
+        ? getEncodedCardSvg(game.trump, 'center')
+        : '/card-back.svg',
+    cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
+    cardIndex: 0,
+    initSprungValue: { ...DEFAULT_SPRING_VAL, opacity: 0, rotateY: 180 },
+    springValue:
+      gameBidding && !gameFlow.hasFirstBiddingPassed
+        ? { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 0, transition: { rotateY: { duration: 0.5 } } }
+        : { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 180, transition: { rotateY: { duration: 0.5 } } }
+  };
 
   return (
     <GameBorder innerClass="bg-yellow-800 relative" className="shadow-md shadow-black">
@@ -68,6 +100,9 @@ const GameTable = ({
           <div id={`game-center`} className={clsx(`absolute top-auto`, { 'text-transparent': !isDebugMode })}>
             X
           </div>
+          {gameFlow.hasGameStarted && gameBidding && (
+            <GameFlippedCard cardState={cardState} card={game.trump} key={keyval} />
+          )}
           {renderOrder[2]}
         </div>
         <div

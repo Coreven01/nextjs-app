@@ -1,5 +1,3 @@
-'use client';
-
 import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/euchre/definitions';
 import HandResult from './hand-result';
 import { RefObject, useEffect, useRef, useState } from 'react';
@@ -112,24 +110,24 @@ export default function GameResults({
             ></HandResult>
           )}
 
-          <div className="flex gap-1 md:text-base text-xs">
+          <div className="flex gap-1 md:text-base text-xs h-8">
             <button
               onClick={onClose}
               className="w-full border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
             >
-              Close
-            </button>
-            <button
-              onClick={onNewGame}
-              className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
-            >
-              New Game
+              Main Menu
             </button>
             <button
               onClick={onReplayGame}
               className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
             >
               Replay Game
+            </button>
+            <button
+              onClick={onNewGame}
+              className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
+            >
+              New Game
             </button>
           </div>
         </div>

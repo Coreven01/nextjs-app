@@ -1,28 +1,35 @@
-'use client';
-
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 export default function useMenuItems() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showEvents, setShowEvents] = useState(false);
-  const [showSettings, setShowSettings] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
   const [showScore, setShowScore] = useState(true);
 
-  const toggleFullScreen = (value: boolean) => {
+  const toggleFullScreen = useCallback((value: boolean) => {
     setIsFullScreen(value);
-  };
+  }, []);
 
-  const toggleEvents = (value: boolean) => {
+  const toggleEvents = useCallback((value: boolean) => {
     setShowEvents(value);
-  };
+  }, []);
 
-  const toggleSettings = (value: boolean) => {
+  const toggleSettings = useCallback((value: boolean) => {
     setShowSettings(value);
-  };
+  }, []);
 
-  const toggleScore = (value: boolean) => {
+  const toggleScore = useCallback((value: boolean) => {
     setShowScore(value);
-  };
+  }, []);
 
-  return { isFullScreen, showEvents, showSettings,showScore, toggleFullScreen, toggleEvents, toggleSettings,toggleScore };
+  return {
+    isFullScreen,
+    showEvents,
+    showSettings,
+    showScore,
+    toggleFullScreen,
+    toggleEvents,
+    toggleSettings,
+    toggleScore
+  };
 }

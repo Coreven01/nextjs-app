@@ -1,4 +1,5 @@
 import {
+  DEFAULT_GAME_SETTINGS,
   DIFFICULTY_MAP,
   EuchreSettings,
   GAME_SPEED_MAP,
@@ -12,13 +13,13 @@ import PromptHeader from '../prompt/prompt-header';
 
 type Props = {
   settings: EuchreSettings;
-  onNewGame: () => void;
+  onReturn: () => void;
   onApplySettings: (settings: EuchreSettings) => void;
   onRunFullGame: () => void;
   onRunFullGameLoop: () => void;
 };
 
-const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onRunFullGameLoop }: Props) => {
+const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRunFullGameLoop }: Props) => {
   const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings.teamOneColor ?? 'blue');
   const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings.teamTwoColor ?? 'red');
   const [playerName, setPlayerName] = useState(settings.playerName);
@@ -29,8 +30,12 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
   const isDebugMode = true;
 
   //#region Handlers
-  const handleNewGame = () => {
-    onNewGame();
+  const handleReturn = () => {
+    onReturn();
+  };
+
+  const handleSetDefaultSettings = () => {
+    onApplySettings({ ...settings, ...DEFAULT_GAME_SETTINGS });
   };
 
   const handleRunTestGame = () => {
@@ -41,7 +46,7 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
     onRunFullGameLoop();
   };
 
-  const handleRunAuto = () => {
+  const handleApplyAutoSettings = () => {
     onApplySettings({
       ...settings,
       showHandResult: false,
@@ -49,7 +54,6 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
       debugAllComputerPlayers: true,
       gameSpeed: 700
     });
-    onNewGame();
   };
 
   const handleTeamColorChange = (teamNumber: number, value: TeamColor) => {
@@ -175,56 +179,57 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
             onChange={(e) => handleCheckChanged(e)}
           />
         </div>
-
-        {isDebugMode && (
-          <div className="grow">
-            <div>
-              <label htmlFor="debugAlwaysPass">Debug Always Pass: </label>
-              <Switch
-                id="debugAlwaysPass"
-                size="small"
-                checked={settings.debugAlwaysPass}
-                name="debugAlwaysPass"
-                color="success"
-                onChange={(e) => handleCheckChanged(e)}
-              />
-            </div>
-            <div>
-              <label htmlFor="debugShowHandsWhenPassed">Debug Show Hands When Passed: </label>
-              <Switch
-                id="debugShowHandsWhenPassed"
-                size="small"
-                checked={settings.debugShowHandsWhenPassed}
-                name="debugShowHandsWhenPassed"
-                color="success"
-                onChange={(e) => handleCheckChanged(e)}
-              />
-            </div>
-            <div>
-              <label htmlFor="debugShowPlayersHand">Debug Show Player Hands: </label>
-              <Switch
-                id="debugShowPlayersHand"
-                size="small"
-                checked={settings.debugShowPlayersHand}
-                name="debugShowPlayersHand"
-                color="success"
-                onChange={(e) => handleCheckChanged(e)}
-              />
-            </div>
-            <div>
-              <label htmlFor="debugAllComputerPlayers">Debug All Computer Players: </label>
-              <Switch
-                id="debugAllComputerPlayers"
-                size="small"
-                checked={settings.debugAllComputerPlayers}
-                name="debugAllComputerPlayers"
-                color="success"
-                onChange={(e) => handleCheckChanged(e)}
-              />
-            </div>
-          </div>
-        )}
       </div>
+
+      {isDebugMode && (
+        <div className="grid gap-2 grid-cols-2 my-2 md:text-base text-sm bg-stone-700 p-2 border border-white">
+          <div>
+            <label htmlFor="debugAlwaysPass">Debug Always Pass: </label>
+            <Switch
+              id="debugAlwaysPass"
+              size="small"
+              checked={settings.debugAlwaysPass}
+              name="debugAlwaysPass"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+          <div>
+            <label htmlFor="debugShowHandsWhenPassed">Debug Show Hands When Passed: </label>
+            <Switch
+              id="debugShowHandsWhenPassed"
+              size="small"
+              checked={settings.debugShowHandsWhenPassed}
+              name="debugShowHandsWhenPassed"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+          <div>
+            <label htmlFor="debugShowPlayersHand">Debug Show Player Hands: </label>
+            <Switch
+              id="debugShowPlayersHand"
+              size="small"
+              checked={settings.debugShowPlayersHand}
+              name="debugShowPlayersHand"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+          <div>
+            {' '}
+            <label htmlFor="debugAllComputerPlayers">Debug All Computer Players: </label>
+            <Switch
+              id="debugAllComputerPlayers"
+              size="small"
+              checked={settings.debugAllComputerPlayers}
+              name="debugAllComputerPlayers"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+        </div>
+      )}
       <div className="my-4 flex justify-center items-center gap-1 md:text-base text-sm">
         <div className="m-auto">
           <label className="block" htmlFor="difficulty">
@@ -303,26 +308,30 @@ const GameSettings = ({ settings, onNewGame, onApplySettings, onRunFullGame, onR
       <div className="flex justify-center gap-2 md:text-base text-sm">
         <button
           className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black p-1"
-          onClick={handleNewGame}
+          onClick={handleReturn}
         >
-          Start Game
+          Main Menu
         </button>
-        {isDebugMode && (
+        <button
+          className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black p-1"
+          onClick={handleSetDefaultSettings}
+        >
+          Default Settings
+        </button>
+      </div>
+      {isDebugMode && (
+        <div className="flex justify-center gap-2 md:text-base text-sm mt-2">
           <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGame}>
             Run Test Game
           </button>
-        )}
-        {isDebugMode && (
           <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGameLoop}>
             Run Test Game Loop
           </button>
-        )}
-        {isDebugMode && (
-          <button className="text-white border border-white md:p-2 p-1" onClick={handleRunAuto}>
-            Run Auto Game
+          <button className="text-white border border-white md:p-2 p-1" onClick={handleApplyAutoSettings}>
+            Set Auto Settings
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

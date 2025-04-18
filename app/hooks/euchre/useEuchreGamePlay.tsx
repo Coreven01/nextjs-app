@@ -1,22 +1,10 @@
-import {
-  Card,
-  EuchreCard,
-  EuchreGameInstance,
-  EuchrePlayer,
-  EuchreTrick,
-  PromptType
-} from '@/app/lib/euchre/definitions';
+import { Card, EuchreCard, EuchreGameInstance, EuchreTrick, PromptType } from '@/app/lib/euchre/definitions';
 import { CheckCircleIcon } from '@heroicons/react/16/solid';
 import { EuchreFlowActionType, EuchreGameFlow } from './reducers/gameFlowReducer';
-import {
-  getPlayerNotificationType,
-  PlayerNotificationAction,
-  PlayerNotificationActionType
-} from './reducers/playerNotificationReducer';
+import { PlayerNotificationAction, PlayerNotificationActionType } from './reducers/playerNotificationReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect, useRef } from 'react';
-import GameCard from '@/app/ui/euchre/game/game-card';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
 import { createEvent } from '@/app/lib/euchre/util';
@@ -26,18 +14,14 @@ import useGameData from './data/useGameData';
 import usePlayerData from './data/usePlayerData';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import useGamePlayLogic from './logic/useGamePlayLogic';
-import useCardSvgData from './data/useCardSvgData';
-import useCardData from './data/useCardData';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function useEuchreGamePlay(state: EuchreGameState, errorState: EuchreErrorState) {
   const playerAutoPlayed = useRef(false);
   const { isGameStateValidToContinue, generateElementId } = useGameStateLogic();
-  const { createTrick } = useGameSetupLogic();
-  const { getPlayerRotation, availableCardsToPlay, playerLocation } = usePlayerData();
+  const { createTrick, createDefaultEuchreGame } = useGameSetupLogic();
+  const { getPlayerRotation, availableCardsToPlay } = usePlayerData();
   const { determineCardToPlay, getGameStateForNextHand } = useGamePlayLogic();
-  const { getEncodedCardSvg } = useCardSvgData();
-  const { getDisplayHeight, getDisplayWidth } = useCardData();
   const {
     isHandFinished,
     isTrickFinished,
@@ -45,73 +29,10 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
     updateIfTrickOver,
     playerSittingOut,
     getCardsAvailableToPlay,
-    isGameOver
+    isGameOver,
+    notificationDelay,
+    gameDelay
   } = useGameData();
-
-  /**
-   *
-   */
-  const getPlayerNotificationForPlayedCard = useCallback(
-    (card: Card, player: EuchrePlayer) => {
-      const newAction: PlayerNotificationAction = {
-        type: PlayerNotificationActionType.UPDATE_PLAYER1,
-        payload: undefined
-      };
-
-      let cardLocation = '';
-      switch (player.playerNumber) {
-        case 1:
-          cardLocation = '-top-8 md:-top-5 md:w-auto w-16';
-          break;
-        case 2:
-          cardLocation = '-bottom-4 md:-bottom-5 md:w-auto w-16';
-          break;
-        case 3:
-          cardLocation = '-right-16 md:-right-5 md:h-auto h-16';
-          break;
-        case 4:
-          cardLocation = '-left-16 md:-left-5 md:h-auto h-16';
-          break;
-      }
-
-      const rotateValues = [
-        'rotate-[-8deg]',
-        'rotate-[-4deg]',
-        'rotate-[-1deg]',
-        'rotate-[1deg]',
-        'rotate-[4deg]',
-        'rotate-[8deg]'
-      ];
-
-      const key: string = generateElementId();
-      const location = playerLocation(player);
-      const infoDetail = (
-        <div></div>
-        // <GameCard
-        //   responsive={true}
-        //   src={getEncodedCardSvg(card, location)}
-        //   card={card}
-        //   width={getDisplayWidth(location)}
-        //   player={player}
-        //   enableShadow={true}
-        //   height={getDisplayHeight(location)}
-        //   className={`!absolute z-30 ${rotateValues[Math.round(Math.random() * 5)]} ${cardLocation}`}
-        //   playCard={false}
-        //   index={0}
-        //   onCardClick={() => null}
-        //   id={key}
-        //   key={key}
-        //   gameSpeedMs={1000}
-        //   faceDown={false}
-        // ></GameCard>
-      );
-
-      newAction.type = getPlayerNotificationType(player.playerNumber);
-      newAction.payload = infoDetail;
-      return newAction;
-    },
-    [generateElementId, playerLocation]
-  );
 
   /**
    *
@@ -223,8 +144,6 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
     if (!awaitForPlayerInput) {
       const selectedCard: Card = { ...determineCardToPlay(newGame, state.euchreSettings.difficulty) };
       state.setPlayedCard(selectedCard);
-      //state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_BEGIN_PLAY_CARD });
-      //state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_PLAY_CARD });
       state.dispatchGameFlow({
         type: EuchreFlowActionType.SET_GAME_FLOW,
         gameFlow: EuchreGameFlow.AWAIT_AI_INPUT
@@ -287,9 +206,6 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
 
       state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
 
-      if (!newGame.currentPlayer.human || playerAutoPlayed.current)
-        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
-
       if (!state.playedCard) throw new Error('Unable to animate play card - player card not found.');
 
       state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
@@ -314,7 +230,7 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
         animationType: EuchreAnimationActionType.SET_ANIMATE
       });
     }
-  }, [errorState, isGameStateValidToContinue, state]);
+  }, [errorState, gameDelay, isGameStateValidToContinue, state]);
 
   /**
    *
@@ -411,14 +327,18 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
    *
    */
   const handleCloseGameResults = useCallback(() => {
-    state.setPromptValue([]);
-  }, [state]);
+    state.setEuchreGame(createDefaultEuchreGame());
+    state.setPromptValue([{ type: PromptType.INTRO }]);
+  }, [createDefaultEuchreGame, state]);
 
   /**
    *
    */
   const handleCardPlayed = (cardPlayed: Card) => {
-    if (state.euchreGame && state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_AI_INPUT) {
+    if (
+      state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_AI_INPUT ||
+      state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT
+    ) {
       state.setPlayedCard(cardPlayed);
       state.dispatchGameFlow({
         type: EuchreFlowActionType.SET_GAME_FLOW,
@@ -594,12 +514,13 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
         }
 
         state.addEvent(createEvent('i', state.euchreSettings, lastWonTrick.taker, `Trick won.`));
-
-        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
+        await notificationDelay(state.euchreSettings);
 
         // little bit longer pause so the user can see what happened.
-        if (playedReneged)
-          await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
+        if (playedReneged) await notificationDelay(state.euchreSettings);
+      } else {
+        //short delay between players playing cards if the next player is AI.
+        if (!newGame.currentPlayer.human) await gameDelay(state.euchreSettings);
       }
 
       if (isHandFinished(newGame)) {
@@ -616,7 +537,7 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
           )
         );
 
-        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
+        await notificationDelay(state.euchreSettings);
 
         state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
         state.dispatchGameFlow({
@@ -660,7 +581,9 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
     getPlayerNotificationForTrickWon,
     isTrickFinished,
     isHandFinished,
-    errorState
+    errorState,
+    notificationDelay,
+    gameDelay
   ]);
 
   //#endregion

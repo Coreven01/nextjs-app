@@ -44,7 +44,7 @@ export default function DiscardPrompt({
   return (
     <GamePrompt {...rest} zIndex={50} className={clsx('bg-green-950', className)}>
       <div className="bg-stone-900 p-2">
-        <div className="grid grid-rows-[28px,1fr,30px] grid-cols-[130px,100px] gap-1">
+        <div className="grid grid-rows-[28px,1fr,auto] grid-cols-[130px,100px] gap-1">
           <div
             title={`Choose which card to discard`}
             className="flex items-center justify-center col-span-2 cursor-default"
@@ -74,7 +74,7 @@ export default function DiscardPrompt({
 
           <button
             onClick={() => handleDiscardSubmit()}
-            className="col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 md:text-base text-xs"
+            className="h-8 col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 md:text-base text-xs"
             disabled={!submitEnabled}
           >
             Discard Selected

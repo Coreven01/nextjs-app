@@ -80,25 +80,31 @@ export type CardValue =
   | 'P';
 export type CardColor = 'R' | 'B';
 
-/** Default game settings. */
-export const INIT_GAME_SETTINGS: EuchreSettings = {
-  shouldAnimate: false,
-  debugAlwaysPass: false,
-  gameSpeed: 700,
-  notificationSpeed: MINIMUM_NOTIFICATION_SPEED,
+/** Initial game settings. */
+export const DEFAULT_GAME_SETTINGS = {
+  gameSpeed: 700 as GameSpeed,
   showHandResult: true,
-  teamOneColor: 'blue',
-  teamTwoColor: 'red',
   enforceFollowSuit: false,
   autoFollowSuit: false,
+  difficulty: 'expert' as GameDifficulty,
+  stickTheDealer: true,
+  viewPlayerInfoDetail: true,
   debugShowHandsWhenPassed: false,
   debugShowPlayersHand: false,
   debugAllComputerPlayers: false,
-  difficulty: 'intermediate',
-  stickTheDealer: false,
-  viewPlayerInfoDetail: true,
-  cardColor: 'blue',
-  playerName: 'Joe'
+  debugAlwaysPass: false,
+  debugShowDebugEvents: false
+};
+
+/** Initial game settings. */
+export const INIT_GAME_SETTINGS: EuchreSettings = {
+  shouldAnimate: false,
+  notificationSpeed: MINIMUM_NOTIFICATION_SPEED,
+  teamOneColor: 'green',
+  teamTwoColor: 'red',
+  cardColor: 'black',
+  playerName: 'Joe',
+  ...DEFAULT_GAME_SETTINGS
 };
 
 export interface EuchreHandResult extends EuchrePlayersPassedResult {
@@ -133,6 +139,7 @@ export interface EuchreSettings {
   debugShowHandsWhenPassed: boolean;
   debugAlwaysPass: boolean;
   debugAllComputerPlayers: boolean;
+  debugShowDebugEvents: boolean;
   difficulty: GameDifficulty;
   viewPlayerInfoDetail: boolean;
   cardColor: CardBackColor;

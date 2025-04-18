@@ -10,6 +10,7 @@ import clsx from 'clsx';
 import HandResultDetail from './hand-result-detail';
 import { useState } from 'react';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
+import GameWarning from '../game/game-warning';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -84,14 +85,14 @@ export default function HandResult({ game, settings, handResult, className, ...r
         />
 
         {playerReneged && (
-          <div className="dark:text-red-100 text-center mb-2 border border-white mx-2 rounded-xl border-red-200">
+          <GameWarning className="mx-2 my-2 border border-red-900">
             Hand ended due to player renege
-          </div>
+          </GameWarning>
         )}
         {handResult.tricks.map((t) => {
           if (!t.taker) throw new Error();
 
-          const playerReneged = t.playerRenege !== null;
+          const displayWinner = t.playerRenege !== null;
           return (
             <div
               key={`${t.round}-${t.cardsPlayed.map((c, index) => `${c.player.playerNumber}-${c.card.value}-${c.card.suit}`).join('')}`}
@@ -103,7 +104,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
                 handResult={handResult}
                 highlight={selectedHighlight}
               />
-              {!playerReneged && (
+              {!displayWinner && (
                 <div className="grow md:min-w-36">
                   <PlayerColor player={t.taker} settings={settings}>
                     <div className="bg-stone-800 p-1 text-center">Winner: {t.taker.name}</div>

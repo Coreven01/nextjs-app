@@ -66,7 +66,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
     const isLoner = lonerSelection;
     const suitSelection = bidSelection ?? '';
 
-    if (!firstRound && !suitSelection?.length) return;
+    if (!firstRound && !suitSelection.length) return;
 
     result.orderTrump = true;
     result.loner = isLoner;
@@ -157,7 +157,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
           </div>
           <div className={clsx('', { '': firstRound }, { '': !firstRound })}>
             <div className="text-center md:text-base text-xs">Hand</div>
-            <CardSelection playerHand={game.currentPlayer?.hand ?? []} />
+            <CardSelection playerHand={game.currentPlayer.hand} />
           </div>
           <div
             className={clsx('flex gap-2 md:text-base text-xs text-white', {
@@ -191,7 +191,9 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
             </button>
           </div>
         </div>
-        {!firstRound && settings.stickTheDealer && <GameWarning>Stick the dealer</GameWarning>}
+        {settings.stickTheDealer && (
+          <GameWarning className="mt-1 border border-red-900">Stick the dealer enabled</GameWarning>
+        )}
       </div>
     </GamePrompt>
   );

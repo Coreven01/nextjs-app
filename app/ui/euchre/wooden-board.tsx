@@ -1,5 +1,6 @@
 import { createRange } from '@/app/lib/euchre/util';
 import Image from 'next/image';
+import { useMemo } from 'react';
 
 const height = 25;
 const width = 275;
@@ -21,41 +22,46 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 export default function WoodenBoard({ rows, className }: Props) {
-  const rowValues = createRange(0, rows - 1);
-  const boardRows: React.ReactNode[] = [];
+  const rowValues = useMemo(() => createRange(0, rows - 1), [rows]);
 
-  rowValues.map((v) => {
-    const index = v % boardRowVals.length;
-    const values = boardRowVals[index];
-    const offset = boardRowOffset[index];
+  const savedBoardRows = useMemo(() => {
+    const boardRows: React.ReactNode[] = [];
 
-    boardRows.push(
-      <div key={v} className="flex overflow-hidden">
-        {values.map((i) => {
-          return (
-            <Image
-              key={`${v}${i}`}
-              src={`/wooden/wooden-${i}.jpg`}
-              width={width}
-              height={height}
-              alt="wooden board"
-              loading="eager"
-              quality={100}
-              unoptimized={true}
-              placeholder="blur"
-              blurDataURL="/wooden/wooden-0.jpg"
-              priority={true}
-              className={`contain border-r border-b border-black relative ${offset}`}
-              style={{
-                width: '100%',
-                height: 'auto'
-              }}
-            />
-          );
-        })}
-      </div>
-    );
-  });
+    rowValues.map((v) => {
+      const index = v % boardRowVals.length;
+      const values = boardRowVals[index];
+      const offset = boardRowOffset[index];
 
-  return <div className={className}>{boardRows}</div>;
+      boardRows.push(
+        <div key={v} className="flex overflow-hidden">
+          {values.map((i) => {
+            return (
+              <Image
+                key={`${v}${i}`}
+                src={`/wooden/wooden-${i}.jpg`}
+                width={width}
+                height={height}
+                alt="wooden board"
+                loading="eager"
+                quality={100}
+                unoptimized={true}
+                placeholder="blur"
+                blurDataURL="/wooden/wooden-0.jpg"
+                priority={true}
+                className={`contain border-r border-b border-black relative ${offset}`}
+                style={{
+                  width: '100%',
+                  height: 'auto'
+                }}
+              />
+            );
+          })}
+        </div>
+      );
+    });
+
+    return boardRows;
+  }, [rowValues]);
+
+  return <div className={className}>{savedBoardRows}</div>;
 }

@@ -4,7 +4,7 @@ import { EuchreGameFlow, EuchreGameFlowState } from '../reducers/gameFlowReducer
 import { useCallback } from 'react';
 
 const CARD_HEIGHT_OFFSET = 10;
-const CARD_WIDTH_OFFSET = 70;
+const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.
 const INIT_ROTATION = 180;
 const INIT_OFFSET = 75;
 const INIT_OPACITY = 0.75;
@@ -86,7 +86,8 @@ const useCardTransform = () => {
     cardRef: HTMLElement,
     tableRef: HTMLElement | undefined,
     rotation: number,
-    currentValues: CardSprungProps[]
+    currentValues: CardSprungProps[],
+    cardWidthOffset: number
   ): CardSprungProps[] => {
     if (!tableRef || !cardRef || !player) {
       return currentValues;
@@ -133,7 +134,7 @@ const useCardTransform = () => {
     retval.push(
       ...groupHand(
         player,
-        cardRef,
+        cardWidthOffset,
         currentValues.filter((c) => c.cardIndex !== cardIndex)
       )
     );
@@ -143,34 +144,34 @@ const useCardTransform = () => {
   /** */
   const groupHand = (
     player: EuchrePlayer | undefined,
-    cardRef: HTMLElement,
+    cardWidthOffset: number,
     stateForAvailableCards: CardSprungProps[]
   ) => {
     const retval: CardSprungProps[] = [];
 
     switch (player?.playerNumber) {
       case 1:
-        retval.push(...groupPlayer1RemainingCards(cardRef, stateForAvailableCards));
+        retval.push(...groupPlayer1RemainingCards(cardWidthOffset, stateForAvailableCards));
         break;
       case 2:
-        retval.push(...groupPlayer2RemainingCards(cardRef, stateForAvailableCards));
+        retval.push(...groupPlayer2RemainingCards(cardWidthOffset, stateForAvailableCards));
         break;
       case 3:
-        retval.push(...groupPlayer3RemainingCards(cardRef, stateForAvailableCards));
+        retval.push(...groupPlayer3RemainingCards(cardWidthOffset, stateForAvailableCards));
         break;
       case 4:
-        retval.push(...groupPlayer4RemainingCards(cardRef, stateForAvailableCards));
+        retval.push(...groupPlayer4RemainingCards(cardWidthOffset, stateForAvailableCards));
     }
 
     return retval;
   };
 
   const groupPlayer1RemainingCards = (
-    cardRef: HTMLElement,
+    cardWidthOffset: number,
     stateForAvailableCards: CardSprungProps[]
   ): CardSprungProps[] => {
     const retval: CardSprungProps[] = [];
-    const values = getHandOffsetValues(stateForAvailableCards.length, cardRef);
+    const values: CardOffsetValues = getHandOffsetValues(stateForAvailableCards.length, cardWidthOffset);
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
@@ -194,9 +195,9 @@ const useCardTransform = () => {
     return retval;
   };
 
-  const groupPlayer2RemainingCards = (cardRef: HTMLElement, stateForAvailableCards: CardSprungProps[]) => {
+  const groupPlayer2RemainingCards = (cardWidthOffset: number, stateForAvailableCards: CardSprungProps[]) => {
     const retval: CardSprungProps[] = [];
-    const values = getHandOffsetValues(stateForAvailableCards.length, cardRef);
+    const values = getHandOffsetValues(stateForAvailableCards.length, cardWidthOffset);
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
@@ -219,9 +220,9 @@ const useCardTransform = () => {
     return retval;
   };
 
-  const groupPlayer3RemainingCards = (cardRef: HTMLElement, stateForAvailableCards: CardSprungProps[]) => {
+  const groupPlayer3RemainingCards = (cardWidthOffset: number, stateForAvailableCards: CardSprungProps[]) => {
     const retval: CardSprungProps[] = [];
-    const values = getHandOffsetValues(stateForAvailableCards.length, cardRef);
+    const values = getHandOffsetValues(stateForAvailableCards.length, cardWidthOffset);
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
@@ -244,9 +245,9 @@ const useCardTransform = () => {
     return retval;
   };
 
-  const groupPlayer4RemainingCards = (cardRef: HTMLElement, stateForAvailableCards: CardSprungProps[]) => {
+  const groupPlayer4RemainingCards = (cardWidthOffset: number, stateForAvailableCards: CardSprungProps[]) => {
     const retval: CardSprungProps[] = [];
-    const values = getHandOffsetValues(stateForAvailableCards.length, cardRef);
+    const values = getHandOffsetValues(stateForAvailableCards.length, cardWidthOffset);
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
@@ -287,17 +288,17 @@ const useCardTransform = () => {
   const getPlayerAnimateCardForStart = (
     player: EuchrePlayer | undefined,
     cardIndex: number,
-    cardRef: HTMLElement
+    cardWidthOffset: number
   ): CardSprungTarget => {
     switch (player?.playerNumber) {
       case 1:
-        return getPlayer1AnimateStartForCard(cardIndex, cardRef);
+        return getPlayer1AnimateStartForCard(cardIndex, cardWidthOffset);
       case 2:
-        return getPlayer2AnimateStartForCard(cardIndex, cardRef);
+        return getPlayer2AnimateStartForCard(cardIndex, cardWidthOffset);
       case 3:
-        return getPlayer3AnimateStartForCard(cardIndex, cardRef);
+        return getPlayer3AnimateStartForCard(cardIndex, cardWidthOffset);
       case 4:
-        return getPlayer4AnimateStartForCard(cardIndex, cardRef);
+        return getPlayer4AnimateStartForCard(cardIndex, cardWidthOffset);
     }
 
     return {
@@ -357,7 +358,15 @@ const useCardTransform = () => {
     };
   };
 
-  const getHandOffsetValues = (numberOfCards: number, cardRef: HTMLElement): CardOffsetValues => {
+  const getCalculatedWidthOffset = (cardRef: HTMLElement) => {
+    const cardRect = cardRef.getBoundingClientRect();
+    const cardShortLength = Math.min(cardRect.width, cardRect.height);
+    const cardWidthOffset = cardShortLength * (CARD_WIDTH_OFFSET / 100);
+
+    return cardWidthOffset;
+  };
+
+  const getHandOffsetValues = (numberOfCards: number, cardWidthOffset: number): CardOffsetValues => {
     if (numberOfCards <= 1) {
       return {
         widthOffsetStart: 0,
@@ -372,8 +381,8 @@ const useCardTransform = () => {
     const numberOfCardsPerSide = Math.floor(numberOfCards / 2);
     const oddNumberOfCards = numberOfCards % 2 === 1;
     const widthStart = oddNumberOfCards
-      ? -(numberOfCardsPerSide * CARD_WIDTH_OFFSET)
-      : -(numberOfCardsPerSide * CARD_WIDTH_OFFSET - CARD_WIDTH_OFFSET / 2);
+      ? -(numberOfCardsPerSide * cardWidthOffset)
+      : -(numberOfCardsPerSide * cardWidthOffset - cardWidthOffset / 2);
     const rotationStart = oddNumberOfCards
       ? -(numberOfCardsPerSide * ROTATION_OFFSET)
       : -(numberOfCardsPerSide * ROTATION_OFFSET - ROTATION_OFFSET / 2);
@@ -387,7 +396,7 @@ const useCardTransform = () => {
         heightIndices = [0, 1, 1, 0];
         break;
       case 3:
-        heightIndices = [0, 1, 0];
+        heightIndices = [0, 0.5, 0];
         break;
       case 2:
         heightIndices = [0, 0];
@@ -398,7 +407,7 @@ const useCardTransform = () => {
 
     return {
       widthOffsetStart: widthStart,
-      widthOffset: CARD_WIDTH_OFFSET,
+      widthOffset: cardWidthOffset,
       heightOffsetIndices: heightIndices,
       heightOffset: CARD_HEIGHT_OFFSET,
       rotationStart: rotationStart,
@@ -406,8 +415,8 @@ const useCardTransform = () => {
     };
   };
 
-  const getPlayer1AnimateStartForCard = (cardOrder: number, cardRef: HTMLElement) => {
-    const values = getHandOffsetValues(5, cardRef);
+  const getPlayer1AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+    const values = getHandOffsetValues(5, cardWidthOffset);
 
     return {
       ...DEFAULT_SPRING_VAL,
@@ -418,8 +427,8 @@ const useCardTransform = () => {
     };
   };
 
-  const getPlayer2AnimateStartForCard = (cardOrder: number, cardRef: HTMLElement) => {
-    const values = getHandOffsetValues(5, cardRef);
+  const getPlayer2AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+    const values = getHandOffsetValues(5, cardWidthOffset);
 
     return {
       ...DEFAULT_SPRING_VAL,
@@ -430,8 +439,8 @@ const useCardTransform = () => {
     };
   };
 
-  const getPlayer3AnimateStartForCard = (cardOrder: number, cardRef: HTMLElement) => {
-    const values = getHandOffsetValues(5, cardRef);
+  const getPlayer3AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+    const values = getHandOffsetValues(5, cardWidthOffset);
 
     return {
       ...DEFAULT_SPRING_VAL,
@@ -442,8 +451,8 @@ const useCardTransform = () => {
     };
   };
 
-  const getPlayer4AnimateStartForCard = (cardOrder: number, cardRef: HTMLElement) => {
-    const values = getHandOffsetValues(5, cardRef);
+  const getPlayer4AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+    const values = getHandOffsetValues(5, cardWidthOffset);
 
     return {
       ...DEFAULT_SPRING_VAL,
@@ -606,6 +615,7 @@ const useCardTransform = () => {
     getRandomRotation,
     getRandomStiffness,
     getSpringsForCardInit,
+    getCalculatedWidthOffset,
     groupHand
   };
 };

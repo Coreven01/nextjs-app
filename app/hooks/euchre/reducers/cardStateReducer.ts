@@ -4,6 +4,7 @@ import { CardSprungTarget } from '../data/useCardTransform';
 export interface PlayerHandState {
   width: number;
   height: number;
+  location: 'center' | 'side';
   shouldEnableShadow: boolean;
   gameSpeedMs: GameSpeed;
   shouldShowCardValue?: boolean;
@@ -17,7 +18,7 @@ export interface CardState {
   src: string;
   cardFullName: string;
   initSprungValue?: CardSprungTarget;
-  sprungValue?: CardSprungTarget;
+  springValue?: CardSprungTarget;
   xDamping?: number;
   xStiffness?: number;
   yDamping?: number;

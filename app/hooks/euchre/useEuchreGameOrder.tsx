@@ -19,7 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 export default function useEuchreGameOrder(state: EuchreGameState, errorState: EuchreErrorState) {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { orderTrump, determineDiscard } = useGameBidLogic();
-  const { incrementSpeed, playerSittingOut } = useGameData();
+  const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
   const { discard, indexCards, playerEqual } = usePlayerData();
 
   //#region Order Trump *************************************************************************
@@ -147,9 +147,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       };
 
       state.dispatchPlayerNotification(notification);
-      await new Promise((resolve) =>
-        setTimeout(resolve, incrementSpeed(state.euchreSettings.notificationSpeed, 1))
-      );
+      await notificationDelay(state.euchreSettings);
 
       state.dispatchPlayerNotification({
         type: PlayerNotificationActionType.UPDATE_CENTER,
@@ -183,6 +181,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     errorState,
     incrementSpeed,
     isGameStateValidToContinue,
+    notificationDelay,
     playerEqual,
     playerSittingOut,
     state
@@ -285,7 +284,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       )
         return;
 
-      await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.notificationSpeed));
+      await notificationDelay(state.euchreSettings);
 
       state.dispatchGameFlow({
         type: EuchreFlowActionType.SET_GAME_FLOW,
@@ -314,6 +313,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     errorState,
     incrementSpeed,
     isGameStateValidToContinue,
+    notificationDelay,
     playerEqual,
     playerSittingOut,
     state

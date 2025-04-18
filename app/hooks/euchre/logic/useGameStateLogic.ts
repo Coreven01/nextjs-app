@@ -3,7 +3,7 @@ import {
   EuchreAnimateType,
   EuchreAnimationState
 } from '@/app/hooks/euchre/reducers/gameAnimationFlowReducer';
-import { EuchreGameInstance } from '@/app/lib/euchre/definitions';
+import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
 import { useCallback } from 'react';
 
 const useGameStateLogic = () => {

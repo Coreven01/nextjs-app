@@ -1,5 +1,3 @@
-'use client';
-
 import clsx from 'clsx';
 import { RefObject, useEffect, useRef } from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
@@ -39,12 +37,11 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       defaultPosition={{ x: 25, y: 25 }}
       defaultClassName={clsx('absolute', className)}
       nodeRef={draggableRef}
-      onDrag={handleDrag}
     >
-      <div ref={draggableRef} className="cursor-move flex w-[500px]" style={{ zIndex: 1000 }}>
+      <div ref={draggableRef} className="cursor-move flex w-[600px]" style={{ zIndex: 1000 }}>
         <GameBorder className="w-full relative">
           <h2 className="text-yellow-200 font-bold text-center">Events</h2>
-          <div ref={divRef} className="p-2 border border-white m-1 h-[200px] overflow-y-auto text-sm">
+          <div ref={divRef} className="p-2 border border-white m-1 h-[300px] overflow-y-auto text-sm">
             <ul>
               {events.map((e) => {
                 return (
@@ -55,11 +52,11 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
               })}
             </ul>
           </div>
-          <div className="flex gap-2 items-center justify-center">
-            <button className="" onClick={handleClear}>
+          <div className="flex gap-2 items-center justify-center mb-1">
+            <button className="text-white border border-white md:p-2 p-1" onClick={handleClear}>
               Clear
             </button>
-            <button className="" onClick={handleClose}>
+            <button className="text-white border border-white md:p-2 p-1" onClick={handleClose}>
               Close
             </button>
           </div>

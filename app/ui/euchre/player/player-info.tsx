@@ -101,7 +101,7 @@ const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
       enableHighlight={true}
       enablePulse={game.currentPlayer === player ? true : false}
       highlightColorCss={
-        game.currentPlayer === player ? 'shadow-xl shadow-yellow-300' : 'shadow-md shadow-black'
+        game.currentPlayer === player ? 'shadow-xl shadow-amber-400' : 'shadow-md shadow-black'
       }
     >
       <GameBorderBare {...rest} className="">

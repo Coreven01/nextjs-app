@@ -29,7 +29,7 @@ const GameMenu = ({
   onCancelAndReset
 }: Props) => {
   const [showMenu, setShowMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const eventAdded = useRef(false);
   const enableToggleSettings = false;
   const enableToggleEvents = true;
@@ -90,6 +90,11 @@ const GameMenu = ({
     setShowMenu(!showMenu);
   };
 
+  const handleCancel = () => {
+    setShowMenu(false);
+    onCancelAndReset();
+  };
+
   return (
     <>
       <div className="flex p-1 absolute" style={{ zIndex: 100 }}>
@@ -110,7 +115,7 @@ const GameMenu = ({
         id="game-menu"
         ref={menuRef}
         className={clsx(
-          'flex flex-col absolute min-w-32 bg-stone-800 md:bg-opacity-50 left-3 top-12 transition ease-in-out duration-300',
+          'flex flex-col absolute min-w-32 bg-stone-800 md:bg-opacity-90 left-3 top-12 transition ease-in-out duration-300',
           {
             hidden: !showMenu
           }
@@ -166,7 +171,7 @@ const GameMenu = ({
           />
         </div>
         <div className="p-2 text-white">
-          <button onClick={onCancelAndReset}>Cancel Game</button>
+          <button onClick={handleCancel}>Cancel Game</button>
         </div>
       </div>
     </>

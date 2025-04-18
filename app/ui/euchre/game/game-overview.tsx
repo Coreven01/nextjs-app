@@ -1,4 +1,9 @@
-import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/euchre/definitions';
+import {
+  DIFFICULTY_MAP,
+  EuchreGameInstance,
+  EuchreHandResult,
+  EuchreSettings
+} from '@/app/lib/euchre/definitions';
 import PromptHeader from '../prompt/prompt-header';
 import PlayerColor from '../player/player-team-color';
 import useGameData from '@/app/hooks/euchre/data/useGameData';
@@ -31,60 +36,61 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
     .flat()
     .filter((t) => t.taker?.team === 2).length;
   const rounds = gameResults.length;
+  const difficultyName = DIFFICULTY_MAP.entries().find((v) => v[1] === gameSettings.difficulty)?.[0];
 
   return (
     <div className="p-1 overflow-auto">
-      <div className="flex">
-        <div className="flex flex-col md:text-sm text-xs mx-1">
-          <div className="flex mx-1 items-center">
-            <PromptHeader>Rounds Played: {rounds}</PromptHeader>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th className="px-2">Team</th>
-                <th className="px-2">Final Score</th>
-                <th className="px-2">Loners Won</th>
-                <th className="px-2">Euchred</th>
-                <th className="px-2">Total Tricks</th>
-              </tr>
-            </thead>
-            <tbody className="text-center">
-              <tr>
-                <td className="flex items-center gap-1">
-                  <PlayerColor
-                    className="border border-white text-transparent h-4 w-4"
-                    player={game.player1}
-                    settings={gameSettings}
-                  >
-                    X
-                  </PlayerColor>
-                  <div>Team One</div>
-                </td>
-                <td>{teamOneScore}</td>
-                <td>{teamOneLoners}</td>
-                <td>{teamOneEuchred}</td>
-                <td>{teamOneTotalTricks}</td>
-              </tr>
-              <tr>
-                <td className="flex items-center gap-1">
-                  <PlayerColor
-                    className="border border-white text-transparent h-4 w-4"
-                    player={game.player3}
-                    settings={gameSettings}
-                  >
-                    X
-                  </PlayerColor>
-                  <div>Team Two</div>
-                </td>
-                <td>{teamTwoScore}</td>
-                <td>{teamTwoLoners}</td>
-                <td>{teamTwoEuchred}</td>
-                <td>{teamTwoTotalTricks}</td>
-              </tr>
-            </tbody>
-          </table>
+      <div className="md:text-sm text-xs mx-1">
+        <div className="flex mx-1 items-center justify-center gap-4 w-full">
+          <PromptHeader className="">Rounds Played: {rounds}</PromptHeader> |
+          <PromptHeader className="">Deals Passed: {game.dealPassedCount}</PromptHeader> |
+          <PromptHeader className="">Difficulty: {difficultyName}</PromptHeader>
         </div>
+        <table>
+          <thead>
+            <tr>
+              <th className="px-2">Team</th>
+              <th className="px-2">Final Score</th>
+              <th className="px-2">Loners Won</th>
+              <th className="px-2">Euchred</th>
+              <th className="px-2">Total Tricks</th>
+            </tr>
+          </thead>
+          <tbody className="text-center">
+            <tr>
+              <td className="flex items-center gap-1">
+                <PlayerColor
+                  className="border border-white text-transparent h-4 w-4"
+                  player={game.player1}
+                  settings={gameSettings}
+                >
+                  X
+                </PlayerColor>
+                <div>Team One</div>
+              </td>
+              <td>{teamOneScore}</td>
+              <td>{teamOneLoners}</td>
+              <td>{teamOneEuchred}</td>
+              <td>{teamOneTotalTricks}</td>
+            </tr>
+            <tr>
+              <td className="flex items-center gap-1">
+                <PlayerColor
+                  className="border border-white text-transparent h-4 w-4"
+                  player={game.player3}
+                  settings={gameSettings}
+                >
+                  X
+                </PlayerColor>
+                <div>Team Two</div>
+              </td>
+              <td>{teamTwoScore}</td>
+              <td>{teamTwoLoners}</td>
+              <td>{teamTwoEuchred}</td>
+              <td>{teamTwoTotalTricks}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div>
         <PromptHeader>Team One</PromptHeader>

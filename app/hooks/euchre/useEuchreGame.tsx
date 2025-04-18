@@ -27,6 +27,7 @@ import {
   EuchreGameInstance,
   EuchreSettings,
   INIT_GAME_SETTINGS,
+  PromptType,
   PromptValue
 } from '@/app/lib/euchre/definitions';
 import { GameEvent, useEventLog } from './useEventLog';
@@ -38,9 +39,10 @@ import useEuchreGameOrder from './useEuchreGameOrder';
 import useEuchreGamePlay from './useEuchreGamePlay';
 import useGameData from './data/useGameData';
 import useGamePlayLogic from './logic/useGamePlayLogic';
+import useGameSetupLogic from './logic/useGameSetupLogic';
 
 export type EuchreGameState = {
-  euchreGame: EuchreGameInstance | null;
+  euchreGame: EuchreGameInstance;
   euchreReplayGame: EuchreGameInstance | null;
   euchreGameFlow: EuchreGameFlowState;
   euchreSettings: EuchreSettings;
@@ -50,7 +52,7 @@ export type EuchreGameState = {
   euchreAnimationFlow: EuchreAnimationState;
   prompValue: PromptValue[];
   shouldCancel: boolean;
-  setEuchreGame: Dispatch<SetStateAction<EuchreGameInstance | null>>;
+  setEuchreGame: Dispatch<SetStateAction<EuchreGameInstance>>;
   setEuchreSettings: Dispatch<SetStateAction<EuchreSettings>>;
   setPromptValue: Dispatch<SetStateAction<PromptValue[]>>;
   setPlayedCard: Dispatch<SetStateAction<Card | null>>;
@@ -76,13 +78,24 @@ export type EuchreError = {
   animationType: EuchreAnimationActionType;
 };
 
+const getInitPlayerName = () => {
+  const names = ['Joe', 'Jim', 'Jack', 'Jane', 'Joan', 'Jean'];
+  const index = Math.round(Math.random() * (names.length - 1));
+
+  return names[index];
+};
+
 export default function useEuchreGame() {
   //#region Hooks to control game flow *************************************************************************
-  const [promptValue, setPromptValue] = useState<PromptValue[]>([]);
+  const { createDefaultEuchreGame } = useGameSetupLogic();
+  const [promptValue, setPromptValue] = useState<PromptValue[]>([{ type: PromptType.INTRO }]);
   const [shouldCancelGame, setCancelGame] = useState(false);
   const [euchreReplayGame, setEuchreReplayGame] = useState<EuchreGameInstance | null>(null);
-  const [euchreGame, setEuchreGame] = useState<EuchreGameInstance | null>(null);
-  const [euchreSettings, setEuchreSettings] = useState<EuchreSettings>({ ...INIT_GAME_SETTINGS });
+  const [euchreGame, setEuchreGame] = useState<EuchreGameInstance>(createDefaultEuchreGame());
+  const [euchreSettings, setEuchreSettings] = useState<EuchreSettings>({
+    ...INIT_GAME_SETTINGS,
+    playerName: getInitPlayerName()
+  });
   const [errorState, setErrorState] = useState<EuchreError | null>(null);
   const [playedCard, setPlayedCard] = useState<Card | null>(null);
   const [bidResult, setBidResult] = useState<BidResult | null>(null);
@@ -180,14 +193,12 @@ export default function useEuchreGame() {
     setEuchreSettings(settings);
   };
 
-  const handleCancelAndReset = () => {
+  const handleCancelAndReset = useCallback(() => {
     cancelAndReset();
-  };
+  }, [cancelAndReset]);
 
   /** Reverse game state to play the hand again. Used for testing/debugging */
   const handleReplayHand = () => {
-    if (!euchreGame) throw Error('Game not found for replay hand.');
-
     setPromptValue([]);
     const newGame = reverseLastHandPlayed(euchreGame);
     const newGameFlow = getGameStateForNextHand(gameFlow, euchreSettings, newGame);
