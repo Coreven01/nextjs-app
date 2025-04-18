@@ -8,6 +8,7 @@ import {
 } from '@/app/lib/euchre/definitions';
 import useCardData from './useCardData';
 import { useCallback } from 'react';
+import { CardPosition } from './useCardTransform';
 
 const usePlayerData = () => {
   const { cardEqual, cardIsLeftBower, createPlaceholderCards, getCardValues, getSuitCount } = useCardData();
@@ -77,93 +78,107 @@ const usePlayerData = () => {
     [cardEqual]
   );
 
-  const orderPlayerHand = useCallback(
-    (cards: Card[]): Card[] => {
-      switch (cards.length) {
-        case 5:
-          return cards.map((c) => {
-            return c;
-          });
-        case 4:
-          return [...cards, ...createPlaceholderCards(1)].slice(0, 5).map((c) => {
-            return c;
-          });
-        case 3:
-          return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(1)]
-            .slice(0, 5)
-            .map((c) => {
-              return c;
-            });
-        case 2:
-          return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(2)]
-            .slice(0, 5)
-            .map((c) => {
-              return c;
-            });
-        case 1:
-          return [...createPlaceholderCards(2), ...cards, ...createPlaceholderCards(2)]
-            .slice(0, 5)
-            .map((c) => {
-              return c;
-            });
-      }
+  // const orderPlayerHand = useCallback(
+  //   (cards: Card[]): Card[] => {
+  //     switch (cards.length) {
+  //       case 5:
+  //         return cards.map((c) => {
+  //           return c;
+  //         });
+  //       case 4:
+  //         return [...cards, ...createPlaceholderCards(1)].slice(0, 5).map((c) => {
+  //           return c;
+  //         });
+  //       case 3:
+  //         return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(1)]
+  //           .slice(0, 5)
+  //           .map((c) => {
+  //             return c;
+  //           });
+  //       case 2:
+  //         return [...createPlaceholderCards(1), ...cards, ...createPlaceholderCards(2)]
+  //           .slice(0, 5)
+  //           .map((c) => {
+  //             return c;
+  //           });
+  //       case 1:
+  //         return [...createPlaceholderCards(2), ...cards, ...createPlaceholderCards(2)]
+  //           .slice(0, 5)
+  //           .map((c) => {
+  //             return c;
+  //           });
+  //     }
 
-      return createPlaceholderCards(5).map((c) => {
-        return c;
-      });
-    },
-    [createPlaceholderCards]
-  );
+  //     return createPlaceholderCards(5).map((c) => {
+  //       return c;
+  //     });
+  //   },
+  //   [createPlaceholderCards]
+  // );
 
-  const sortCards = useCallback(
-    (player: EuchrePlayer, trump: Card | null): Card[] => {
-      let availableCards: Card[] = availableCardsToPlay(player);
+  const sortCardsIndices = useCallback(
+    (cards: Card[], trump: Card | null): CardPosition[] => {
+      const retval: CardPosition[] = [];
+      let counter: number = 0;
 
-      if (availableCards.length < 5) {
-        //availableCards = orderPlayerHand(availableCards);
-        //availableCards.forEach((c, index) => (c.index = index));
-
-        throw new Error();
-        return availableCards;
-      }
-
-      availableCards = [];
-      const suitCount = getSuitCount(player.hand, trump).sort((a, b) => b.count - a.count);
-      const cardValues = getCardValues(player.hand, trump);
+      const suitCount = getSuitCount(cards, trump).sort((a, b) => b.count - a.count);
+      const cardValues = getCardValues(cards, trump);
 
       if (trump) {
-        const trumpCards = cardValues
+        const trumpCards: Card[] = cardValues
           .filter((c) => c.card.suit === trump.suit || cardIsLeftBower(c.card, trump))
           .sort((a, b) => b.value - a.value)
           .map((c) => c.card);
-        availableCards.push(...trumpCards);
+
+        for (const trumpCard of trumpCards) {
+          retval.push({ ordinalIndex: counter++, cardIndex: trumpCard.index });
+        }
 
         const offSuitCards = cardValues.filter((c) => !trumpCards.includes(c.card));
         for (const suitVal of suitCount.filter((s) => s.suit !== trump.suit)) {
-          availableCards.push(
-            ...offSuitCards
-              .filter((c) => c.card.suit === suitVal.suit)
-              .sort((a, b) => b.value - a.value)
-              .map((c) => c.card)
-          );
+          for (const offSuitCard of offSuitCards
+            .filter((c) => c.card.suit === suitVal.suit)
+            .sort((a, b) => b.value - a.value)
+            .map((c) => c.card)) {
+            retval.push({ ordinalIndex: counter++, cardIndex: offSuitCard.index });
+          }
         }
       } else {
-        for (const suitVal of suitCount) {
-          availableCards.push(
-            ...cardValues
-              .filter((c) => c.card.suit === suitVal.suit)
-              .sort((a, b) => b.value - a.value)
-              .map((c) => c.card)
-          );
+        const suitCountAndValue = suitCount.map((s) => ({
+          ...s,
+          value: cardValues.filter((v) => v.card.suit === s.suit).reduce((acc, curr) => acc + curr.value, 0)
+        }));
+
+        for (const suitVal of suitCountAndValue.sort((a, b) => {
+          if (a.count !== b.count) {
+            return a.count > b.count ? -1 : 1;
+          }
+
+          if (a.value !== b.value) {
+            return a.value > b.value ? -1 : 1;
+          }
+
+          return 0;
+        })) {
+          for (const card of cardValues
+            .filter((c) => c.card.suit === suitVal.suit)
+            .sort((a, b) => (a.value > b.value ? -1 : 1))
+            .map((c) => c.card)) {
+            retval.push({ ordinalIndex: counter++, cardIndex: card.index });
+          }
         }
       }
 
-      //availableCards = orderPlayerHand(availableCards);
-      availableCards.forEach((c, index) => (c.index = index));
-      return availableCards;
+      return retval;
     },
-    [availableCardsToPlay, cardIsLeftBower, getCardValues, getSuitCount]
+    [cardIsLeftBower, getCardValues, getSuitCount]
   );
+
+  const indexCards = (cards: Card[]): Card[] => {
+    const newCards = [...cards];
+    newCards.forEach((c, index) => (c.index = index));
+    return newCards;
+  };
 
   /** Get the rotation of players relative to the given player.
    *
@@ -196,7 +211,8 @@ const usePlayerData = () => {
   return {
     availableCardsToPlay,
     playerEqual,
-    sortCards,
+    sortCardsIndices,
+    indexCards,
     getPlayerRotation,
     discard,
     playerLocation,
@@ -205,166 +221,3 @@ const usePlayerData = () => {
 };
 
 export default usePlayerData;
-
-// class EuchrePlayer {
-//     readonly name: string;
-//     private hand: Card[] = [];
-//     placeholder: Card[] = [];
-//     playedCards: Card[] = [];
-//     readonly playerNumber: 1 | 2 | 3 | 4;
-//     readonly team: 1 | 2 = 1;
-//     human: boolean = false;
-
-//     constructor(name: string, team: 1 | 2, playerNumber: 1 | 2 | 3 | 4) {
-//       this.name = name;
-//       this.team = team;
-//       this.playerNumber = playerNumber;
-//       this.placeholder = createPlaceholderCards(5);
-//     }
-
-//     get innerPlayerBaseId(): string {
-//       return `game-base-${this.playerNumber}-inner`;
-//     }
-
-//     get outerPlayerBaseId(): string {
-//       return `game-base-${this.playerNumber}`;
-//     }
-
-//     get playerBase(): string {
-//       return `player-base-${this.playerNumber}`;
-//     }
-
-//     get location(): 'center' | 'side' {
-//       return this.playerNumber === 1 || this.playerNumber === 2 ? 'center' : 'side';
-//     }
-
-//     get availableCards(): Card[] {
-//       return this.hand.filter((c) => c.value !== 'P');
-//     }
-
-//     /** Return 5 cards for the player's hand, however it inclues "placement" cards for cards that have already been played.
-//      * These placement cards are intended to be hidden by the UI. */
-//     get displayCards(): Card[] {
-//       return [...this.hand];
-//     }
-
-//     set assignCards(cards: Card[]) {
-//       this.hand = cards;
-//     }
-
-//     equal(other: EuchrePlayer): boolean {
-//       return this.playerNumber === other.playerNumber;
-//     }
-
-//     getTeamColor(settings: EuchreSettings): TeamColor {
-//       if (this.team === 1) {
-//         return settings.teamOneColor;
-//       } else {
-//         return settings.teamTwoColor;
-//       }
-//     }
-
-//     getTeamCssClass(settings: EuchreSettings): string {
-//       const teamColor = this.getTeamColor(settings);
-//       const teamCss = TEAM_COLOR_MAP.get(teamColor);
-
-//       if (teamCss) return teamCss;
-
-//       return 'bg-white';
-//     }
-
-//     addToHand(cards: Card[]) {
-//       this.hand = [...this.hand, ...cards];
-//     }
-
-//     generateElementId(): string {
-//       return `player-${this.playerNumber}-${Math.floor(Math.random() * 1000)}`;
-//     }
-
-//     /** Routine to determine if the computer should indicate if the flipped card should be picked up, or should name suit. */
-//     determineBid(
-//       game: EuchreGameInstance,
-//       flipCard: Card,
-//       firstRoundOfBidding: boolean,
-//       gameSettings: EuchreSettings
-//     ): BidResult {
-//       return determineBidLogic(game, flipCard, firstRoundOfBidding, gameSettings);
-//     }
-
-//     determineCardToPlay(game: EuchreGameInstance, difficulty: GameDifficulty): Card {
-//       return determineCardToPlayLogic(game, difficulty);
-//     }
-
-//     /** */
-//     chooseDiscard(game: EuchreGameInstance, difficulty: GameDifficulty): Card {
-//       const cardToDiscard = determineDiscard(game, this, difficulty);
-//       if (game.trump) this.discard(cardToDiscard, game.trump);
-//       return cardToDiscard;
-//     }
-
-//     discard(cardToDiscard: Card, trump: Card) {
-//       if (this.hand.find((c) => c === cardToDiscard)) {
-//         const tempHand = [...this.hand, trump].filter((c) => c !== cardToDiscard);
-//         tempHand.forEach((c, index) => (c.index = index));
-//         this.hand = tempHand;
-//       } else {
-//         throw new Error("Unable to discard. Card not found in player's hand.");
-//       }
-//     }
-
-//     playGameCard(card: Card): EuchreCard {
-//       const euchreCard = new EuchreCard(this, card);
-//       const tempCards = this.availableCards.filter((c) => c !== card);
-//       this.assignCards = tempCards;
-//       this.playedCards.push(card);
-
-//       return euchreCard;
-//     }
-
-//     sortCards(trump: Card | null): void {
-//       let tempHand: Card[] = this.availableCards;
-
-//       if (tempHand.length < 5) {
-//         tempHand = orderPlayerHand(tempHand);
-//         tempHand.forEach((c, index) => (c.index = index));
-//         this.hand = tempHand;
-
-//         return;
-//       }
-
-//       tempHand = [];
-//       const suitCount = getSuitCount(this.hand, trump).sort((a, b) => b.count - a.count);
-//       const cardValues = getCardValues(this.hand, trump);
-
-//       if (trump) {
-//         const trumpCards = cardValues
-//           .filter((c) => c.card.suit === trump.suit || cardIsLeftBower(c.card, trump))
-//           .sort((a, b) => b.value - a.value)
-//           .map((c) => c.card);
-//         tempHand.push(...trumpCards);
-
-//         const offSuitCards = cardValues.filter((c) => !trumpCards.includes(c.card));
-//         for (const suitVal of suitCount.filter((s) => s.suit !== trump.suit)) {
-//           tempHand.push(
-//             ...offSuitCards
-//               .filter((c) => c.card.suit === suitVal.suit)
-//               .sort((a, b) => b.value - a.value)
-//               .map((c) => c.card)
-//           );
-//         }
-//       } else {
-//         for (const suitVal of suitCount) {
-//           tempHand.push(
-//             ...cardValues
-//               .filter((c) => c.card.suit === suitVal.suit)
-//               .sort((a, b) => b.value - a.value)
-//               .map((c) => c.card)
-//           );
-//         }
-//       }
-
-//       tempHand = orderPlayerHand(tempHand);
-//       tempHand.forEach((c, index) => (c.index = index));
-//       this.hand = tempHand;
-//     }
-//   }

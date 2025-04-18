@@ -16,7 +16,7 @@ import { useCallback } from 'react';
 
 const useGameSetupLogic = () => {
   const { resetForNewDeal, dealCards, copyCardsFromReplay, verifyDealtCards } = useGameData();
-  const { sortCards, getPlayerRotation } = usePlayerData();
+  const { indexCards, getPlayerRotation } = usePlayerData();
   const { createPlaceholderCards, getSuitCount, createShuffledDeck } = useCardData();
 
   const createPlayer = (name: string, team: 1 | 2, playerNumber: 1 | 2 | 3 | 4): EuchrePlayer => {
@@ -303,7 +303,7 @@ const useGameSetupLogic = () => {
     }
 
     for (const player of newGame.gamePlayers) {
-      player.hand = sortCards(player, null);
+      player.hand = indexCards(player.hand);
     }
 
     try {

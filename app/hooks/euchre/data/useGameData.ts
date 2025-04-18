@@ -23,7 +23,7 @@ const useGameData = () => {
     cardIsLeftBower,
     getSuitCount
   } = useCardData();
-  const { availableCardsToPlay, playerEqual, sortCards, getPlayerRotation } = usePlayerData();
+  const { availableCardsToPlay, playerEqual, indexCards, getPlayerRotation } = usePlayerData();
 
   /** If the maker went alone, return the player who's sitting out. */
   const playerSittingOut = (game: EuchreGameInstance): EuchrePlayer | null => {
@@ -448,7 +448,7 @@ const useGameData = () => {
 
     newGame.deck = [...newGame.gamePlayers.map((p) => p.hand).flat(), ...currentKitty];
     newGame.currentRound = lastGameResult.roundNumber;
-    for (const player of newGame.gamePlayers) player.hand = sortCards(player, null);
+    for (const player of newGame.gamePlayers) player.hand = indexCards(player.hand);
 
     verifyDealtCards(newGame);
 

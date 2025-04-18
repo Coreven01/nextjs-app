@@ -4,7 +4,7 @@ import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
 import { createEvent } from '@/app/lib/euchre/util';
 import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
-import { Card, EuchreGameInstance, EuchrePlayer } from '@/app/lib/euchre/definitions';
+import { Card, EuchreGameInstance } from '@/app/lib/euchre/definitions';
 import EphemeralModal from '@/app/ui/euchre/ephemeral-modal';
 import GameBorder from '@/app/ui/euchre/game/game-border';
 import GameCard from '@/app/ui/euchre/game/game-card';
@@ -75,14 +75,14 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
         state.euchreGameFlow,
         state.euchreAnimationFlow,
         EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
-        EuchreAnimateType.ANIMATE_NONE,
+        EuchreAnimateType.NONE,
         state.shouldCancel,
         state.onCancel
       )
     )
       return;
 
-    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
+    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
 
     let newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
     if (!newGame?.dealer) throw new Error('Dealer not found for shuffle and deal.');
@@ -117,10 +117,8 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     );
     newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 
-    state.dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameState });
-    state.dispatchGameAnimationFlow({
-      type: EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
-    });
+    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameState });
+    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
     state.setEuchreGame(newGame);
   }, [getFaceUpCard, getGameStateForNextHand, isGameStateValidToContinue, shuffleAndDealHand, state]);
 
@@ -130,13 +128,13 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     } catch (e) {
       const error = e as Error;
 
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_ERROR });
+      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.ERROR });
       errorState.setErrorState({
         time: new Date(),
         id: uuidv4(),
         message: error ? error.message : 'Unknown error in beginShuffleAndDealHand',
-        gameFlow: EuchreFlowActionType.SET_BEGIN_SHUFFLE_CARDS,
-        animationType: EuchreAnimationActionType.SET_ANIMATE_NONE
+        gameFlow: EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
+        animationType: EuchreAnimationActionType.SET_NONE
       });
     }
   }, [beginShuffleAndDealHand, errorState, state]);
@@ -150,7 +148,7 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
           state.euchreGameFlow,
           state.euchreAnimationFlow,
           EuchreGameFlow.BEGIN_DEAL_CARDS,
-          EuchreAnimateType.ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY,
+          EuchreAnimateType.ANIMATE,
           state.shouldCancel,
           state.onCancel
         )
@@ -158,7 +156,7 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
         return;
 
       if (!state.euchreGame) throw new Error();
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_WAIT });
+      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
 
       //state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
       //state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
@@ -169,20 +167,23 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     } catch (e) {
       const error = e as Error;
 
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_ERROR });
+      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.ERROR });
       errorState.setErrorState({
         time: new Date(),
         id: uuidv4(),
         message: error ? error.message : 'Unknown error in beginAnimationForDealCards',
-        gameFlow: EuchreFlowActionType.SET_BEGIN_DEAL_CARDS,
-        animationType: EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
+        gameFlow: EuchreGameFlow.BEGIN_DEAL_CARDS,
+        animationType: EuchreAnimationActionType.SET_ANIMATE
       });
     }
   }, [errorState, isGameStateValidToContinue, state]);
 
   const handleShuffleAndDealComplete = () => {
-    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
-    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_BID_FOR_TRUMP });
+    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
+    state.dispatchGameFlow({
+      type: EuchreFlowActionType.SET_GAME_FLOW,
+      gameFlow: EuchreGameFlow.BEGIN_BID_FOR_TRUMP
+    });
   };
   //#endregion
 

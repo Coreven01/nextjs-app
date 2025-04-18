@@ -3,6 +3,7 @@
 
   "editor.suggestSelection": "recentlyUsedByPrefix",
   "editor.suggest.localityBonus": true,
+  "editor.suggest.showWords": false,
 
   "editor.quickSuggestions": {
     "other": true,

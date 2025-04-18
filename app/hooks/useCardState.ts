@@ -4,7 +4,11 @@ import { CardState, PlayerHandState } from './euchre/reducers/cardStateReducer';
 import { EuchreGameFlow, EuchreGameFlowState } from './euchre/reducers/gameFlowReducer';
 import useCardData from './euchre/data/useCardData';
 import useCardSvgData from './euchre/data/useCardSvgData';
-import useCardTransform, { CardSprungProps, DEFAULT_SPRUNG_VAL } from './euchre/data/useCardTransform';
+import useCardTransform, {
+  CardPosition,
+  CardSprungProps,
+  DEFAULT_SPRING_VAL
+} from './euchre/data/useCardTransform';
 import useGameData from './euchre/data/useGameData';
 import usePlayerData from './euchre/data/usePlayerData';
 
@@ -24,11 +28,12 @@ const useCardState = (
     getSpringsForCardInit
   } = useCardTransform();
   const { getDisplayWidth, getDisplayHeight, cardEqual } = useCardData();
-  const { playerLocation, playerEqual, availableCardsToPlay } = usePlayerData();
+  const { playerLocation, playerEqual, availableCardsToPlay, sortCardsIndices } = usePlayerData();
   const { getCardsAvailableToPlay, isHandFinished } = useGameData();
   const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
   const [cardStates, setCardStates] = useState<CardState[]>([]);
   const [handState, setHandState] = useState<PlayerHandState | undefined>(undefined);
+  const initSortOrder = useRef<CardPosition[]>([]);
 
   const setInitialPlayerHandState = () => {
     const location = playerLocation(player);
@@ -85,17 +90,33 @@ const useCardState = (
     playerLocation
   ]);
 
-  const regroupCards = (cardRef: HTMLDivElement) => {
+  const initializeSortOrder = () => {
+    const availableCards: Card[] = availableCardsToPlay(player);
+    const orderedIndices: CardPosition[] = sortCardsIndices(availableCards, game.maker ? game.trump : null);
+    initSortOrder.current = orderedIndices;
+  };
+
+  const regroupCards = (
+    useInitSortOrder: boolean,
+    showCardValues: boolean,
+    cardRef: HTMLDivElement,
+    location: 'center' | 'side'
+  ) => {
     const newCardStates: CardState[] = [...cardStates];
-    const indices = newCardStates.map((s) => s.cardIndex);
-    const currentProps: CardSprungProps[] = newCardStates.map((s) => ({
-      cardIndex: s.cardIndex,
-      sprungValue: s.sprungValue ?? (s.initSprungValue ? { ...s.initSprungValue } : { ...DEFAULT_SPRUNG_VAL })
-    }));
-    const sprungValues = groupHand(player, indices, cardRef, currentProps);
+    const currentProps: CardSprungProps[] = getAvailableCardsAndState(useInitSortOrder);
+    const newProps: CardSprungProps[] = groupHand(player, cardRef, currentProps);
 
     for (const state of newCardStates) {
-      state.sprungValue = sprungValues[state.cardIndex].sprungValue;
+      const tempVal = newProps.find((p) => p.cardIndex === state.cardIndex)?.sprungValue;
+
+      if (!tempVal) throw new Error('Logic error in regroup cards. New card state not found.');
+
+      state.sprungValue = tempVal;
+
+      if (showCardValues) {
+        state.cardFullName = getCardFullName(player.hand[state.cardIndex]);
+        state.src = getEncodedCardSvg(player.hand[state.cardIndex], location);
+      }
     }
 
     setCardStates(newCardStates);
@@ -108,7 +129,7 @@ const useCardState = (
     if (
       gameSettings.enforceFollowSuit &&
       player.human &&
-      gameFlow.gameFlow === EuchreGameFlow.AWAIT_PLAY_CARD &&
+      gameFlow.gameFlow === EuchreGameFlow.AWAIT_AI_INPUT &&
       game.trump
     ) {
       // only enable cards that are available for follow suit, if enabled by settings.
@@ -144,9 +165,7 @@ const useCardState = (
     const newCardStates: CardState[] = [...cardStates];
     const card = player.hand[cardIndex];
     const location = playerLocation(player);
-    const availableIndices = availableCardsToPlay(player)
-      .map((c) => c.index)
-      .filter((i) => i !== cardIndex);
+    const currentProps: CardSprungProps[] = getAvailableCardsAndState(true);
 
     const newSprungValues = getSpringsForCardPlayed(
       cardIndex,
@@ -154,11 +173,7 @@ const useCardState = (
       cardRef,
       tableRef,
       rotation,
-      newCardStates.map((c) => ({
-        cardIndex: c.cardIndex,
-        sprungValue: c.sprungValue ?? { ...DEFAULT_SPRUNG_VAL }
-      })),
-      availableIndices
+      currentProps
     );
 
     for (const val of newSprungValues) {
@@ -178,9 +193,61 @@ const useCardState = (
     setCardStates(newCardStates);
   };
 
+  const flipPlayerHand = useCallback(() => {
+    const newCardStates: CardState[] = [...cardStates];
+    const location = playerLocation(player);
+    for (const cardState of newCardStates) {
+      const card = player.hand[cardState.cardIndex];
+
+      cardState.cardFullName = getCardFullName(card);
+      cardState.src = getEncodedCardSvg(card, location);
+
+      if (cardState.sprungValue) {
+        cardState.sprungValue = {
+          ...cardState.sprungValue,
+          rotateX: 0,
+          rotateY: 0,
+          transition: { rotateY: { duration: 0.3 }, rotateX: { duration: 0.3 } }
+        };
+      }
+    }
+
+    setCardStates(newCardStates);
+  }, [cardStates, getCardFullName, getEncodedCardSvg, player, playerLocation]);
+
+  /** Returns the current card state for cards that are available to be played. */
+  const getAvailableCardsAndState = (useInitSortOrder: boolean) => {
+    const availableCards: Card[] = availableCardsToPlay(player);
+    const availableCardIndices = availableCards.map((c) => c.index);
+    const orderedIndices: CardPosition[] = !useInitSortOrder
+      ? sortCardsIndices(availableCards, game.maker ? game.trump : null)
+      : initSortOrder.current
+          .filter((s) => availableCardIndices.includes(s.cardIndex))
+          .map((card, index) => {
+            return { cardIndex: card.cardIndex, ordinalIndex: index };
+          });
+    const currentProps: CardSprungProps[] = [];
+
+    for (const indexPosition of orderedIndices) {
+      const state = cardStates.find((s) => s.cardIndex === indexPosition.cardIndex);
+      if (!state) throw new Error('Card state not found when getting available cards/state.');
+
+      currentProps.push({
+        ordinalIndex: indexPosition.ordinalIndex,
+        cardIndex: indexPosition.cardIndex,
+        sprungValue:
+          state.sprungValue ??
+          (state.initSprungValue ? { ...state.initSprungValue } : { ...DEFAULT_SPRING_VAL })
+      });
+    }
+
+    return currentProps;
+  };
+
   return {
     handState,
     cardStates,
+    initializeSortOrder,
     regroupCards,
     setInitialPlayerHandState,
     setInitialCardStates,
@@ -193,7 +260,8 @@ const useCardState = (
     playerEqual,
     playerLocation,
     getCardFullName,
-    getEncodedCardSvg
+    getEncodedCardSvg,
+    flipPlayerHand
   };
 };
 

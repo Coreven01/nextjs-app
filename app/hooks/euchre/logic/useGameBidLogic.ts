@@ -16,7 +16,7 @@ import useGameSetupLogic from './useGameSetupLogic';
 
 const useGameBidLogic = () => {
   const { teamPoints, getRandomScoreForDifficulty, playerSittingOut } = useGameData();
-  const { playerEqual, availableCardsToPlay, sortCards, getPlayerRotation } = usePlayerData();
+  const { playerEqual, availableCardsToPlay, indexCards, getPlayerRotation } = usePlayerData();
   const { getCardValue, cardIsLeftBower, cardIsRightBower, getSuitCount, cardEqual } = useCardData();
   const { createTrick } = useGameSetupLogic();
 
@@ -366,7 +366,7 @@ const useGameBidLogic = () => {
     }
 
     for (const player of newGame.gamePlayers) {
-      player.hand = sortCards(player, newGame.trump);
+      player.hand = indexCards(player.hand);
     }
 
     return newGame;

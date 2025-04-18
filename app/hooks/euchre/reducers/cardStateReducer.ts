@@ -15,7 +15,6 @@ export interface PlayerHandState {
 export interface CardState {
   cardIndex: number;
   src: string;
-  isFaceDown?: boolean;
   cardFullName: string;
   initSprungValue?: CardSprungTarget;
   sprungValue?: CardSprungTarget;

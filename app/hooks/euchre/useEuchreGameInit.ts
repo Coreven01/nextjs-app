@@ -22,8 +22,8 @@ export default function useEuchreGameInit(state: EuchreGameState) {
   const reset = (resetForBeginGame: boolean) => {
     if (resetForBeginGame) {
       state.dispatchGameFlow({
-        type: EuchreFlowActionType.UPDATE_ALL,
-        payload: {
+        type: EuchreFlowActionType.SET_STATE,
+        state: {
           ...INIT_GAME_FLOW_STATE,
           shouldShowDeckImages: [],
           shouldShowCardImagesForHand: [],
@@ -32,18 +32,13 @@ export default function useEuchreGameInit(state: EuchreGameState) {
       });
 
       state.dispatchGameAnimationFlow({
-        type: EuchreAnimationActionType.SET_ANIMATE_NONE
+        type: EuchreAnimationActionType.SET_NONE
       });
     } else {
-      state.dispatchGameAnimationFlow({
-        type: EuchreAnimationActionType.SET_ANIMATE_DEAL_CARDS_FOR_REGULAR_PLAY
-      });
+      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
     }
 
-    state.dispatchPlayerNotification({
-      type: PlayerNotificationActionType.RESET,
-      payload: undefined
-    });
+    state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET, payload: undefined });
 
     if (showIntro) {
       state.setPromptValue([{ type: PromptType.INTRO }]);
@@ -69,8 +64,8 @@ export default function useEuchreGameInit(state: EuchreGameState) {
     newGameFlowState.gameFlow = EuchreGameFlow.BEGIN_DEAL_FOR_DEALER;
 
     state.dispatchGameFlow({
-      type: EuchreFlowActionType.UPDATE_ALL,
-      payload: newGameFlowState
+      type: EuchreFlowActionType.SET_STATE,
+      state: newGameFlowState
     });
     state.setPromptValue([]);
     state.setEuchreGame(newGame);

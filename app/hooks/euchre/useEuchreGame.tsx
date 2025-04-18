@@ -72,7 +72,7 @@ export type EuchreError = {
   time: Date;
   id: string;
   message: string;
-  gameFlow: EuchreFlowActionType;
+  gameFlow: EuchreGameFlow;
   animationType: EuchreAnimationActionType;
 };
 
@@ -102,10 +102,8 @@ export default function useEuchreGame() {
   const handleCancelGame = useCallback(() => {
     if (shouldCancelGame) return;
 
-    dispatchGameFlow({ type: EuchreFlowActionType.SET_BEGIN_INIT_DEAL });
-    dispatchGameAnimationFlow({
-      type: EuchreAnimationActionType.SET_ANIMATE_NONE
-    });
+    dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL });
+    dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
     dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
     setCancelGame(true);
   }, [shouldCancelGame]);
@@ -194,8 +192,8 @@ export default function useEuchreGame() {
     const newGame = reverseLastHandPlayed(euchreGame);
     const newGameFlow = getGameStateForNextHand(gameFlow, euchreSettings, newGame);
     newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
-    dispatchGameFlow({ type: EuchreFlowActionType.UPDATE_ALL, payload: newGameFlow });
-    dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE_NONE });
+    dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
+    dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
     setEuchreGame(newGame);
   };
 
@@ -206,7 +204,7 @@ export default function useEuchreGame() {
 
   const handleAttemptToRecover = () => {
     if (errorState) {
-      dispatchGameFlow({ type: errorState.gameFlow });
+      dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: errorState.gameFlow });
       dispatchGameAnimationFlow({ type: errorState.animationType });
       setErrorState(null);
     }

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
+import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   card: Card;
@@ -19,7 +20,11 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   playerTableRef?: RefObject<HTMLDivElement>;
   gameSpeedMs?: GameSpeed;
   responsive?: boolean;
+
+  /** */
   onCardClick?: (cardIndex: number) => void;
+
+  /** */
   onCardPlayed?: (card: Card) => void;
 }
 
@@ -92,11 +97,7 @@ const GameCard = ({
       ref={ref}
       initial={initSprungValue}
       whileHover={enableCardClickEvent ? { scale: 1.15 } : undefined}
-      animate={
-        cardState.sprungValue
-          ? cardState.sprungValue
-          : { x: 0, y: 0, rotate: 0, opacity: 1, rotateY: 0, rotateX: 0 }
-      }
+      animate={cardState.sprungValue ? cardState.sprungValue : DEFAULT_SPRING_VAL}
       transition={{
         opacity: { duration: 1 },
         x: { duration: duration, stiffness: cardState.xStiffness, damping: cardState.xDamping },
@@ -108,8 +109,8 @@ const GameCard = ({
       onAnimationComplete={() => {
         if (!stateUpdated.current && player && cardClicked.current && onCardPlayed) {
           // fall into this block once animation is complete to update the state that the card was played.
-          onCardPlayed(card);
           stateUpdated.current = true;
+          onCardPlayed(card);
         }
       }}
     >
