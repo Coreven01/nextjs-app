@@ -15,7 +15,7 @@ const GameFlippedCard = ({ card, cardState }: Props) => {
   const { getDisplayHeight, getDisplayWidth } = useCardData();
 
   return (
-    <motion.div className={clsx('md:relative md:right-auto md:top-auto absolute -right-16 -top-8')}>
+    <motion.div className={clsx('lg:relative lg:right-auto lg:top-auto absolute -right-16 -top-8')}>
       <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
         <div className="p-2 bg-green-950 flex items-center justify-center">
           <GameCard

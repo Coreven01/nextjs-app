@@ -47,7 +47,6 @@ export default function useEuchreGameInitDeal(state: EuchreGameState, errorState
     const dealResult: InitDealResult | null = dealCardsForDealer(
       newGame,
       state.euchreGameFlow,
-      state.euchreSettings,
       state.euchreReplayGame
     );
 

@@ -35,13 +35,13 @@ const GameScore = ({ children, className, game, settings, showScore, ...rest }: 
       onDrag={handleDrag}
     >
       <div ref={draggableRef} className="cursor-move flex max-h-64" {...rest}>
-        <GameBorderBare className="bg-white dark:bg-stone-800 shadow-md shadow-black md:min-w-32">
+        <GameBorderBare className="bg-white dark:bg-stone-800 shadow-md shadow-black lg:min-w-32">
           {showScore && (
             <>
-              <h3 className="text-red-800 dark:text-yellow-200 font-bold text-center md:text-base text-sm">
+              <h3 className="text-red-800 dark:text-yellow-200 font-bold text-center lg:text-base text-sm">
                 Score
               </h3>
-              <table className="w-auto m-1 md:text-sm text-xs">
+              <table className="w-auto m-1 lg:text-sm text-xs">
                 <thead>
                   <tr>
                     <th className="w-6"></th>
@@ -88,7 +88,7 @@ const GameScore = ({ children, className, game, settings, showScore, ...rest }: 
               </table>
             </>
           )}
-          <div className="mx-1 md:text-sm text-xs text-center">
+          <div className="mx-1 lg:text-sm text-xs text-center">
             Trump: {game.trump && game.maker ? getSuitName(game.trump.suit) + 's' : '...'}
           </div>
         </GameBorderBare>

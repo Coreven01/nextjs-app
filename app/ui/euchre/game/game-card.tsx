@@ -1,6 +1,6 @@
 import { Card, EuchrePlayer, GameSpeed } from '@/app/lib/euchre/definitions';
-import React, { CSSProperties, forwardRef, PropsWithoutRef, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { CSSProperties, forwardRef, PropsWithoutRef, useCallback, useEffect, useRef } from 'react';
+import { motion, TargetAndTransition } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
@@ -56,6 +56,9 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     const initSpringValue = cardState.initSprungValue
       ? { ...cardState.initSprungValue, transition: { rotateY: { duration: 0 }, rotateX: { duration: 0 } } }
       : undefined;
+    const hoverEffect: TargetAndTransition | undefined = enableCardClickEvent
+      ? { scale: 1.15, transition: { scale: { duration: 0.25 } } }
+      : undefined;
 
     if (responsive) {
       cssValues.width = '100%';
@@ -67,21 +70,25 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       cssValues.maxWidth = width;
     }
 
-    const handleCardClick = async (index: number) => {
-      if (onCardClick) {
-        cardClicked.current = true;
-        // when card is clicked, it activates the animation to play the card.
-        // on the animation is complete, the callback handler calls the method that updates,
-        // the state the card was played.
-        onCardClick(index);
-      }
-    };
+    const handleCardClick = useCallback(
+      (index: number) => {
+        if (onCardClick) {
+          cardClicked.current = true;
+          // when card is clicked, it activates the animation to play the card.
+          // on the animation is complete, the callback handler calls the method that updates,
+          // the state the card was played.
+          onCardClick(index);
+        }
+      },
+      [onCardClick]
+    );
 
     useEffect(() => {
       if (player && playCard && !cardClicked.current) {
+        cardClicked.current = true;
         handleCardClick(card.index);
       }
-    });
+    }, [card.index, handleCardClick, playCard, player]);
 
     return (
       <motion.div
@@ -94,7 +101,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         id={id}
         ref={ref}
         initial={initSpringValue}
-        whileHover={enableCardClickEvent ? { scale: 1.15 } : undefined}
+        whileHover={hoverEffect}
         animate={cardState.springValue ? cardState.springValue : DEFAULT_SPRING_VAL}
         transition={{
           opacity: { duration: 1 },
@@ -102,8 +109,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           y: { duration: duration, stiffness: cardState.yStiffness, damping: cardState.yDamping },
           rotate: { duration: duration },
           rotateY: { duration: 0.3 },
-          rotateX: { duration: 0.3 },
-          scale: { duration: 0.5 }
+          rotateX: { duration: 0.3 }
         }}
         onAnimationComplete={() => {
           if (!stateUpdated.current && player && cardClicked.current && onCardPlayed) {

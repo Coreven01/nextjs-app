@@ -15,6 +15,7 @@ interface Props {
   gameSettings: EuchreSettings;
   gameResults: EuchreHandResult[];
 }
+
 const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
   const { teamPoints } = useGameData();
   const teamOneScore = Math.min(teamPoints(game, 1), 10);
@@ -40,7 +41,7 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
 
   return (
     <div className="p-1 overflow-auto">
-      <div className="md:text-sm text-xs mx-1">
+      <div className="lg:text-sm text-xs mx-1">
         <div className="flex mx-1 items-center justify-center gap-4 w-full">
           <PromptHeader className="">Rounds Played: {rounds}</PromptHeader> |
           <PromptHeader className="">Deals Passed: {game.dealPassedCount}</PromptHeader> |
@@ -117,7 +118,7 @@ const TeamPlayerStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => 
   const teamPlayers = game.gamePlayers.filter((p) => p.team === teamNumber);
 
   return (
-    <table className="md:text-sm text-xs">
+    <table className="lg:text-sm text-xs">
       <thead>
         <tr className="border-b border-white">
           <th>Player</th>
@@ -189,7 +190,7 @@ const TeamStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => {
   const teamPlayers = game.gamePlayers.filter((p) => p.team === teamNumber);
 
   return (
-    <table className="md:text-sm text-xs">
+    <table className="lg:text-sm text-xs">
       <thead>
         <tr className="border-b border-white">
           <th>Player</th>

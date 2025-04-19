@@ -127,7 +127,7 @@ const useCardSvgData = () => {
   }
 
   function getCardClassColorFromSuit(suit: Suit) {
-    return suit === '♠' || suit === '♣' ? 'text-black' : 'text-red-900';
+    return suit === '♠' || suit === '♣' ? 'text-black' : 'text-red-600';
   }
 
   function getSuitName(suit: Suit): string {

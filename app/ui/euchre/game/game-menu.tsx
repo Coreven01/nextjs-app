@@ -15,7 +15,7 @@ interface Props {
 }
 
 const menuSvg =
-  "checked:bg-[url('/menu.svg')] bg-[url('/menu.svg')] bg-no-repeat bg-center bg-[length:1rem] md:bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)] dark:bg-[rgba(15,150,15,0.1)]";
+  "checked:bg-[url('/menu.svg')] bg-[url('/menu.svg')] bg-no-repeat bg-center bg-[length:1rem] lg:bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)] dark:bg-[rgba(15,150,15,0.1)]";
 
 const GameMenu = ({
   isFullScreen,
@@ -104,7 +104,7 @@ const GameMenu = ({
             type="checkbox"
             title="Toggle Menu"
             className={clsx(
-              `appearance-none cursor-pointer block bg-transparent peer/menu border rounded w-6 h-6 md:w-8 md:h-8 right-1 top-1 checked:dark:bg-neutral-500}`,
+              `appearance-none cursor-pointer block bg-transparent peer/menu border rounded w-6 h-6 lg:w-8 lg:h-8 right-1 top-1 checked:dark:bg-neutral-500}`,
               menuSvg
             )}
             onChange={handleMenuClick}
@@ -115,7 +115,7 @@ const GameMenu = ({
         id="game-menu"
         ref={menuRef}
         className={clsx(
-          'flex flex-col absolute min-w-32 bg-stone-800 md:bg-opacity-90 left-3 top-12 transition ease-in-out duration-300',
+          'flex flex-col absolute min-w-32 bg-stone-800 lg:bg-opacity-90 left-3 top-12 transition ease-in-out duration-300',
           {
             hidden: !showMenu
           }

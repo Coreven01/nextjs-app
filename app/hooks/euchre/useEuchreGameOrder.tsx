@@ -142,6 +142,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
             info={orderType}
             loner={state.bidResult.loner}
             namedSuit={state.bidResult.calledSuit}
+            delayMs={incrementSpeed(state.euchreSettings.notificationSpeed, 1)}
           />
         )
       };

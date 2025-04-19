@@ -7,10 +7,6 @@ import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions
 import { useCallback } from 'react';
 
 const useGameStateLogic = () => {
-  const generateElementId = (): string => {
-    return `element-${Math.floor(Math.random() * 10000)}`;
-  };
-
   /** Verify the game state before attempting to execute specific logic in the Euchre game play through */
   const isGameStateValidToContinue = useCallback(
     (
@@ -42,7 +38,7 @@ const useGameStateLogic = () => {
     []
   );
 
-  return { isGameStateValidToContinue, generateElementId };
+  return { isGameStateValidToContinue };
 };
 
 export default useGameStateLogic;

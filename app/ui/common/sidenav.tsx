@@ -12,17 +12,17 @@ export default function SideNav() {
     <div
       id="nav-menu"
       style={{ zIndex: 600 }}
-      className="md:fixed sticky md:top-[57px] md:left-0 overflow-auto min-h-full md:w-58 border-r min-w-48 bg-neutral-900 bg-opacity-50"
+      className="lg:fixed sticky lg:top-[57px] lg:left-0 overflow-auto min-h-full lg:w-58 border-r min-w-48 bg-neutral-900 bg-opacity-50"
     >
-      <div className="relative w-50 min-h-full peer-checked/menu:block peer-checked/menu:fixed md:block animate-slideInLeft">
+      <div className="relative w-50 min-h-full peer-checked/menu:block peer-checked/menu:fixed lg:block animate-slideInLeft">
         <input
           checked={isMenuToggled}
           type="checkbox"
           title="Navigation menu"
-          className={`appearance-none cursor-pointer block bg-green-950 dark:bg-black md:hidden peer/menu fixed border rounded w-8 h-8 right-1 top-1 ${menuSvg} checked:dark:bg-neutral-500`}
+          className={`appearance-none cursor-pointer block bg-green-950 dark:bg-black lg:hidden peer/menu fixed border rounded w-8 h-8 right-1 top-1 ${menuSvg} checked:dark:bg-neutral-500`}
           onChange={(e) => setMenuToggled(e.target.checked)}
         />
-        <div className="hidden border-b border-black md:border-none dark:border-white md:block peer-checked/menu:fixed peer-checked/menu:top-[45px] peer-checked/menu:block peer-checked/menu:w-full peer-checked/menu:bg-zinc-700">
+        <div className="hidden border-b border-black lg:border-none dark:border-white lg:block peer-checked/menu:fixed peer-checked/menu:top-[45px] peer-checked/menu:block peer-checked/menu:w-full peer-checked/menu:bg-zinc-700">
           <NavLinks onClick={() => setMenuToggled(false)} />
         </div>
       </div>

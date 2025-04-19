@@ -21,7 +21,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   rows: number;
 }
 
-export default function WoodenBoard({ rows, className }: Props) {
+const WoodenBoard = ({ rows, className }: Props) => {
   const rowValues = useMemo(() => createRange(0, rows - 1), [rows]);
 
   const savedBoardRows = useMemo(() => {
@@ -64,4 +64,6 @@ export default function WoodenBoard({ rows, className }: Props) {
   }, [rowValues]);
 
   return <div className={className}>{savedBoardRows}</div>;
-}
+};
+
+export default WoodenBoard;

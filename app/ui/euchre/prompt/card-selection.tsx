@@ -8,13 +8,13 @@ interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   onSelectionChanged?: (value: string) => void;
 }
 
-export default function CardSelection({ playerHand, onSelectionChanged, ...rest }: SelectionProps) {
+const CardSelection = ({ playerHand, onSelectionChanged, ...rest }: SelectionProps) => {
   const { getCardFullName } = useCardSvgData();
   const { sortCardsIndices } = usePlayerData();
   const orderedCards = sortCardsIndices(playerHand, null);
 
   return (
-    <div className="flex flex-col md:gap-2 gap-1" {...rest}>
+    <div className="flex flex-col lg:gap-2 gap-1" {...rest}>
       {orderedCards.map((position) => {
         const card: Card = playerHand[position.cardIndex];
         return (
@@ -33,4 +33,6 @@ export default function CardSelection({ playerHand, onSelectionChanged, ...rest 
       })}
     </div>
   );
-}
+};
+
+export default CardSelection;

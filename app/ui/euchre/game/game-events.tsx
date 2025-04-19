@@ -53,10 +53,10 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
             </ul>
           </div>
           <div className="flex gap-2 items-center justify-center mb-1">
-            <button className="text-white border border-white md:p-2 p-1" onClick={handleClear}>
+            <button className="text-white border border-white lg:p-2 p-1" onClick={handleClear}>
               Clear
             </button>
-            <button className="text-white border border-white md:p-2 p-1" onClick={handleClose}>
+            <button className="text-white border border-white lg:p-2 p-1" onClick={handleClose}>
               Close
             </button>
           </div>

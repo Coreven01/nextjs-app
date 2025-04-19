@@ -7,8 +7,8 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLHeadingElement> {
 export default function PromptHeader({ children, className, ...rest }: DivProps) {
   return (
     <h2
+      className={clsx('text-black dark:text-yellow-200 font-bold text-center lg:text-lg text-sm', className)}
       {...rest}
-      className={clsx('text-black dark:text-yellow-200 font-bold text-center md:text-lg text-sm', className)}
     >
       {children}
     </h2>

@@ -33,6 +33,7 @@ export default function EuchreGame() {
     events,
     errorState,
     playedCard,
+    reset,
     clearEvents,
     handleStartGame,
     handleBeginNewGame,
@@ -40,7 +41,6 @@ export default function EuchreGame() {
     handleSettingsChange,
     handleDiscardSubmit,
     handleCloseHandResults,
-    handleCloseGameResults,
     handleCardPlayed,
     handleReplayHand,
     handleCancelAndReset,
@@ -114,6 +114,9 @@ export default function EuchreGame() {
     handleCardPlayed(card);
   };
 
+  const handleCloseGameResults = () => {
+    reset(true);
+  };
   //#endregion
 
   //#region Conditional prompt components to render.
@@ -209,17 +212,17 @@ export default function EuchreGame() {
       <div
         id="euchre-game"
         className={clsx(
-          `flex md:p-1 overflow-auto`,
+          `flex lg:p-1 overflow-auto`,
           { 'fixed top-0 left-0 w-full h-full z-50': enableFullScreen },
           { relative: !enableFullScreen },
           inter.className
         )}
       >
-        <GameBorder className={clsx('w-auto md:w-auto md:h-auto overflow-auto', { 'm-auto': !showEvents })}>
+        <GameBorder className={clsx('w-full lg:w-auto lg:h-auto overflow-auto', { 'm-auto': !showEvents })}>
           {showSettings && !euchreGame ? (
             <>{renderSettings}</>
           ) : (
-            <div className={`${SECTION_STYLE} md:m-1 md:h-auto grow relative bg-[url(/felt1.png)] h-full`}>
+            <div className={`${SECTION_STYLE} lg:m-1 lg:h-auto grow relative bg-[url(/felt1.png)] h-full`}>
               {euchreGame && (
                 <>
                   <GameArea
@@ -258,7 +261,7 @@ export default function EuchreGame() {
                   game={euchreGame}
                   settings={euchreSettings}
                   showScore={showScore}
-                  className="md:min-h-16 md:min-w-16 absolute top-2 md:right-4 md:left-auto left-8"
+                  className="lg:min-h-16 lg:min-w-16 absolute top-2 lg:right-4 lg:left-auto left-8"
                 />
               )}
             </div>

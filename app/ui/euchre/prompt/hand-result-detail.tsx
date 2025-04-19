@@ -1,84 +1,94 @@
 import useCardData from '@/app/hooks/euchre/data/useCardData';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
-import { EuchreCard, EuchreHandResult, EuchrePlayer, ResultHighlight } from '@/app/lib/euchre/definitions';
+import {
+  EuchreCard,
+  EuchreHandResult,
+  EuchrePlayer,
+  EuchreTrick,
+  ResultHighlight,
+  Suit
+} from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  cardsPlayed: EuchreCard[];
+  trick: EuchreTrick;
   playerWon: EuchrePlayer;
   handResult: EuchreHandResult;
   highlight: ResultHighlight;
+  playerReneged: boolean;
 }
 
-export default function HandResultDetail({
-  cardsPlayed,
+const HandResultDetail = ({
+  trick,
   handResult,
   playerWon,
   highlight,
+  playerReneged,
   className,
   ...rest
-}: Props) {
+}: Props) => {
   const { playerEqual } = usePlayerData();
   const { cardIsLeftBower } = useCardData();
-  const { getCardFullName } = useCardSvgData();
+  const { getCardFullName, getCardClassColorFromSuit } = useCardSvgData();
 
   return (
     <>
-      {cardsPlayed.map((c) => {
-        let shouldHighlight: boolean = false;
-        const playerReneged = handResult.tricks.find((t) => t.playerRenege !== null) !== undefined;
+      {trick.cardsPlayed.map((c) => {
+        let shouldHighlightYellow: boolean = false;
+        const shouldHighlightRed: boolean =
+          (trick.playerRenege && playerEqual(trick.playerRenege, c.player)) ?? false;
 
-        if (!playerReneged) {
-          switch (highlight) {
-            case 'player1':
-              shouldHighlight = c.player.playerNumber === 1;
-              break;
-            case 'player2':
-              shouldHighlight = c.player.playerNumber === 2;
-              break;
-            case 'player3':
-              shouldHighlight = c.player.playerNumber === 3;
-              break;
-            case 'player4':
-              shouldHighlight = c.player.playerNumber === 4;
-              break;
-            case 'winner':
-              shouldHighlight = playerEqual(c.player, playerWon);
-              break;
-            case 'trump':
-              shouldHighlight =
-                c.card.suit === handResult.trump.suit || cardIsLeftBower(c.card, handResult.trump);
-              break;
-          }
+        switch (highlight) {
+          case 'player1':
+            shouldHighlightYellow = !playerReneged && c.player.playerNumber === 1;
+            break;
+          case 'player2':
+            shouldHighlightYellow = !playerReneged && c.player.playerNumber === 2;
+            break;
+          case 'player3':
+            shouldHighlightYellow = !playerReneged && c.player.playerNumber === 3;
+            break;
+          case 'player4':
+            shouldHighlightYellow = !playerReneged && c.player.playerNumber === 4;
+            break;
+          case 'winner':
+            shouldHighlightYellow = !playerReneged && playerEqual(c.player, playerWon);
+            break;
+          case 'trump':
+            shouldHighlightYellow =
+              !playerReneged &&
+              (c.card.suit === handResult.trump.suit || cardIsLeftBower(c.card, handResult.trump));
+            break;
         }
 
         return (
           <div
-            {...rest}
             className={clsx(
-              `flex flex-col md:min-w-16 min-w-12 text-black border mr-1`,
+              `flex flex-col lg:min-w-16 min-w-12 text-black border mr-1`,
               className,
-              { 'bg-amber-200 border-orange-300 shadow-lg': shouldHighlight },
-              { 'bg-white': !shouldHighlight }
+              { 'bg-amber-200 border-orange-300 shadow-lg': shouldHighlightYellow },
+              { 'bg-red-200 border-red-500 shadow-lg': shouldHighlightRed },
+              { 'bg-gray-50': !shouldHighlightYellow && !shouldHighlightRed }
             )}
-            title={`${c.player.name} played ${getCardFullName(c.card)}`}
+            title={`${c.player.name} played ${getCardFullName(c.card)}${shouldHighlightRed ? ' - Did not follow suit!' : ''}`}
             key={`${c.player.playerNumber}-${c.card.value}-${c.card.suit}`}
+            {...rest}
           >
-            <CardDetail card={c} />
+            <CardDetail card={c} getCardClassColorFromSuit={getCardClassColorFromSuit} />
           </div>
         );
       })}
     </>
   );
-}
+};
 
 interface DetailProps {
   card: EuchreCard;
+  getCardClassColorFromSuit: (suit: Suit) => string;
 }
-function CardDetail({ card }: DetailProps) {
-  const { getCardClassColorFromSuit } = useCardSvgData();
 
+const CardDetail = ({ card, getCardClassColorFromSuit }: DetailProps) => {
   return (
     <>
       <div>
@@ -88,4 +98,6 @@ function CardDetail({ card }: DetailProps) {
       <div>{card.player.name}</div>
     </>
   );
-}
+};
+
+export default HandResultDetail;

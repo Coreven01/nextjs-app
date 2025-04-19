@@ -1,46 +1,28 @@
-'use client';
-
 import { GameSpeed } from '@/app/lib/euchre/definitions';
+import { useEffect, useState } from 'react';
+import { motion, Target, TargetAndTransition } from 'framer-motion';
 import clsx from 'clsx';
-import { RefObject, useEffect, useRef } from 'react';
-
-interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
+interface Props {
   children?: React.ReactNode;
-  durationMs?: GameSpeed;
+  durationMs?: number;
   delayMs?: GameSpeed;
   fadeType: 'in' | 'out' | 'both';
+  className?: string;
 }
 
-export default function EphemeralModal({
-  children,
-  className,
-  durationMs,
-  delayMs,
-  fadeType,
-  ...rest
-}: DivProps) {
-  const element: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
+export default function EphemeralModal({ children, durationMs, delayMs, fadeType, className }: Props) {
+  const [initState] = useState<Target>(
+    fadeType === 'in' || fadeType === 'both' ? { opacity: 0 } : { opacity: 1 }
+  );
+  const [animateState, setAnimateState] = useState<Target | undefined>(
+    fadeType === 'in' || fadeType === 'both' ? { opacity: 1 } : { opacity: 0 }
+  );
 
   useEffect(() => {
     const performFade = async () => {
-      const current = element.current;
-
-      if (current && (fadeType === 'in' || fadeType === 'both'))
-        setTimeout(() => current.classList.add('!opacity-100'), 25);
-      if (current && fadeType === 'out') {
-        setTimeout(() => {
-          current.classList.remove('opacity-100');
-          current.classList.add('!opacity-0');
-        }, 25);
-      }
-
-      const duration = durationMs ?? 150;
-      const delay = delayMs ?? 150;
-
       if (fadeType === 'both') {
-        await new Promise((resolve) => setTimeout(resolve, delay + duration));
-
-        if (current) setTimeout(() => current.classList.remove('!opacity-100'), 25);
+        await new Promise((resovle) => setTimeout(resovle, delayMs ?? 1000));
+        setAnimateState({ opacity: 0 });
       }
     };
 
@@ -48,27 +30,13 @@ export default function EphemeralModal({
   });
 
   return (
-    <div
-      ref={element}
-      className={clsx(
-        `transition-opacity ${getDurationClass(durationMs)} ease-in-out`,
-        className,
-        {
-          'opacity-0': fadeType === 'in' || fadeType === 'both'
-        },
-        {
-          'opacity-100': fadeType === 'out'
-        }
-      )}
-      {...rest}
+    <motion.div
+      className={clsx(className)}
+      initial={initState}
+      animate={animateState}
+      transition={{ duration: (durationMs ?? 1000) / 1000 }}
     >
       {children}
-    </div>
+    </motion.div>
   );
-}
-
-function getDurationClass(duration?: number): string {
-  if (duration) return `duration-${duration}`;
-
-  return 'duration-150';
 }

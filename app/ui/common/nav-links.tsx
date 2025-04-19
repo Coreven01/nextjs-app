@@ -38,7 +38,7 @@ type Props = {
 export default function NavLinks({ onClick }: Props) {
   const pathname = usePathname();
   const itemClass =
-    'flex h-[48px] m-2 grow items-center gap-2 rounded-md p-3 text-sm font-medium border border-black dark:border-white dark:text-white hover:dark:bg-zinc-600 hover:bg-green-100 hover:text-green-800 md:flex-none justify-start md:p-2 md:px-3';
+    'flex h-[48px] m-2 grow items-center gap-2 rounded-md p-3 text-sm font-medium border border-black dark:border-white dark:text-white hover:dark:bg-zinc-600 hover:bg-green-100 hover:text-green-800 lg:flex-none justify-start lg:p-2 lg:px-3';
   return (
     <>
       {links.map((link) => {

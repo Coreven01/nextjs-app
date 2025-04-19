@@ -172,10 +172,7 @@ export default function useEuchreGame() {
   const { handleShuffleAndDealComplete } = useEuchreGameShuffle(gameState, gameErrorState);
   const { handleBidSubmit } = useEuchreGameBid(gameState, gameErrorState, reset);
   const { handleDiscardSubmit } = useEuchreGameOrder(gameState, gameErrorState);
-  const { handleCardPlayed, handleCloseGameResults, handleCloseHandResults } = useEuchreGamePlay(
-    gameState,
-    gameErrorState
-  );
+  const { handleCardPlayed, handleCloseHandResults } = useEuchreGamePlay(gameState, gameErrorState);
 
   //#region Other Handlers *************************************************************************
 
@@ -233,6 +230,7 @@ export default function useEuchreGame() {
     events,
     errorState,
     playedCard,
+    reset,
     clearEvents,
     handleStartGame,
     handleBeginNewGame,
@@ -241,7 +239,6 @@ export default function useEuchreGame() {
     handleCancelGame,
     handleDiscardSubmit,
     handleCloseHandResults,
-    handleCloseGameResults,
     handleCardPlayed,
     handleReplayHand,
     handleCancelAndReset,

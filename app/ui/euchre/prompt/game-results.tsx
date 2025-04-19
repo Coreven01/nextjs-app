@@ -61,8 +61,6 @@ export default function GameResults({
     };
   });
 
-  if (!gameResults) throw new Error('No game results were found');
-
   const handleButtonClick = (index: number): void => {
     const btn: HTMLElement | null = document.getElementById(
       index === -1 ? 'btn-overview' : `btn-hand-${index}`
@@ -79,15 +77,17 @@ export default function GameResults({
     }
   };
 
+  if (!gameResults) throw new Error('No game results were found');
+
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[95vw] grid-rows-[1fr,1fr,220px,auto] md:grid-rows-[1fr,1fr,350px,auto] md:grid-cols-[620px]">
+        <div className="grid grid-cols-[95vw] grid-rows-[1fr,1fr,220px,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[620px]">
           <div className="flex">
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
               <ChevronLeftIcon />
             </button>
-            <PromptHeader className="grow md:text-base text-sm">Game Results</PromptHeader>
+            <PromptHeader className="grow lg:text-base text-sm">Game Results</PromptHeader>
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonRight}>
               <ChevronRightIcon />
             </button>
@@ -106,11 +106,11 @@ export default function GameResults({
               className="mx-auto"
               game={game}
               settings={settings}
-              handResult={gameResults[selection ?? 0]}
+              handResult={gameResults[selection]}
             ></HandResult>
           )}
 
-          <div className="flex gap-1 md:text-base text-xs h-8">
+          <div className="flex gap-1 lg:text-base text-xs h-8">
             <button
               onClick={onClose}
               className="w-full border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
@@ -146,7 +146,7 @@ function HandResultNavigation({ menuRef, selection, gameResults, onButtonClick }
   return (
     <ul
       ref={menuRef}
-      className="flex gap-2 overflow-x-scroll w-full md:text-sm text-xs mb-2"
+      className="flex gap-2 overflow-x-scroll w-full lg:text-sm text-xs mb-2"
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
     >
       <li

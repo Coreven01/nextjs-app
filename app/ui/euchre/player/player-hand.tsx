@@ -5,7 +5,6 @@ import GameCard from '../game/game-card';
 import clsx from 'clsx';
 import DummyCard from '../dummy-card';
 import useCardState from '../../../hooks/useCardState';
-import useGameData from '../../../hooks/euchre/data/useGameData';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 
 type Props = {
@@ -60,8 +59,8 @@ const PlayerHand = ({
   const cardsAvailableForFollowSuit: Card[] = getCardsAvailableIfFollowSuit();
   const playerCurrentHand: Card[] = getCardsToDisplay();
   const location = playerLocation(player);
-  const width: number = getDisplayWidth(location);
-  const height: number = getDisplayHeight(location);
+  const width: number = handState?.width ?? getDisplayWidth(location);
+  const height: number = handState?.height ?? getDisplayHeight(location);
 
   for (let i = 0; i < 5; i++) {
     // used to make sure the player area always has 5 cards placed to make sure elements flow correctly.
@@ -69,8 +68,8 @@ const PlayerHand = ({
       <DummyCard
         className={getCardClassForPlayerLocation(player, false)}
         key={`dummy-${i}`}
-        width={handState?.width ?? width}
-        height={handState?.height ?? height}
+        width={width}
+        height={height}
       ></DummyCard>
     );
   }
@@ -85,6 +84,7 @@ const PlayerHand = ({
     if (!currentState || !cardRef?.current) throw new Error('Invalid card state - handle card click');
 
     playCard(cardIndex, cardRef.current, playerTableRef.current, currentState.rotation ?? 0);
+    console.log('card played: ', cardIndex, ' player: ', player.name);
   };
 
   return (

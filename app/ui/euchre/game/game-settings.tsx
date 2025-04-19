@@ -108,12 +108,12 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
   //#endregion
 
   return (
-    <div className="bg-stone-800 text-white md:p-2 p-1">
+    <div className="bg-stone-800 text-white lg:p-2 p-1">
       <PromptHeader>Settings</PromptHeader>
-      <div className="flex items-center gap-4 my-2 md:text-base text-sm">
+      <div className="flex items-center gap-4 my-2 lg:text-base text-sm">
         <label htmlFor="playerName">Player Name: </label>
         <input
-          className="text-black max-w-32 text-sm p-1 md:text-base"
+          className="text-black max-w-32 text-sm p-1 lg:text-base"
           placeholder="Player Name"
           id="playerName"
           type="text"
@@ -123,7 +123,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           onBlur={handleLoseFocus}
         />
       </div>
-      <div className="grid gap-2 grid-cols-2 my-2 md:text-base text-sm">
+      <div className="grid gap-2 grid-cols-2 my-2 lg:text-base text-sm">
         <div>
           <label htmlFor="showHandResult">Show Hand Results: </label>
           <Switch
@@ -182,7 +182,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
       </div>
 
       {isDebugMode && (
-        <div className="grid gap-2 grid-cols-2 my-2 md:text-base text-sm bg-stone-700 p-2 border border-white">
+        <div className="grid gap-2 grid-cols-2 my-2 lg:text-base text-sm bg-stone-700 p-2 border border-white">
           <div>
             <label htmlFor="debugAlwaysPass">Debug Always Pass: </label>
             <Switch
@@ -230,7 +230,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           </div>
         </div>
       )}
-      <div className="my-4 flex justify-center items-center gap-1 md:text-base text-sm">
+      <div className="my-4 flex justify-center items-center gap-1 lg:text-base text-sm">
         <div className="m-auto">
           <label className="block" htmlFor="difficulty">
             Difficulty:
@@ -239,7 +239,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
             id="difficulty"
             name="difficulty"
             onChange={handleSelectionChanged}
-            className="text-black md:p-2 p-1 min-w-48 max-h-8 md:max-h-12 md:text-base text-sm"
+            className="text-black lg:p-2 p-1 min-w-48 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={settings.difficulty}
           >
             {difficultyValues.map((value) => {
@@ -258,7 +258,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="gameSpeed"
             onChange={handleSpeedChanged}
-            className="text-black md:min-w-32 md:p-2 p-1 min-w-24 max-h-8 md:max-h-12 md:text-base text-sm"
+            className="text-black lg:min-w-32 lg:p-2 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={settings.gameSpeed}
           >
             {gameSpeedValues.map((value) => {
@@ -277,7 +277,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="teamOneColor"
             onChange={(e) => handleTeamColorChange(1, (e.target.value as TeamColor) ?? 'blue')}
-            className="text-black md:p-2 p-1 min-w-24 max-h-8 md:max-h-12 md:text-base text-sm"
+            className="text-black lg:p-2 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={teamOneColor}
           >
             {teamColors.map((k) => (
@@ -294,7 +294,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="teamTwoColor"
             onChange={(e) => handleTeamColorChange(2, (e.target.value as TeamColor) ?? 'red')}
-            className="text-black md:p-2 p-1 min-w-24 max-h-8 md:max-h-12 md:text-base text-sm"
+            className="text-black lg:p-2 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={teamTwoColor}
           >
             {teamColors.map((k) => (
@@ -305,7 +305,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           </select>
         </div>
       </div>
-      <div className="flex justify-center gap-2 md:text-base text-sm">
+      <div className="flex justify-center gap-2 lg:text-base text-sm">
         <button
           className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black p-1"
           onClick={handleReturn}
@@ -320,14 +320,14 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
         </button>
       </div>
       {isDebugMode && (
-        <div className="flex justify-center gap-2 md:text-base text-sm mt-2">
-          <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGame}>
+        <div className="flex justify-center gap-2 lg:text-base text-sm mt-2">
+          <button className="text-white border border-white lg:p-2 p-1" onClick={handleRunTestGame}>
             Run Test Game
           </button>
-          <button className="text-white border border-white md:p-2 p-1" onClick={handleRunTestGameLoop}>
+          <button className="text-white border border-white lg:p-2 p-1" onClick={handleRunTestGameLoop}>
             Run Test Game Loop
           </button>
-          <button className="text-white border border-white md:p-2 p-1" onClick={handleApplyAutoSettings}>
+          <button className="text-white border border-white lg:p-2 p-1" onClick={handleApplyAutoSettings}>
             Set Auto Settings
           </button>
         </div>

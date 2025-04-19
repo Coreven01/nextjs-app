@@ -156,11 +156,11 @@ const useCardState = (
   ]);
 
   /** Set the sort order for the player's hand. Used to display the suits grouped together and trump first. */
-  const initializeSortOrder = () => {
+  const initializeSortOrder = useCallback(() => {
     const availableCards: Card[] = availableCardsToPlay(player);
     const orderedIndices: CardPosition[] = sortCardsIndices(availableCards, game.maker ? game.trump : null);
     initSortOrder.current = orderedIndices;
-  };
+  }, [availableCardsToPlay, game.maker, game.trump, player, sortCardsIndices]);
 
   /** Re-adjusts the player's hand that are displayed. Used after a player plays a card and to group the cards together. */
   const regroupCards = useCallback(
@@ -336,8 +336,8 @@ const useCardState = (
 
       cardsInitReorder.current = true;
 
-      initializeSortOrder();
       if (handState?.shouldShowCardValue) {
+        initializeSortOrder();
         regroupCards(true, true, cardRef, handState.location);
       }
     }
@@ -353,13 +353,14 @@ const useCardState = (
       cardStates.length === 0;
 
     if (shouldCreateCardState) {
+      initializeSortOrder();
       setInitialCardStates();
       cardsDealtRef.current = true;
     }
   }, [
     cardStates.length,
     handState,
-    handState?.shouldShowCardValue,
+    initializeSortOrder,
     player.hand.length,
     player.playedCards.length,
     setInitialCardStates

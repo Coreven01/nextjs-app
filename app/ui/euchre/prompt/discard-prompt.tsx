@@ -74,7 +74,7 @@ export default function DiscardPrompt({
 
           <button
             onClick={() => handleDiscardSubmit()}
-            className="h-8 col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 md:text-base text-xs"
+            className="h-8 col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 lg:text-base text-xs"
             disabled={!submitEnabled}
           >
             Discard Selected

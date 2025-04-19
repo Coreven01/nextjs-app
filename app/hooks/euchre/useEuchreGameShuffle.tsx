@@ -4,63 +4,16 @@ import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
 import { createEvent } from '@/app/lib/euchre/util';
 import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
-import { Card, EuchreGameInstance } from '@/app/lib/euchre/definitions';
-import EphemeralModal from '@/app/ui/euchre/ephemeral-modal';
-import GameBorder from '@/app/ui/euchre/game/game-border';
-import GameCard from '@/app/ui/euchre/game/game-card';
-import clsx from 'clsx';
+import { EuchreGameInstance } from '@/app/lib/euchre/definitions';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import useGameStateLogic from './logic/useGameStateLogic';
-import useCardSvgData from './data/useCardSvgData';
-import useCardData from './data/useCardData';
 import { v4 as uuidv4 } from 'uuid';
 
 const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorState) => {
-  const { isGameStateValidToContinue, generateElementId } = useGameStateLogic();
+  const { isGameStateValidToContinue } = useGameStateLogic();
   const { shuffleAndDealHand } = useGameSetupLogic();
   const { getGameStateForNextHand } = useGamePlayLogic();
-  const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
-  const { getDisplayHeight, getDisplayWidth } = useCardData();
-
-  // /** */
-  // const getFaceUpCard = useCallback(
-  //   (id: string, card: Card, fadeOut: boolean) => {
-  //     return (
-  //       <EphemeralModal
-  //         key={`${generateElementId()}`}
-  //         durationMs={150}
-  //         delayMs={150}
-  //         fadeType={fadeOut ? 'out' : 'in'}
-  //         className={clsx(
-  //           'md:relative md:right-auto md:top-auto absolute -right-16 -top-8',
-  //           { 'opacity-100': fadeOut },
-  //           { 'opacity-0': !fadeOut }
-  //         )}
-  //       >
-  //         <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
-  //           <div className="p-2 bg-green-950 flex items-center justify-center">
-  //             <GameCard
-  //               cardState={{
-  //                 src: getEncodedCardSvg(card, 'center'),
-  //                 cardFullName: getCardFullName(card),
-  //                 cardIndex: card.index
-  //               }}
-  //               className="lg:h-[125px] md:h-[115px] h-[95px]"
-  //               card={card}
-  //               responsive={true}
-  //               id={id}
-  //               width={getDisplayWidth('center')}
-  //               height={getDisplayHeight('center')}
-  //               title={getCardFullName(card)}
-  //             ></GameCard>
-  //           </div>
-  //         </GameBorder>
-  //       </EphemeralModal>
-  //     );
-  //   },
-  //   [generateElementId, getCardFullName, getDisplayHeight, getDisplayWidth, getEncodedCardSvg]
-  // );
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
 
@@ -101,12 +54,6 @@ const useEuchreGameShuffle = (state: EuchreGameState, errorState: EuchreErrorSta
     if (!newGame?.trump) throw Error('Trump not found after shuffle and deal for regular play.');
 
     state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
-
-    // display trump card for bidding in the center of the table.
-    // state.dispatchPlayerNotification({
-    //   type: PlayerNotificationActionType.UPDATE_CENTER,
-    //   payload: getFaceUpCard(FLIPPED_CARD_ID, newGame.trump, false)
-    // });
 
     const newGameState: EuchreGameFlowState = getGameStateForNextHand(
       state.euchreGameFlow,

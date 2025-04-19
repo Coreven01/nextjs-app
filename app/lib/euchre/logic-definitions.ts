@@ -1,13 +1,10 @@
-import { CardTransformation } from '@/app/hooks/euchre/useMoveCard';
 import { Card, EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreTrick, Suit } from './definitions';
 
 export interface InitDealResult {
-  transformations: CardTransformation[][];
   newDealer: EuchrePlayer;
 }
 
 export interface ShuffleResult {
-  transformations: CardTransformation[][];
   game: EuchreGameInstance;
 }
 
@@ -21,7 +18,6 @@ export interface GameBidLogic {
 }
 
 export interface PlayCardResult {
-  transformations: CardTransformation[][];
   card: Card;
 }
 

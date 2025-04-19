@@ -144,7 +144,7 @@ export default function useEuchreGameAuto() {
 
     try {
       //#region Begin deal cards for initial dealer
-      const dealResult = dealCardsForDealer(newGame, gameFlow, gameSetting, null);
+      const dealResult = dealCardsForDealer(newGame, gameFlow, null);
 
       if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
 
@@ -196,7 +196,7 @@ export default function useEuchreGameAuto() {
 
     try {
       //#region Begin deal cards for initial dealer
-      const dealResult = dealCardsForDealer(newGame, gameFlow, gameSetting, null);
+      const dealResult = dealCardsForDealer(newGame, gameFlow, null);
 
       if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
 

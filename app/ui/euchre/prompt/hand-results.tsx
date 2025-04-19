@@ -29,7 +29,7 @@ export default function HandResults({
         <PromptHeader>Hand Results</PromptHeader>
         <div className="p-1">
           <HandResult game={game} settings={settings} handResult={handResult}></HandResult>
-          <div className="flex gap-1 md:text-base text-xs">
+          <div className="h-8 flex gap-1 lg:text-base text-xs">
             <button
               onClick={onReplayHand}
               className="border border-white bg-red-950 hover:bg-amber-100 hover:text-black w-full mt-2"

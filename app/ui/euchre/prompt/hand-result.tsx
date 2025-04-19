@@ -5,10 +5,10 @@ import {
   EuchreSettings,
   ResultHighlight
 } from '@/app/lib/euchre/definitions';
+import { useState } from 'react';
 import PlayerColor from '../player/player-team-color';
 import clsx from 'clsx';
 import HandResultDetail from './hand-result-detail';
-import { useState } from 'react';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import GameWarning from '../game/game-warning';
 
@@ -21,12 +21,13 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 export default function HandResult({ game, settings, handResult, className, ...rest }: Props) {
   const { getCardClassColorFromSuit, getSuitName } = useCardSvgData();
   const [selectedHighlight, setSelectedHighlight] = useState<ResultHighlight>('winner');
+
   if (!handResult) throw new Error('No hand result was found');
 
   let pointsDisplay: string = `Points for Team ${handResult.teamWon}: ${handResult.points}`;
-  const BASE_CLASS = 'text-center dark:bg-stone-800 dark:text-white mb-1';
-  const winningTeamPlayer = game.gamePlayers.filter((p) => p.team === handResult.teamWon)[0];
-  const playerReneged = handResult.tricks.find((t) => t.playerRenege !== null);
+  const BASE_CLASS: string = 'text-center dark:bg-stone-800 dark:text-white mb-1';
+  const winningTeamPlayer: EuchrePlayer = game.gamePlayers.filter((p) => p.team === handResult.teamWon)[0];
+  const playerReneged: boolean = handResult.tricks.find((t) => t.playerRenege !== null) !== undefined;
 
   if (handResult.teamWon === handResult.maker.team) {
     pointsDisplay = `Points for Maker: ${handResult.points}`;
@@ -39,81 +40,79 @@ export default function HandResult({ game, settings, handResult, className, ...r
   };
 
   return (
-    <div {...rest} className={clsx('flex flex-row gap-1 overflow-auto', className)}>
-      <div className="md:min-w-48">
-        <div className="mb-1">
-          <PlayerColor className="md:text-base text-xs" player={handResult.maker} settings={settings}>
-            <div className="bg-stone-800 p-1 text-center">
-              Maker: {handResult.maker === game.player1 ? 'You' : handResult.maker.name}
-            </div>
-          </PlayerColor>
-        </div>
-        <div className=" mb-1">
-          <PlayerColor className="md:text-base text-xs" player={handResult.dealer} settings={settings}>
-            <div className="bg-stone-800 p-1 text-center">
-              Dealer: {handResult.dealer === game.player1 ? 'You' : handResult.dealer.name}
-            </div>
-          </PlayerColor>
-        </div>
-        <div className="mb-1">
-          <PlayerColor className="md:text-base text-xs" player={winningTeamPlayer} settings={settings}>
-            <div className="bg-stone-800 p-1 text-center">{pointsDisplay}</div>
-          </PlayerColor>
-        </div>
-        <div className={`${BASE_CLASS} md:text-base text-xs border dark:border-white md:p-1`}>
-          Went Alone: {handResult.loner ? 'Yes' : 'No'}
-        </div>
-        <div className={`${BASE_CLASS} md:text-base text-xs border dark:border-white md:p-1`}>
-          Trump:{' '}
-          <span
-            title={`${getSuitName(handResult.trump.suit)}s`}
-            className={`${getCardClassColorFromSuit(handResult.trump.suit)} bg-white px-1 rounded-full`}
-          >
-            {handResult.trump.suit}
-          </span>
-        </div>
-        <div className={`${BASE_CLASS} md:text-base text-xs border dark:border-white md:p-1`}>
-          Named By Suit: {handResult.turnedDown !== null ? 'Yes' : 'No'}
-        </div>
-      </div>
-      <div>
-        <HandHighlightNavigation
-          players={[...game.gamePlayers]}
-          selection={selectedHighlight}
-          onSelectionChanged={handleSelectionChanged}
-          className="grow md:text-base text-sm"
-        />
-
-        {playerReneged && (
-          <GameWarning className="mx-2 my-2 border border-red-900">
-            Hand ended due to player renege
-          </GameWarning>
-        )}
-        {handResult.tricks.map((t) => {
-          if (!t.taker) throw new Error();
-
-          const displayWinner = t.playerRenege !== null;
-          return (
-            <div
-              key={`${t.round}-${t.cardsPlayed.map((c, index) => `${c.player.playerNumber}-${c.card.value}-${c.card.suit}`).join('')}`}
-              className={`flex items-center ${BASE_CLASS} md:text-base text-xs`}
+    <div className={clsx('flex flex-col gap-1 overflow-auto', className)} {...rest}>
+      <HandHighlightNavigation
+        players={[...game.gamePlayers]}
+        selection={selectedHighlight}
+        onSelectionChanged={handleSelectionChanged}
+        className="lg:text-base text-sm"
+      />
+      {playerReneged && (
+        <GameWarning className="mx-2 mb-1 border border-red-900">Hand ended due to player renege</GameWarning>
+      )}
+      <div className="flex gap-1">
+        <div className="lg:min-w-48">
+          <div className="mb-1">
+            <PlayerColor className="lg:text-base text-xs" player={handResult.maker} settings={settings}>
+              <div className="bg-stone-800 p-1 text-center">
+                Maker: {handResult.maker === game.player1 ? 'You' : handResult.maker.name}
+              </div>
+            </PlayerColor>
+          </div>
+          <div className=" mb-1">
+            <PlayerColor className="lg:text-base text-xs" player={handResult.dealer} settings={settings}>
+              <div className="bg-stone-800 p-1 text-center">
+                Dealer: {handResult.dealer === game.player1 ? 'You' : handResult.dealer.name}
+              </div>
+            </PlayerColor>
+          </div>
+          <div className="mb-1">
+            <PlayerColor className="lg:text-base text-xs" player={winningTeamPlayer} settings={settings}>
+              <div className="bg-stone-800 p-1 text-center">{pointsDisplay}</div>
+            </PlayerColor>
+          </div>
+          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white lg:p-1`}>
+            Went Alone: {handResult.loner ? 'Yes' : 'No'}
+          </div>
+          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white lg:p-1`}>
+            Trump:{' '}
+            <span
+              title={`${getSuitName(handResult.trump.suit)}s`}
+              className={`${getCardClassColorFromSuit(handResult.trump.suit)} bg-white px-1 rounded-full`}
             >
-              <HandResultDetail
-                cardsPlayed={t.cardsPlayed}
-                playerWon={t.taker}
-                handResult={handResult}
-                highlight={selectedHighlight}
-              />
-              {!displayWinner && (
-                <div className="grow md:min-w-36">
-                  <PlayerColor player={t.taker} settings={settings}>
-                    <div className="bg-stone-800 p-1 text-center">Winner: {t.taker.name}</div>
+              {handResult.trump.suit}
+            </span>
+          </div>
+          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white lg:p-1`}>
+            Named By Suit: {handResult.turnedDown !== null ? 'Yes' : 'No'}
+          </div>
+        </div>
+        <div className="lg:min-w-64">
+          {handResult.tricks.map((trick) => {
+            if (!trick.taker) throw new Error();
+
+            const displayWinner = trick.playerRenege !== null;
+            return (
+              <div
+                key={`${trick.round}-${trick.cardsPlayed.map((c) => `${c.player.playerNumber}-${c.card.value}-${c.card.suit}`).join('')}`}
+                className={`flex items-center ${BASE_CLASS} lg:text-base text-xs`}
+              >
+                <HandResultDetail
+                  trick={trick}
+                  playerWon={trick.taker}
+                  handResult={handResult}
+                  highlight={selectedHighlight}
+                  playerReneged={playerReneged}
+                />
+                {!displayWinner && (
+                  <PlayerColor className="grow lg:min-w-36 h-full" player={trick.taker} settings={settings}>
+                    <div className="bg-stone-800 p-1 text-center">Winner: {trick.taker.name}</div>
                   </PlayerColor>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -125,7 +124,7 @@ interface NavProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   onSelectionChanged: (selection: ResultHighlight) => void;
 }
 
-function HandHighlightNavigation({ selection, players, className, onSelectionChanged }: NavProps) {
+const HandHighlightNavigation = ({ selection, players, className, onSelectionChanged }: NavProps) => {
   const selections = new Map<ResultHighlight, string>();
   selections.set('player1', players.find((p) => p.playerNumber === 1)?.name ?? '');
   selections.set('player2', players.find((p) => p.playerNumber === 2)?.name ?? '');
@@ -138,7 +137,7 @@ function HandHighlightNavigation({ selection, players, className, onSelectionCha
   return (
     <ul
       className={clsx(
-        'flex justify-center gap-2 overflow-x-scroll w-full md:text-sm text-xs mb-2',
+        'flex justify-center gap-2 overflow-x-scroll w-full lg:text-sm text-xs mb-2',
         className
       )}
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
@@ -161,4 +160,4 @@ function HandHighlightNavigation({ selection, players, className, onSelectionCha
       })}
     </ul>
   );
-}
+};

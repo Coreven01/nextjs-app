@@ -21,7 +21,7 @@ export default function RootLayout({
         <SideNav />
         <TopNav className="flex fixed top-0 left-0 w-full">Nolan Appel - .NET Developer</TopNav>
 
-        <div className="relative flex min-h-[93vh] bg-transparent flex-row md:pl-[192px] md:top-[60px] top-[50px]">
+        <div className="relative flex min-h-[93vh] bg-transparent flex-row lg:pl-[192px] lg:top-[60px] top-[50px]">
           <div className="grow">
             <main className="min-h-[85vh]">{children}</main>
             <footer className="flex justify-center border-t border-b text-black dark:text-white bg-green-100 dark:bg-neutral-900">

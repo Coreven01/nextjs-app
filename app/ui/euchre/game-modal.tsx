@@ -1,44 +1,19 @@
 import clsx from 'clsx';
-import { RefObject, useEffect, useRef } from 'react';
-
+import { motion } from 'framer-motion';
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   durationMs?: 150 | 300 | 700 | 1000 | 1500 | 3000;
 }
 
-const durationValues = [
-  'duration-150',
-  'duration-300',
-  'duration-700',
-  'duration-1000',
-  'duration-1500',
-  'duration-3000'
-];
 export default function GameModal({ children, className, durationMs, ...rest }: DivProps) {
-  const element: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
-
-  useEffect(() => {
-    setTimeout(() => {
-      if (element.current) element.current?.classList?.add('opacity-100');
-    }, 25);
-  });
-
   return (
-    <div
-      ref={element}
-      className={clsx(
-        `shadow-md shadow-black transition-opacity ${getDurationClass(durationMs)} ease-in-out`,
-        className
-      )}
-      {...rest}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1, transition: { opacity: { duration: (durationMs ?? 500) / 1000 } } }}
     >
-      {children}
-    </div>
+      <div className={clsx(`shadow-md shadow-black`, className)} {...rest}>
+        {children}
+      </div>
+    </motion.div>
   );
-}
-
-function getDurationClass(duration?: number): string {
-  if (duration) return `duration-${duration}`;
-
-  return 'duration-150';
 }

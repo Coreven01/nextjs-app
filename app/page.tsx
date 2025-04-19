@@ -34,7 +34,7 @@ export default function Home() {
 function GetSectionSelfImage() {
   return (
     <Image
-      className="border-b md:border-r contain border-black dark:border-white"
+      className="border-b lg:border-r contain border-black dark:border-white"
       quality={100}
       src={'/photo.png'}
       width={600}
@@ -57,8 +57,7 @@ function GetSectionSelfDescription() {
       engineering, maintaining, and testing code using .NET framework and .NET core. I&apos;ve honed my skills
       over the years by using best practices, test-driven design, and SOLID principles.
       <br />
-      <br />
-      I can be reached at LinkedIn:{' '}
+      <br />I can be reached at LinkedIn:{' '}
       <AppLink link="https://www.linkedin.com/in/nolanappel/" text="Nolan Appel - LinkedIn" />
     </div>
   );

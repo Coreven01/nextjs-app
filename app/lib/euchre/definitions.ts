@@ -173,6 +173,8 @@ export interface Card {
 }
 
 export interface EuchreGameInstance {
+  gameId: string;
+  handId: string;
   player1: EuchrePlayer;
   player2: EuchrePlayer;
   player3: EuchrePlayer;

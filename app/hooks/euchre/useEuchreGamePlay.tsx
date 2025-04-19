@@ -18,7 +18,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 export default function useEuchreGamePlay(state: EuchreGameState, errorState: EuchreErrorState) {
   const playerAutoPlayed = useRef(false);
-  const { isGameStateValidToContinue, generateElementId } = useGameStateLogic();
+  const { isGameStateValidToContinue } = useGameStateLogic();
   const { createTrick, createDefaultEuchreGame } = useGameSetupLogic();
   const { getPlayerRotation, availableCardsToPlay } = usePlayerData();
   const { determineCardToPlay, getGameStateForNextHand } = useGamePlayLogic();
@@ -37,50 +37,47 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
   /**
    *
    */
-  const getPlayerNotificationForTrickWon = useCallback(
-    (result: EuchreTrick) => {
-      const newAction: PlayerNotificationAction = {
-        type: PlayerNotificationActionType.UPDATE_CENTER,
-        payload: undefined
-      };
-      const icon: React.ReactNode = <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />;
-      let messageLocation = '';
+  const getPlayerNotificationForTrickWon = useCallback((result: EuchreTrick) => {
+    const newAction: PlayerNotificationAction = {
+      type: PlayerNotificationActionType.UPDATE_CENTER,
+      payload: undefined
+    };
+    const icon: React.ReactNode = <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />;
+    let messageLocation = '';
 
-      switch (result.taker?.playerNumber) {
-        case 1:
-          messageLocation = 'md:bottom-0 -bottom-8';
-          break;
-        case 2:
-          messageLocation = 'md:top-0 -top-8';
-          break;
-        case 3:
-          messageLocation = 'md:left-3 -left-8';
-          break;
-        case 4:
-          messageLocation = 'md:right-3 -right-8';
-          break;
-      }
+    switch (result.taker?.playerNumber) {
+      case 1:
+        messageLocation = 'lg:bottom-0 -bottom-8';
+        break;
+      case 2:
+        messageLocation = 'lg:top-0 -top-8';
+        break;
+      case 3:
+        messageLocation = 'lg:left-3 -left-8';
+        break;
+      case 4:
+        messageLocation = 'lg:right-3 -right-8';
+        break;
+    }
 
-      const key = generateElementId();
-      const infoDetail = (
-        <UserInfo
-          className={clsx(
-            `p-2 md:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800`,
-            messageLocation
-          )}
-          id={key}
-          key={`${key}`}
-        >
-          <div className="flex gap-2 items-center">{icon}</div>
-        </UserInfo>
-      );
+    const key = '1';
+    const infoDetail = (
+      <UserInfo
+        className={clsx(
+          `p-2 lg:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800`,
+          messageLocation
+        )}
+        id={key}
+        key={`${key}`}
+      >
+        <div className="flex gap-2 items-center">{icon}</div>
+      </UserInfo>
+    );
 
-      newAction.payload = infoDetail;
+    newAction.payload = infoDetail;
 
-      return newAction;
-    },
-    [generateElementId]
-  );
+    return newAction;
+  }, []);
 
   //#region Play Card *************************************************************************
 
@@ -326,14 +323,6 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
   /**
    *
    */
-  const handleCloseGameResults = useCallback(() => {
-    state.setEuchreGame(createDefaultEuchreGame());
-    state.setPromptValue([{ type: PromptType.INTRO }]);
-  }, [createDefaultEuchreGame, state]);
-
-  /**
-   *
-   */
   const handleCardPlayed = (cardPlayed: Card) => {
     if (
       state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_AI_INPUT ||
@@ -487,6 +476,7 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
       if (!newGame) throw new Error('Game not found for animate end card played.');
 
       if (isTrickFinished(newGame)) {
+        // enter this block if all cards have been played, or player reneged.
         const lastWonTrick: EuchreTrick = newGame.currentTrick;
 
         if (!lastWonTrick.taker)
@@ -588,5 +578,5 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
 
   //#endregion
 
-  return { handleCardPlayed, handleCloseGameResults, handleCloseHandResults };
+  return { handleCardPlayed, handleCloseHandResults };
 }

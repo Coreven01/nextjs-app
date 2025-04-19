@@ -84,31 +84,31 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
       <div className="p-1">
         <div
           className={clsx(`grid gap-1`, {
-            'md:grid-rows-[1fr,auto,auto,auto,auto] md:grid-cols-[130px,100px] grid-rows-[1fr,auto,auto] grid-cols-[auto,100px,auto]':
+            'lg:grid-rows-[1fr,auto,auto,auto,auto] lg:grid-cols-[130px,100px] grid-rows-[1fr,auto,auto] grid-cols-[auto,100px,auto]':
               true
           })}
         >
           <div
             title={`Choose if the dealer should pick up ${cardName}`}
             className={clsx('flex items-center justify-center cursor-default', {
-              'md:col-span-2 col-span-3': true
+              'lg:col-span-2 col-span-3': true
             })}
           >
             <PromptHeader>Bid for Trump</PromptHeader>
           </div>
 
-          <div className="md:col-span-2 col-span-2">
+          <div className="lg:col-span-2 col-span-2">
             <div title={dealerTitle} className="text-center cursor-default">
               <PlayerColor player={game.dealer} settings={settings}>
-                <div className="bg-white dark:bg-stone-800 h-full flex items-center justify-center md:text-base text-xs">
+                <div className="bg-white dark:bg-stone-800 h-full flex items-center justify-center lg:text-base text-xs">
                   Dealer: {game.dealer === game.currentPlayer ? 'You' : game.dealer.name}
                 </div>
               </PlayerColor>
             </div>
           </div>
           <div
-            className={clsx('text-center md:text-base text-xs ml-1', {
-              'md:col-span-2 md:col-start-1 md:row-start-4': true
+            className={clsx('text-center lg:text-base text-xs ml-1', {
+              'lg:col-span-2 lg:col-start-1 lg:row-start-4': true
             })}
             title={aloneTitle}
           >
@@ -123,11 +123,11 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
             />
           </div>
           <div className="flex flex-col">
-            <div className="text-center md:text-base text-xs">
+            <div className="text-center lg:text-base text-xs">
               {firstRound ? 'Trump Card' : 'Select Suit'}
             </div>
             <div className="grow flex items-center">
-              <GameBorder innerClass="w-20 md:w-full" size="small">
+              <GameBorder innerClass="w-20 lg:w-full" size="small">
                 <div className="p-2 bg-green-950 flex items-center justify-center">
                   {firstRound ? (
                     <Image
@@ -145,10 +145,11 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
                     />
                   ) : (
                     <SuitSelection
-                      className="w-20 md:w-[90px]"
+                      className="w-20 lg:w-[90px]"
                       firstRound={firstRound}
                       trumpSuit={game.trump.suit}
                       onSelectionChange={handleSuitSelectionChange}
+                      getSuitName={getSuitName}
                     />
                   )}
                 </div>
@@ -156,19 +157,19 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
             </div>
           </div>
           <div className={clsx('', { '': firstRound }, { '': !firstRound })}>
-            <div className="text-center md:text-base text-xs">Hand</div>
+            <div className="text-center lg:text-base text-xs">Hand</div>
             <CardSelection playerHand={game.currentPlayer.hand} />
           </div>
           <div
-            className={clsx('flex gap-2 md:text-base text-xs text-white', {
-              'md:flex-row flex-col md:col-span-2 md:col-start-1 md:row-start-5 md:row-span-1': true
+            className={clsx('lg:h-8 flex gap-2 lg:text-base text-xs text-white', {
+              'lg:flex-row flex-col lg:col-span-2 lg:col-start-1 lg:row-start-5 lg:row-span-1': true
             })}
           >
             <button
               title={passTitle}
               onClick={() => handleBidSubmit(true)}
               className={clsx(
-                'w-full grow px-1 border border-white bg-red-950 max-w-24 md:max-w-full',
+                'w-full grow px-1 border border-white bg-red-950 max-w-24 lg:max-w-full',
                 {
                   'hover:bg-amber-100 hover:text-black': !stickTheDealer
                 },
@@ -184,7 +185,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
             <button
               title={orderTrumpTitle}
               onClick={() => handleBidSubmit(false)}
-              className="w-full grow px-1 border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 max-w-24 md:max-w-full"
+              className="w-full grow px-1 border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 max-w-24 lg:max-w-full"
               disabled={!submitEnabled}
             >
               {firstRound ? (game.dealer === game.currentPlayer ? 'Pick Up' : 'Order Up') : 'Name Suit'}
@@ -192,7 +193,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
           </div>
         </div>
         {settings.stickTheDealer && (
-          <GameWarning className="mt-1 border border-red-900">Stick the dealer enabled</GameWarning>
+          <GameWarning className="mt-2 border border-red-900">Stick the dealer enabled</GameWarning>
         )}
       </div>
     </GamePrompt>
@@ -203,14 +204,21 @@ interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   trumpSuit: Suit | undefined;
   firstRound: boolean;
   onSelectionChange: (value: string) => void;
+  getSuitName: (suit: Suit) => string;
 }
 
-function SuitSelection({ trumpSuit, firstRound, onSelectionChange, className, ...rest }: SelectionProps) {
-  const { getSuitName } = useCardSvgData();
+function SuitSelection({
+  trumpSuit,
+  firstRound,
+  onSelectionChange,
+  getSuitName,
+  className,
+  ...rest
+}: SelectionProps) {
   const suits: Suit[] = ['♠', '♣', '♥', '♦'];
 
   return (
-    <div {...rest} className={clsx(`flex flex-col gap-1 md:gap-2`, className)}>
+    <div {...rest} className={clsx(`flex flex-col gap-1 lg:gap-2`, className)}>
       {suits.map((suit) => {
         if (firstRound || trumpSuit !== suit) {
           const suitDisabled: boolean = firstRound && trumpSuit !== suit;
