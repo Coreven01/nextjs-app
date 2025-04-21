@@ -46,6 +46,7 @@ const GameMenu = ({
     const goToFullScreen = async () => {
       const nav = document.getElementById('site-top-nav');
       const navMenu = document.getElementById('nav-menu');
+      const bodyElement = document.body;
 
       try {
         if (isFullScreen && !document.fullscreenElement) {
@@ -66,6 +67,10 @@ const GameMenu = ({
         navMenu.style.zIndex = isFullScreen ? '20' : '600';
       }
 
+      if (bodyElement) {
+        bodyElement.style.overflow = isFullScreen ? 'hidden' : '';
+      }
+
       if (!eventAdded.current && showMenu) {
         document.addEventListener('click', exitMenu);
         eventAdded.current = true;
@@ -77,6 +82,7 @@ const GameMenu = ({
       return async () => {
         if (nav) nav.style.zIndex = '500';
         if (navMenu) navMenu.style.zIndex = '600';
+        if (bodyElement) bodyElement.style.overflow = '';
         //if (isFullScreen && document.fullscreenElement) await document.exitFullscreen();
         document.removeEventListener('click', exitMenu);
         eventAdded.current = false;

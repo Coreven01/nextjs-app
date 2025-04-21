@@ -62,7 +62,7 @@ const GameBorder = ({ children, className, innerClass, size = 'medium', ...rest 
     <div
       {...rest}
       className={clsx(
-        'grid grid-rows-[minmax(8px,max-content)_auto_minmax(8px,max-content)] grid-cols-[minmax(8px,max-content)_auto_minmax(8px,max-content)] relative',
+        'grid grid-rows-[minmax(8px,max-content)_auto_minmax(8px,max-content)] grid-cols-[minmax(8px,max-content)_1fr_minmax(8px,max-content)] relative',
         className
       )}
     >
@@ -74,7 +74,7 @@ const GameBorder = ({ children, className, innerClass, size = 'medium', ...rest 
       <div className="relative overflow-hidden">
         <BorderVertical location={1} values={boardVals[1]} size={sizeVal} />
       </div>
-      <div className={clsx('', innerClass, { 'bg-white dark:bg-stone-800': innerClass === undefined })}>
+      <div className={clsx(innerClass, { 'bg-white dark:bg-stone-800': innerClass === undefined })}>
         {children}
       </div>
       <div className="relative overflow-hidden">

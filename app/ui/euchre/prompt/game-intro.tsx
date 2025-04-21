@@ -16,15 +16,10 @@ const GameIntro = ({ className, onBegin, onSettings }: DivProps) => {
   }, []);
 
   return (
-    <div
-      className={clsx(
-        'flex lg:h-[85vh] lg:w-[85vh] lg:min-h-[25vh] min-h-[50vh] w-full bg-stone-900 bg-opacity-50 lg:max-h-64',
-        className
-      )}
-    >
-      <div className="grow flex flex-col items-center justify-center">
-        <div className="flex items-center grow w-full">
-          <div className="relative grow flex justify-center bg-neutral-700 border-t border-b border-white p-2 text-center text-5xl">
+    <div className={clsx('flex lg:min-w-[30svw] lg:min-h-64 min-h-32', className)}>
+      <div className="flex grow flex-col items-center justify-center">
+        <div className="flex grow items-center w-full">
+          <div className="grow flex justify-center bg-neutral-700 border-t border-b border-white p-2 text-center text-5xl">
             <motion.div
               ref={titleElement}
               initial={{ opacity: 0 }}

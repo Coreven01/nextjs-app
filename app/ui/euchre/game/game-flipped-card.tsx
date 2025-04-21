@@ -17,7 +17,7 @@ const GameFlippedCard = ({ card, cardState }: Props) => {
   return (
     <motion.div className={clsx('lg:relative lg:right-auto lg:top-auto absolute -right-16 -top-8')}>
       <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
-        <div className="p-2 bg-green-950 flex items-center justify-center">
+        <div className="lg:p-2 p-1 bg-green-950 flex items-center justify-center">
           <GameCard
             cardState={cardState}
             className="lg:h-[125px] md:h-[115px] h-[95px]"

@@ -193,7 +193,9 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
           </div>
         </div>
         {settings.stickTheDealer && (
-          <GameWarning className="mt-2 border border-red-900">Stick the dealer enabled</GameWarning>
+          <GameWarning className="mt-2 border border-red-900 lg:text-base text-xs">
+            Stick the dealer enabled
+          </GameWarning>
         )}
       </div>
     </GamePrompt>

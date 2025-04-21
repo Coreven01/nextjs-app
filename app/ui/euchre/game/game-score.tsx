@@ -30,7 +30,7 @@ const GameScore = ({ children, className, game, settings, showScore, ...rest }: 
   return (
     <Draggable
       grid={[15, 15]}
-      defaultClassName={`absolute z-10 ${className}`}
+      defaultClassName={`absolute z-40 ${className}`}
       nodeRef={draggableRef}
       onDrag={handleDrag}
     >

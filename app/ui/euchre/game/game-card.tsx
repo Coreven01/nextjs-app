@@ -1,4 +1,10 @@
-import { Card, EuchrePlayer, GameSpeed } from '@/app/lib/euchre/definitions';
+import {
+  Card,
+  EuchrePlayer,
+  GameSpeed,
+  RESPONSE_CARD_CENTER,
+  RESPONSE_CARD_SIDE
+} from '@/app/lib/euchre/definitions';
 import React, { CSSProperties, forwardRef, PropsWithoutRef, useCallback, useRef } from 'react';
 import { motion, TargetAndTransition } from 'framer-motion';
 import clsx from 'clsx';
@@ -48,8 +54,6 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     const actionsRun = useRef<EuchreGameFlow[]>([]);
     const sidePlayer = player && player.team === 2;
     const duration: number = (gameSpeedMs ?? 1000) / 1000;
-    const responsiveCardSizeCenter = 'lg:h-[125px] md:h-[115px] h-[95px]';
-    const responsiveCardSizeSide = 'lg:w-[125px] md:w-[115px] w-[95px]';
     const cssValues: CSSProperties = {};
     const initSpringValue = cardState.initSprungValue
       ? { ...cardState.initSprungValue, transition: { rotateY: { duration: 0 }, rotateX: { duration: 0 } } }
@@ -102,7 +106,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       <motion.div
         className={clsx(
           'pointer-events-none',
-          sidePlayer ? responsiveCardSizeSide : responsiveCardSizeCenter,
+          sidePlayer ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
           className
         )}
         title={cardState.cardFullName}

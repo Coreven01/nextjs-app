@@ -71,10 +71,10 @@ export default function HandResult({ game, settings, handResult, className, ...r
               <div className="bg-stone-800 p-1 text-center">{pointsDisplay}</div>
             </PlayerColor>
           </div>
-          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white lg:p-1`}>
+          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white p-1`}>
             Went Alone: {handResult.loner ? 'Yes' : 'No'}
           </div>
-          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white lg:p-1`}>
+          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white p-1`}>
             Trump:{' '}
             <span
               title={`${getSuitName(handResult.trump.suit)}s`}
@@ -83,7 +83,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
               {handResult.trump.suit}
             </span>
           </div>
-          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white lg:p-1`}>
+          <div className={`${BASE_CLASS} lg:text-base text-xs border dark:border-white p-1`}>
             Named By Suit: {handResult.turnedDown !== null ? 'Yes' : 'No'}
           </div>
         </div>

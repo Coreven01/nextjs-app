@@ -3,6 +3,7 @@ import { RefObject, useEffect, useRef } from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
 import GameBorder from './game-border';
 import { GameEvent } from '@/app/hooks/euchre/useEventLog';
+import PromptHeader from '../prompt/prompt-header';
 
 interface Props {
   className?: string;
@@ -38,10 +39,13 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       defaultClassName={clsx('absolute', className)}
       nodeRef={draggableRef}
     >
-      <div ref={draggableRef} className="cursor-move flex w-[600px]" style={{ zIndex: 1000 }}>
-        <GameBorder className="w-full relative">
-          <h2 className="text-yellow-200 font-bold text-center">Events</h2>
-          <div ref={divRef} className="p-2 border border-white m-1 h-[300px] overflow-y-auto text-sm">
+      <div ref={draggableRef} className="cursor-move flex" style={{ zIndex: 1000 }}>
+        <GameBorder className="relative" innerClass=" lg:w-[600px] w-[500px] bg-stone-900">
+          <PromptHeader>Events</PromptHeader>
+          <div
+            ref={divRef}
+            className="p-2 border border-white m-1 overflow-y-auto lg:text-base text-xs h-[200px] lg:h-[400px]"
+          >
             <ul>
               {events.map((e) => {
                 return (
@@ -52,11 +56,11 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
               })}
             </ul>
           </div>
-          <div className="flex gap-2 items-center justify-center mb-1">
-            <button className="text-white border border-white lg:p-2 p-1" onClick={handleClear}>
+          <div className="flex gap-2 items-center justify-center m-1 mt-2 lg:text-base text-xs">
+            <button className="text-white border border-white lg:p-2 p-1 grow" onClick={handleClear}>
               Clear
             </button>
-            <button className="text-white border border-white lg:p-2 p-1" onClick={handleClose}>
+            <button className="text-white border border-white lg:p-2 p-1 grow" onClick={handleClose}>
               Close
             </button>
           </div>

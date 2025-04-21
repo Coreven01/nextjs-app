@@ -7,6 +7,7 @@ import GameBorder from '../game/game-border';
 import CardSelection from './card-selection';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import useCardData from '@/app/hooks/euchre/data/useCardData';
+import PromptHeader from './prompt-header';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   pickedUpCard: Card;
@@ -43,17 +44,17 @@ export default function DiscardPrompt({
 
   return (
     <GamePrompt {...rest} zIndex={50} className={clsx('bg-green-950', className)}>
-      <div className="bg-stone-900 p-2">
-        <div className="grid grid-rows-[28px,1fr,auto] grid-cols-[130px,100px] gap-1">
+      <div className="bg-stone-900 p-1">
+        <div className="grid grid-rows-[28px,1fr,auto] grid-cols-[auto,100px] gap-1">
           <div
             title={`Choose which card to discard`}
             className="flex items-center justify-center col-span-2 cursor-default"
           >
-            <h2 className="text-yellow-200 font-bold">Choose Discard</h2>
+            <PromptHeader>Choose Discard</PromptHeader>
           </div>
           <div>
-            <div className="mb-2 text-center">Picked up card</div>
-            <GameBorder>
+            <div className="mb-2 text-center lg:text-base text-xs">Picked up card</div>
+            <GameBorder innerClass="w-20 lg:w-full" size="small">
               <div className="p-2 bg-green-950 flex items-center justify-center">
                 <Image
                   className={`contain row-span-1 col-span-1`}
@@ -63,6 +64,10 @@ export default function DiscardPrompt({
                   src={getEncodedCardSvg(pickedUpCard, 'center')}
                   alt={getCardFullName(pickedUpCard)}
                   title={getCardFullName(pickedUpCard)}
+                  style={{
+                    width: '100%',
+                    height: 'auto'
+                  }}
                 />
               </div>
             </GameBorder>
@@ -74,7 +79,7 @@ export default function DiscardPrompt({
 
           <button
             onClick={() => handleDiscardSubmit()}
-            className="h-8 col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 lg:text-base text-xs"
+            className="h-6 col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 lg:text-base text-xs"
             disabled={!submitEnabled}
           >
             Discard Selected

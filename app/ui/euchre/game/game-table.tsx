@@ -10,7 +10,7 @@ import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
 
-interface Props {
+interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
   gameFlow: EuchreGameFlowState;
   playerNotification: PlayerNotificationState;
@@ -27,7 +27,8 @@ const GameTable = ({
   player1TableRef,
   player2TableRef,
   player3TableRef,
-  player4TableRef
+  player4TableRef,
+  ...rest
 }: Props) => {
   const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
   const isDebugMode = true; // env.REACT_APP_DEBUG === 'true';
@@ -61,9 +62,12 @@ const GameTable = ({
   };
 
   return (
-    <GameBorder innerClass="bg-yellow-800 relative" className="shadow-md shadow-black">
+    <GameBorder innerClass="bg-yellow-800 relative" className="h-full shadow-md shadow-black">
       <WoodenBoard className="absolute h-full w-full top-0 left-0 overflow-hidden" rows={25} />
-      <div className="grid grid-flow-col grid-rows-[minmax(75px,1fr)_minmax(50px,auto)_minmax(50px,auto)] lg:grid-rows-[150px,150px,150px] grid-cols-[33%,33%,33%] lg:grid-cols-[1fr,175px,1fr] gap-1 text-black ">
+      <div
+        className="h-full grid grid-flow-col grid-rows-[minmax(25px,1fr)_50px_minmax(25px,1fr)] grid-cols-[33%,33%,33%] lg:grid-rows-[150px,150px,150px] lg:grid-cols-[1fr,175px,1fr] gap-1 text-black"
+        {...rest}
+      >
         <div id="player2-region" className="col-span-1 col-start-2 relative flex justify-center items-center">
           <div id={`game-base-2`} className={clsx(`absolute top-0`, { 'text-transparent': !isDebugMode })}>
             X

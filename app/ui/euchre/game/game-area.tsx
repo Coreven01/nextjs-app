@@ -70,7 +70,8 @@ const GameArea = ({
   onInitDeal,
   onRegularDeal,
   onTrickComplete,
-  onPassDeal
+  onPassDeal,
+  ...rest
 }: Props) => {
   const player1TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
   const player2TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
@@ -80,9 +81,10 @@ const GameArea = ({
   return (
     <div
       className={clsx(
-        `grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,auto)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,600px)_minmax(50px,auto)] lg:grid-rows-[120px,1fr,120px] lg:grid-cols-[120px_minmax(60%,600px)_120px]`,
+        `h-full grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,1fr)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,80%)_minmax(50px,auto)] lg:grid-rows-[120px,1fr,120px] lg:grid-cols-[120px_minmax(60%,600px)_120px]`,
         className
       )}
+      {...rest}
     >
       <GameMenu
         isFullScreen={isFullScreen}
@@ -97,6 +99,7 @@ const GameArea = ({
       />
       <div className="col-start-2 row-start-2 col-span-1 row-span-1">
         <GameTable
+          id="euchre-game-table"
           game={game}
           gameFlow={gameFlow}
           playerNotification={playerNotification}
@@ -107,6 +110,7 @@ const GameArea = ({
         />
       </div>
       <PlayerArea
+        id="euchre-player-area"
         key={game.handId}
         game={game}
         gameFlow={gameFlow}

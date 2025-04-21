@@ -8,7 +8,7 @@ import { RefObject, useRef } from 'react';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 //import { env } from 'node:process';
 
-type Props = {
+interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
   game: EuchreGameInstance;
   gameFlow: EuchreGameFlowState;
@@ -24,7 +24,7 @@ type Props = {
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onPassDeal: () => void;
-};
+}
 
 export default function PlayerGameDeck({
   player,
@@ -41,7 +41,8 @@ export default function PlayerGameDeck({
   onInitDeal,
   onRegularDeal,
   onTrickComplete,
-  onPassDeal
+  onPassDeal,
+  ...rest
 }: Props) {
   const { playerLocation } = usePlayerData();
   const isDebugMode = true; //env.REACT_APP_DEBUG === 'true';
@@ -60,27 +61,28 @@ export default function PlayerGameDeck({
 
   switch (player.playerNumber) {
     case 1:
-      playerInfoOuterClass = 'md:w-auto md:right-8';
-      playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 bottom-4 md:min-w-32';
+      playerInfoOuterClass = 'lg:w-auto lg:right-8';
+      playerInfoInnerClass = 'lg:relative lg:-right-4 lg:left-0 lg:bottom-0 lg:min-w-32 right-0 bottom-0 ';
       playerHandClass = 'grow flex relative justify-center';
       break;
     case 2:
-      playerInfoOuterClass = 'md:w-auto md:right-16';
-      playerInfoInnerClass = 'md:relative md:-right-4 md:left-0 md:bottom-0 right-16 -bottom-8 md:min-w-32';
+      playerInfoOuterClass = 'lg:w-auto lg:right-16';
+      playerInfoInnerClass =
+        'lg:relative lg:-right-4 lg:left-0 lg:bottom-0 lg:top-auto lg:min-w-32 -right-16 top-0 ';
       playerHandClass = 'grow flex relative justify-center';
       break;
     case 3:
-      playerInfoInnerClass = 'md:top-[-100px] md:left-0 md:min-w-32';
+      playerInfoInnerClass = 'lg:top-[-50px] lg:left-0 lg:min-w-32 -top-16';
       playerHandClass = 'flex flex-col grow relative justify-center h-full';
       break;
     case 4:
-      playerInfoInnerClass = 'md:top-[-100px] md:right-0 md:min-w-32';
+      playerInfoInnerClass = 'lg:top-[-50px] lg:right-0 lg:min-w-32 -top-16 right-0';
       playerHandClass = 'flex flex-col grow relative justify-center items-end h-full';
       break;
   }
 
   const playerInfo = gameFlow.hasGameStarted && player.hand.length > 0 && (
-    <div className={clsx('relative md:text-sm text-xs whitespace-nowrap z-20', playerInfoOuterClass)}>
+    <div className={clsx('relative lg:text-sm text-xs whitespace-nowrap z-40', playerInfoOuterClass)}>
       <div className={clsx('absolute', playerInfoInnerClass)}>
         <PlayerInfo
           id={`player-info-${player.playerNumber}`}
@@ -94,7 +96,7 @@ export default function PlayerGameDeck({
 
   return (
     <>
-      <div id={`player-hand-${player.playerNumber}`} className={playerHandClass}>
+      <div className={playerHandClass} {...rest}>
         <PlayerHand
           game={game}
           gameSettings={gameSettings}

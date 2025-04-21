@@ -139,7 +139,7 @@ export default function EuchreGame() {
   );
 
   const renderIntro = !showSettings && promptValue.find((v) => v.type === PromptType.INTRO) && (
-    <GamePrompt zIndex={90}>
+    <GamePrompt innerClass="bg-green-300 bg-opacity-10" id="euchre-game-intro" zIndex={90}>
       <GameIntro onBegin={handleBeginNewGame} onSettings={handleShowSettings} />
     </GamePrompt>
   );
@@ -216,9 +216,12 @@ export default function EuchreGame() {
           inter.className
         )}
       >
-        <GameBorder className={clsx('w-full lg:w-auto lg:h-auto overflow-auto', { 'm-auto': !showEvents })}>
+        <GameBorder
+          className={clsx('w-full lg:w-auto lg:h-auto overflow-auto h-screen', { 'm-auto': !showEvents })}
+        >
           <div className={`${SECTION_STYLE} lg:m-1 lg:h-auto grow relative bg-[url(/felt1.png)] h-full`}>
             <GameArea
+              id="euchre-game-area"
               game={euchreGame}
               gameAnimation={gameAnimationFlow}
               gameFlow={gameFlow}

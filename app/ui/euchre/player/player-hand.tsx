@@ -98,6 +98,8 @@ const PlayerHand = ({
         key={`dummy-${i}`}
         width={width}
         height={height}
+        responsive={true}
+        team={player.team}
       ></DummyCard>
     );
   }
@@ -154,16 +156,16 @@ const getCardClassForPlayerLocation = (player: EuchrePlayer, includePosition: bo
 
   switch (player.playerNumber) {
     case 1:
-      retval = `${includePosition ? 'left-[35%]' : ''}`;
+      retval = `${includePosition ? 'left-[35%] lg:top-auto top-4' : ''}`;
       break;
     case 2:
-      retval = `${includePosition ? 'left-[30%]' : ''}`;
+      retval = `${includePosition ? 'lg:left-[30%] lg:top-auto -top-12 left-[45%]' : ''}`;
       break;
     case 3:
-      retval = ``;
+      retval = `${includePosition ? 'lg:left-auto lg:top-auto top-[35%] -left-12' : ''}`;
       break;
     case 4:
-      retval = ``;
+      retval = `${includePosition ? 'lg:right-auto lg:top-auto top-[35%] -right-12' : ''}`;
       break;
   }
 

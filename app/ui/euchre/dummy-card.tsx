@@ -1,18 +1,17 @@
 import React, { CSSProperties } from 'react';
 import clsx from 'clsx';
 import Image from 'next/image';
+import { RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '../../lib/euchre/definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   width: number;
   height: number;
-  team?: number;
+  team: number;
   responsive?: boolean;
 }
 const DummyCard = ({ width, height, team, responsive, className, ...rest }: Props) => {
   const sidePlayer = team && team === 2;
   const cssValues: CSSProperties = {};
-  const responsiveCardSizeCenter = 'lg:h-[125px] md:h-[115px] h-[95px]';
-  const responsiveCardSizeSide = 'lg:w-[125px] md:w-[115px] w-[95px]';
 
   if (responsive) {
     cssValues.width = '100%';
@@ -28,7 +27,7 @@ const DummyCard = ({ width, height, team, responsive, className, ...rest }: Prop
     <div
       className={clsx(
         'pointer-events-none invisible',
-        sidePlayer ? responsiveCardSizeSide : responsiveCardSizeCenter,
+        sidePlayer ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
         className
       )}
       {...rest}

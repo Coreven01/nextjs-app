@@ -51,6 +51,8 @@ export type PromptValue = {
   type: PromptType;
 };
 
+export const RESPONSE_CARD_CENTER = 'lg:h-[125px] md:h-[115px] sm:h-[95px] h-[75px]';
+export const RESPONSE_CARD_SIDE = 'lg:w-[125px] md:w-[115px] sm:w-[95px] w-[75px]';
 export const MINIMUM_NOTIFICATION_SPEED = 1000;
 export const AVAILABLE_GAME_SPEED: GameSpeed[] = [150, 300, 700, 1000, 2000, 3000, 4000];
 export const AVAILABLE_SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
