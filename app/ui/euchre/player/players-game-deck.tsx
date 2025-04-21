@@ -17,8 +17,13 @@ type Props = {
   dealDeck: Card[];
   playedCard: Card | null;
   playerTableRef: RefObject<HTMLDivElement>;
-  onCardClick: (card: Card) => void;
-  onBeginComplete: () => void;
+  deckRef: RefObject<HTMLDivElement>;
+  playersDeckRef: Map<number, RefObject<HTMLDivElement>>;
+  onInitDeal: () => void;
+  onRegularDeal: () => void;
+  onCardPlayed: (card: Card) => void;
+  onTrickComplete: (card: Card) => void;
+  onPassDeal: () => void;
 };
 
 export default function PlayerGameDeck({
@@ -30,17 +35,24 @@ export default function PlayerGameDeck({
   dealDeck,
   playedCard,
   playerTableRef,
-  onCardClick,
-  onBeginComplete
+  deckRef,
+  playersDeckRef,
+  onCardPlayed,
+  onInitDeal,
+  onRegularDeal,
+  onTrickComplete,
+  onPassDeal
 }: Props) {
-  const deckRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
   const { playerLocation } = usePlayerData();
-  const isDebugMode = false; //env.REACT_APP_DEBUG === 'true';
+  const isDebugMode = true; //env.REACT_APP_DEBUG === 'true';
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
+  const positionCenterInner = `absolute ${playerNumber === 1 ? 'bottom-0' : 'top-0'}`;
+  const positionSideInner = `absolute ${playerNumber === 3 ? 'left-0' : 'right-0'}`;
   const location = playerLocation(player);
   const position = location === 'center' ? positionCenter : positionSide;
+  const positionInner = location === 'center' ? positionCenterInner : positionSideInner;
 
   let playerInfoOuterClass = '';
   let playerInfoInnerClass = '';
@@ -90,14 +102,25 @@ export default function PlayerGameDeck({
           gameAnimation={gameAnimation}
           player={player}
           playedCard={playedCard}
-          onCardClick={onCardClick}
-          onBeginComplete={onBeginComplete}
+          onCardPlayed={onCardPlayed}
+          onInitDeal={onInitDeal}
+          onRegularDeal={onRegularDeal}
+          onTrickComplete={onTrickComplete}
+          onPassDeal={onPassDeal}
           deckRef={deckRef}
           playerTableRef={playerTableRef}
+          playersDeckRef={playersDeckRef}
         />
         <div
           id={`player-base-${playerNumber}`}
           className={clsx(position, { 'text-transparent': !isDebugMode })}
+        >
+          X
+        </div>
+        <div
+          ref={deckRef}
+          id={`player-deck-${playerNumber}`}
+          className={clsx(positionInner, { 'text-transparent': !isDebugMode })}
         >
           X
         </div>

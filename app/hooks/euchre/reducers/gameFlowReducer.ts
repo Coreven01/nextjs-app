@@ -33,7 +33,8 @@ export enum EuchreGameFlow {
   BEGIN_PLAY_CARD,
   END_PLAY_CARD,
   BEGIN_PLAY_CARD_RESULT,
-  END_PLAY_CARD_RESULT
+  END_PLAY_CARD_RESULT,
+  TRICK_FINISHED
 }
 
 export enum EuchreFlowActionType {

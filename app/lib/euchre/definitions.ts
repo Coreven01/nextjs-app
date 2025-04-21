@@ -200,6 +200,7 @@ export interface EuchreGameInstance {
 }
 
 export interface EuchreTrick {
+  trickId: string;
   taker: EuchrePlayer | null;
   cardsPlayed: EuchreCard[];
   playerSittingOut: EuchreCard | null;

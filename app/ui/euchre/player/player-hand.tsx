@@ -1,6 +1,6 @@
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
-import { RefObject } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
 import DummyCard from '../dummy-card';
@@ -16,8 +16,12 @@ type Props = {
   playedCard: Card | null;
   deckRef: RefObject<HTMLDivElement>;
   playerTableRef: RefObject<HTMLDivElement>;
-  onCardClick: (card: Card) => void;
-  onBeginComplete: () => void;
+  playersDeckRef: Map<number, RefObject<HTMLDivElement>>;
+  onInitDeal: () => void;
+  onRegularDeal: () => void;
+  onCardPlayed: (card: Card) => void;
+  onTrickComplete: (card: Card) => void;
+  onPassDeal: () => void;
 };
 
 const PlayerHand = ({
@@ -29,32 +33,56 @@ const PlayerHand = ({
   playedCard,
   deckRef,
   playerTableRef,
-  onCardClick,
-  onBeginComplete
+  playersDeckRef,
+  onCardPlayed,
+  onInitDeal,
+  onRegularDeal,
+  onTrickComplete,
+  onPassDeal
 }: Props) => {
   //#region Hooks
   // used to keep the card visible after it's been played for the current trick.
   const {
     cardsDealtRef,
-    cardsPlayedRef,
+    cardPlayedForTrickRef,
     cardRefs,
     handState,
     cardStates,
     getCardsAvailableIfFollowSuit,
     getCardsToDisplay,
-    playCard,
+    handlePlayCardAnimation,
     cardEqual,
     playerEqual,
     playerLocation,
     getDisplayWidth,
     getDisplayHeight
-  } = useCardState(game, gameFlow, gameSettings, gameAnimation, player, onBeginComplete);
+  } = useCardState(
+    game,
+    gameFlow,
+    gameSettings,
+    gameAnimation,
+    player,
+    playersDeckRef,
+    onInitDeal,
+    onRegularDeal,
+    onTrickComplete,
+    onPassDeal,
+    onCardPlayed
+  );
+  const cardIndicesPlayed = useRef<number[]>([]);
 
-  const cardClickEnabled =
-    playerEqual(game.currentPlayer, player) && gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT;
+  useEffect(() => {
+    if (playedCard && !cardIndicesPlayed.current.includes(playedCard.index)) {
+      cardIndicesPlayed.current.push(playedCard.index);
+      console.log('[useEffect] [handlePlayCardAnimation], played card: ', playedCard);
+      handlePlayCardAnimation(playedCard.index, playerTableRef.current);
+    }
+  }, [handlePlayCardAnimation, playedCard, playerTableRef]);
 
   //#endregion
 
+  const cardClickEnabled =
+    playerEqual(game.currentPlayer, player) && gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT;
   const gameCards: React.ReactNode[] = [];
   const cardsAvailableForFollowSuit: Card[] = getCardsAvailableIfFollowSuit();
   const playerCurrentHand: Card[] = getCardsToDisplay();
@@ -74,17 +102,12 @@ const PlayerHand = ({
     );
   }
 
-  /** Sets the animation for the card to be played. On the callback when the animation is finished is when the state is updated with
-   * the card that was played.
-   */
   const handleCardClick = (cardIndex: number) => {
-    const currentState = cardStates.find((c) => c.cardIndex === cardIndex);
-    const cardRef = cardRefs.current.get(cardIndex);
-
-    if (!currentState || !cardRef?.current) throw new Error('Invalid card state - handle card click');
-
-    playCard(cardIndex, cardRef.current, playerTableRef.current, currentState.rotation ?? 0);
-    console.log('card played: ', cardIndex, ' player: ', player.name);
+    console.log('[handleCardClick] [handler]- player-hand.tsx');
+    if (!cardIndicesPlayed.current.includes(cardIndex)) {
+      cardIndicesPlayed.current.push(cardIndex);
+      handlePlayCardAnimation(cardIndex, playerTableRef.current);
+    }
   };
 
   return (
@@ -93,11 +116,8 @@ const PlayerHand = ({
       {cardsDealtRef.current &&
         handState &&
         playerCurrentHand.map((card) => {
-          const keyval = `${game.dealPassedCount}-${game.currentRound}-${player.playerNumber}-${card.index}`;
+          const keyval = `${card.index}`;
           const isAvailableToBePlayedForFollowSuit: boolean = cardsAvailableForFollowSuit.includes(card);
-          const shouldAutoPlayCard: boolean =
-            (playedCard !== null && cardEqual(card, playedCard)) ||
-            cardsPlayedRef.current.find((c) => cardEqual(c, card)) !== undefined;
           const cardState = cardStates.find((s) => s.cardIndex === card.index);
           const cardRef = cardRefs.current.get(card.index);
 
@@ -111,14 +131,15 @@ const PlayerHand = ({
               card={card}
               cardState={cardState}
               player={player}
-              playCard={shouldAutoPlayCard}
-              onCardClick={isAvailableToBePlayedForFollowSuit ? handleCardClick : undefined}
-              onCardPlayed={onCardClick}
+              runAnimationCompleteEffect={cardState.runEffectForState}
               ref={cardRef}
               width={handState.width}
               height={handState.height}
               responsive={true}
-              enableCardClickEvent={cardClickEnabled}
+              onCardClick={
+                cardClickEnabled && isAvailableToBePlayedForFollowSuit ? handleCardClick : undefined
+              }
+              onAnimationComplete={handState.onCardPlayedComplete}
             />
           );
         })}

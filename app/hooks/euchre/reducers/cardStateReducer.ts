@@ -1,5 +1,6 @@
-import { EuchrePlayer, GameSpeed } from '../../../lib/euchre/definitions';
-import { CardSprungTarget } from '../data/useCardTransform';
+import { Card, EuchrePlayer, GameSpeed } from '../../../lib/euchre/definitions';
+import { CardSpringTarget } from '../data/useCardTransform';
+import { EuchreGameFlow } from './gameFlowReducer';
 
 export interface PlayerHandState {
   width: number;
@@ -11,19 +12,26 @@ export interface PlayerHandState {
   shouldShowCardImage?: boolean;
   player?: EuchrePlayer;
   responsive?: boolean;
+
+  /** Used to identify which state is being updated, and to prevent the state from being updated more than once. */
+  stateEffect?: EuchreGameFlow;
+
+  /** Function that's to be executed once a card/hand effect is complete. */
+  onCardPlayedComplete: (card: Card) => void;
 }
 
 export interface CardState {
   cardIndex: number;
   src: string;
   cardFullName: string;
-  initSprungValue?: CardSprungTarget;
-  springValue?: CardSprungTarget;
+  initSprungValue?: CardSpringTarget;
+  springValue?: CardSpringTarget;
   xDamping?: number;
   xStiffness?: number;
   yDamping?: number;
   yStiffness?: number;
   rotation?: number;
+  runEffectForState?: EuchreGameFlow;
 }
 
 export interface PlayCardStateActionAction {

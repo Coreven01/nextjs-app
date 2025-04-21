@@ -19,13 +19,34 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   showScore: boolean;
   playerNotification: PlayerNotificationState;
   playedCard: Card | null;
+
+  /** Toggle back and forth between fullscreen and main layout. */
   onToggleFullscreen: (value: boolean) => void;
+
+  /** Toggle events visibility panel. */
   onToggleEvents: (value: boolean) => void;
   onSettingsToggle: (e: boolean) => void;
+
+  /** Toggle visibility of the score panel */
   onScoreToggle: (e: boolean) => void;
-  onCardPlayed: (card: Card) => void;
+
+  /** Player canceled game play. */
   onCancel: () => void;
-  onBeginComplete: () => void;
+
+  /** Deal to determine initial dealer */
+  onInitDeal: () => void;
+
+  /** Deal cards for regular play */
+  onRegularDeal: () => void;
+
+  /** Card played during the player's turn */
+  onCardPlayed: (card: Card) => void;
+
+  /** Trick complete to set cards to winner of the trick. */
+  onTrickComplete: () => void;
+
+  /** Deal passed to the next player. */
+  onPassDeal: () => void;
 }
 
 const GameArea = ({
@@ -46,7 +67,10 @@ const GameArea = ({
   onScoreToggle,
   onCardPlayed,
   onCancel,
-  onBeginComplete
+  onInitDeal,
+  onRegularDeal,
+  onTrickComplete,
+  onPassDeal
 }: Props) => {
   const player1TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
   const player2TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
@@ -83,7 +107,7 @@ const GameArea = ({
         />
       </div>
       <PlayerArea
-        key={`${game.dealPassedCount}-${game.currentRound}`}
+        key={game.handId}
         game={game}
         gameFlow={gameFlow}
         gameSettings={gameSettings}
@@ -94,7 +118,10 @@ const GameArea = ({
         player3TableRef={player3TableRef}
         player4TableRef={player4TableRef}
         onCardPlayed={onCardPlayed}
-        onBeginComplete={onBeginComplete}
+        onInitDeal={onInitDeal}
+        onRegularDeal={onRegularDeal}
+        onTrickComplete={onTrickComplete}
+        onPassDeal={onPassDeal}
         className="col-start-1 row-start-1 col-span-3 row-span-3"
       ></PlayerArea>
     </div>

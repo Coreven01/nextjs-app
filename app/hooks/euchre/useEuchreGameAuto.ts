@@ -82,6 +82,7 @@ export default function useEuchreGameAuto() {
 
           if (gameFlow.hasSecondBiddingPassed) {
             allPassed = true;
+            newGame.dealPassedCount += 1;
           } else {
             const rotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
             newGame.currentPlayer = rotation[0];

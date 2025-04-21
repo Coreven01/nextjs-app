@@ -1,4 +1,3 @@
-import { CardTransformation } from '@/app/hooks/euchre/useMoveCard';
 import {
   Card,
   EuchreGameInstance,
@@ -34,6 +33,7 @@ const useGameSetupLogic = () => {
 
   const createTrick = (round: number): EuchreTrick => {
     return {
+      trickId: uuidv4(),
       taker: null,
       cardsPlayed: [],
       playerSittingOut: null,
@@ -137,8 +137,6 @@ const useGameSetupLogic = () => {
   /** Initialize the game with shuffled deck and set player 1 for deal. */
   const initDeckForInitialDeal = useCallback(
     (gameSettings: EuchreSettings, cancel: boolean): EuchreGameInstance => {
-      logDebugError('Init deck for init deal');
-
       const gameInstance: EuchreGameInstance = createEuchreGame(gameSettings);
 
       if (cancel) return gameInstance;
@@ -157,8 +155,6 @@ const useGameSetupLogic = () => {
    */
   const dealCardsForNewDealer = useCallback(
     (game: EuchreGameInstance): InitDealResult => {
-      if (!game) throw Error('Game not found.');
-
       let counter: number = 0;
       const gameDeck: Card[] = game.deck;
       const rotation: EuchrePlayer[] = getPlayerRotation(game.gamePlayers, game.dealer);
@@ -195,8 +191,6 @@ const useGameSetupLogic = () => {
       if (!gameState.hasGameStarted) return null;
 
       const newGame: EuchreGameInstance = { ...gameInstance };
-
-      if (!newGame?.deck) throw Error('Game deck not found.');
       let newDealerResult: InitDealResult;
 
       if (replayGameInstance === null) {
@@ -251,6 +245,7 @@ const useGameSetupLogic = () => {
       }
 
       if (difficulty === 'novice' && replayHand === undefined) {
+        // if AI players have a strong start for 'novice' difficulty, then re-deal until limit is reached.
         const computerIsDealer = newGame.dealer.team === 2;
         const player3SuitCount = getSuitCount(newGame.player3.hand, newGame.trump);
         const player4SuitCount = getSuitCount(newGame.player4.hand, newGame.trump);

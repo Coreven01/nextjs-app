@@ -1,4 +1,13 @@
-import { ActionDispatch, Dispatch, SetStateAction, useCallback, useMemo, useReducer, useState } from 'react';
+import {
+  ActionDispatch,
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useReducer,
+  useRef,
+  useState
+} from 'react';
 import {
   initialPlayerNotification,
   PlayerNotificationAction,
@@ -42,16 +51,42 @@ import useGamePlayLogic from './logic/useGamePlayLogic';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 
 export type EuchreGameState = {
+  /** Instance of information regarding the current euchre game being played. */
   euchreGame: EuchreGameInstance;
+
+  /** Instance of a game that should be attempted to be replayed. The intent is to re-deal the same cards to the
+   * same players with the same trump card turned up. The player will have a chance to make a different decision during
+   * play that may change the outcome.
+   */
   euchreReplayGame: EuchreGameInstance | null;
+
+  /** Game state used to indicate how the game is to proceed. Used when determine what to do next during game play.
+   */
   euchreGameFlow: EuchreGameFlowState;
+
+  /** Settings/preferences that can be set by the user such as difficulty and game speed. */
   euchreSettings: EuchreSettings;
+
+  /** The card that was selected to be played either automatically or for the AI. */
   playedCard: Card | null;
+
+  /** The resulting information from the bidding processes used by AI. */
   bidResult: BidResult | null;
   playerNotification: PlayerNotificationState;
+
+  /** Game state used to indicate when to pause/delay for player notification, or for animation.
+   */
   euchreAnimationFlow: EuchreAnimationState;
+
+  /** A value to indicate which prompt is present during the game. The initial intent was the possibilty that more than one
+   * prompt could be present.
+   */
   prompValue: PromptValue[];
+
+  /** Boolean value to indicate that the user pressed the cancel button. */
   shouldCancel: boolean;
+
+  // the following are methods/functions used to update state.
   setEuchreGame: Dispatch<SetStateAction<EuchreGameInstance>>;
   setEuchreSettings: Dispatch<SetStateAction<EuchreSettings>>;
   setPromptValue: Dispatch<SetStateAction<PromptValue[]>>;
@@ -61,7 +96,11 @@ export type EuchreGameState = {
   dispatchPlayerNotification: ActionDispatch<[action: PlayerNotificationAction]>;
   dispatchGameFlow: ActionDispatch<[action: GameFlowAction]>;
   dispatchGameAnimationFlow: ActionDispatch<[action: EuchreAnimationAction]>;
+
+  /** The method that should be called if the user attempted to cancel the game. */
   onCancel: () => void;
+
+  /** Add an event. Used for debugging or for reference to see what happened during game play. */
   addEvent: (e: GameEvent) => void;
 };
 
@@ -172,7 +211,10 @@ export default function useEuchreGame() {
   const { handleShuffleAndDealComplete } = useEuchreGameShuffle(gameState, gameErrorState);
   const { handleBidSubmit } = useEuchreGameBid(gameState, gameErrorState, reset);
   const { handleDiscardSubmit } = useEuchreGameOrder(gameState, gameErrorState);
-  const { handleCardPlayed, handleCloseHandResults } = useEuchreGamePlay(gameState, gameErrorState);
+  const { handleCardPlayed, handleCloseHandResults, handleTrickFinished } = useEuchreGamePlay(
+    gameState,
+    gameErrorState
+  );
 
   //#region Other Handlers *************************************************************************
 
@@ -244,6 +286,7 @@ export default function useEuchreGame() {
     handleCancelAndReset,
     handleReplayGame,
     handleAttemptToRecover,
-    handleShuffleAndDealComplete
+    handleShuffleAndDealComplete,
+    handleTrickFinished
   };
 }

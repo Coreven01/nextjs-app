@@ -46,7 +46,8 @@ export default function EuchreGame() {
     handleCancelAndReset,
     handleReplayGame,
     handleAttemptToRecover,
-    handleShuffleAndDealComplete
+    handleShuffleAndDealComplete,
+    handleTrickFinished
   } = useEuchreGame();
 
   const {
@@ -81,11 +82,6 @@ export default function EuchreGame() {
     setFullGameInstance(game);
   };
 
-  const handleRunFullGameAnimation = () => {
-    const game = runFullGame(euchreSettings);
-    setFullGameInstance(game);
-  };
-
   const handleRunFullGameLoop = () => {
     const game = runFullGameLoop(100, euchreSettings);
     setFullGameInstance(game);
@@ -103,7 +99,7 @@ export default function EuchreGame() {
   const handleBeginReplayGame = (gameToReplay: EuchreGameInstance) => {
     setFullGameInstance(null);
     toggleSettings(false);
-    handleReplayGame(gameToReplay);
+    handleReplayGame({ ...gameToReplay });
   };
 
   const handleShowSettings = () => {
@@ -130,14 +126,16 @@ export default function EuchreGame() {
   );
 
   const renderSettings = showSettings && (
-    <GameSettings
-      key={euchreGame !== null ? 'modal' : 'init'}
-      settings={euchreSettings}
-      onReturn={handleStartNewGame}
-      onApplySettings={changeSettings}
-      onRunFullGame={handleRunFullGame}
-      onRunFullGameLoop={handleRunFullGameLoop}
-    />
+    <GamePrompt zIndex={90}>
+      <GameSettings
+        key={euchreGame !== null ? 'modal' : 'init'}
+        settings={euchreSettings}
+        onReturn={handleStartNewGame}
+        onApplySettings={changeSettings}
+        onRunFullGame={handleRunFullGame}
+        onRunFullGameLoop={handleRunFullGameLoop}
+      />
+    </GamePrompt>
   );
 
   const renderIntro = !showSettings && promptValue.find((v) => v.type === PromptType.INTRO) && (
@@ -191,7 +189,7 @@ export default function EuchreGame() {
     );
 
   const renderFullGameResults = fullGameInstance && (
-    <div className="relative text-white">
+    <GamePrompt zIndex={90} className="m-auto">
       <GameResults
         game={fullGameInstance}
         settings={euchreSettings}
@@ -200,7 +198,7 @@ export default function EuchreGame() {
         onNewGame={() => null}
         onReplayGame={() => handleBeginReplayGame(fullGameInstance)}
       />
-    </div>
+    </GamePrompt>
   );
 
   //#endregion
@@ -219,53 +217,49 @@ export default function EuchreGame() {
         )}
       >
         <GameBorder className={clsx('w-full lg:w-auto lg:h-auto overflow-auto', { 'm-auto': !showEvents })}>
-          {showSettings && !euchreGame ? (
-            <>{renderSettings}</>
-          ) : (
-            <div className={`${SECTION_STYLE} lg:m-1 lg:h-auto grow relative bg-[url(/felt1.png)] h-full`}>
-              {euchreGame && (
-                <>
-                  <GameArea
-                    game={euchreGame}
-                    gameAnimation={gameAnimationFlow}
-                    gameFlow={gameFlow}
-                    gameSettings={euchreSettings}
-                    className={clsx('transition-opacity opacity-10 duration-1000', {
-                      '!opacity-100': renderIntro === undefined
-                    })}
-                    isFullScreen={isFullScreen}
-                    showEvents={showEvents}
-                    showSettings={showSettings}
-                    showScore={showScore}
-                    playerNotification={playerNotification}
-                    playedCard={playedCard}
-                    onToggleFullscreen={toggleFullScreen}
-                    onToggleEvents={toggleEvents}
-                    onCardPlayed={handleGameCardPlayed}
-                    onSettingsToggle={toggleSettings}
-                    onScoreToggle={toggleScore}
-                    onCancel={handleCancel}
-                    onBeginComplete={handleShuffleAndDealComplete}
-                  />
-                  {showSettings && <GamePrompt zIndex={90}>{renderSettings}</GamePrompt>}
-                  {renderIntro}
-                </>
-              )}
-              {renderBidPrompt}
-              {renderDiscardPrompt}
-              {renderHandResults}
-              {renderGameResults}
-              {renderErrorMessage}
-              {euchreGame && gameFlow.hasGameStarted && (
-                <GameScore
-                  game={euchreGame}
-                  settings={euchreSettings}
-                  showScore={showScore}
-                  className="lg:min-h-16 lg:min-w-16 absolute top-2 lg:right-4 lg:left-auto left-8"
-                />
-              )}
-            </div>
-          )}
+          <div className={`${SECTION_STYLE} lg:m-1 lg:h-auto grow relative bg-[url(/felt1.png)] h-full`}>
+            <GameArea
+              game={euchreGame}
+              gameAnimation={gameAnimationFlow}
+              gameFlow={gameFlow}
+              gameSettings={euchreSettings}
+              className={clsx('transition-opacity opacity-10 duration-1000', {
+                '!opacity-100': renderIntro === undefined
+              })}
+              isFullScreen={isFullScreen}
+              showEvents={showEvents}
+              showSettings={showSettings}
+              showScore={showScore}
+              playerNotification={playerNotification}
+              playedCard={playedCard}
+              onToggleFullscreen={toggleFullScreen}
+              onToggleEvents={toggleEvents}
+              onCardPlayed={handleGameCardPlayed}
+              onSettingsToggle={toggleSettings}
+              onScoreToggle={toggleScore}
+              onCancel={handleCancel}
+              onInitDeal={handleShuffleAndDealComplete}
+              onRegularDeal={() => null}
+              onTrickComplete={handleTrickFinished}
+              onPassDeal={() => null}
+            />
+            {renderSettings}
+            {renderIntro}
+            {renderBidPrompt}
+            {renderDiscardPrompt}
+            {renderHandResults}
+            {renderGameResults}
+            {renderErrorMessage}
+            {showSettings && renderFullGameResults}
+            {gameFlow.hasGameStarted && (
+              <GameScore
+                game={euchreGame}
+                settings={euchreSettings}
+                showScore={showScore}
+                className="lg:min-h-16 lg:min-w-16 absolute top-2 lg:right-4 lg:left-auto left-8"
+              />
+            )}
+          </div>
         </GameBorder>
         {showEvents && (
           <GameEvents
@@ -276,7 +270,7 @@ export default function EuchreGame() {
           />
         )}
       </div>
-      {showSettings && !euchreGame && renderFullGameResults}
+
       {/* <RenderCards color="red" size="12" rotate={true} /> */}
     </>
   );

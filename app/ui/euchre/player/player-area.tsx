@@ -1,10 +1,11 @@
 import clsx from 'clsx';
 import React, { RefObject, useEffect, useRef, useState } from 'react';
 import PlayerGameDeck from './players-game-deck';
-import { Card, EuchreGameInstance, EuchreSettings } from '../../../lib/euchre/definitions';
+import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '../../../lib/euchre/definitions';
 import { EuchreGameFlowState } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
+import useGameData from '../../../hooks/euchre/data/useGameData';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -16,8 +17,11 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player2TableRef: RefObject<HTMLDivElement>;
   player3TableRef: RefObject<HTMLDivElement>;
   player4TableRef: RefObject<HTMLDivElement>;
+  onInitDeal: () => void;
+  onRegularDeal: () => void;
   onCardPlayed: (card: Card) => void;
-  onBeginComplete: () => void;
+  onTrickComplete: () => void;
+  onPassDeal: () => void;
   className: string;
 }
 
@@ -31,25 +35,62 @@ const PlayerArea = ({
   player2TableRef,
   player3TableRef,
   player4TableRef,
+  onInitDeal,
+  onRegularDeal,
   onCardPlayed,
-  onBeginComplete,
+  onTrickComplete,
+  onPassDeal,
   className,
   ...rest
 }: DivProps) => {
-  const beginComplete = useRef(false);
-  const { playerEqual } = usePlayerData();
-  const [playersFinished, setPlayersFinished] = useState<number[]>([]);
+  const player1DeckRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  const player2DeckRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  const player3DeckRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  const player4DeckRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  const playersDeckRef = new Map<number, RefObject<HTMLDivElement>>([
+    [1, player1DeckRef],
+    [2, player2DeckRef],
+    [3, player3DeckRef],
+    [4, player4DeckRef]
+  ]);
 
-  const handleBeginComplete = (playerNumber: number) => {
-    setPlayersFinished((prev) => [...prev, playerNumber]);
+  const { playerEqual } = usePlayerData();
+  const { playerSittingOut } = useGameData();
+  const sittingOutPlayer: EuchrePlayer | null = playerSittingOut(game);
+  const cardCountDuringPlay: number = sittingOutPlayer ? 3 : 4;
+
+  const playersInitDealFinished = useRef<Set<number>>(new Set<number>());
+  /** Map of trick id to the card values that were played for that trick. */
+  const cardsPlayedForTrick = useRef<Map<string, Set<string>>>(new Map<string, Set<string>>());
+
+  const handleInitComplete = (playerNumber: number) => {
+    console.log('[handleInitComplete]');
+    if (playersInitDealFinished.current.values().toArray().length === 4) return;
+
+    playersInitDealFinished.current.add(playerNumber);
+
+    if (playersInitDealFinished.current.values().toArray().length === 4) {
+      onInitDeal();
+    }
   };
 
-  useEffect(() => {
-    if (!beginComplete.current && [1, 2, 3, 4].filter((n) => playersFinished.includes(n)).length === 4) {
-      beginComplete.current = true;
-      onBeginComplete();
+  const handleTrickFinished = (card: Card) => {
+    console.log('[handleTrickFinished]');
+
+    const trickId = game.currentTrick.trickId;
+    const cardVals = cardsPlayedForTrick.current.get(trickId) ?? new Set<string>();
+
+    if (cardVals.values.length === cardCountDuringPlay) {
+      return;
     }
-  }, [onBeginComplete, playersFinished]);
+
+    cardVals.add(`${card.value}-${card.suit}`);
+    cardsPlayedForTrick.current.set(trickId, cardVals);
+
+    if (cardVals.values().toArray().length === cardCountDuringPlay) {
+      onTrickComplete();
+    }
+  };
 
   return (
     <div
@@ -62,13 +103,18 @@ const PlayerArea = ({
       <div className="relative row-start-3 col-start-1 col-span-3 row-span-1 flex items-end">
         <PlayerGameDeck
           playerTableRef={player1TableRef}
+          playersDeckRef={playersDeckRef}
+          deckRef={player1DeckRef}
           player={game.player1}
           game={game}
           gameFlow={gameFlow}
           gameSettings={gameSettings}
           gameAnimation={gameAnimation}
-          onCardClick={onCardPlayed}
-          onBeginComplete={() => handleBeginComplete(game.player1.playerNumber)}
+          onCardPlayed={onCardPlayed}
+          onInitDeal={() => handleInitComplete(game.player1.playerNumber)}
+          onRegularDeal={onRegularDeal}
+          onTrickComplete={handleTrickFinished}
+          onPassDeal={onPassDeal}
           dealDeck={game.deck}
           playedCard={playedCard && playerEqual(game.currentPlayer, game.player1) ? playedCard : null}
         />
@@ -76,13 +122,18 @@ const PlayerArea = ({
       <div className="row-start-1 col-start-1 col-span-3 row-span-1 flex items-start">
         <PlayerGameDeck
           playerTableRef={player2TableRef}
+          playersDeckRef={playersDeckRef}
+          deckRef={player2DeckRef}
           player={game.player2}
           game={game}
           gameFlow={gameFlow}
           gameSettings={gameSettings}
           gameAnimation={gameAnimation}
-          onCardClick={onCardPlayed}
-          onBeginComplete={() => handleBeginComplete(game.player2.playerNumber)}
+          onCardPlayed={onCardPlayed}
+          onInitDeal={() => handleInitComplete(game.player2.playerNumber)}
+          onRegularDeal={onRegularDeal}
+          onTrickComplete={handleTrickFinished}
+          onPassDeal={onPassDeal}
           dealDeck={game.deck}
           playedCard={playedCard && playerEqual(game.currentPlayer, game.player2) ? playedCard : null}
         />
@@ -90,13 +141,18 @@ const PlayerArea = ({
       <div className="row-start-1 col-start-1 row-span-3 col-span-1 flex items-center">
         <PlayerGameDeck
           playerTableRef={player3TableRef}
+          playersDeckRef={playersDeckRef}
+          deckRef={player3DeckRef}
           player={game.player3}
           game={game}
           gameFlow={gameFlow}
           gameSettings={gameSettings}
           gameAnimation={gameAnimation}
-          onCardClick={onCardPlayed}
-          onBeginComplete={() => handleBeginComplete(game.player3.playerNumber)}
+          onCardPlayed={onCardPlayed}
+          onInitDeal={() => handleInitComplete(game.player3.playerNumber)}
+          onRegularDeal={onRegularDeal}
+          onTrickComplete={handleTrickFinished}
+          onPassDeal={onPassDeal}
           dealDeck={game.deck}
           playedCard={playedCard && playerEqual(game.currentPlayer, game.player3) ? playedCard : null}
         />
@@ -104,13 +160,18 @@ const PlayerArea = ({
       <div className="row-start-1 col-start-3 row-span-3 flex items-center">
         <PlayerGameDeck
           playerTableRef={player4TableRef}
+          playersDeckRef={playersDeckRef}
+          deckRef={player4DeckRef}
           player={game.player4}
           game={game}
           gameFlow={gameFlow}
           gameSettings={gameSettings}
           gameAnimation={gameAnimation}
-          onCardClick={onCardPlayed}
-          onBeginComplete={() => handleBeginComplete(game.player4.playerNumber)}
+          onCardPlayed={onCardPlayed}
+          onInitDeal={() => handleInitComplete(game.player4.playerNumber)}
+          onRegularDeal={onRegularDeal}
+          onTrickComplete={handleTrickFinished}
+          onPassDeal={onPassDeal}
           dealDeck={game.deck}
           playedCard={playedCard && playerEqual(game.currentPlayer, game.player4) ? playedCard : null}
         />
