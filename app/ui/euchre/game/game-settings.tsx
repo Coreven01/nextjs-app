@@ -4,6 +4,7 @@ import {
   EuchreSettings,
   GAME_SPEED_MAP,
   GameSpeed,
+  NOTIFICATION_SPEED_MAP,
   TEAM_COLOR_MAP,
   TeamColor
 } from '@/app/lib/euchre/definitions';
@@ -26,6 +27,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
 
   const teamColors = [...TEAM_COLOR_MAP.keys()];
   const gameSpeedValues = [...GAME_SPEED_MAP.entries()];
+  const notificationSpeedValues = [...NOTIFICATION_SPEED_MAP.entries()];
   const difficultyValues = [...DIFFICULTY_MAP.entries()];
   const isDebugMode = true;
 
@@ -89,6 +91,10 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
     onApplySettings({ ...settings, gameSpeed: parseInt(event.target.value) as GameSpeed });
   };
 
+  const handleNotificationSpeedChanged = (event: ChangeEvent<HTMLSelectElement>) => {
+    onApplySettings({ ...settings, notificationSpeed: parseInt(event.target.value) as GameSpeed });
+  };
+
   const handleCheckChanged = (e: ChangeEvent<HTMLInputElement>) => {
     onApplySettings({ ...settings, [e.target.name]: e.target.checked });
   };
@@ -110,18 +116,42 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
   return (
     <div className="bg-stone-800 text-white lg:p-2 p-1">
       <PromptHeader>Settings</PromptHeader>
-      <div className="flex items-center gap-4 my-2 lg:text-base text-sm">
-        <label htmlFor="playerName">Player Name: </label>
-        <input
-          className="text-black max-w-32 text-sm p-1 lg:text-base"
-          placeholder="Player Name"
-          id="playerName"
-          type="text"
-          maxLength={8}
-          value={playerName}
-          onChange={handlePlayerNameChange}
-          onBlur={handleLoseFocus}
-        />
+      <div className="flex items-center jusitify-center gap-4 my-2 lg:text-base text-sm">
+        <div className="grow">
+          <label className="block" htmlFor="playerName">
+            Player Name:{' '}
+          </label>
+          <input
+            className="text-black max-w-32 text-sm lg:p-1 lg:text-base"
+            placeholder="Player Name"
+            id="playerName"
+            type="text"
+            maxLength={8}
+            value={playerName}
+            onChange={handlePlayerNameChange}
+            onBlur={handleLoseFocus}
+          />
+        </div>
+        <div className="grow">
+          <label className="block" htmlFor="difficulty">
+            Difficulty:
+          </label>
+          <select
+            id="difficulty"
+            name="difficulty"
+            onChange={handleSelectionChanged}
+            className="text-black lg:p-1 min-w-48 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            value={settings.difficulty}
+          >
+            {difficultyValues.map((value) => {
+              return (
+                <option key={value[1]} value={value[1]}>
+                  {value[0]}
+                </option>
+              );
+            })}
+          </select>
+        </div>
       </div>
       <div className="grid gap-2 grid-cols-2 my-2 lg:text-base text-sm">
         <div>
@@ -232,17 +262,16 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
       )}
       <div className="my-4 flex justify-center items-center gap-1 lg:text-base text-sm">
         <div className="m-auto">
-          <label className="block" htmlFor="difficulty">
-            Difficulty:
+          <label className="block" htmlFor="gameSpeed">
+            Game Speed:
           </label>
           <select
-            id="difficulty"
-            name="difficulty"
-            onChange={handleSelectionChanged}
-            className="text-black lg:p-2 p-1 min-w-48 max-h-8 lg:max-h-12 lg:text-base text-sm"
-            value={settings.difficulty}
+            id="gameSpeed"
+            onChange={handleSpeedChanged}
+            className="text-black lg:min-w-32 lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            value={settings.gameSpeed}
           >
-            {difficultyValues.map((value) => {
+            {gameSpeedValues.map((value) => {
               return (
                 <option key={value[1]} value={value[1]}>
                   {value[0]}
@@ -252,16 +281,16 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           </select>
         </div>
         <div className="m-auto">
-          <label className="block" htmlFor="gameSpeed">
-            Game Speed:
+          <label className="block" htmlFor="notificationSpeed">
+            Notification Speed:
           </label>
           <select
-            id="gameSpeed"
-            onChange={handleSpeedChanged}
-            className="text-black lg:min-w-32 lg:p-2 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
-            value={settings.gameSpeed}
+            id="notificationSpeed"
+            onChange={handleNotificationSpeedChanged}
+            className="text-black lg:min-w-32 lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            value={settings.notificationSpeed}
           >
-            {gameSpeedValues.map((value) => {
+            {notificationSpeedValues.map((value) => {
               return (
                 <option key={value[1]} value={value[1]}>
                   {value[0]}
@@ -277,7 +306,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="teamOneColor"
             onChange={(e) => handleTeamColorChange(1, (e.target.value as TeamColor) ?? 'blue')}
-            className="text-black lg:p-2 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            className="text-black lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={teamOneColor}
           >
             {teamColors.map((k) => (
@@ -294,7 +323,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="teamTwoColor"
             onChange={(e) => handleTeamColorChange(2, (e.target.value as TeamColor) ?? 'red')}
-            className="text-black lg:p-2 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            className="text-black lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={teamTwoColor}
           >
             {teamColors.map((k) => (

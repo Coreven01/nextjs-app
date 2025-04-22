@@ -27,7 +27,8 @@ export default function RenderCards({ color, size, rotate }: Props) {
           cardState={{
             src: '/card-back.svg',
             cardFullName: getCardFullName(tempCard),
-            cardIndex: 1
+            cardIndex: 1,
+            enabled: false
           }}
           card={tempCard}
           width={getDisplayWidth('center')}
@@ -38,7 +39,8 @@ export default function RenderCards({ color, size, rotate }: Props) {
           cardState={{
             src: '/card-back-side.svg',
             cardFullName: getCardFullName(tempCard),
-            cardIndex: 0
+            cardIndex: 0,
+            enabled: false
           }}
           card={tempCard}
           width={getDisplayWidth('side')}
@@ -68,7 +70,8 @@ export default function RenderCards({ color, size, rotate }: Props) {
                     cardState={{
                       src: getEncodedCardSvg(card, 'center'),
                       cardFullName: getCardFullName(tempCard),
-                      cardIndex: 0
+                      cardIndex: 0,
+                      enabled: false
                     }}
                     card={tempCard}
                     width={w}
@@ -104,7 +107,8 @@ export default function RenderCards({ color, size, rotate }: Props) {
                   cardState={{
                     src: getEncodedCardSvg(card, 'side'),
                     cardFullName: getCardFullName(tempCard),
-                    cardIndex: 0
+                    cardIndex: 0,
+                    enabled: false
                   }}
                   card={tempCard}
                   width={w}

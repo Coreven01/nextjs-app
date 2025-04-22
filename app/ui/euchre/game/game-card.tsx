@@ -133,6 +133,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           src={sidePlayer ? '/card-shadow-side.png' : '/card-shadow.png'}
           alt={'card shadow'}
           style={cssValues}
+          draggable={false}
         />
         <Image
           {...rest}
@@ -145,6 +146,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           unoptimized={true}
           onClick={handleCardClick}
           style={cssValues}
+          draggable={false}
         ></Image>
       </motion.div>
     );

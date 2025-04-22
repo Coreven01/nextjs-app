@@ -58,7 +58,8 @@ const GameTable = ({
     springValue:
       gameBidding && !gameFlow.hasFirstBiddingPassed
         ? { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 0, transition: { rotateY: { duration: 0.5 } } }
-        : { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 180, transition: { rotateY: { duration: 0.5 } } }
+        : { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 180, transition: { rotateY: { duration: 0.5 } } },
+    enabled: false
   };
 
   return (

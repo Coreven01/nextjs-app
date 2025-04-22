@@ -31,7 +31,8 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
     getCardsAvailableToPlay,
     isGameOver,
     notificationDelay,
-    gameDelay
+    gameDelay,
+    incrementSpeed
   } = useGameData();
 
   /**
@@ -475,12 +476,14 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
             type: PlayerNotificationActionType.UPDATE_CENTER,
             payload: (
               <PlayerNotification
+                key={uuidv4()}
                 dealer={newGame.dealer}
                 player={newGame.currentPlayer}
                 settings={state.euchreSettings}
                 info={'renege'}
                 loner={false}
                 namedSuit={null}
+                delayMs={incrementSpeed(state.euchreSettings.notificationSpeed, 1)}
               />
             )
           };
@@ -526,15 +529,14 @@ export default function useEuchreGamePlay(state: EuchreGameState, errorState: Eu
       });
     }
   }, [
-    state,
-    handleCloseHandResults,
-    isGameStateValidToContinue,
-    getPlayerNotificationForTrickWon,
-    isTrickFinished,
-    isHandFinished,
     errorState,
+    gameDelay,
+    getPlayerNotificationForTrickWon,
+    incrementSpeed,
+    isGameStateValidToContinue,
+    isTrickFinished,
     notificationDelay,
-    gameDelay
+    state
   ]);
 
   const handleTrickFinished = useCallback(() => {

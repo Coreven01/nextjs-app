@@ -37,11 +37,12 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       grid={[15, 15]}
       defaultPosition={{ x: 25, y: 25 }}
       defaultClassName={clsx('absolute', className)}
+      handle="h2"
       nodeRef={draggableRef}
     >
-      <div ref={draggableRef} className="cursor-move flex" style={{ zIndex: 1000 }}>
-        <GameBorder className="relative" innerClass=" lg:w-[600px] w-[500px] bg-stone-900">
-          <PromptHeader>Events</PromptHeader>
+      <div ref={draggableRef} className="flex" style={{ zIndex: 1000 }}>
+        <GameBorder className="relative" innerClass=" lg:w-[550px] w-[500px] bg-stone-900">
+          <PromptHeader className="cursor-move ">Events</PromptHeader>
           <div
             ref={divRef}
             className="p-2 border border-white m-1 overflow-y-auto lg:text-base text-xs h-[200px] lg:h-[400px]"

@@ -702,17 +702,10 @@ const useGamePlayLogic = () => {
     settings: EuchreSettings,
     game: EuchreGameInstance
   ): EuchreGameFlowState => {
-    const showAllCards =
-      settings.debugShowPlayersHand || game.gamePlayers.filter((p) => !p.human).length === 4;
-    const showCardValues = showAllCards
-      ? game.gamePlayers.map((p) => {
-          return { player: p, value: true };
-        })
-      : game.gamePlayers
-          .filter((p) => p.human)
-          .map((p) => {
-            return { player: p, value: true };
-          });
+    const showAllCards = settings.debugShowPlayersHand;
+    const showCardValues = game.gamePlayers.map((p) => {
+      return { player: p, value: showAllCards || p.human };
+    });
 
     const newGameState: EuchreGameFlowState = {
       ...gameState,

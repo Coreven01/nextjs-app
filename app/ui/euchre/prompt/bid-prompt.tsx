@@ -131,6 +131,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
                 <div className="p-2 bg-green-950 flex items-center justify-center">
                   {firstRound ? (
                     <Image
+                      draggable={false}
                       className={`contain`}
                       quality={100}
                       width={getDisplayWidth('center')}

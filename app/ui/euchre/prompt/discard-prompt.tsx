@@ -68,6 +68,7 @@ export default function DiscardPrompt({
                     width: '100%',
                     height: 'auto'
                   }}
+                  draggable={false}
                 />
               </div>
             </GameBorder>

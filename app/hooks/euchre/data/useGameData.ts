@@ -14,6 +14,7 @@ import {
 import useCardData from './useCardData';
 import usePlayerData from './usePlayerData';
 import { useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
 const useGameData = () => {
   const {
@@ -25,6 +26,17 @@ const useGameData = () => {
     getSuitCount
   } = useCardData();
   const { availableCardsToPlay, playerEqual, indexCards, getPlayerRotation } = usePlayerData();
+
+  const createTrick = useCallback((round: number): EuchreTrick => {
+    return {
+      trickId: uuidv4(),
+      taker: null,
+      cardsPlayed: [],
+      playerSittingOut: null,
+      playerRenege: null,
+      round: round
+    };
+  }, []);
 
   /** If the maker went alone, return the player who's sitting out. */
   const playerSittingOut = (game: EuchreGameInstance): EuchrePlayer | null => {
@@ -412,8 +424,6 @@ const useGameData = () => {
       })
     ];
     const dealCount: number[] = [...newGame.cardDealCount];
-    newGame.gameResults = [...newGame.gameResults];
-
     const player1Hand: Card[] = allCards
       .filter((c) => playerEqual(c.player, newGame.player1))
       .map((c) => {
@@ -444,6 +454,8 @@ const useGameData = () => {
     newGame.player3.hand = player3Hand;
     newGame.player4.hand = player4Hand;
     newGame.currentPlayer = getPlayerRotation(newGame.gamePlayers, newGame.dealer)[0];
+    newGame.handId = uuidv4();
+    newGame.currentTrick = createTrick(lastGameResult.roundNumber);
     const tempTrump = newGame.trump;
 
     if (discard && newGame.trump) {
@@ -609,7 +621,8 @@ const useGameData = () => {
     getCardsAvailableToPlay,
     isGameOver,
     gameDelay,
-    notificationDelay
+    notificationDelay,
+    createTrick
   };
 };
 

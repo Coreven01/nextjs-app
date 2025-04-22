@@ -32,6 +32,7 @@ export interface CardState {
   yStiffness?: number;
   rotation?: number;
   runEffectForState?: EuchreGameFlow;
+  enabled: boolean;
 }
 
 export interface PlayCardStateActionAction {

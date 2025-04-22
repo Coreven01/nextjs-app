@@ -16,7 +16,7 @@ interface Props {
 
 const PlayerNotification = ({ dealer, player, delayMs, settings, info, loner, namedSuit }: Props) => {
   const icon: React.ReactNode =
-    info === 'pass' ? (
+    info === 'pass' || info === 'renege' ? (
       <XCircleIcon className="min-h-[18px] max-h-[20px] text-red-800 dark:text-red-300" />
     ) : (
       <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-700 dark:text-green-400" />

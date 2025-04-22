@@ -4,7 +4,7 @@ import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
 import DummyCard from '../dummy-card';
-import useCardState from '../../../hooks/useCardState';
+import useCardState from '../../../hooks/euchre/useCardState';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 
 type Props = {
@@ -31,7 +31,6 @@ const PlayerHand = ({
   gameAnimation,
   player,
   playedCard,
-  deckRef,
   playerTableRef,
   playersDeckRef,
   onCardPlayed,
@@ -44,15 +43,11 @@ const PlayerHand = ({
   // used to keep the card visible after it's been played for the current trick.
   const {
     cardsDealtRef,
-    cardPlayedForTrickRef,
     cardRefs,
     handState,
     cardStates,
-    getCardsAvailableIfFollowSuit,
     getCardsToDisplay,
     handlePlayCardAnimation,
-    cardEqual,
-    playerEqual,
     playerLocation,
     getDisplayWidth,
     getDisplayHeight
@@ -69,22 +64,21 @@ const PlayerHand = ({
     onPassDeal,
     onCardPlayed
   );
-  const cardIndicesPlayed = useRef<number[]>([]);
+  const cardIndicesPlayed = useRef<Map<string, number>>(new Map<string, number>());
 
+  /** Animate the card being played. Once animation for the card is complete, the state should be updated that the player
+   * played a card.
+   */
   useEffect(() => {
-    if (playedCard && !cardIndicesPlayed.current.includes(playedCard.index)) {
-      cardIndicesPlayed.current.push(playedCard.index);
+    if (playedCard && !cardIndicesPlayed.current.has(game.currentTrick.trickId)) {
+      cardIndicesPlayed.current.set(game.currentTrick.trickId, playedCard.index);
       console.log('[useEffect] [handlePlayCardAnimation], played card: ', playedCard);
       handlePlayCardAnimation(playedCard.index, playerTableRef.current);
     }
-  }, [handlePlayCardAnimation, playedCard, playerTableRef]);
-
+  }, [game.currentTrick.trickId, handlePlayCardAnimation, playedCard, playerTableRef]);
   //#endregion
 
-  const cardClickEnabled =
-    playerEqual(game.currentPlayer, player) && gameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT;
   const gameCards: React.ReactNode[] = [];
-  const cardsAvailableForFollowSuit: Card[] = getCardsAvailableIfFollowSuit();
   const playerCurrentHand: Card[] = getCardsToDisplay();
   const location = playerLocation(player);
   const width: number = handState?.width ?? getDisplayWidth(location);
@@ -106,8 +100,8 @@ const PlayerHand = ({
 
   const handleCardClick = (cardIndex: number) => {
     console.log('[handleCardClick] [handler]- player-hand.tsx');
-    if (!cardIndicesPlayed.current.includes(cardIndex)) {
-      cardIndicesPlayed.current.push(cardIndex);
+    if (!cardIndicesPlayed.current.has(game.currentTrick.trickId)) {
+      cardIndicesPlayed.current.set(game.currentTrick.trickId, cardIndex);
       handlePlayCardAnimation(cardIndex, playerTableRef.current);
     }
   };
@@ -119,7 +113,6 @@ const PlayerHand = ({
         handState &&
         playerCurrentHand.map((card) => {
           const keyval = `${card.index}`;
-          const isAvailableToBePlayedForFollowSuit: boolean = cardsAvailableForFollowSuit.includes(card);
           const cardState = cardStates.find((s) => s.cardIndex === card.index);
           const cardRef = cardRefs.current.get(card.index);
 
@@ -138,9 +131,7 @@ const PlayerHand = ({
               width={handState.width}
               height={handState.height}
               responsive={true}
-              onCardClick={
-                cardClickEnabled && isAvailableToBePlayedForFollowSuit ? handleCardClick : undefined
-              }
+              onCardClick={cardState.enabled ? handleCardClick : undefined}
               onAnimationComplete={handState.onCardPlayedComplete}
             />
           );

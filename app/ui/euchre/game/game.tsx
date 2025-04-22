@@ -210,7 +210,7 @@ export default function EuchreGame() {
       <div
         id="euchre-game"
         className={clsx(
-          `flex lg:p-1 overflow-auto`,
+          `flex lg:p-1 overflow-auto select-none`,
           { 'fixed top-0 left-0 w-full h-full z-50': enableFullScreen },
           { relative: !enableFullScreen },
           inter.className

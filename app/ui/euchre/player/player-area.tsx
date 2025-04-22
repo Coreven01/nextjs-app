@@ -87,6 +87,14 @@ const PlayerArea = ({
     cardVals.add(`${card.value}-${card.suit}`);
     cardsPlayedForTrick.current.set(trickId, cardVals);
 
+    if (game.currentTrick.playerRenege) {
+      let counter = 0;
+      // end the hand if player reneged. add values to the collection, to trigger the trick complete event.
+      while (cardVals.values().toArray().length < cardCountDuringPlay) {
+        cardVals.add(`${counter++}-R`);
+      }
+    }
+
     if (cardVals.values().toArray().length === cardCountDuringPlay) {
       onTrickComplete();
     }

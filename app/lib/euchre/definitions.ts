@@ -33,6 +33,12 @@ export const GAME_SPEED_MAP = new Map<string, GameSpeed>([
   ['Slow', 2000]
 ]);
 
+export const NOTIFICATION_SPEED_MAP = new Map<string, GameSpeed>([
+  ['Fast', 700],
+  ['Moderate', 1000],
+  ['Slow', 2000]
+]);
+
 export const DIFFICULTY_MAP = new Map<string, GameDifficulty>([
   ['Novice', 'novice'],
   ['Intermediate', 'intermediate'],

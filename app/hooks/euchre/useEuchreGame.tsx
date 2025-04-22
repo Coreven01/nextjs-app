@@ -1,13 +1,4 @@
-import {
-  ActionDispatch,
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useReducer,
-  useRef,
-  useState
-} from 'react';
+import { ActionDispatch, Dispatch, SetStateAction, useCallback, useMemo, useReducer, useState } from 'react';
 import {
   initialPlayerNotification,
   PlayerNotificationAction,
@@ -241,9 +232,9 @@ export default function useEuchreGame() {
     setPromptValue([]);
     const newGame = reverseLastHandPlayed(euchreGame);
     const newGameFlow = getGameStateForNextHand(gameFlow, euchreSettings, newGame);
-    newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
+    newGameFlow.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
     dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
-    dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
+    dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
     setEuchreGame(newGame);
   };
 

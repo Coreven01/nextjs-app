@@ -48,22 +48,18 @@ export default function HandResult({ game, settings, handResult, className, ...r
         className="lg:text-base text-sm"
       />
       {playerReneged && (
-        <GameWarning className="mx-2 mb-1 border border-red-900">Hand ended due to player renege</GameWarning>
+        <GameWarning className="mb-1 border border-red-900">Hand ended due to player renege</GameWarning>
       )}
       <div className="flex gap-1">
         <div className="lg:min-w-48">
           <div className="mb-1">
             <PlayerColor className="lg:text-base text-xs" player={handResult.maker} settings={settings}>
-              <div className="bg-stone-800 p-1 text-center">
-                Maker: {handResult.maker === game.player1 ? 'You' : handResult.maker.name}
-              </div>
+              <div className="bg-stone-800 p-1 text-center">Maker: {handResult.maker.name}</div>
             </PlayerColor>
           </div>
           <div className=" mb-1">
             <PlayerColor className="lg:text-base text-xs" player={handResult.dealer} settings={settings}>
-              <div className="bg-stone-800 p-1 text-center">
-                Dealer: {handResult.dealer === game.player1 ? 'You' : handResult.dealer.name}
-              </div>
+              <div className="bg-stone-800 p-1 text-center">Dealer: {handResult.dealer.name}</div>
             </PlayerColor>
           </div>
           <div className="mb-1">

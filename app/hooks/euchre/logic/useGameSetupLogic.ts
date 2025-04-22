@@ -3,12 +3,10 @@ import {
   EuchreGameInstance,
   EuchrePlayer,
   EuchreSettings,
-  EuchreTrick,
   GameDifficulty
 } from '@/app/lib/euchre/definitions';
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import { InitDealResult, ShuffleResult } from '@/app/lib/euchre/logic-definitions';
-import { logDebugError } from '@/app/lib/euchre/util';
 import useGameData from '../data/useGameData';
 import usePlayerData from '../data/usePlayerData';
 import useCardData from '../data/useCardData';
@@ -16,7 +14,7 @@ import { useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 const useGameSetupLogic = () => {
-  const { resetForNewDeal, dealCards, copyCardsFromReplay, verifyDealtCards } = useGameData();
+  const { resetForNewDeal, dealCards, copyCardsFromReplay, verifyDealtCards, createTrick } = useGameData();
   const { indexCards, getPlayerRotation } = usePlayerData();
   const { createPlaceholderCards, getSuitCount, createShuffledDeck } = useCardData();
 
@@ -28,17 +26,6 @@ const useGameSetupLogic = () => {
       hand: [],
       playedCards: [],
       human: false
-    };
-  };
-
-  const createTrick = (round: number): EuchreTrick => {
-    return {
-      trickId: uuidv4(),
-      taker: null,
-      cardsPlayed: [],
-      playerSittingOut: null,
-      playerRenege: null,
-      round: round
     };
   };
 
@@ -75,7 +62,7 @@ const useGameSetupLogic = () => {
         currentPlayer: player1
       };
     },
-    []
+    [createTrick]
   );
 
   const createDefaultEuchreGame = () => {
@@ -284,9 +271,9 @@ const useGameSetupLogic = () => {
     getGameStateForInitialDeal,
     initDeckForInitialDeal,
     dealCardsForDealer,
-    createTrick,
     createPlayer,
-    createDefaultEuchreGame
+    createDefaultEuchreGame,
+    createTrick
   };
 };
 
