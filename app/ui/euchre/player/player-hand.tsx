@@ -3,7 +3,7 @@ import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/li
 import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
-import DummyCard from '../dummy-card';
+import DummyCard from '../common/dummy-card';
 import useCardState from '../../../hooks/euchre/useCardState';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 

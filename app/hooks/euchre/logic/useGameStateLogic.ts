@@ -1,18 +1,13 @@
-import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
-import {
-  EuchreAnimateType,
-  EuchreAnimationState
-} from '@/app/hooks/euchre/reducers/gameAnimationFlowReducer';
-import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
+import { EuchreGameFlow } from '@/app/hooks/euchre/reducers/gameFlowReducer';
+import { EuchreAnimateType } from '@/app/hooks/euchre/reducers/gameAnimationFlowReducer';
 import { useCallback } from 'react';
+import { EuchreGameBase } from '../useEuchreGame';
 
 const useGameStateLogic = () => {
   /** Verify the game state before attempting to execute specific logic in the Euchre game play through */
   const isGameStateValidToContinue = useCallback(
     (
-      game: EuchreGameInstance | undefined | null,
-      gameFlow: EuchreGameFlowState,
-      gameAnimationFlow: EuchreAnimationState,
+      game: EuchreGameBase,
       gameFlowValue: EuchreGameFlow,
       gameAnimationValue: EuchreAnimateType,
       shouldCancel: boolean,
@@ -20,9 +15,8 @@ const useGameStateLogic = () => {
     ): boolean => {
       if (
         !(
-          game &&
-          gameFlow.gameFlow === gameFlowValue &&
-          gameAnimationFlow.animationType === gameAnimationValue
+          game.euchreGameFlow.gameFlow === gameFlowValue &&
+          game.euchreAnimationFlow.animationType === gameAnimationValue
         )
       ) {
         return false;

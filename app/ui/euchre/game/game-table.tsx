@@ -1,6 +1,6 @@
 import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import GameBorder from './game-border';
-import WoodenBoard from '../wooden-board';
+import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
 import { RefObject } from 'react';
 import GameFlippedCard from './game-flipped-card';

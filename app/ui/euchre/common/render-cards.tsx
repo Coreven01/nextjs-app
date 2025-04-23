@@ -1,5 +1,5 @@
 import { Card, CardBackColor, CardValue, EuchrePlayer, Suit } from '@/app/lib/euchre/definitions';
-import GameCard from './game/game-card';
+import GameCard from '../game/game-card';
 import clsx from 'clsx';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import useCardData from '@/app/hooks/euchre/data/useCardData';

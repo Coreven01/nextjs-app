@@ -23,9 +23,10 @@ const useGameData = () => {
     getCardValuesForSuit,
     getCardValue,
     cardIsLeftBower,
-    getSuitCount
+    getSuitCount,
+    indexCards
   } = useCardData();
-  const { availableCardsToPlay, playerEqual, indexCards, getPlayerRotation } = usePlayerData();
+  const { availableCardsToPlay, playerEqual, getPlayerRotation } = usePlayerData();
 
   const createTrick = useCallback((round: number): EuchreTrick => {
     return {

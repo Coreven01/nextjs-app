@@ -1,5 +1,5 @@
 import GameBorder from '../game/game-border';
-import GameModal from '../game-modal';
+import GameModal from '../common/game-modal';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;

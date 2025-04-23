@@ -2,6 +2,7 @@ import { offsuitValues, trumpValues } from '@/app/lib/euchre/card-data';
 import { Card, CardColor, CardValue, LEFT_BOWER_VALUE, Suit } from '@/app/lib/euchre/definitions';
 import { createRange } from '@/app/lib/euchre/util';
 import { useCallback } from 'react';
+import { CardPosition } from './useCardTransform';
 
 const useCardData = () => {
   const CARD_WIDTH = 100;
@@ -43,20 +44,49 @@ const useCardData = () => {
     [getCardColor]
   );
 
+  /** */
+  const getCardValueBySuit = useCallback(
+    (card: Card, trumpCard: Card | null) => {
+      let retval = 0;
+
+      if (trumpCard && card.suit === trumpCard.suit) {
+        retval = trumpValues.get(card.value) ?? 0;
+      } else if (trumpCard && cardIsLeftBower(card, trumpCard)) {
+        retval = LEFT_BOWER_VALUE;
+      } else {
+        retval = offsuitValues.get(card.value) ?? 0;
+      }
+
+      return retval;
+    },
+    [cardIsLeftBower]
+  );
+
   const cardIsRightBower = useCallback((card: Card, trumpCard: Card): boolean => {
     return card.value === 'J' && card.suit === trumpCard.suit;
   }, []);
 
+  /** */
+  const getCardValue = useCallback(
+    (card: Card, trump: Card | null): number => {
+      return getCardValueBySuit(card, trump);
+    },
+    [getCardValueBySuit]
+  );
+
   /** Get the associated card values for the given cards and trump card. */
-  const getCardValues = (cards: Card[], trump: Card | null): { card: Card; value: number }[] => {
-    const retval: { card: Card; value: number }[] = [];
+  const getCardValues = useCallback(
+    (cards: Card[], trump: Card | null): { card: Card; value: number }[] => {
+      const retval: { card: Card; value: number }[] = [];
 
-    for (let i = 0; i < cards.length; i++) {
-      retval.push({ card: cards[i], value: getCardValue(cards[i], trump) });
-    }
+      for (let i = 0; i < cards.length; i++) {
+        retval.push({ card: cards[i], value: getCardValue(cards[i], trump) });
+      }
 
-    return retval;
-  };
+      return retval;
+    },
+    [getCardValue]
+  );
 
   /** Return only the cards and their values for the given suit, based on the trump value. If no suit is provided,
    *  return all cards values.
@@ -111,46 +141,25 @@ const useCardData = () => {
   };
 
   /** */
-  const getCardValueBySuit = useCallback(
-    (card: Card, trumpCard: Card | null) => {
-      let retval = 0;
+  const getSuitCount = useCallback(
+    (cards: Card[], trumpCard: Card | null): { suit: Suit; count: number }[] => {
+      const retval: { suit: Suit; count: number }[] = [];
 
-      if (trumpCard && card.suit === trumpCard.suit) {
-        retval = trumpValues.get(card.value) ?? 0;
-      } else if (trumpCard && cardIsLeftBower(card, trumpCard)) {
-        retval = LEFT_BOWER_VALUE;
-      } else {
-        retval = offsuitValues.get(card.value) ?? 0;
-      }
+      cards.map((c) => {
+        const isLeftBower = trumpCard ? cardIsLeftBower(c, trumpCard) : false;
+        const suitForCard = isLeftBower && trumpCard ? trumpCard.suit : c.suit;
+        const value: { suit: Suit; count: number } | undefined = retval.find(
+          (val) => val.suit === suitForCard
+        );
+
+        if (value) value.count += 1;
+        else retval.push({ suit: suitForCard, count: 1 });
+      });
 
       return retval;
     },
     [cardIsLeftBower]
   );
-
-  /** */
-  const getCardValue = useCallback(
-    (card: Card, trump: Card | null): number => {
-      return getCardValueBySuit(card, trump);
-    },
-    [getCardValueBySuit]
-  );
-
-  /** */
-  const getSuitCount = (cards: Card[], trumpCard: Card | null): { suit: Suit; count: number }[] => {
-    const retval: { suit: Suit; count: number }[] = [];
-
-    cards.map((c) => {
-      const isLeftBower = trumpCard ? cardIsLeftBower(c, trumpCard) : false;
-      const suitForCard = isLeftBower && trumpCard ? trumpCard.suit : c.suit;
-      const value: { suit: Suit; count: number } | undefined = retval.find((val) => val.suit === suitForCard);
-
-      if (value) value.count += 1;
-      else retval.push({ suit: suitForCard, count: 1 });
-    });
-
-    return retval;
-  };
 
   const getHighAndLow = (playerHand: Card[], trumpCard: Card): { high: Card | null; low: Card | null } => {
     return getHighAndLowFromCards(playerHand, trumpCard);
@@ -283,6 +292,82 @@ const useCardData = () => {
     return newDeck;
   };
 
+  const sortCardsIndices = useCallback(
+    (cards: Card[], trump: Card | null): CardPosition[] => {
+      const retval: CardPosition[] = [];
+      let counter: number = 0;
+
+      const suitCount = getSuitCount(cards, trump).sort((a, b) => b.count - a.count);
+      const cardValues = getCardValues(cards, trump);
+
+      if (trump) {
+        // sort based on trump was called.
+        const trumpCards: Card[] = cardValues
+          .filter((c) => c.card.suit === trump.suit || cardIsLeftBower(c.card, trump))
+          .sort((a, b) => b.value - a.value)
+          .map((c) => c.card);
+
+        for (const trumpCard of trumpCards) {
+          retval.push({ ordinalIndex: counter++, cardIndex: trumpCard.index });
+        }
+
+        const offSuitCards = cardValues.filter((c) => !trumpCards.includes(c.card));
+        const suitCountAndValue = getOrderedCardsBasedOnCountAndValue(suitCount, offSuitCards);
+
+        for (const suitVal of suitCountAndValue) {
+          for (const offSuitCard of offSuitCards
+            .filter((c) => c.card.suit === suitVal.suit)
+            .sort((a, b) => b.value - a.value)
+            .map((c) => c.card)) {
+            retval.push({ ordinalIndex: counter++, cardIndex: offSuitCard.index });
+          }
+        }
+      } else {
+        // sort if trump has not yet been called.
+        const suitCountAndValue = getOrderedCardsBasedOnCountAndValue(suitCount, cardValues);
+
+        for (const suitVal of suitCountAndValue) {
+          for (const card of cardValues
+            .filter((c) => c.card.suit === suitVal.suit)
+            .sort((a, b) => b.value - a.value)
+            .map((c) => c.card)) {
+            retval.push({ ordinalIndex: counter++, cardIndex: card.index });
+          }
+        }
+      }
+
+      return retval;
+    },
+    [cardIsLeftBower, getCardValues, getSuitCount]
+  );
+
+  const getOrderedCardsBasedOnCountAndValue = (
+    suitCount: { suit: Suit; count: number }[],
+    cardValues: { card: Card; value: number }[]
+  ) => {
+    const suitCountAndValue = suitCount.map((s) => ({
+      ...s,
+      value: cardValues.filter((v) => v.card.suit === s.suit).reduce((acc, curr) => acc + curr.value, 0)
+    }));
+
+    suitCountAndValue.sort((a, b) => {
+      //sort descending
+      if (a.count !== b.count) {
+        return b.count - a.count;
+      }
+
+      return b.value - a.value;
+    });
+
+    return suitCountAndValue;
+  };
+
+  const indexCards = (cards: Card[]): Card[] => {
+    const newCards = [...cards];
+    newCards.forEach((c, index) => (c.index = index));
+    return newCards;
+  };
+
   return {
     cardEqual,
     cardId,
@@ -301,7 +386,9 @@ const useCardData = () => {
     getHighAndLowForSuit,
     getCardValuesExcludeSuit,
     getHighAndLowExcludeSuit,
-    getCardColor
+    getCardColor,
+    sortCardsIndices,
+    indexCards
   };
 };
 

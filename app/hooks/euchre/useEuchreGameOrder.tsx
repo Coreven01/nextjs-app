@@ -1,12 +1,8 @@
 import { Card, EuchreGameInstance, PromptType } from '@/app/lib/euchre/definitions';
-import { EuchreFlowActionType, EuchreGameFlow } from './reducers/gameFlowReducer';
-import {
-  getPlayerNotificationType,
-  PlayerNotificationAction,
-  PlayerNotificationActionType
-} from './reducers/playerNotificationReducer';
+import { EuchreGameFlow } from './reducers/gameFlowReducer';
+import { getPlayerNotificationType, PlayerNotificationAction } from './reducers/playerNotificationReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
-import { EuchreErrorState, EuchreGameState } from './useEuchreGame';
+import { EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
 import { createEvent } from '@/app/lib/euchre/util';
@@ -14,13 +10,16 @@ import useGameStateLogic from './logic/useGameStateLogic';
 import useGameBidLogic from './logic/useGameBidLogic';
 import useGameData from './data/useGameData';
 import usePlayerData from './data/usePlayerData';
-import { v4 as uuidv4 } from 'uuid';
+import useCardSvgData from './data/useCardSvgData';
+import useCardData from './data/useCardData';
 
-export default function useEuchreGameOrder(state: EuchreGameState, errorState: EuchreErrorState) {
+export default function useEuchreGameOrder(state: EuchreGameState) {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { orderTrump, determineDiscard } = useGameBidLogic();
   const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
-  const { discard, indexCards, playerEqual } = usePlayerData();
+  const { discard, playerEqual } = usePlayerData();
+  const { getSuitName } = useCardSvgData();
+  const { indexCards } = useCardData();
 
   //#region Order Trump *************************************************************************
 
@@ -29,9 +28,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
   const beginOrderTrump = useCallback(() => {
     if (
       !isGameStateValidToContinue(
-        state.euchreGame,
-        state.euchreGameFlow,
-        state.euchreAnimationFlow,
+        state,
         EuchreGameFlow.BEGIN_ORDER_TRUMP,
         EuchreAnimateType.NONE,
         state.shouldCancel,
@@ -40,50 +37,41 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     )
       return;
 
-    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
-
-    let newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
-
-    if (!newGame) throw new Error('Game not found for trump ordered.');
     if (!state.bidResult) throw new Error('Bid result not found.');
+    const newGame: EuchreGameInstance = orderTrump(state.euchreGame, state.bidResult);
+
     state.addEvent(
       createEvent(
         'i',
         state.euchreSettings,
         newGame.currentPlayer ?? undefined,
-        `Trump called. Loner: ${state.bidResult.loner}`
+        `Trump called: ${newGame.trump.suit} - ${getSuitName(newGame.trump.suit)}. Loner: ${state.bidResult.loner}`
       )
     );
 
-    newGame = orderTrump(newGame, state.bidResult);
-
-    if (!newGame.dealer) throw Error('Dealer not found - Order Trump.');
     if (!newGame.maker) throw Error('Maker not found - Order Trump.');
 
-    if (state.bidResult.loner) {
-      const partnerSittingOut = newGame.gamePlayers.find(
-        (p) => p.team === newGame.maker?.team && p !== newGame.maker
-      );
-      if (partnerSittingOut) {
-        const playerSetting = state.euchreGameFlow.shouldShowCardImagesForHand.find(
-          (i) => i.player === partnerSittingOut
-        );
+    // don't believe this is needed anymore:
+    // if (state.bidResult.loner) {
+    //   const partnerSittingOut = newGame.gamePlayers.find(
+    //     (p) => p.team === newGame.maker?.team && p !== newGame.maker
+    //   );
+    //   if (partnerSittingOut) {
+    //     const playerSetting = state.euchreGameFlow.shouldShowCardImagesForHand.find(
+    //       (i) => i.player === partnerSittingOut
+    //     );
 
-        if (playerSetting) playerSetting.value = false;
-        state.dispatchGameFlow({
-          type: EuchreFlowActionType.SET_STATE,
-          state: { ...state.euchreGameFlow }
-        });
-      }
-    }
+    //     if (playerSetting) playerSetting.value = false;
+    //     state.dispatchGameFlow({
+    //       type: EuchreFlowActionType.SET_STATE,
+    //       state: { ...state.euchreGameFlow }
+    //     });
+    //   }
+    // }
 
-    state.dispatchGameFlow({
-      type: EuchreFlowActionType.SET_GAME_FLOW,
-      gameFlow: EuchreGameFlow.BEGIN_ORDER_TRUMP
-    });
-    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+    state.dispatchStateChange(EuchreGameFlow.BEGIN_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
     state.setEuchreGame(newGame);
-  }, [isGameStateValidToContinue, orderTrump, state]);
+  }, [getSuitName, isGameStateValidToContinue, orderTrump, state]);
 
   /**
    *
@@ -93,17 +81,14 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       beginOrderTrump();
     } catch (e) {
       const error = e as Error;
-
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.ERROR });
-      errorState.setErrorState({
-        time: new Date(),
-        id: uuidv4(),
-        message: error ? error.message : 'Unknown error in beginOrderTrump',
-        gameFlow: EuchreGameFlow.BEGIN_ORDER_TRUMP,
-        animationType: EuchreAnimationActionType.SET_NONE
-      });
+      state.onError(
+        error,
+        EuchreGameFlow.BEGIN_ORDER_TRUMP,
+        EuchreAnimationActionType.SET_NONE,
+        'beginOrderTrump'
+      );
     }
-  }, [beginOrderTrump, errorState, state]);
+  }, [beginOrderTrump, state]);
 
   /**
    *
@@ -112,9 +97,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     const beginAnimationOrderTrump = async () => {
       if (
         !isGameStateValidToContinue(
-          state.euchreGame,
-          state.euchreGameFlow,
-          state.euchreAnimationFlow,
+          state,
           EuchreGameFlow.BEGIN_ORDER_TRUMP,
           EuchreAnimateType.ANIMATE,
           state.shouldCancel,
@@ -123,11 +106,10 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       )
         return;
 
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
+      state.dispatchStateChange(EuchreGameFlow.WAIT);
 
-      const game: EuchreGameInstance | null = state.euchreGame;
+      const game: EuchreGameInstance = state.euchreGame;
 
-      if (!game?.dealer) throw new Error('Game dealer not found for animation trump ordered.');
       if (!state.bidResult) throw new Error('Bid result not found');
       if (!game.maker) throw Error('Maker not found - Order Trump.');
 
@@ -148,52 +130,31 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       };
 
       state.dispatchPlayerNotification(notification);
-      await notificationDelay(state.euchreSettings);
+      await notificationDelay(state.euchreSettings, 1);
 
-      state.dispatchPlayerNotification({
-        type: PlayerNotificationActionType.UPDATE_CENTER,
-        payload: undefined
-      });
-
-      state.dispatchGameFlow({
-        type: EuchreFlowActionType.SET_GAME_FLOW,
-        gameFlow: EuchreGameFlow.END_ORDER_TRUMP
-      });
-      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
+      state.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_NONE);
     };
 
     try {
       beginAnimationOrderTrump();
     } catch (e) {
       const error = e as Error;
-
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.ERROR });
-      errorState.setErrorState({
-        time: new Date(),
-        id: uuidv4(),
-        message: error ? error.message : 'Unknown error in beginAnimationOrderTrump',
-        gameFlow: EuchreGameFlow.BEGIN_ORDER_TRUMP,
-        animationType: EuchreAnimationActionType.SET_ANIMATE
-      });
+      state.onError(
+        error,
+        EuchreGameFlow.BEGIN_ORDER_TRUMP,
+        EuchreAnimationActionType.SET_ANIMATE,
+        'beginAnimationOrderTrump'
+      );
     }
-  }, [
-    determineDiscard,
-    discard,
-    errorState,
-    incrementSpeed,
-    isGameStateValidToContinue,
-    notificationDelay,
-    playerEqual,
-    playerSittingOut,
-    state
-  ]);
+  }, [incrementSpeed, isGameStateValidToContinue, notificationDelay, state]);
 
+  /**
+   *
+   */
   const endOrderTrump = useCallback(() => {
     if (
       !isGameStateValidToContinue(
-        state.euchreGame,
-        state.euchreGameFlow,
-        state.euchreAnimationFlow,
+        state,
         EuchreGameFlow.END_ORDER_TRUMP,
         EuchreAnimateType.NONE,
         state.shouldCancel,
@@ -202,13 +163,9 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     )
       return;
 
-    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.WAIT });
+    const newGame: EuchreGameInstance = { ...state.euchreGame };
 
-    const newGame: EuchreGameInstance | null = state.euchreGame ? { ...state.euchreGame } : null;
-
-    if (!newGame?.dealer) throw new Error('Game dealer not found for animation trump ordered.');
     if (!state.bidResult) throw new Error('Bid result not found');
-    if (!newGame.maker) throw Error('Maker not found - Order Trump.');
 
     let shouldDiscard = state.bidResult.calledSuit === null;
     const sittingOut = playerSittingOut(newGame);
@@ -218,10 +175,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     }
 
     if (newGame.dealer.human && shouldDiscard) {
-      state.dispatchGameFlow({
-        type: EuchreFlowActionType.SET_GAME_FLOW,
-        gameFlow: EuchreGameFlow.AWAIT_PROMPT
-      });
+      state.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT);
       state.setPromptValue([{ type: PromptType.DISCARD }]);
     } else {
       if (shouldDiscard) {
@@ -238,11 +192,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
         );
       }
 
-      state.dispatchGameFlow({
-        type: EuchreFlowActionType.SET_GAME_FLOW,
-        gameFlow: EuchreGameFlow.END_ORDER_TRUMP
-      });
-      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+      state.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
       state.setEuchreGame(newGame);
     }
   }, [determineDiscard, discard, isGameStateValidToContinue, playerEqual, playerSittingOut, state]);
@@ -255,17 +205,14 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       endOrderTrump();
     } catch (e) {
       const error = e as Error;
-
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.ERROR });
-      errorState.setErrorState({
-        time: new Date(),
-        id: uuidv4(),
-        message: error ? error.message : 'Unknown error in endOrderTrump',
-        gameFlow: EuchreGameFlow.END_ORDER_TRUMP,
-        animationType: EuchreAnimationActionType.SET_NONE
-      });
+      state.onError(
+        error,
+        EuchreGameFlow.END_ORDER_TRUMP,
+        EuchreAnimationActionType.SET_NONE,
+        'endOrderTrump'
+      );
     }
-  }, [endOrderTrump, errorState, state]);
+  }, [endOrderTrump, state]);
 
   /**
    *
@@ -274,9 +221,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
     const endAnimationOrderTrump = async () => {
       if (
         !isGameStateValidToContinue(
-          state.euchreGame,
-          state.euchreGameFlow,
-          state.euchreAnimationFlow,
+          state,
           EuchreGameFlow.END_ORDER_TRUMP,
           EuchreAnimateType.ANIMATE,
           state.shouldCancel,
@@ -285,40 +230,24 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
       )
         return;
 
+      // update player's hand in an effect in useCardState with the new card if player had to discard.
       await notificationDelay(state.euchreSettings);
 
-      state.dispatchGameFlow({
-        type: EuchreFlowActionType.SET_GAME_FLOW,
-        gameFlow: EuchreGameFlow.BEGIN_PLAY_CARD
-      });
-      state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
+      state.dispatchStateChange(EuchreGameFlow.BEGIN_PLAY_CARD, EuchreAnimationActionType.SET_NONE);
     };
 
     try {
       endAnimationOrderTrump();
     } catch (e) {
       const error = e as Error;
-
-      state.dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.ERROR });
-      errorState.setErrorState({
-        time: new Date(),
-        id: uuidv4(),
-        message: error ? error.message : 'Unknown error in endAnimationOrderTrump',
-        gameFlow: EuchreGameFlow.END_ORDER_TRUMP,
-        animationType: EuchreAnimationActionType.SET_ANIMATE
-      });
+      state.onError(
+        error,
+        EuchreGameFlow.END_ORDER_TRUMP,
+        EuchreAnimationActionType.SET_ANIMATE,
+        'endAnimationOrderTrump'
+      );
     }
-  }, [
-    determineDiscard,
-    discard,
-    errorState,
-    incrementSpeed,
-    isGameStateValidToContinue,
-    notificationDelay,
-    playerEqual,
-    playerSittingOut,
-    state
-  ]);
+  }, [isGameStateValidToContinue, notificationDelay, state]);
 
   /** Submit the resulting discard from user input after flip card has been picked up.
    *
@@ -341,11 +270,7 @@ export default function useEuchreGameOrder(state: EuchreGameState, errorState: E
           )
         );
 
-        state.dispatchGameFlow({
-          type: EuchreFlowActionType.SET_GAME_FLOW,
-          gameFlow: EuchreGameFlow.END_ORDER_TRUMP
-        });
-        state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+        state.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
         state.setPromptValue([]);
         state.setEuchreGame(newGame);
       }

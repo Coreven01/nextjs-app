@@ -1,6 +1,6 @@
 import { EuchrePlayer, EuchreSettings, GameSpeed, Suit } from '@/app/lib/euchre/definitions';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/16/solid';
-import EphemeralModal from '../ephemeral-modal';
+import EphemeralModal from '../common/ephemeral-modal';
 import UserInfo from './user-info';
 import clsx from 'clsx';
 
@@ -8,19 +8,31 @@ interface Props {
   dealer: EuchrePlayer;
   player: EuchrePlayer;
   settings: EuchreSettings;
-  info: 'pass' | 'order' | 'named' | 'renege';
+  info: 'pass' | 'order' | 'named' | 'renege' | 'message';
   loner: boolean;
   namedSuit: Suit | null;
   delayMs?: GameSpeed;
+  message?: string;
 }
 
-const PlayerNotification = ({ dealer, player, delayMs, settings, info, loner, namedSuit }: Props) => {
-  const icon: React.ReactNode =
-    info === 'pass' || info === 'renege' ? (
-      <XCircleIcon className="min-h-[18px] max-h-[20px] text-red-800 dark:text-red-300" />
-    ) : (
-      <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-700 dark:text-green-400" />
-    );
+const PlayerNotification = ({
+  dealer,
+  player,
+  delayMs,
+  settings,
+  info,
+  loner,
+  namedSuit,
+  message
+}: Props) => {
+  const circleIcon: React.ReactNode = (
+    <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-700 dark:text-green-400" />
+  );
+  const xIcon: React.ReactNode = (
+    <XCircleIcon className="min-h-[18px] max-h-[20px] text-red-800 dark:text-red-300" />
+  );
+
+  let icon: React.ReactNode;
   let messageLocation = '';
 
   switch (player.playerNumber) {
@@ -43,15 +55,23 @@ const PlayerNotification = ({ dealer, player, delayMs, settings, info, loner, na
   switch (info) {
     case 'pass':
       messageDetail = 'Pass';
+      icon = xIcon;
       break;
     case 'order':
       messageDetail = dealer === player ? 'Picking Up' : 'Pick it up';
+      icon = circleIcon;
       break;
     case 'named':
       messageDetail = 'Calling ' + namedSuit;
+      icon = circleIcon;
       break;
     case 'renege':
       messageDetail = "Renege! Didn't follow suit!";
+      icon = xIcon;
+      break;
+    case 'message':
+      messageDetail = message ?? '';
+      icon = undefined;
       break;
   }
 
@@ -62,7 +82,7 @@ const PlayerNotification = ({ dealer, player, delayMs, settings, info, loner, na
       delayMs={delayMs ?? settings.notificationSpeed}
       fadeType="both"
     >
-      <UserInfo className="lg:text-base text-xs bg-white dark:bg-stone-800 p-2 border border-black dark:border-white text-black dark:text-white">
+      <UserInfo>
         <div className={clsx('flex gap-2 items-center')}>
           {icon}
           <div>{messageDetail}</div>

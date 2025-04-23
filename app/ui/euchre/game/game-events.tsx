@@ -2,8 +2,11 @@ import clsx from 'clsx';
 import { RefObject, useEffect, useRef } from 'react';
 import Draggable, { DraggableEvent } from 'react-draggable';
 import GameBorder from './game-border';
-import { GameEvent } from '@/app/hooks/euchre/useEventLog';
+import { GameEvent, GameEventType } from '@/app/hooks/euchre/useEventLog';
 import PromptHeader from '../prompt/prompt-header';
+import Switch from '@mui/material/Switch';
+import { ChangeEvent, useState } from 'react';
+import GameEventLine from './game-event-line';
 
 interface Props {
   className?: string;
@@ -15,6 +18,20 @@ interface Props {
 const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   const draggableRef: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
   const divRef = useRef<HTMLDivElement>(null);
+  const [showDebugEvents, setShowDebugEvents] = useState(false);
+  const [showVerboseEvents, setShowVerboseEvents] = useState(false);
+  const [showInformationEvents, setShowInformationEvents] = useState(true);
+
+  const getFilteredEvents = (): GameEvent[] => {
+    const eventTypes: GameEventType[] = [];
+    if (showDebugEvents) eventTypes.push('d');
+    if (showVerboseEvents) eventTypes.push('v');
+    if (showInformationEvents) eventTypes.push('i');
+
+    return events.filter((e) => eventTypes.includes(e.type));
+  };
+
+  const filteredEvents: GameEvent[] = getFilteredEvents();
 
   useEffect(() => {
     if (divRef.current) {
@@ -31,6 +48,10 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   };
 
   const handleDrag = (e: DraggableEvent, data: object) => {};
+  const handleToggleDebug = (e: ChangeEvent<HTMLInputElement>) => setShowDebugEvents(e.target.checked);
+  const handleToggleInfomation = (e: ChangeEvent<HTMLInputElement>) =>
+    setShowInformationEvents(e.target.checked);
+  const handleToggleVerbose = (e: ChangeEvent<HTMLInputElement>) => setShowVerboseEvents(e.target.checked);
 
   return (
     <Draggable
@@ -43,25 +64,58 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       <div ref={draggableRef} className="flex" style={{ zIndex: 1000 }}>
         <GameBorder className="relative" innerClass=" lg:w-[550px] w-[500px] bg-stone-900">
           <PromptHeader className="cursor-move ">Events</PromptHeader>
+          <div className="flex mx-1 justify-center gap-2">
+            <div>
+              <label htmlFor="showInformationEvents">Show Information: </label>
+              <Switch
+                id="showInformationEvents"
+                size="small"
+                checked={showInformationEvents}
+                name="showInformationEvents"
+                color="success"
+                onChange={(e) => handleToggleInfomation(e)}
+              />
+              {' | '}
+            </div>
+            <div>
+              <label htmlFor="showVerboseEvents">Show Verbose: </label>
+              <Switch
+                id="showVerboseEvents"
+                size="small"
+                checked={showVerboseEvents}
+                name="showVerboseEvents"
+                color="success"
+                onChange={(e) => handleToggleVerbose(e)}
+              />
+              {' | '}
+            </div>
+            <div>
+              <label htmlFor="showDebugEvents">Show Debug: </label>
+              <Switch
+                id="showDebugEvents"
+                size="small"
+                checked={showDebugEvents}
+                name="showDebugEvents"
+                color="success"
+                onChange={(e) => handleToggleDebug(e)}
+              />
+            </div>
+          </div>
           <div
             ref={divRef}
             className="p-2 border border-white m-1 overflow-y-auto lg:text-base text-xs h-[200px] lg:h-[400px]"
           >
             <ul>
-              {events.map((e) => {
-                return (
-                  <li key={e.id}>
-                    {e.time} {`(${e.type})`}: {e.message} {e.player ? `(${e.player})` : ''}
-                  </li>
-                );
+              {filteredEvents.map((e) => {
+                return <GameEventLine key={e.id} event={e} />;
               })}
             </ul>
           </div>
-          <div className="flex gap-2 items-center justify-center m-1 mt-2 lg:text-base text-xs">
-            <button className="text-white border border-white lg:p-2 p-1 grow" onClick={handleClear}>
+          <div className="h-8 flex gap-2 items-center justify-center m-1 mt-2 lg:text-base text-xs">
+            <button className="text-white border border-white grow" onClick={handleClear}>
               Clear
             </button>
-            <button className="text-white border border-white lg:p-2 p-1 grow" onClick={handleClose}>
+            <button className="text-white border border-white grow" onClick={handleClose}>
               Close
             </button>
           </div>

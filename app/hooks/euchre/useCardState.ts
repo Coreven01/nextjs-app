@@ -72,8 +72,8 @@ const useCardState = (
     getCalculatedWidthOffset,
     getSpringForTrickTaken
   } = useCardTransform();
-  const { getDisplayWidth, getDisplayHeight, cardEqual } = useCardData();
-  const { playerLocation, playerEqual, availableCardsToPlay, sortCardsIndices } = usePlayerData();
+  const { getDisplayWidth, getDisplayHeight, cardEqual, sortCardsIndices } = useCardData();
+  const { playerLocation, playerEqual, availableCardsToPlay } = usePlayerData();
   const { getCardsAvailableToPlay, isHandFinished, playerSittingOut, gameDelay } = useGameData();
   const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
   const sittingOutPlayer = playerSittingOut(game);
@@ -403,6 +403,7 @@ const useCardState = (
       if (handState?.shouldShowCardValue && !playerIsSittingOut) {
         initializeSortOrder();
         regroupCards(true, cardRef);
+        updateCardStateForTurn();
       }
     }
   });

@@ -147,7 +147,6 @@ const useCardTransform = () => {
         break;
       case 2:
         cardPlayedFunc = getPlayer2SpringForCardPlayed;
-
         break;
       case 3:
         cardPlayedFunc = getPlayer3SpringForCardPlayed;
@@ -160,6 +159,8 @@ const useCardTransform = () => {
     newVal.rotateX = 0;
     newVal.rotateY = 0;
     newVal.opacity = 1;
+    newVal.transition = { rotateY: { duration: 0.3 }, rotateX: { duration: 0.3 } };
+    newVal.perspective = 1000;
 
     retval.push({
       ordinalIndex: -1,

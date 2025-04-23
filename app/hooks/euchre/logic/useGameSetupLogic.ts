@@ -15,8 +15,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 const useGameSetupLogic = () => {
   const { resetForNewDeal, dealCards, copyCardsFromReplay, verifyDealtCards, createTrick } = useGameData();
-  const { indexCards, getPlayerRotation } = usePlayerData();
-  const { createPlaceholderCards, getSuitCount, createShuffledDeck } = useCardData();
+  const { getPlayerRotation } = usePlayerData();
+  const { createPlaceholderCards, getSuitCount, createShuffledDeck, indexCards } = useCardData();
 
   const createPlayer = (name: string, team: 1 | 2, playerNumber: 1 | 2 | 3 | 4): EuchrePlayer => {
     return {
@@ -115,7 +115,7 @@ const useGameSetupLogic = () => {
       shouldShowCardValuesForHand: [],
       hasFirstBiddingPassed: false,
       hasSecondBiddingPassed: false,
-      gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL
+      gameFlow: EuchreGameFlow.BEGIN_INTRO
     };
 
     return newGameFlow;

@@ -1,7 +1,7 @@
 import React, { CSSProperties } from 'react';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '../../lib/euchre/definitions';
+import { RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '../../../lib/euchre/definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   width: number;

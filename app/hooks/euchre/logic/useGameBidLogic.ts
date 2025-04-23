@@ -16,8 +16,9 @@ import useGameSetupLogic from './useGameSetupLogic';
 
 const useGameBidLogic = () => {
   const { teamPoints, getRandomScoreForDifficulty, playerSittingOut } = useGameData();
-  const { playerEqual, availableCardsToPlay, indexCards, getPlayerRotation } = usePlayerData();
-  const { getCardValue, cardIsLeftBower, cardIsRightBower, getSuitCount, cardEqual } = useCardData();
+  const { playerEqual, availableCardsToPlay, getPlayerRotation } = usePlayerData();
+  const { getCardValue, cardIsLeftBower, cardIsRightBower, getSuitCount, cardEqual, indexCards } =
+    useCardData();
   const { createTrick } = useGameSetupLogic();
 
   /** Get total score value for a player's hand based on the trump card. */
