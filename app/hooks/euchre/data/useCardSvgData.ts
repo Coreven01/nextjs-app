@@ -179,7 +179,8 @@ const useCardSvgData = () => {
   }
 
   const getCardFullName = useCallback((card: Card): string => {
-    return `${getCardValueName(card.value)} of ${getSuitName(card.suit)}s`;
+    const cardName = getCardValueName(card.value);
+    return `${cardName ? cardName + ' of ' : ''}${getSuitName(card.suit)}s`;
   }, []);
 
   return { getEncodedCardSvg, getCardFullName, getSuitName, getCardClassColorFromSuit };

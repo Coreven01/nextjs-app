@@ -1,7 +1,13 @@
 import clsx from 'clsx';
-import React, { RefObject, useRef } from 'react';
+import React, { RefObject, useCallback, useRef } from 'react';
 import PlayerGameDeck from './players-game-deck';
-import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '../../../lib/euchre/definitions';
+import {
+  Card,
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings,
+  EuchreTrick
+} from '../../../lib/euchre/definitions';
 import { EuchreGameFlowState } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
@@ -63,8 +69,11 @@ const PlayerArea = ({
   /** Map of trick id to the card values that were played for that trick. */
   const cardsPlayedForTrick = useRef<Map<string, Set<string>>>(new Map<string, Set<string>>());
 
+  /** Set of trick id's where the event handler was executed to finish the trick. */
+  const tricksFinished = useRef<Set<string>>(new Set<string>());
+
   const handleInitComplete = (playerNumber: number) => {
-    console.log('[handleInitComplete]');
+    console.log('[handleInitComplete] - player-area.tsx');
     if (playersInitDealFinished.current.values().toArray().length === 4) return;
 
     playersInitDealFinished.current.add(playerNumber);
@@ -74,31 +83,27 @@ const PlayerArea = ({
     }
   };
 
-  const handleTrickFinished = (card: Card) => {
-    console.log('[handleTrickFinished]');
+  const handleTrickFinished = useCallback(
+    (card: Card) => {
+      console.log('[handleTrickFinished] - player-area.tsx');
 
-    const trickId = game.currentTrick.trickId;
-    const cardVals = cardsPlayedForTrick.current.get(trickId) ?? new Set<string>();
+      const trick: EuchreTrick | undefined = game.currentTrick;
+      const trickFinished = tricksFinished.current.has(trick.trickId);
 
-    if (cardVals.values.length === cardCountDuringPlay) {
-      return;
-    }
+      if (trickFinished) return;
 
-    cardVals.add(`${card.value}-${card.suit}`);
-    cardsPlayedForTrick.current.set(trickId, cardVals);
+      const cardVals = cardsPlayedForTrick.current.get(trick.trickId) ?? new Set<string>();
 
-    if (game.currentTrick.playerRenege) {
-      let counter = 0;
-      // end the hand if player reneged. add values to the collection, to trigger the trick complete event.
-      while (cardVals.values().toArray().length < cardCountDuringPlay) {
-        cardVals.add(`${counter++}-R`);
+      cardVals.add(`${card.value}-${card.suit}`);
+      cardsPlayedForTrick.current.set(trick.trickId, cardVals);
+
+      if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
+        tricksFinished.current.add(trick.trickId);
+        onTrickComplete();
       }
-    }
-
-    if (cardVals.values().toArray().length === cardCountDuringPlay) {
-      onTrickComplete();
-    }
-  };
+    },
+    [cardCountDuringPlay, game.currentTrick, onTrickComplete]
+  );
 
   return (
     <div
@@ -110,7 +115,7 @@ const PlayerArea = ({
     >
       <div className="relative row-start-3 col-start-1 col-span-3 row-span-1 flex items-end">
         <PlayerGameDeck
-          id="player1-game-deck"
+          id="player1-game-deck perspective-midrange"
           playerTableRef={player1TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player1DeckRef}
@@ -130,7 +135,7 @@ const PlayerArea = ({
       </div>
       <div className="row-start-1 col-start-1 col-span-3 row-span-1 flex items-start">
         <PlayerGameDeck
-          id="player2-game-deck"
+          id="player2-game-deck perspective-midrange"
           playerTableRef={player2TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player2DeckRef}
@@ -150,7 +155,7 @@ const PlayerArea = ({
       </div>
       <div className="row-start-1 col-start-1 row-span-3 col-span-1 flex items-center">
         <PlayerGameDeck
-          id="player3-game-deck"
+          id="player3-game-deck perspective-midrange"
           playerTableRef={player3TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player3DeckRef}
@@ -170,7 +175,7 @@ const PlayerArea = ({
       </div>
       <div className="row-start-1 col-start-3 row-span-3 flex items-center">
         <PlayerGameDeck
-          id="player4-game-deck"
+          id="player4-game-deck perspective-midrange"
           playerTableRef={player4TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player4DeckRef}

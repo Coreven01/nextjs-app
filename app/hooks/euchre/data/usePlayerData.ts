@@ -42,21 +42,25 @@ const usePlayerData = () => {
     return first.playerNumber === second.playerNumber;
   }, []);
 
-  const getTeamColor = (player: EuchrePlayer, settings: EuchreSettings): TeamColor => {
+  const getTeamColor = useCallback((player: EuchrePlayer, settings: EuchreSettings): TeamColor => {
     if (player.team === 1) {
       return settings.teamOneColor;
     } else {
       return settings.teamTwoColor;
     }
-  };
+  }, []);
 
-  const getTeamCssClass = (player: EuchrePlayer, settings: EuchreSettings): string => {
-    const teamColor = getTeamColor(player, settings);
+  const getTeamCssClassFromTeamColor = (teamColor: TeamColor): string => {
     const teamCss = TEAM_COLOR_MAP.get(teamColor);
 
     if (teamCss) return teamCss;
 
     return 'bg-white';
+  };
+
+  const getTeamCssClass = (player: EuchrePlayer, settings: EuchreSettings): string => {
+    const teamColor = getTeamColor(player, settings);
+    return getTeamCssClassFromTeamColor(teamColor);
   };
 
   /** Remove the card from the player's hand. Maintains card order and indices. */
@@ -120,7 +124,9 @@ const usePlayerData = () => {
     getPlayerRotation,
     discard,
     playerLocation,
-    getTeamCssClass
+    getTeamCssClass,
+    getTeamCssClassFromTeamColor,
+    getTeamColor
   };
 };
 

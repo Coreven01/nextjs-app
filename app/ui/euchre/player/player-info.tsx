@@ -11,12 +11,14 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
-  const { playerEqual } = usePlayerData();
+  const { playerEqual, getTeamColor } = usePlayerData();
+
   const isDealer = playerEqual(player, game.dealer);
   const isMaker = game.maker && playerEqual(player, game.maker);
   const isSittingOut = game.loner && game.maker?.team === player.team && game.maker !== player;
   const suit = game.trump?.suit;
   const tricksCount = game.currentTricks.filter((t) => t.taker === player).length;
+
   let infoToRender: React.ReactNode[] = [];
   const shortHandInfo: React.ReactNode[] = [];
   const infoClass = 'text-red-800 dark:text-yellow-400';
@@ -105,7 +107,7 @@ const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
       }
     >
       <GameBorderBare {...rest} className="">
-        <PlayerColor player={player} settings={settings}>
+        <PlayerColor teamColor={getTeamColor(player, settings)}>
           <div className="bg-white dark:bg-stone-800 p-1">{infoToRender}</div>
         </PlayerColor>
       </GameBorderBare>

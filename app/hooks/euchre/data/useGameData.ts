@@ -69,7 +69,7 @@ const useGameData = () => {
   };
 
   const teamPoints = (game: EuchreGameInstance, teamNumber: 1 | 2): number => {
-    return game.gameResults
+    return game.handResults
       .filter((t) => t.teamWon === teamNumber)
       .map((t) => t.points)
       .reduce((acc, curr) => acc + curr, 0);
@@ -78,7 +78,7 @@ const useGameData = () => {
   const resetForNewGame = (game: EuchreGameInstance): EuchreGameInstance => {
     const newGame: EuchreGameInstance = resetForNewDeal(game);
 
-    newGame.gameResults = [];
+    newGame.handResults = [];
     newGame.dealer = newGame.player1;
     newGame.dealPassedCount = 0;
 
@@ -403,7 +403,7 @@ const useGameData = () => {
 
     if (handOver) {
       // if hand is over update the game results.
-      newGame.gameResults.push(getHandResult(newGame));
+      newGame.handResults.push(getHandResult(newGame));
     }
     return newGame;
   };
@@ -413,12 +413,12 @@ const useGameData = () => {
    */
   const reverseLastHandPlayed = (game: EuchreGameInstance): EuchreGameInstance => {
     let newGame: EuchreGameInstance = { ...game };
-    const lastGameResult: EuchreHandResult | undefined = newGame.gameResults.pop();
+    const lastHandResult: EuchreHandResult | undefined = newGame.handResults.pop();
 
-    if (!lastGameResult) throw new Error('Game result not found.');
+    if (!lastHandResult) throw new Error('Hand result not found for replay.');
 
     const discard: Card | null = newGame.discard ? { ...newGame.discard } : null;
-    const allCards: EuchreCard[] = lastGameResult.allPlayerCards;
+    const allCards: EuchreCard[] = lastHandResult.allPlayerCards;
     const currentKitty: Card[] = [
       ...newGame.kitty.map((c) => {
         return { ...c };
@@ -456,7 +456,7 @@ const useGameData = () => {
     newGame.player4.hand = player4Hand;
     newGame.currentPlayer = getPlayerRotation(newGame.gamePlayers, newGame.dealer)[0];
     newGame.handId = uuidv4();
-    newGame.currentTrick = createTrick(lastGameResult.roundNumber);
+    newGame.currentTrick = createTrick(lastHandResult.roundNumber);
     const tempTrump = newGame.trump;
 
     if (discard && newGame.trump) {
@@ -464,7 +464,7 @@ const useGameData = () => {
     }
 
     newGame.deck = [...newGame.gamePlayers.map((p) => p.hand).flat(), ...currentKitty];
-    newGame.currentRound = lastGameResult.roundNumber;
+    newGame.currentRound = lastHandResult.roundNumber;
     for (const player of newGame.gamePlayers) player.hand = indexCards(player.hand);
 
     verifyDealtCards(newGame);

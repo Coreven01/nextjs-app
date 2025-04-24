@@ -1,21 +1,8 @@
 import { GameEvent, GameEventType } from '@/app/hooks/euchre/useEventLog';
-import { BidResult, EuchreGameInstance, EuchrePlayer, EuchreSettings } from './definitions';
+import { Card, EuchrePlayer, TeamColor } from './definitions';
+import { v4 as uuidv4 } from 'uuid';
 
 const ENABLE_LOGGING = true;
-
-function logBidResult(game: EuchreGameInstance, result: BidResult) {
-  if (!ENABLE_LOGGING) return;
-
-  // const logValue = {
-  //   dealer: game.dealer?.name,
-  //   currentPlayer: game.currentPlayer?.name,
-  //   playerHand: game.currentPlayer?.availableCards.map((c) => `${c.value} - ${c.suit}`),
-  //   flipCard: `${game.trump?.value} - ${game.trump?.suit}`,
-  //   bidResult: result
-  // };
-
-  // console.table(logValue);
-}
 
 /** Log error to console. */
 function logDebugError(
@@ -33,19 +20,20 @@ function logDebugError(
 
 function createEvent(
   type: GameEventType,
-  settings?: EuchreSettings,
   player?: EuchrePlayer,
   message?: string,
-  ...params: (object | string | null | undefined)[]
+  cards?: Card[],
+  teamColor?: TeamColor
 ): GameEvent {
   return {
-    id: 0,
+    id: uuidv4(),
     time: new Date().toLocaleTimeString(),
     type: type,
     message: message,
     player: player?.name,
     team: player?.team,
-    teamColor: 'orange' // player && settings ? player?.getTeamColor(settings) : undefined
+    teamColor: teamColor ? teamColor : 'blue',
+    cards: cards
   };
 }
 
@@ -81,11 +69,4 @@ function scrollElementIntoViewIfNeeded(element: HTMLElement, container: HTMLElem
   }
 }
 
-export {
-  scrollElementIntoViewIfNeeded,
-  isElementFullyVisible,
-  createEvent,
-  createRange,
-  logDebugError,
-  logBidResult
-};
+export { scrollElementIntoViewIfNeeded, isElementFullyVisible, createEvent, createRange, logDebugError };

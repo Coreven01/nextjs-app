@@ -1,4 +1,10 @@
-import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
+import {
+  Card,
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings,
+  EuchreTrick
+} from '@/app/lib/euchre/definitions';
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
@@ -22,7 +28,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   onInitDeal: () => void;
   onRegularDeal: () => void;
   onCardPlayed: (card: Card) => void;
-  onTrickComplete: (card: Card) => void;
+  onTrickComplete: (card: Card, trickId: string) => void;
   onPassDeal: () => void;
 }
 

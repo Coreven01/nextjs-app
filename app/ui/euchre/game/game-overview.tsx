@@ -18,6 +18,8 @@ interface Props {
 
 const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
   const { teamPoints } = useGameData();
+  const { getTeamColor } = usePlayerData();
+
   const teamOneScore = Math.min(teamPoints(game, 1), 10);
   const teamTwoScore = Math.min(teamPoints(game, 2), 10);
   const teamOneLoners = gameResults.filter(
@@ -62,8 +64,7 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
               <td className="flex items-center gap-1">
                 <PlayerColor
                   className="border border-white text-transparent h-4 w-4"
-                  player={game.player1}
-                  settings={gameSettings}
+                  teamColor={getTeamColor(game.player1, gameSettings)}
                 >
                   X
                 </PlayerColor>
@@ -78,8 +79,7 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
               <td className="flex items-center gap-1">
                 <PlayerColor
                   className="border border-white text-transparent h-4 w-4"
-                  player={game.player3}
-                  settings={gameSettings}
+                  teamColor={getTeamColor(game.player3, gameSettings)}
                 >
                   X
                 </PlayerColor>

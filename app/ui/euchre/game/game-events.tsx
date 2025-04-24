@@ -7,6 +7,7 @@ import PromptHeader from '../prompt/prompt-header';
 import Switch from '@mui/material/Switch';
 import { ChangeEvent, useState } from 'react';
 import GameEventLine from './game-event-line';
+import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 
 interface Props {
   className?: string;
@@ -21,6 +22,8 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   const [showDebugEvents, setShowDebugEvents] = useState(false);
   const [showVerboseEvents, setShowVerboseEvents] = useState(false);
   const [showInformationEvents, setShowInformationEvents] = useState(true);
+  const [showTimeStamp, setShowTimeStamp] = useState(false);
+  const { getCardFullName } = useCardSvgData();
 
   const getFilteredEvents = (): GameEvent[] => {
     const eventTypes: GameEventType[] = [];
@@ -52,6 +55,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   const handleToggleInfomation = (e: ChangeEvent<HTMLInputElement>) =>
     setShowInformationEvents(e.target.checked);
   const handleToggleVerbose = (e: ChangeEvent<HTMLInputElement>) => setShowVerboseEvents(e.target.checked);
+  const handleToggleTimeStamp = (e: ChangeEvent<HTMLInputElement>) => setShowTimeStamp(e.target.checked);
 
   return (
     <Draggable
@@ -64,9 +68,9 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       <div ref={draggableRef} className="flex" style={{ zIndex: 1000 }}>
         <GameBorder className="relative" innerClass=" lg:w-[550px] w-[500px] bg-stone-900">
           <PromptHeader className="cursor-move ">Events</PromptHeader>
-          <div className="flex mx-1 justify-center gap-2">
+          <div className="flex mx-1 justify-center gap-2 lg:text-sm">
             <div>
-              <label htmlFor="showInformationEvents">Show Information: </label>
+              <label htmlFor="showInformationEvents">Information: </label>
               <Switch
                 id="showInformationEvents"
                 size="small"
@@ -78,7 +82,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
               {' | '}
             </div>
             <div>
-              <label htmlFor="showVerboseEvents">Show Verbose: </label>
+              <label htmlFor="showVerboseEvents">Verbose: </label>
               <Switch
                 id="showVerboseEvents"
                 size="small"
@@ -90,7 +94,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
               {' | '}
             </div>
             <div>
-              <label htmlFor="showDebugEvents">Show Debug: </label>
+              <label htmlFor="showDebugEvents">Debug: </label>
               <Switch
                 id="showDebugEvents"
                 size="small"
@@ -99,15 +103,34 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
                 color="success"
                 onChange={(e) => handleToggleDebug(e)}
               />
+              {' | '}
+            </div>
+            <div>
+              <label htmlFor="showTimeStamp">Show Timestamp: </label>
+              <Switch
+                id="showTimeStamp"
+                size="small"
+                checked={showTimeStamp}
+                name="showTimeStamp"
+                color="success"
+                onChange={(e) => handleToggleTimeStamp(e)}
+              />
             </div>
           </div>
           <div
             ref={divRef}
-            className="p-2 border border-white m-1 overflow-y-auto lg:text-base text-xs h-[200px] lg:h-[400px]"
+            className="border border-white m-1 overflow-y-auto lg:text-sm text-xs h-[200px] lg:h-[400px]"
           >
             <ul>
               {filteredEvents.map((e) => {
-                return <GameEventLine key={e.id} event={e} />;
+                return (
+                  <GameEventLine
+                    key={e.id}
+                    event={e}
+                    showTimeStamp={showTimeStamp}
+                    getCardFullName={getCardFullName}
+                  />
+                );
               })}
             </ul>
           </div>

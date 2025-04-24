@@ -8,11 +8,14 @@ import { EuchreGameInstance } from '@/app/lib/euchre/definitions';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import useGameStateLogic from './logic/useGameStateLogic';
+import { SUB_SUIT as SUB_CARD } from './useEventLog';
+import usePlayerData from './data/usePlayerData';
 
 const useEuchreGameShuffle = (state: EuchreGameState) => {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { shuffleAndDealHand } = useGameSetupLogic();
   const { getGameStateForNextHand } = useGamePlayLogic();
+  const { getTeamColor } = usePlayerData();
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
 
@@ -35,9 +38,7 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
     let newGame: EuchreGameInstance = { ...state.euchreGame };
     if (!newGame.dealer) throw new Error('Dealer not found for shuffle and deal.');
 
-    state.addEvent(
-      createEvent('v', state.euchreSettings, newGame.dealer, 'Begin shuffle and deal for regular play.')
-    );
+    state.addEvent(createEvent('v', newGame.dealer, 'Begin shuffle and deal for regular play.'));
 
     const shuffleResult = shuffleAndDealHand(
       newGame,
@@ -50,9 +51,10 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
     state.addEvent(
       createEvent(
         'i',
-        state.euchreSettings,
         newGame.dealer,
-        `Dealer flipped up ${newGame.trump.value}-${newGame.trump.suit} for bidding.`
+        `Flipped up ${SUB_CARD} for bidding.`,
+        [newGame.trump],
+        getTeamColor(newGame.dealer, state.euchreSettings)
       )
     );
 
@@ -68,7 +70,7 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
     state.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameState });
     state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
     state.setEuchreGame(newGame);
-  }, [getGameStateForNextHand, isGameStateValidToContinue, shuffleAndDealHand, state]);
+  }, [getGameStateForNextHand, getTeamColor, isGameStateValidToContinue, shuffleAndDealHand, state]);
 
   /**
    *

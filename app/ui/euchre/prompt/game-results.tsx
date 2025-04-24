@@ -11,16 +11,16 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
   settings: EuchreSettings;
-  gameResults: EuchreHandResult[] | null;
+  handResults: EuchreHandResult[] | null;
   onClose: () => void;
   onNewGame: () => void;
   onReplayGame: () => void;
 }
 
-export default function GameResults({
+export default function GameResult({
   game,
   settings,
-  gameResults,
+  handResults,
   onNewGame,
   onClose,
   onReplayGame,
@@ -43,7 +43,7 @@ export default function GameResults({
   const handleSelectionChange = (event: MouseEvent, newSelection: number) => {
     if (newSelection < -1) return;
 
-    if (gameResults && newSelection >= gameResults.length) return;
+    if (handResults && newSelection >= handResults.length) return;
 
     handleButtonClick(newSelection);
   };
@@ -77,7 +77,7 @@ export default function GameResults({
     }
   };
 
-  if (!gameResults) throw new Error('No game results were found');
+  if (!handResults) throw new Error('No game results were found');
 
   return (
     <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
@@ -87,7 +87,7 @@ export default function GameResults({
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
               <ChevronLeftIcon />
             </button>
-            <PromptHeader className="grow lg:text-base text-sm">Game Results</PromptHeader>
+            <PromptHeader className="grow lg:text-base text-sm">Game Result</PromptHeader>
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonRight}>
               <ChevronRightIcon />
             </button>
@@ -95,18 +95,18 @@ export default function GameResults({
           <HandResultNavigation
             menuRef={menu}
             onButtonClick={handleButtonClick}
-            gameResults={gameResults}
+            gameResults={handResults}
             selection={selection}
           />
 
           {showOverview ? (
-            <GameOverview game={game} gameSettings={settings} gameResults={gameResults} />
+            <GameOverview game={game} gameSettings={settings} gameResults={handResults} />
           ) : (
             <HandResult
               className="mx-auto"
               game={game}
               settings={settings}
-              handResult={gameResults[selection]}
+              handResult={handResults[selection]}
             ></HandResult>
           )}
 

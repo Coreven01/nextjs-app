@@ -15,10 +15,10 @@ import { PromptType } from '../../lib/euchre/definitions';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(state: EuchreGameState) {
+  const [showIntro, setShowIntro] = useState(true);
   const { initDeckForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } = useGameSetupLogic();
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { notificationDelay } = useGameData();
-  const [showIntro, setShowIntro] = useState(true);
 
   useEffect(() => {
     const animateIntro = async () => {

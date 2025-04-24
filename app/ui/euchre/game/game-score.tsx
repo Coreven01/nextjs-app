@@ -5,6 +5,7 @@ import PlayerColor from '../player/player-team-color';
 import GameBorderBare from './game-border-bare';
 import useGameData from '@/app/hooks/euchre/data/useGameData';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
+import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -16,6 +17,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 const GameScore = ({ children, className, game, settings, showScore, ...rest }: DivProps) => {
   const { teamPoints } = useGameData();
   const { getSuitName } = useCardSvgData();
+  const { getTeamColor } = usePlayerData();
 
   const teamOnePoints = teamPoints(game, 1);
   const teamTwoPoints = teamPoints(game, 2);
@@ -54,8 +56,7 @@ const GameScore = ({ children, className, game, settings, showScore, ...rest }: 
                     <td>
                       <PlayerColor
                         className="border border-white text-transparent h-4 w-4"
-                        player={game.player1}
-                        settings={settings}
+                        teamColor={getTeamColor(game.player1, settings)}
                       >
                         X
                       </PlayerColor>
@@ -71,8 +72,7 @@ const GameScore = ({ children, className, game, settings, showScore, ...rest }: 
                     <td>
                       <PlayerColor
                         className="border border-white text-transparent h-4 w-4"
-                        player={game.player3}
-                        settings={settings}
+                        teamColor={getTeamColor(game.player3, settings)}
                       >
                         X
                       </PlayerColor>

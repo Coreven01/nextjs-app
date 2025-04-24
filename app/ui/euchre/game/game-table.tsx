@@ -54,7 +54,7 @@ const GameTable = ({
         : '/card-back.svg',
     cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
     cardIndex: 0,
-    initSprungValue: { ...DEFAULT_SPRING_VAL, opacity: 0, rotateY: 180 },
+    initSpringValue: { ...DEFAULT_SPRING_VAL, opacity: 0, rotateY: 180 },
     springValue:
       gameBidding && !gameFlow.hasFirstBiddingPassed
         ? { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 0, transition: { rotateY: { duration: 0.5 } } }

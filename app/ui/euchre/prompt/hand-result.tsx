@@ -11,6 +11,7 @@ import clsx from 'clsx';
 import HandResultDetail from './hand-result-detail';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import GameWarning from '../game/game-warning';
+import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -20,6 +21,8 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 export default function HandResult({ game, settings, handResult, className, ...rest }: Props) {
   const { getCardClassColorFromSuit, getSuitName } = useCardSvgData();
+  const { getTeamColor } = usePlayerData();
+
   const [selectedHighlight, setSelectedHighlight] = useState<ResultHighlight>('winner');
 
   if (!handResult) throw new Error('No hand result was found');
@@ -53,17 +56,26 @@ export default function HandResult({ game, settings, handResult, className, ...r
       <div className="flex gap-1">
         <div className="lg:min-w-48">
           <div className="mb-1">
-            <PlayerColor className="lg:text-base text-xs" player={handResult.maker} settings={settings}>
+            <PlayerColor
+              className="lg:text-base text-xs"
+              teamColor={getTeamColor(handResult.maker, settings)}
+            >
               <div className="bg-stone-800 p-1 text-center">Maker: {handResult.maker.name}</div>
             </PlayerColor>
           </div>
           <div className=" mb-1">
-            <PlayerColor className="lg:text-base text-xs" player={handResult.dealer} settings={settings}>
+            <PlayerColor
+              className="lg:text-base text-xs"
+              teamColor={getTeamColor(handResult.dealer, settings)}
+            >
               <div className="bg-stone-800 p-1 text-center">Dealer: {handResult.dealer.name}</div>
             </PlayerColor>
           </div>
           <div className="mb-1">
-            <PlayerColor className="lg:text-base text-xs" player={winningTeamPlayer} settings={settings}>
+            <PlayerColor
+              className="lg:text-base text-xs"
+              teamColor={getTeamColor(winningTeamPlayer, settings)}
+            >
               <div className="bg-stone-800 p-1 text-center">{pointsDisplay}</div>
             </PlayerColor>
           </div>
@@ -101,7 +113,10 @@ export default function HandResult({ game, settings, handResult, className, ...r
                   playerReneged={playerReneged}
                 />
                 {!displayWinner && (
-                  <PlayerColor className="grow lg:min-w-36 h-full" player={trick.taker} settings={settings}>
+                  <PlayerColor
+                    className="grow lg:min-w-36 h-full"
+                    teamColor={getTeamColor(trick.taker, settings)}
+                  >
                     <div className="bg-stone-800 p-1 text-center">Winner: {trick.taker.name}</div>
                   </PlayerColor>
                 )}

@@ -165,9 +165,7 @@ export default function useEuchreGameAuto() {
       }
     } catch (e) {
       const error = e as Error;
-      logDebugError(
-        createEvent('e', gameSetting, undefined, `${error ? error.message + '\n' + error.stack : e}`, newGame)
-      );
+      logDebugError(createEvent('e', undefined, `${error ? error.message + '\n' + error.stack : e}`));
     }
     //#endregion
 
@@ -288,9 +286,7 @@ export default function useEuchreGameAuto() {
       }
     } catch (e) {
       const error = e as Error;
-      logDebugError(
-        createEvent('e', gameSetting, undefined, `${error ? error.message + '\n' + error.stack : e}`, newGame)
-      );
+      logDebugError(createEvent('e', undefined, `${error ? error.message + '\n' + error.stack : e}`));
     }
     //#endregion
 

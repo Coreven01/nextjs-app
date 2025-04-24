@@ -1,19 +1,19 @@
-'use client';
-
-import { TeamColor } from '@/app/lib/euchre/definitions';
+import { Card, TeamColor } from '@/app/lib/euchre/definitions';
 import { useCallback, useRef, useState } from 'react';
 
 /** Information, Warn, Error, Debug, Verbose */
 export type GameEventType = 'i' | 'w' | 'e' | 'd' | 'v';
+export const SUB_SUIT: string = '[[s]]';
 
 export interface GameEvent {
-  id: number;
+  id: string;
   type: GameEventType;
   time: string;
   message?: string;
   player?: string;
   team?: number;
   teamColor?: TeamColor;
+  cards?: Card[];
 }
 
 export function useEventLog() {
@@ -22,7 +22,6 @@ export function useEventLog() {
 
   const addEvent = useCallback(
     (event: GameEvent) => {
-      event.id = counter.current;
       counter.current++;
 
       if (events.length > 200) {

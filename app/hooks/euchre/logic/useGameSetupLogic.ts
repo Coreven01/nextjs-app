@@ -15,7 +15,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const useGameSetupLogic = () => {
   const { resetForNewDeal, dealCards, copyCardsFromReplay, verifyDealtCards, createTrick } = useGameData();
-  const { getPlayerRotation } = usePlayerData();
+  const { getPlayerRotation, getTeamColor } = usePlayerData();
   const { createPlaceholderCards, getSuitCount, createShuffledDeck, indexCards } = useCardData();
 
   const createPlayer = (name: string, team: 1 | 2, playerNumber: 1 | 2 | 3 | 4): EuchrePlayer => {
@@ -52,7 +52,7 @@ const useGameSetupLogic = () => {
         discard: null,
         turnedDown: null,
         cardDealCount: [],
-        gameResults: [],
+        handResults: [],
         gamePlayers: [player1, player2, player3, player4],
         dealPassedCount: 0,
 
@@ -185,7 +185,7 @@ const useGameSetupLogic = () => {
         newDealerResult = dealCardsForNewDealer(newGame);
       } else {
         const originalDealer = newGame.gamePlayers.find(
-          (p) => p.playerNumber === replayGameInstance.gameResults[0].dealer.playerNumber
+          (p) => p.playerNumber === replayGameInstance.handResults[0].dealer.playerNumber
         );
 
         if (originalDealer) {
@@ -218,7 +218,7 @@ const useGameSetupLogic = () => {
     const redealLimit: number = 10;
     let counter: number = 0;
     let shouldReDeal: boolean = true;
-    const replayHand = replayGameInstance?.gameResults.find((r) => r.roundNumber === newGame.currentRound);
+    const replayHand = replayGameInstance?.handResults.find((r) => r.roundNumber === newGame.currentRound);
 
     while (shouldReDeal) {
       newGame = resetForNewDeal(newGame);
@@ -273,7 +273,8 @@ const useGameSetupLogic = () => {
     dealCardsForDealer,
     createPlayer,
     createDefaultEuchreGame,
-    createTrick
+    createTrick,
+    getTeamColor
   };
 };
 

@@ -197,7 +197,7 @@ export interface EuchreGameInstance {
   discard: Card | null;
   turnedDown: Card | null;
   cardDealCount: number[];
-  gameResults: EuchreHandResult[];
+  handResults: EuchreHandResult[];
   gamePlayers: EuchrePlayer[];
   dealPassedCount: number;
 

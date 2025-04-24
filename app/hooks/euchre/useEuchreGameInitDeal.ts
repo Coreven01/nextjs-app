@@ -7,6 +7,7 @@ import { InitDealResult } from '@/app/lib/euchre/logic-definitions';
 import useGameStateLogic from './logic/useGameStateLogic';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import { EuchreGameInstance } from '../../lib/euchre/definitions';
+import usePlayerData from './data/usePlayerData';
 
 /**
  * Hook used to initialize game play for dealing cards for intial dealer.
@@ -16,6 +17,7 @@ import { EuchreGameInstance } from '../../lib/euchre/definitions';
 export default function useEuchreGameInitDeal(state: EuchreGameState) {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { dealCardsForDealer } = useGameSetupLogic();
+  const { getTeamColor } = usePlayerData();
 
   //#region Deal Cards For Initial Dealer *************************************************************************
 
@@ -37,9 +39,7 @@ export default function useEuchreGameInitDeal(state: EuchreGameState) {
     state.dispatchStateChange(EuchreGameFlow.WAIT);
 
     const newGame: EuchreGameInstance = { ...state.euchreGame };
-    state.addEvent(
-      createEvent('v', state.euchreSettings, undefined, 'Begin deal cards to determine initial dealer.')
-    );
+    state.addEvent(createEvent('v', undefined, 'Begin deal cards to determine initial dealer.'));
 
     const dealResult: InitDealResult | null = dealCardsForDealer(
       newGame,
@@ -52,11 +52,19 @@ export default function useEuchreGameInitDeal(state: EuchreGameState) {
     newGame.currentPlayer = dealResult.newDealer;
     newGame.dealer = dealResult.newDealer;
 
-    state.addEvent(createEvent('i', state.euchreSettings, dealResult.newDealer, 'Initial dealer set.'));
+    state.addEvent(
+      createEvent(
+        'i',
+        dealResult.newDealer,
+        'Set as initial dealer.',
+        undefined,
+        getTeamColor(dealResult.newDealer, state.euchreSettings)
+      )
+    );
 
     state.dispatchStateChange(EuchreGameFlow.BEGIN_DEAL_FOR_DEALER, EuchreAnimationActionType.SET_ANIMATE);
     state.setEuchreGame(newGame);
-  }, [dealCardsForDealer, isGameStateValidToContinue, state]);
+  }, [dealCardsForDealer, getTeamColor, isGameStateValidToContinue, state]);
 
   /** Effect to begin deal cards to determine initial dealer
    *

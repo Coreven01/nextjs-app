@@ -97,7 +97,7 @@ export interface TrickLogic {
   /** Number of tricks won by the team for the current hand */
   teamTricksWon: number;
 
-  /** Number of tricks won by the team for the current hand */
+  /** Number of tricks won by the opposing team for the current hand */
   opponentTricksWon: number;
 
   /** Cards available to play that beat the current winning card for the trick. */

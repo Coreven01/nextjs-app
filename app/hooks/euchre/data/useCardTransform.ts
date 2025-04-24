@@ -160,7 +160,6 @@ const useCardTransform = () => {
     newVal.rotateY = 0;
     newVal.opacity = 1;
     newVal.transition = { rotateY: { duration: 0.3 }, rotateX: { duration: 0.3 } };
-    newVal.perspective = 1000;
 
     retval.push({
       ordinalIndex: -1,
@@ -194,7 +193,9 @@ const useCardTransform = () => {
       ...currentSpring,
       x: tableCenter - cardOriginalPosition.center,
       y: -(cardOriginalPosition.top - tableRect.top) - cardHeight / 3,
-      rotate: rotation
+      rotate: rotation,
+      scale: 1,
+      transition: { scale: { duration: 0 } }
     };
   };
 

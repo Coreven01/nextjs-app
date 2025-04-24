@@ -10,15 +10,14 @@ import useGameStateLogic from './logic/useGameStateLogic';
 import useGameBidLogic from './logic/useGameBidLogic';
 import useGameData from './data/useGameData';
 import usePlayerData from './data/usePlayerData';
-import useCardSvgData from './data/useCardSvgData';
 import useCardData from './data/useCardData';
+import { SUB_SUIT } from './useEventLog';
 
 export default function useEuchreGameOrder(state: EuchreGameState) {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { orderTrump, determineDiscard } = useGameBidLogic();
   const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
-  const { discard, playerEqual } = usePlayerData();
-  const { getSuitName } = useCardSvgData();
+  const { discard, playerEqual, getTeamColor } = usePlayerData();
   const { indexCards } = useCardData();
 
   //#region Order Trump *************************************************************************
@@ -43,9 +42,10 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
     state.addEvent(
       createEvent(
         'i',
-        state.euchreSettings,
-        newGame.currentPlayer ?? undefined,
-        `Trump called: ${newGame.trump.suit} - ${getSuitName(newGame.trump.suit)}. Loner: ${state.bidResult.loner}`
+        newGame.currentPlayer,
+        `Trump named: ${SUB_SUIT}. ${state.bidResult.loner ? ' Going alone.' : ''}`,
+        [newGame.trump],
+        getTeamColor(newGame.currentPlayer, state.euchreSettings)
       )
     );
 
@@ -71,7 +71,7 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
 
     state.dispatchStateChange(EuchreGameFlow.BEGIN_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
     state.setEuchreGame(newGame);
-  }, [getSuitName, isGameStateValidToContinue, orderTrump, state]);
+  }, [getTeamColor, isGameStateValidToContinue, orderTrump, state]);
 
   /**
    *
@@ -185,8 +185,7 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
         state.addEvent(
           createEvent(
             'd',
-            state.euchreSettings,
-            newGame.dealer ?? undefined,
+            newGame.dealer,
             `Dealer discarded: ${newGame.discard.value}-${newGame.discard.suit}`
           )
         );
@@ -261,14 +260,7 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
         newGame.dealer.hand = indexCards(newGame.dealer.hand);
         newGame.discard = card;
 
-        state.addEvent(
-          createEvent(
-            'd',
-            state.euchreSettings,
-            newGame.dealer ?? undefined,
-            `Dealer discarded: ${newGame.discard.value}-${newGame.discard.suit}`
-          )
-        );
+        state.addEvent(createEvent('d', newGame.dealer, `Discarded: ${SUB_SUIT}`, [newGame.discard]));
 
         state.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
         state.setPromptValue([]);

@@ -10,7 +10,6 @@ import { motion, TargetAndTransition } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
-import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
@@ -55,11 +54,12 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     const sidePlayer = player && player.team === 2;
     const duration: number = (gameSpeedMs ?? 1000) / 1000;
     const cssValues: CSSProperties = {};
-    const initSpringValue = cardState.initSprungValue
-      ? { ...cardState.initSprungValue, transition: { rotateY: { duration: 0 }, rotateX: { duration: 0 } } }
+    const initSpringValue = cardState.initSpringValue
+      ? { ...cardState.initSpringValue, transition: { rotateY: { duration: 0 }, rotateX: { duration: 0 } } }
       : undefined;
     const hoverEffect: TargetAndTransition | undefined =
       onCardClick !== undefined ? { scale: 1.15, transition: { scale: { duration: 0.25 } } } : undefined;
+    const cardBackSrc = sidePlayer ? '/card-back-side.svg' : '/card-back.svg';
 
     if (responsive) {
       cssValues.width = '100%';
@@ -71,7 +71,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       cssValues.maxWidth = width;
     }
 
-    const handleAnimationComplete = () => {
+    const handleAnimationComplete = useCallback(() => {
       const shouldRunEffect =
         runAnimationCompleteEffect &&
         onAnimationComplete &&
@@ -84,12 +84,17 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         console.log(
           '[handleAnimationComplete] - game-card.tsx for card: ',
           card,
-          ' play card: ',
-          runAnimationCompleteEffect
+          ' play card effect: ',
+          runAnimationCompleteEffect,
+          ' player: ',
+          player?.name,
+          ' card state: ',
+          cardState
         );
+
         onAnimationComplete(card);
       }
-    };
+    }, [card, cardState, onAnimationComplete, player?.name, runAnimationCompleteEffect]);
 
     const handleCardClick = useCallback(() => {
       if (onCardClick) {
@@ -104,6 +109,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
     return (
       <motion.div
+        style={{ transformOrigin: 'center' }}
         className={clsx(
           'pointer-events-none',
           sidePlayer ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
@@ -114,7 +120,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         ref={ref}
         initial={initSpringValue}
         whileHover={hoverEffect}
-        animate={cardState.springValue ? cardState.springValue : DEFAULT_SPRING_VAL}
+        animate={cardState.springValue}
         transition={{
           opacity: { duration: 1 },
           x: { duration: duration, stiffness: cardState.xStiffness, damping: cardState.xDamping },
@@ -124,9 +130,10 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           rotateX: { duration: 0.3 }
         }}
         onAnimationComplete={handleAnimationComplete}
+        draggable={false}
       >
         <Image
-          className={clsx(`absolute ${getShadowOffsetForPlayer(player?.playerNumber ?? 1)}`)}
+          className={clsx(`relative ${getShadowOffsetForPlayer(player?.playerNumber ?? 1)}`)}
           quality={50}
           width={width}
           height={height}
@@ -137,17 +144,30 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         />
         <Image
           {...rest}
-          className={clsx('relative top-0 left-0 pointer-events-auto')}
+          className={clsx('absolute top-0 left-0 pointer-events-auto', { hidden: !cardState.src })}
           quality={100}
           width={width}
           height={height}
-          src={cardState.src}
+          src={cardState.src ?? cardBackSrc}
           alt={cardState.cardFullName}
           unoptimized={true}
           onClick={handleCardClick}
           style={cssValues}
           draggable={false}
-        ></Image>
+        />
+        <Image
+          {...rest}
+          className={clsx('absolute top-0 left-0 pointer-events-auto', { hidden: cardState.src })}
+          quality={100}
+          width={width}
+          height={height}
+          src={cardBackSrc}
+          alt={'Card back'}
+          unoptimized={true}
+          onClick={handleCardClick}
+          style={cssValues}
+          draggable={false}
+        />
       </motion.div>
     );
   }

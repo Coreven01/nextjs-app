@@ -47,6 +47,7 @@ const useCardState = (
   const cardsRefBeginSet = useRef(false);
   const cardsInitReorder = useRef(false);
   const cardsInitSittingOut = useRef(false);
+  const onCardPlayedComplete = useRef<undefined | ((card: Card) => void)>(undefined);
 
   /** Trick id where the the player's hand was re-grouped at the beginning of the player's turn. */
   const cardsRegroupedPlayerTurn = useRef<string[]>([]);
@@ -107,7 +108,7 @@ const useCardState = (
           cardIndex: indexPosition.cardIndex,
           sprungValue:
             state.springValue ??
-            (state.initSprungValue ? { ...state.initSprungValue } : { ...DEFAULT_SPRING_VAL })
+            (state.initSpringValue ? { ...state.initSpringValue } : { ...DEFAULT_SPRING_VAL })
         });
       }
 
@@ -138,8 +139,7 @@ const useCardState = (
       shouldShowCardValue: showCardValue,
       shouldShowCardImage: showCardImage,
       player: player,
-      responsive: true,
-      onCardPlayedComplete: () => null
+      responsive: true
     };
 
     setHandState(state);
@@ -156,7 +156,7 @@ const useCardState = (
         cardIndex: card.index,
         src: cardBackSvgSrc,
         cardFullName: `Player ${player.playerNumber} Card`,
-        initSprungValue: getSpringsForCardInit(player),
+        initSpringValue: getSpringsForCardInit(player),
         xDamping: getRandomDamping(),
         xStiffness: getRandomStiffness(),
         yDamping: getRandomDamping(),
@@ -307,7 +307,14 @@ const useCardState = (
     const location = playerLocation(player);
     const currentProps: CardSpringProps[] = getAvailableCardsAndState(true);
     const cardWidthOffset = initCalculatedWidth.current;
-
+    console.log(
+      '[playCard] - card played: ',
+      card,
+      ' player: ',
+      player.name,
+      ' trick id: ',
+      game.currentTrick.trickId
+    );
     const newSprungValues = getSpringsForCardPlayed(
       cardIndex,
       player,
@@ -341,10 +348,10 @@ const useCardState = (
     if (handState) {
       setHandState({
         ...handState,
-        onCardPlayedComplete: onCardPlayed,
         stateEffect: EuchreGameFlow.BEGIN_PLAY_CARD
       });
     }
+    onCardPlayedComplete.current = onCardPlayed;
   };
 
   /** Animates flipping a player's hand so the card values are visible. */
@@ -493,24 +500,33 @@ const useCardState = (
 
   /** Animate the cards going to the trick winner's card area after the trick is complete. */
   useEffect(() => {
+    const currentTrick = game.currentTrick;
+
     const animateTrickFinished =
-      !trickAnimationHandled.current.find((s) => s === game.currentTrick.trickId) &&
+      !trickAnimationHandled.current.find((s) => s === currentTrick.trickId) &&
       gameFlow.gameFlow === EuchreGameFlow.TRICK_FINISHED &&
       gameAnimation.animationType === EuchreAnimateType.NONE;
 
     if (animateTrickFinished) {
-      trickAnimationHandled.current.push(game.currentTrick.trickId);
-      const lastCardPlayed: Card | undefined = cardPlayedForTrickRef.current.get(game.currentTrick.trickId);
+      trickAnimationHandled.current.push(currentTrick.trickId);
+      const lastCardPlayed: Card | undefined = cardPlayedForTrickRef.current.get(currentTrick.trickId);
 
-      if (lastCardPlayed && game.currentTrick.playerRenege) {
+      console.log(
+        '[useEffect] - useCardState.tsx - onTrickComplete handler run for card: ',
+        lastCardPlayed,
+        ' trick id: ',
+        currentTrick.trickId
+      );
+
+      if (lastCardPlayed && handState && currentTrick.playerRenege) {
         // if player renged, then don't animate taking the trick, and just call the event handler as if the animation was complete.
-
+        onCardPlayedComplete.current = undefined;
         onTrickComplete(lastCardPlayed);
-      } else if (lastCardPlayed && handState) {
+      } else if (lastCardPlayed && handState && !currentTrick.playerRenege) {
         // animate trick being taken by the winner.
 
         const cardIndex = lastCardPlayed.index;
-        const trickWonPlayerNumber = game.currentTrick.taker?.playerNumber ?? 0;
+        const trickWonPlayerNumber = currentTrick.taker?.playerNumber ?? 0;
         const newCardState = [...cardStates];
 
         // reset effect state for each card.
@@ -537,19 +553,17 @@ const useCardState = (
 
           setHandState({
             ...handState,
-            onCardPlayedComplete: onTrickComplete,
             stateEffect: EuchreGameFlow.TRICK_FINISHED
           });
 
+          onCardPlayedComplete.current = (card: Card) => onTrickComplete(card);
           setCardStates(newCardState);
         }
       }
     }
   }, [
     cardStates,
-    game.currentTrick.playerRenege,
-    game.currentTrick.taker?.playerNumber,
-    game.currentTrick.trickId,
+    game.currentTrick,
     gameAnimation.animationType,
     gameFlow.gameFlow,
     getSpringForTrickTaken,
@@ -569,7 +583,10 @@ const useCardState = (
       cardRefs;
 
     if (shouldRunBeginUpdate) {
-      console.log("[useEffect - beginning hand update player's hand] Player: ", player.name);
+      console.log(
+        "[useEffect] - useCardState.tsx - beginning hand update player's hand - Player: ",
+        player.name
+      );
       cardsRegroupedPlayerTurn.current.push(game.currentTrick.trickId);
       const cardRef = cardRefs.current.get(0);
 
@@ -596,7 +613,7 @@ const useCardState = (
       cardRefs;
 
     if (shouldRunEndUpdate) {
-      console.log("[useEffect - end hand update player's hand] Player: ", player.name);
+      console.log("[useEffect] - useCardState.tsx - end hand update player's hand Player: ", player.name);
       cardsRegroupedPlayerTurnEnd.current.push(game.currentTrick.trickId);
       const cardRef = cardRefs.current.get(0);
 
@@ -621,6 +638,7 @@ const useCardState = (
     cardRefs,
     handState,
     cardStates,
+    onCardPlayedComplete,
     getCardsAvailableIfFollowSuit,
     getCardsToDisplay,
     handlePlayCardAnimation,

@@ -11,7 +11,7 @@ import GameBorder from './game-border';
 import BidPrompt from '../prompt/bid-prompt';
 import DiscardPrompt from '../prompt/discard-prompt';
 import HandResults from '../prompt/hand-results';
-import GameResults from '../prompt/game-results';
+import GameResult from '../prompt/game-results';
 import GameEvents from './game-events';
 import GameArea from './game-area';
 import GamePrompt from '../prompt/game-prompt';
@@ -165,11 +165,11 @@ export default function EuchreGame() {
 
   const renderHandResults = promptValue.find((v) => v.type === PromptType.HAND_RESULT) &&
     euchreGame &&
-    euchreGame.gameResults.length > 0 && (
+    euchreGame.handResults.length > 0 && (
       <HandResults
         game={euchreGame}
         settings={euchreSettings}
-        handResult={euchreGame.gameResults.at(-1) ?? null}
+        handResult={euchreGame.handResults.at(-1) ?? null}
         onClose={handleCloseHandResults}
         onReplayHand={handleReplayHand}
       />
@@ -177,11 +177,11 @@ export default function EuchreGame() {
 
   const renderGameResults = promptValue.find((v) => v.type === PromptType.GAME_RESULT) &&
     euchreGame &&
-    euchreGame.gameResults.length > 0 && (
-      <GameResults
+    euchreGame.handResults.length > 0 && (
+      <GameResult
         game={euchreGame}
         settings={euchreSettings}
-        gameResults={euchreGame.gameResults}
+        handResults={euchreGame.handResults}
         onClose={handleCloseGameResults}
         onNewGame={handleStartGame}
         onReplayGame={() => handleBeginReplayGame(euchreGame)}
@@ -190,10 +190,10 @@ export default function EuchreGame() {
 
   const renderFullGameResults = fullGameInstance && (
     <GamePrompt zIndex={90} className="m-auto">
-      <GameResults
+      <GameResult
         game={fullGameInstance}
         settings={euchreSettings}
-        gameResults={fullGameInstance.gameResults}
+        handResults={fullGameInstance.handResults}
         onClose={handleCloseRunFullGame}
         onNewGame={() => null}
         onReplayGame={() => handleBeginReplayGame(fullGameInstance)}

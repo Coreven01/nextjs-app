@@ -23,7 +23,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest }: DivProps) => {
   const { getCardFullName, getEncodedCardSvg, getSuitName } = useCardSvgData();
-  const { playerEqual } = usePlayerData();
+  const { playerEqual, getTeamColor } = usePlayerData();
   const { getDisplayHeight, getDisplayWidth } = useCardData();
 
   const [bidSelection, setBidSelection] = useState<string | null>(null);
@@ -99,7 +99,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
 
           <div className="lg:col-span-2 col-span-2">
             <div title={dealerTitle} className="text-center cursor-default">
-              <PlayerColor player={game.dealer} settings={settings}>
+              <PlayerColor teamColor={getTeamColor(game.dealer, settings)}>
                 <div className="bg-white dark:bg-stone-800 h-full flex items-center justify-center lg:text-base text-xs">
                   Dealer: {game.dealer === game.currentPlayer ? 'You' : game.dealer.name}
                 </div>

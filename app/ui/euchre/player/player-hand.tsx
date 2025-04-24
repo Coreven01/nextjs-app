@@ -1,4 +1,4 @@
-import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
+import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import { Card, EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
 import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
@@ -46,6 +46,7 @@ const PlayerHand = ({
     cardRefs,
     handState,
     cardStates,
+    onCardPlayedComplete,
     getCardsToDisplay,
     handlePlayCardAnimation,
     playerLocation,
@@ -99,7 +100,7 @@ const PlayerHand = ({
   }
 
   const handleCardClick = (cardIndex: number) => {
-    console.log('[handleCardClick] [handler]- player-hand.tsx');
+    console.log('[handleCardClick] - player-hand.tsx - player: ', player.name);
     if (!cardIndicesPlayed.current.has(game.currentTrick.trickId)) {
       cardIndicesPlayed.current.set(game.currentTrick.trickId, cardIndex);
       handlePlayCardAnimation(cardIndex, playerTableRef.current);
@@ -132,7 +133,7 @@ const PlayerHand = ({
               height={handState.height}
               responsive={true}
               onCardClick={cardState.enabled ? handleCardClick : undefined}
-              onAnimationComplete={handState.onCardPlayedComplete}
+              onAnimationComplete={onCardPlayedComplete.current}
             />
           );
         })}

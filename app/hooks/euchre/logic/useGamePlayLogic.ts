@@ -407,6 +407,13 @@ const useGamePlayLogic = () => {
         cardToPlay = logic.offsuitInfo.offsuitNotYetLeadHighLow.high;
       } else if (logic.offsuitInfo.offsuitHighLow.high) {
         cardToPlay = logic.offsuitInfo.offsuitHighLow.high;
+      } else if (
+        (logic.trumpInfo.playerHasLeft || logic.trumpInfo.playerHasRight) &&
+        logic.trickInfo.teamTricksWon >= 2 &&
+        logic.trickInfo.winningHighLow.high
+      ) {
+        // if opposing team called trump and current team already won at least 2 tricks, then attempt to play a winning high card.
+        cardToPlay = logic.trickInfo.winningHighLow.high;
       } else if (logic.trickInfo.winningHighLow.low) {
         cardToPlay = logic.trickInfo.winningHighLow.low;
       }
