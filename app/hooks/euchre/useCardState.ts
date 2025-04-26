@@ -13,6 +13,7 @@ import useCardTransform, {
 import useGameData from './data/useGameData';
 import usePlayerData from './data/usePlayerData';
 import { EuchreAnimateType, EuchreAnimationState } from './reducers/gameAnimationFlowReducer';
+import { logConsole } from '../../lib/euchre/util';
 
 const useCardState = (
   game: EuchreGameInstance,
@@ -42,6 +43,8 @@ const useCardState = (
     ])
   );
   const cardsDealtRef = useRef(false);
+
+  /** Map of trick id to card played for that trick. Used when rendering cards to be displayed. */
   const cardPlayedForTrickRef = useRef<Map<string, Card>>(new Map<string, Card>());
   const cardsRefSet = useRef(false);
   const cardsRefBeginSet = useRef(false);
@@ -71,9 +74,10 @@ const useCardState = (
     getRandomRotation,
     getSpringsForCardInit,
     getCalculatedWidthOffset,
-    getSpringForTrickTaken
+    getSpringForTrickTaken,
+    getTransitionForCardPlayed
   } = useCardTransform();
-  const { getDisplayWidth, getDisplayHeight, cardEqual, sortCardsIndices } = useCardData();
+  const { getDisplayWidth, getDisplayHeight, cardEqual, sortCardsIndices, getCardBackSrc } = useCardData();
   const { playerLocation, playerEqual, availableCardsToPlay } = usePlayerData();
   const { getCardsAvailableToPlay, isHandFinished, playerSittingOut, gameDelay } = useGameData();
   const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
@@ -106,7 +110,7 @@ const useCardState = (
         currentProps.push({
           ordinalIndex: indexPosition.ordinalIndex,
           cardIndex: indexPosition.cardIndex,
-          sprungValue:
+          springValue:
             state.springValue ??
             (state.initSpringValue ? { ...state.initSpringValue } : { ...DEFAULT_SPRING_VAL })
         });
@@ -149,7 +153,7 @@ const useCardState = (
   const setInitialCardStates = useCallback((): void => {
     const retval: CardState[] = [];
     const location = playerLocation(player);
-    const cardBackSvgSrc: string = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
+    const cardBackSvgSrc: string = getCardBackSrc(location);
 
     for (const card of player.hand) {
       retval.push({
@@ -168,6 +172,7 @@ const useCardState = (
 
     setCardStates(retval);
   }, [
+    getCardBackSrc,
     getRandomDamping,
     getRandomRotation,
     getRandomStiffness,
@@ -223,7 +228,7 @@ const useCardState = (
 
       const newProps: CardSpringProps[] = groupHand(player, initCalculatedWidth.current, currentProps);
       for (const cardState of newCardStates) {
-        const tempVal = newProps.find((p) => p.cardIndex === cardState.cardIndex)?.sprungValue;
+        const tempVal = newProps.find((p) => p.cardIndex === cardState.cardIndex)?.springValue;
 
         if (!tempVal) throw new Error('Logic error in regroup cards. New card state not found.');
         cardState.springValue = tempVal;
@@ -234,6 +239,10 @@ const useCardState = (
     [cardStates, getAvailableCardsAndState, getCalculatedWidthOffset, groupHand, player]
   );
 
+  /**
+   * At the beginning of a player's turn, update the card state to enable/disable cards and overlay
+   * depending on settings.
+   */
   const updateCardStateForTurn = useCallback(() => {
     if (!handState) throw new Error('Hand state not found - [updateCardStateForTurn]');
 
@@ -267,12 +276,14 @@ const useCardState = (
     playerEqual
   ]);
 
-  /** Returns the cards should be displayed on the game table. Ensures the played cards stays center table until the trick is finished. */
+  /** Returns the cards should be displayed on the game table. Ensures the played cards stays center table until the trick is finished.
+   *
+   */
   const getCardsToDisplay = () => {
     const playerCurrentHand: Card[] = availableCardsToPlay(player);
 
     // get the last trick played, then get the last card that was played from that trick.
-    const lastCardPlayed = cardPlayedForTrickRef.current.values().toArray().at(-1);
+    const lastCardPlayed = cardPlayedForTrickRef.current.get(game.currentTrick.trickId);
     if (lastCardPlayed && game.currentTrick.cardsPlayed.find((c) => cardEqual(c.card, lastCardPlayed))) {
       playerCurrentHand.push(lastCardPlayed); // make sure the card is still visible until trick finished.
     } else if (lastCardPlayed && isHandFinished(game)) {
@@ -285,7 +296,7 @@ const useCardState = (
    * the card that was played.
    */
   const handlePlayCardAnimation = (cardIndex: number, playerTableRef: HTMLDivElement) => {
-    console.log('[handlePlayCardAnimation] - useCardState.ts', ' player: ', player.name);
+    logConsole('[handlePlayCardAnimation] - useCardState.ts');
     const currentState = cardStates.find((c) => c.cardIndex === cardIndex);
     const cardRef = cardRefs.current.get(cardIndex);
 
@@ -307,14 +318,7 @@ const useCardState = (
     const location = playerLocation(player);
     const currentProps: CardSpringProps[] = getAvailableCardsAndState(true);
     const cardWidthOffset = initCalculatedWidth.current;
-    console.log(
-      '[playCard] - card played: ',
-      card,
-      ' player: ',
-      player.name,
-      ' trick id: ',
-      game.currentTrick.trickId
-    );
+    logConsole('[playCard] - useCardState.ts ');
     const newSprungValues = getSpringsForCardPlayed(
       cardIndex,
       player,
@@ -330,13 +334,15 @@ const useCardState = (
 
       if (!cardState) throw new Error('Invalid card state');
 
-      cardState.springValue = val.sprungValue;
+      cardState.springValue = val.springValue;
 
       if (val.cardIndex === cardIndex) {
+        cardState.springValue.transition = getTransitionForCardPlayed(cardState, gameSettings.gameSpeed);
         cardState.cardFullName = getCardFullName(card);
         cardState.src = getEncodedCardSvg(card, location);
         cardState.runEffectForState = EuchreGameFlow.BEGIN_PLAY_CARD;
       } else {
+        cardState.springValue.transition = undefined;
         cardState.runEffectForState = undefined;
       }
     }
@@ -415,7 +421,9 @@ const useCardState = (
     }
   });
 
-  /** create initial card state once cards have been dealt */
+  /** create initial card state once cards have been dealt
+   *
+   */
   useEffect(() => {
     const shouldCreateCardState =
       handState !== undefined &&
@@ -482,7 +490,9 @@ const useCardState = (
     playerIsSittingOut
   ]);
 
-  /** If the player is sitting out, set the animation to set the cards back to their initial state, then fade out. */
+  /** If the player is sitting out, set the animation to set the cards back to their initial state, then fade out.
+   *
+   */
   useEffect(() => {
     const beginSittingOut = async () => {
       if (!cardsInitSittingOut.current && playerIsSittingOut) {
@@ -498,7 +508,9 @@ const useCardState = (
     beginSittingOut();
   }, [cardStates, gameDelay, gameSettings, getSpringsForCardInit, player, playerIsSittingOut]);
 
-  /** Animate the cards going to the trick winner's card area after the trick is complete. */
+  /** Animate the cards going to the trick winner's card area after the trick is complete.
+   *
+   */
   useEffect(() => {
     const currentTrick = game.currentTrick;
 
@@ -511,12 +523,7 @@ const useCardState = (
       trickAnimationHandled.current.push(currentTrick.trickId);
       const lastCardPlayed: Card | undefined = cardPlayedForTrickRef.current.get(currentTrick.trickId);
 
-      console.log(
-        '[useEffect] - useCardState.tsx - onTrickComplete handler run for card: ',
-        lastCardPlayed,
-        ' trick id: ',
-        currentTrick.trickId
-      );
+      logConsole('[useEffect] - useCardState.ts - onTrickComplete handler run for card: ');
 
       if (lastCardPlayed && handState && currentTrick.playerRenege) {
         // if player renged, then don't animate taking the trick, and just call the event handler as if the animation was complete.
@@ -583,10 +590,7 @@ const useCardState = (
       cardRefs;
 
     if (shouldRunBeginUpdate) {
-      console.log(
-        "[useEffect] - useCardState.tsx - beginning hand update player's hand - Player: ",
-        player.name
-      );
+      logConsole("[useEffect] - useCardState.ts - beginning hand update player's hand - Player: ");
       cardsRegroupedPlayerTurn.current.push(game.currentTrick.trickId);
       const cardRef = cardRefs.current.get(0);
 
@@ -602,7 +606,9 @@ const useCardState = (
     updateCardStateForTurn
   ]);
 
-  /** Update the player's hand at end of the player's turn during regular game play. */
+  /** Update the player's hand at end of the player's turn during regular game play.
+   *
+   */
   useEffect(() => {
     const shouldRunEndUpdate =
       !cardsRegroupedPlayerTurnEnd.current.includes(game.currentTrick.trickId) &&
@@ -613,7 +619,7 @@ const useCardState = (
       cardRefs;
 
     if (shouldRunEndUpdate) {
-      console.log("[useEffect] - useCardState.tsx - end hand update player's hand Player: ", player.name);
+      logConsole('[useEffect] - useCardState.ts');
       cardsRegroupedPlayerTurnEnd.current.push(game.currentTrick.trickId);
       const cardRef = cardRefs.current.get(0);
 

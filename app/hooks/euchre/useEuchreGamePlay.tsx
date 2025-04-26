@@ -16,6 +16,7 @@ import useGameSetupLogic from './logic/useGameSetupLogic';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import { v4 as uuidv4 } from 'uuid';
 import { SUB_SUIT } from './useEventLog';
+import EphemeralModal from '../../ui/euchre/common/ephemeral-modal';
 
 export default function useEuchreGamePlay(state: EuchreGameState) {
   const playerAutoPlayed = useRef(false);
@@ -39,48 +40,59 @@ export default function useEuchreGamePlay(state: EuchreGameState) {
   /**
    * Show an indicator in the player's area to show the card that won the trick.
    */
-  const getPlayerNotificationForTrickWon = useCallback((result: EuchreTrick) => {
-    const newAction: PlayerNotificationAction = {
-      type: PlayerNotificationActionType.UPDATE_CENTER,
-      payload: undefined
-    };
+  const getPlayerNotificationForTrickWon = useCallback(
+    (result: EuchreTrick) => {
+      const newAction: PlayerNotificationAction = {
+        type: PlayerNotificationActionType.UPDATE_CENTER,
+        payload: undefined
+      };
 
-    const icon: React.ReactNode = <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />;
-    let messageLocation = '';
+      const icon: React.ReactNode = <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />;
+      let messageLocation = '';
 
-    switch (result.taker?.playerNumber) {
-      case 1:
-        messageLocation = 'lg:bottom-0 -bottom-8';
-        break;
-      case 2:
-        messageLocation = 'lg:top-0 -top-8';
-        break;
-      case 3:
-        messageLocation = 'lg:left-0 -left-8';
-        break;
-      case 4:
-        messageLocation = 'lg:right-0 -right-8';
-        break;
-    }
+      switch (result.taker?.playerNumber) {
+        case 1:
+          messageLocation = 'lg:bottom-0 -bottom-8';
+          break;
+        case 2:
+          messageLocation = 'lg:top-0 -top-8';
+          break;
+        case 3:
+          messageLocation = 'lg:left-0 -left-8';
+          break;
+        case 4:
+          messageLocation = 'lg:right-0 -right-8';
+          break;
+      }
 
-    const key = '1';
-    const infoDetail = (
-      <UserInfo
-        className={clsx(
-          `p-2 lg:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800`,
-          messageLocation
-        )}
-        id={key}
-        key={`${key}`}
-      >
-        <div className="flex gap-2 items-center">{icon}</div>
-      </UserInfo>
-    );
+      const infoDetail = (
+        <EphemeralModal
+          key={uuidv4()}
+          className={clsx(
+            `w-fit h-fit absolute whitespace-nowrap shadow-lg shadow-black z-50`,
+            messageLocation
+          )}
+          durationMs={500}
+          delayMs={state.euchreSettings.notificationSpeed}
+          fadeType="both"
+        >
+          <UserInfo
+            className={clsx(
+              `p-2 lg:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg`,
+              messageLocation
+            )}
+          >
+            <div className="flex gap-2 items-center">{icon}</div>
+          </UserInfo>
+        </EphemeralModal>
+      );
 
-    newAction.payload = infoDetail;
+      newAction.payload = infoDetail;
 
-    return newAction;
-  }, []);
+      return newAction;
+    },
+    [state.euchreSettings.notificationSpeed]
+  );
 
   //#region Play Card *************************************************************************
 

@@ -113,7 +113,7 @@ const PlayerHand = ({
       {cardsDealtRef.current &&
         handState &&
         playerCurrentHand.map((card) => {
-          const keyval = `${card.index}`;
+          const keyval = `${player.playerNumber}-${card.index}`;
           const cardState = cardStates.find((s) => s.cardIndex === card.index);
           const cardRef = cardRefs.current.get(card.index);
 

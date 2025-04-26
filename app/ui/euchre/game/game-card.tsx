@@ -1,16 +1,11 @@
-import {
-  Card,
-  EuchrePlayer,
-  GameSpeed,
-  RESPONSE_CARD_CENTER,
-  RESPONSE_CARD_SIDE
-} from '@/app/lib/euchre/definitions';
+import { Card, EuchrePlayer, RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '@/app/lib/euchre/definitions';
 import React, { CSSProperties, forwardRef, PropsWithoutRef, useCallback, useRef } from 'react';
 import { motion, TargetAndTransition } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
+import { logConsole } from '../../../lib/euchre/util';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   card: Card;
@@ -21,7 +16,6 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   /** If set, effect should run for this effect if it hasn't been executed yet. */
   runAnimationCompleteEffect?: EuchreGameFlow;
   player?: EuchrePlayer;
-  gameSpeedMs?: GameSpeed;
   responsive?: boolean;
 
   /** */
@@ -42,7 +36,6 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       className,
       player,
       runAnimationCompleteEffect,
-      gameSpeedMs,
       responsive,
       onCardClick,
       onAnimationComplete,
@@ -52,14 +45,20 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
   ) => {
     const actionsRun = useRef<EuchreGameFlow[]>([]);
     const sidePlayer = player && player.team === 2;
-    const duration: number = (gameSpeedMs ?? 1000) / 1000;
-    const cssValues: CSSProperties = {};
-    const initSpringValue = cardState.initSpringValue
-      ? { ...cardState.initSpringValue, transition: { rotateY: { duration: 0 }, rotateX: { duration: 0 } } }
-      : undefined;
+    const cssValues: CSSProperties = { backfaceVisibility: 'hidden' };
     const hoverEffect: TargetAndTransition | undefined =
-      onCardClick !== undefined ? { scale: 1.15, transition: { scale: { duration: 0.25 } } } : undefined;
+      onCardClick !== undefined
+        ? {
+            scale: [null, 1.1, 1.2],
+            transition: {
+              duration: 0.5,
+              times: [0, 0.6, 1],
+              ease: ['easeInOut', 'easeOut']
+            }
+          }
+        : undefined;
     const cardBackSrc = sidePlayer ? '/card-back-side.svg' : '/card-back.svg';
+    const cardShadowSrc = sidePlayer ? '/card-shadow-side.png' : '/card-shadow.png';
 
     if (responsive) {
       cssValues.width = '100%';
@@ -81,7 +80,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       if (shouldRunEffect) {
         // fall into this block once animation is complete to update game state.
         actionsRun.current.push(runAnimationCompleteEffect);
-        console.log(
+        logConsole(
           '[handleAnimationComplete] - game-card.tsx for card: ',
           card,
           ' play card effect: ',
@@ -89,7 +88,9 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           ' player: ',
           player?.name,
           ' card state: ',
-          cardState
+          cardState,
+          ' actions run: ',
+          actionsRun.current
         );
 
         onAnimationComplete(card);
@@ -98,7 +99,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
     const handleCardClick = useCallback(() => {
       if (onCardClick) {
-        console.log('[handleCardClick] - game-card.tsx', ' card index: ', card.index);
+        logConsole('[handleCardClick] - game-card.tsx', ' card index: ', card.index);
         if (runAnimationCompleteEffect) actionsRun.current.push(runAnimationCompleteEffect);
         // when card is clicked, it activates the animation to play the card.
         // on the animation is complete, the callback handler calls the method that updates,
@@ -109,7 +110,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
     return (
       <motion.div
-        style={{ transformOrigin: 'center' }}
+        style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
         className={clsx(
           'pointer-events-none',
           sidePlayer ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
@@ -118,33 +119,24 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         title={cardState.cardFullName}
         id={id}
         ref={ref}
-        initial={initSpringValue}
+        initial={cardState.initSpringValue}
         whileHover={hoverEffect}
         animate={cardState.springValue}
-        transition={{
-          opacity: { duration: 1 },
-          x: { duration: duration, stiffness: cardState.xStiffness, damping: cardState.xDamping },
-          y: { duration: duration, stiffness: cardState.yStiffness, damping: cardState.yDamping },
-          rotate: { duration: duration },
-          rotateY: { duration: 0.3 },
-          rotateX: { duration: 0.3 }
-        }}
         onAnimationComplete={handleAnimationComplete}
         draggable={false}
       >
         <Image
-          className={clsx(`relative ${getShadowOffsetForPlayer(player?.playerNumber ?? 1)}`)}
+          className={clsx(`relative`, getShadowOffsetForPlayer(player?.playerNumber ?? 1))}
           quality={50}
           width={width}
           height={height}
-          src={sidePlayer ? '/card-shadow-side.png' : '/card-shadow.png'}
+          src={cardShadowSrc}
           alt={'card shadow'}
-          style={cssValues}
+          style={{ ...cssValues, backfaceVisibility: 'visible' }}
           draggable={false}
         />
         <Image
-          {...rest}
-          className={clsx('absolute top-0 left-0 pointer-events-auto', { hidden: !cardState.src })}
+          className={clsx('absolute top-0 left-0 pointer-events-auto')}
           quality={100}
           width={width}
           height={height}
@@ -156,26 +148,23 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           draggable={false}
         />
         <Image
-          {...rest}
-          className={clsx('absolute top-0 left-0 pointer-events-auto', { hidden: cardState.src })}
+          className={clsx('absolute top-0 left-0')}
           quality={100}
           width={width}
           height={height}
           src={cardBackSrc}
           alt={'Card back'}
           unoptimized={true}
-          onClick={handleCardClick}
-          style={cssValues}
+          style={{
+            ...cssValues,
+            transform: sidePlayer ? 'rotateX(180deg)' : 'rotateY(180deg)'
+          }}
           draggable={false}
         />
       </motion.div>
     );
   }
 );
-
-GameCard.displayName = 'GameCard';
-
-export default GameCard;
 
 const getShadowOffsetForPlayer = (playerNumber: number): string => {
   switch (playerNumber) {
@@ -191,3 +180,7 @@ const getShadowOffsetForPlayer = (playerNumber: number): string => {
 
   return 'top-2 left-2';
 };
+
+GameCard.displayName = 'GameCard';
+
+export default GameCard;

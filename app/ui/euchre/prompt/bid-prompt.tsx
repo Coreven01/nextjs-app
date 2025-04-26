@@ -84,7 +84,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
       <div className="p-1">
         <div
           className={clsx(`grid gap-1`, {
-            'lg:grid-rows-[1fr,auto,auto,auto,auto] lg:grid-cols-[130px,100px] grid-rows-[1fr,auto,auto] grid-cols-[auto,100px,auto]':
+            'lg:grid-rows-[1fr,auto,auto,auto,auto] lg:grid-cols-[130px,100px] grid-rows-[1fr,auto,auto] grid-cols-[auto,80px,auto]':
               true
           })}
         >
@@ -146,7 +146,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
                     />
                   ) : (
                     <SuitSelection
-                      className="w-20 lg:w-[90px]"
+                      className="w-full lg:w-[90px]"
                       firstRound={firstRound}
                       trumpSuit={game.trump.suit}
                       onSelectionChange={handleSuitSelectionChange}

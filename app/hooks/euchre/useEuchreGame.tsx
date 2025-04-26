@@ -1,6 +1,6 @@
 import { ActionDispatch, Dispatch, SetStateAction, useCallback, useMemo, useReducer, useState } from 'react';
 import {
-  initialPlayerNotification,
+  initialPlayerNotification as INIT_PLAYER_NOTIFICATION,
   PlayerNotificationAction,
   PlayerNotificationActionType,
   playerNotificationReducer,
@@ -17,7 +17,7 @@ import {
 import {
   EuchreAnimationActionType,
   gameAnimationFlowReducer,
-  initialGameAnimationState,
+  initialGameAnimationState as INIT_GAME_ANIMATION_STATE,
   EuchreAnimationState,
   EuchreAnimationAction
 } from './reducers/gameAnimationFlowReducer';
@@ -41,6 +41,12 @@ import useGameData from './data/useGameData';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  EuchrePauseActionType,
+  EuchrePauseState,
+  gamePauseFlowReducer,
+  INIT_GAME_WAIT as INIT_PAUSE_STATE
+} from './reducers/gamePauseReducer';
 
 export interface EuchreGameBase {
   /** Instance of information regarding the current euchre game being played. */
@@ -56,12 +62,15 @@ export interface EuchreGameBase {
    */
   euchreGameFlow: EuchreGameFlowState;
 
-  /** Game state used to indicate when to pause/delay for player notification, or for animation.
+  /** Game state used to indicate when to animate notifications
    */
   euchreAnimationFlow: EuchreAnimationState;
 
   /** Settings/preferences that can be set by the user such as difficulty and game speed. */
   euchreSettings: EuchreSettings;
+
+  /** Sets the reason why the game is paused, and shouldn't continue to proceed with the game flow until the wait type is handled. */
+  euchrePauseState: EuchrePauseState;
 }
 
 export interface EuchreGameState extends EuchreGameBase {
@@ -140,16 +149,17 @@ export default function useEuchreGame() {
   const [bidResult, setBidResult] = useState<BidResult | null>(null);
   const { events, addEvent, clearEvents } = useEventLog();
 
-  const [playerNotification, dispatchPlayerNotification] = useReducer(
-    playerNotificationReducer,
-    initialPlayerNotification
-  );
+  const [playerNotification, dispatchPlayerNotification] = useReducer(playerNotificationReducer, {
+    ...INIT_PLAYER_NOTIFICATION
+  });
 
   const [gameFlow, dispatchGameFlow] = useReducer(gameFlowStateReducer, { ...INIT_GAME_FLOW_STATE });
-  const [gameAnimationFlow, dispatchGameAnimationFlow] = useReducer(
-    gameAnimationFlowReducer,
-    initialGameAnimationState
-  );
+  const [gameAnimationFlow, dispatchGameAnimationFlow] = useReducer(gameAnimationFlowReducer, {
+    ...INIT_GAME_ANIMATION_STATE
+  });
+  const [euchrePauseState, dispatchPauseState] = useReducer(gamePauseFlowReducer, {
+    ...INIT_PAUSE_STATE
+  });
 
   const handleCancelGame = useCallback(() => {
     if (shouldCancelGame) return;
@@ -162,10 +172,12 @@ export default function useEuchreGame() {
 
   const dispatchStateChange = (
     gameAction?: EuchreGameFlow,
-    gameAnimationAction?: EuchreAnimationActionType
+    gameAnimationAction?: EuchreAnimationActionType,
+    gameWait?: EuchrePauseActionType
   ) => {
     if (gameAction) dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: gameAction });
     if (gameAnimationAction) dispatchGameAnimationFlow({ type: gameAnimationAction });
+    if (gameWait) dispatchPauseState({ type: gameWait });
   };
 
   const handleError = useCallback(
@@ -196,6 +208,7 @@ export default function useEuchreGame() {
       euchreReplayGame: euchreReplayGame,
       euchreGameFlow: gameFlow,
       euchreSettings: euchreSettings,
+      euchrePauseState: euchrePauseState,
       playerNotification: playerNotification,
       euchreAnimationFlow: gameAnimationFlow,
       prompValue: promptValue,
@@ -222,6 +235,7 @@ export default function useEuchreGame() {
     euchreGame,
     euchreReplayGame,
     euchreSettings,
+    euchrePauseState,
     gameAnimationFlow,
     gameFlow,
     handleCancelGame,
@@ -236,7 +250,7 @@ export default function useEuchreGame() {
   const { getGameStateForNextHand } = useGamePlayLogic();
   const { reset, handleBeginGame, cancelAndReset } = useEuchreGameInit(gameState);
   const {} = useEuchreGameInitDeal(gameState);
-  const { handleShuffleAndDealComplete } = useEuchreGameShuffle(gameState);
+  const { handleBeginDealComplete, handleEndDealComplete } = useEuchreGameShuffle(gameState);
   const { handleBidSubmit } = useEuchreGameBid(gameState);
   const { handleDiscardSubmit } = useEuchreGameOrder(gameState);
   const { handleCardPlayed, handleCloseHandResults, handleTrickFinished } = useEuchreGamePlay(gameState);
@@ -311,7 +325,8 @@ export default function useEuchreGame() {
     handleCancelAndReset,
     handleReplayGame,
     handleAttemptToRecover,
-    handleShuffleAndDealComplete,
+    handleBeginDealComplete,
+    handleEndDealComplete,
     handleTrickFinished
   };
 }

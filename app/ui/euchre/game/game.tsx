@@ -11,7 +11,7 @@ import GameBorder from './game-border';
 import BidPrompt from '../prompt/bid-prompt';
 import DiscardPrompt from '../prompt/discard-prompt';
 import HandResults from '../prompt/hand-results';
-import GameResult from '../prompt/game-results';
+import GameResult from '../prompt/game-result';
 import GameEvents from './game-events';
 import GameArea from './game-area';
 import GamePrompt from '../prompt/game-prompt';
@@ -46,7 +46,8 @@ export default function EuchreGame() {
     handleCancelAndReset,
     handleReplayGame,
     handleAttemptToRecover,
-    handleShuffleAndDealComplete,
+    handleBeginDealComplete,
+    handleEndDealComplete,
     handleTrickFinished
   } = useEuchreGame();
 
@@ -183,7 +184,7 @@ export default function EuchreGame() {
         settings={euchreSettings}
         handResults={euchreGame.handResults}
         onClose={handleCloseGameResults}
-        onNewGame={handleStartGame}
+        onNewGame={handleBeginNewGame}
         onReplayGame={() => handleBeginReplayGame(euchreGame)}
       />
     );
@@ -241,7 +242,7 @@ export default function EuchreGame() {
               onSettingsToggle={toggleSettings}
               onScoreToggle={toggleScore}
               onCancel={handleCancel}
-              onInitDeal={handleShuffleAndDealComplete}
+              onInitDeal={handleEndDealComplete}
               onRegularDeal={() => null}
               onTrickComplete={handleTrickFinished}
               onPassDeal={() => null}

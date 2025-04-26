@@ -29,8 +29,7 @@ export function gameAnimationFlowReducer(
       ...state,
       animationType: EuchreAnimateType.ANIMATE
     };
-  }
-  if (action.type === EuchreAnimationActionType.SET_NONE) {
+  } else if (action.type === EuchreAnimationActionType.SET_NONE) {
     return {
       ...state,
       animationType: EuchreAnimateType.NONE

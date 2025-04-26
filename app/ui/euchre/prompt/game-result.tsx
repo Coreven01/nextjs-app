@@ -80,7 +80,7 @@ export default function GameResult({
   if (!handResults) throw new Error('No game results were found');
 
   return (
-    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
+    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800 top-4 h-full', className)}>
       <div className="p-1">
         <div className="grid grid-cols-[95vw] grid-rows-[1fr,1fr,220px,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[620px]">
           <div className="flex">

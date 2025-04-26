@@ -1,17 +1,19 @@
-import { TargetAndTransition, Transition } from 'framer-motion';
-import { EuchrePlayer } from '../../../lib/euchre/definitions';
+import { delay, TargetAndTransition, Transition } from 'framer-motion';
+import { EuchrePlayer, GameSpeed } from '../../../lib/euchre/definitions';
 import { EuchreGameFlow, EuchreGameFlowState } from '../reducers/gameFlowReducer';
 import { useCallback } from 'react';
+import { CardState } from '../reducers/cardStateReducer';
 
 const CARD_HEIGHT_OFFSET = 10;
 const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.
 const INIT_ROTATION = 180;
 const INIT_OFFSET = 75;
-const INIT_OPACITY = 0.75;
+const INIT_OPACITY = 0.5;
 const INIT_Z_INDEX = 30;
 
 const ROTATION_OFFSET = 6;
 const DEFAULT_TRANSITION_VAL: Transition = { rotateY: { duration: 0 }, rotateX: { duration: 0 } };
+
 export const DEFAULT_SPRING_VAL: CardSpringTarget = {
   x: 0,
   y: 0,
@@ -27,10 +29,10 @@ export const DEFAULT_SPRING_VAL: CardSpringTarget = {
 export interface CardSpringTarget extends TargetAndTransition {
   x: number;
   y: number;
-  rotate: number;
+  rotate: number | number[];
   opacity: number;
-  rotateY: number;
-  rotateX: number;
+  rotateY: number | number[];
+  rotateX: number | number[];
   zIndex: number;
 }
 
@@ -60,7 +62,7 @@ export interface CardPosition {
 }
 
 export interface CardSpringProps extends CardPosition {
-  sprungValue: CardSpringTarget;
+  springValue: CardSpringTarget;
 }
 
 const useCardTransform = () => {
@@ -117,6 +119,41 @@ const useCardTransform = () => {
   };
 
   //#region spring for card played
+
+  /** */
+  const getTransitionForCardPlayed = (cardState: CardState, duration: GameSpeed): Transition => {
+    const percentRotate = 0.7;
+    const durationSec = duration / 1000;
+
+    return {
+      opacity: { duration: 0 },
+      x: {
+        duration: durationSec,
+        stiffness: cardState.xStiffness,
+        damping: cardState.xDamping,
+        ease: 'easeOut'
+      },
+      y: {
+        duration: durationSec,
+        stiffness: cardState.yStiffness,
+        damping: cardState.yDamping,
+        ease: 'easeOut'
+      },
+      rotate: {
+        duration: durationSec * percentRotate
+      },
+      rotateY: {
+        duration: durationSec * (1 - percentRotate),
+        delay: durationSec * percentRotate
+      },
+      rotateX: {
+        duration: durationSec * (1 - percentRotate),
+        delay: durationSec * percentRotate
+      },
+      scale: { duration: 0 }
+    };
+  };
+
   const getSpringsForCardPlayed = (
     cardIndex: number,
     player: EuchrePlayer | undefined,
@@ -138,8 +175,7 @@ const useCardTransform = () => {
     let cardPlayedFunc: (
       cardRef: HTMLElement,
       tableRef: HTMLElement,
-      rotation: number,
-      currentSprung: CardSpringTarget
+      currentSpring: CardSpringTarget
     ) => CardSpringTarget;
     switch (player.playerNumber) {
       case 1:
@@ -155,16 +191,19 @@ const useCardTransform = () => {
         cardPlayedFunc = getPlayer4SpringForCardPlayed;
     }
 
-    const newVal = cardPlayedFunc(cardRef, tableRef, rotation, currentForCardPlayed.sprungValue);
+    const currentSpring = currentForCardPlayed.springValue;
+    const newVal = cardPlayedFunc(cardRef, tableRef, currentSpring);
+
+    newVal.rotate = rotation;
     newVal.rotateX = 0;
     newVal.rotateY = 0;
     newVal.opacity = 1;
-    newVal.transition = { rotateY: { duration: 0.3 }, rotateX: { duration: 0.3 } };
+    newVal.scale = 1;
 
     retval.push({
       ordinalIndex: -1,
       cardIndex: cardIndex,
-      sprungValue: newVal
+      springValue: newVal
     });
 
     // group remaining cards.
@@ -181,7 +220,6 @@ const useCardTransform = () => {
   const getPlayer1SpringForCardPlayed = (
     cardRef: HTMLElement,
     tableRef: HTMLElement,
-    rotation: number,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
     const cardOriginalPosition = getCardOriginalPosition(1, cardRef, currentSpring);
@@ -192,36 +230,29 @@ const useCardTransform = () => {
     return {
       ...currentSpring,
       x: tableCenter - cardOriginalPosition.center,
-      y: -(cardOriginalPosition.top - tableRect.top) - cardHeight / 3,
-      rotate: rotation,
-      scale: 1,
-      transition: { scale: { duration: 0 } }
+      y: -(cardOriginalPosition.top - tableRect.top) - cardHeight / 3
     };
   };
 
   const getPlayer2SpringForCardPlayed = (
     cardRef: HTMLElement,
     tableRef: HTMLElement,
-    rotation: number,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
     const cardOriginalPosition = getCardOriginalPosition(2, cardRef, currentSpring);
     const tableRect = tableRef.getBoundingClientRect();
     const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
     const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
-
     return {
       ...currentSpring,
       x: tableCenter - cardOriginalPosition.center,
-      y: tableRect.bottom - cardOriginalPosition.bottom + cardHeight / 3,
-      rotate: rotation
+      y: tableRect.bottom - cardOriginalPosition.bottom + cardHeight / 3
     };
   };
 
   const getPlayer3SpringForCardPlayed = (
     cardRef: HTMLElement,
     tableRef: HTMLElement,
-    rotation: number,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
     const cardOriginalPosition = getCardOriginalPosition(3, cardRef, currentSpring);
@@ -232,15 +263,13 @@ const useCardTransform = () => {
     return {
       ...currentSpring,
       x: tableRect.right - cardOriginalPosition.right + cardWidth / 3,
-      y: tableCenter - cardOriginalPosition.center,
-      rotate: rotation
+      y: tableCenter - cardOriginalPosition.center
     };
   };
 
   const getPlayer4SpringForCardPlayed = (
     cardRef: HTMLElement,
     tableRef: HTMLElement,
-    rotation: number,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
     const cardOriginalPosition = getCardOriginalPosition(4, cardRef, currentSpring);
@@ -251,8 +280,7 @@ const useCardTransform = () => {
     return {
       ...currentSpring,
       x: -(cardOriginalPosition.left - tableRect.right) - cardWidth / 3,
-      y: tableCenter - cardOriginalPosition.center,
-      rotate: rotation
+      y: tableCenter - cardOriginalPosition.center
     };
   };
   //#endregion
@@ -293,13 +321,13 @@ const useCardTransform = () => {
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
-        if (!currentState.sprungValue) throw new Error();
+        if (!currentState.springValue) throw new Error();
 
         return {
           ordinalIndex: newIndex,
           cardIndex: currentState.cardIndex,
-          sprungValue: {
-            ...currentState.sprungValue,
+          springValue: {
+            ...currentState.springValue,
             x: values.widthOffsetStart + values.widthOffset * newIndex,
             y: -values.heightOffsetIndices[newIndex] * values.heightOffset,
             rotate: values.rotationStart + values.rotationOffset * newIndex,
@@ -319,13 +347,13 @@ const useCardTransform = () => {
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
-        if (!currentState.sprungValue) throw new Error();
+        if (!currentState.springValue) throw new Error();
 
         return {
           ordinalIndex: newIndex,
           cardIndex: currentState.cardIndex,
-          sprungValue: {
-            ...currentState.sprungValue,
+          springValue: {
+            ...currentState.springValue,
             x: values.widthOffsetStart + values.widthOffset * newIndex,
             y: values.heightOffsetIndices[newIndex] * values.heightOffset,
             opacity: 1,
@@ -344,13 +372,13 @@ const useCardTransform = () => {
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
-        if (!currentState.sprungValue) throw new Error();
+        if (!currentState.springValue) throw new Error();
 
         return {
           ordinalIndex: newIndex,
           cardIndex: currentState.cardIndex,
-          sprungValue: {
-            ...currentState.sprungValue,
+          springValue: {
+            ...currentState.springValue,
             x: values.heightOffsetIndices[newIndex] * values.heightOffset,
             y: values.widthOffsetStart + values.widthOffset * newIndex,
             opacity: 1,
@@ -369,13 +397,13 @@ const useCardTransform = () => {
     let newIndex: number = 0;
     retval.push(
       ...stateForAvailableCards.map((currentState) => {
-        if (!currentState.sprungValue) throw new Error();
+        if (!currentState.springValue) throw new Error();
 
         return {
           ordinalIndex: newIndex,
           cardIndex: currentState.cardIndex,
-          sprungValue: {
-            ...currentState.sprungValue,
+          springValue: {
+            ...currentState.springValue,
             x: -values.heightOffsetIndices[newIndex] * values.heightOffset,
             y: values.widthOffsetStart + values.widthOffset * newIndex,
             opacity: 1,
@@ -459,7 +487,7 @@ const useCardTransform = () => {
       ...currentSpring,
       x: destCenter - cardOriginalPosition.center,
       y: -(cardOriginalPosition.top - destRect.top) - cardHeight / 3,
-      rotate: 190
+      rotate: -110
     };
   };
 
@@ -477,7 +505,7 @@ const useCardTransform = () => {
       ...currentSpring,
       x: destCenter - cardOriginalPosition.center,
       y: destRect.bottom - cardOriginalPosition.bottom + cardHeight / 3,
-      rotate: 170
+      rotate: -80
     };
   };
 
@@ -495,7 +523,7 @@ const useCardTransform = () => {
       ...currentSpring,
       x: destRect.right - cardOriginalPosition.right + cardWidth / 3,
       y: destCenter - cardOriginalPosition.center,
-      rotate: 180
+      rotate: 80
     };
   };
 
@@ -513,7 +541,7 @@ const useCardTransform = () => {
       ...currentSpring,
       x: -(cardOriginalPosition.left - destRect.right) - cardWidth / 3,
       y: destCenter - cardOriginalPosition.center,
-      rotate: 160
+      rotate: 110
     };
   };
   //#endregion
@@ -530,7 +558,12 @@ const useCardTransform = () => {
         return getPlayer4StartForCard();
     }
 
-    return { ...DEFAULT_SPRING_VAL, opacity: 0, rotate: 0 };
+    return {
+      ...DEFAULT_SPRING_VAL,
+      opacity: 0,
+      rotate: 0,
+      transition: { rotateY: { duration: 0 }, rotateX: { duration: 0 } }
+    };
   }, []);
 
   const getPlayerAnimateCardForStart = (
@@ -765,7 +798,8 @@ const useCardTransform = () => {
     getSpringsForCardInit,
     getCalculatedWidthOffset,
     groupHand,
-    getSpringForTrickTaken
+    getSpringForTrickTaken,
+    getTransitionForCardPlayed
   };
 };
 

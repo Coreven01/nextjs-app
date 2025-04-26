@@ -115,7 +115,7 @@ const PlayerArea = ({
     >
       <div className="relative row-start-3 col-start-1 col-span-3 row-span-1 flex items-end">
         <PlayerGameDeck
-          id="player1-game-deck perspective-midrange"
+          id="player1-game-deck"
           playerTableRef={player1TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player1DeckRef}
@@ -135,7 +135,7 @@ const PlayerArea = ({
       </div>
       <div className="row-start-1 col-start-1 col-span-3 row-span-1 flex items-start">
         <PlayerGameDeck
-          id="player2-game-deck perspective-midrange"
+          id="player2-game-deck"
           playerTableRef={player2TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player2DeckRef}
@@ -155,7 +155,7 @@ const PlayerArea = ({
       </div>
       <div className="row-start-1 col-start-1 row-span-3 col-span-1 flex items-center">
         <PlayerGameDeck
-          id="player3-game-deck perspective-midrange"
+          id="player3-game-deck"
           playerTableRef={player3TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player3DeckRef}
@@ -175,7 +175,7 @@ const PlayerArea = ({
       </div>
       <div className="row-start-1 col-start-3 row-span-3 flex items-center">
         <PlayerGameDeck
-          id="player4-game-deck perspective-midrange"
+          id="player4-game-deck"
           playerTableRef={player4TableRef}
           playersDeckRef={playersDeckRef}
           deckRef={player4DeckRef}

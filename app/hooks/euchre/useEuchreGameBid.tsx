@@ -36,11 +36,8 @@ export default function useEuchreGameBid(state: EuchreGameState) {
     };
     const id = '1';
     const infoDetail = (
-      <UserInfo
-        className="p-2 md:text-base text-sm w-auto whitespace-nowrap shadow-lg shadow-black text-black border border-black dark:border-white dark:text-white text-center bg-white dark:bg-stone-800"
-        id={id}
-      >
-        <div className="flex gap-2 items-center">All Players Passed</div>
+      <UserInfo className="absolute p-2 w-auto whitespace-nowrap shadow-lg shadow-black" id={id}>
+        <div className="flex items-center">All Players Passed</div>
       </UserInfo>
     );
     newAction.payload = infoDetail;
@@ -309,8 +306,7 @@ export default function useEuchreGameBid(state: EuchreGameState) {
     newGame.dealPassedCount += 1;
 
     state.dispatchPlayerNotification(getPlayerNotificationForAllPassed());
-
-    await notificationDelay(state.euchreSettings);
+    await notificationDelay(state.euchreSettings, 1);
 
     state.setEuchreGame(newGame);
     state.setPromptValue([]);

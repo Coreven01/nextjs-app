@@ -4,7 +4,7 @@ import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
 import { RefObject } from 'react';
 import GameFlippedCard from './game-flipped-card';
-import { EuchreGameInstance } from '../../../lib/euchre/definitions';
+import { DEBUG_ENABLED, EuchreGameInstance } from '../../../lib/euchre/definitions';
 import { EuchreGameFlow, EuchreGameFlowState } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
@@ -31,7 +31,6 @@ const GameTable = ({
   ...rest
 }: Props) => {
   const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
-  const isDebugMode = true; // env.REACT_APP_DEBUG === 'true';
   const renderOrder = [
     playerNotification.player2GameInfo,
     playerNotification.player3GameInfo,
@@ -44,21 +43,24 @@ const GameTable = ({
     game.maker === null &&
     (gameFlow.gameFlow === EuchreGameFlow.BEGIN_BID_FOR_TRUMP ||
       gameFlow.gameFlow === EuchreGameFlow.END_BID_FOR_TRUMP ||
+      gameFlow.gameFlow === EuchreGameFlow.BEGIN_PASS_DEAL ||
       gameFlow.gameFlow === EuchreGameFlow.WAIT ||
       gameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT);
 
   const cardState: CardState = {
-    src:
-      gameBidding && !gameFlow.hasFirstBiddingPassed
-        ? getEncodedCardSvg(game.trump, 'center')
-        : '/card-back.svg',
+    src: getEncodedCardSvg(game.trump, 'center'),
     cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
     cardIndex: 0,
-    initSpringValue: { ...DEFAULT_SPRING_VAL, opacity: 0, rotateY: 180 },
+    initSpringValue: {
+      ...DEFAULT_SPRING_VAL,
+      opacity: 1,
+      rotateY: 180,
+      transition: { rotateY: { duration: 0 } }
+    },
     springValue:
       gameBidding && !gameFlow.hasFirstBiddingPassed
-        ? { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 0, transition: { rotateY: { duration: 0.5 } } }
-        : { ...DEFAULT_SPRING_VAL, opacity: 1, rotateY: 180, transition: { rotateY: { duration: 0.5 } } },
+        ? { ...DEFAULT_SPRING_VAL, rotateY: 0, transition: { rotateY: { duration: 0.75 } } }
+        : { ...DEFAULT_SPRING_VAL, rotateY: 180, transition: { rotateY: { duration: 0.75 } } },
     enabled: false
   };
 
@@ -70,13 +72,13 @@ const GameTable = ({
         {...rest}
       >
         <div id="player2-region" className="col-span-1 col-start-2 relative flex justify-center items-center">
-          <div id={`game-base-2`} className={clsx(`absolute top-0`, { 'text-transparent': !isDebugMode })}>
+          <div id={`game-base-2`} className={clsx(`absolute top-0`, { 'text-transparent': !DEBUG_ENABLED })}>
             X
           </div>
           <div
             ref={player2TableRef}
             id={`game-base-2-inner`}
-            className={clsx(`absolute bottom-0`, { 'text-transparent': !isDebugMode })}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
           </div>
@@ -86,13 +88,13 @@ const GameTable = ({
           id="player3-region"
           className="col-span-1 col-start-1 row-start-2 relative flex justify-center items-center"
         >
-          <div id={`game-base-3`} className={clsx(`absolute left-0`, { 'text-transparent': !isDebugMode })}>
+          <div id={`game-base-3`} className={clsx(`absolute left-0`, { 'text-transparent': !DEBUG_ENABLED })}>
             X
           </div>
           <div
             ref={player3TableRef}
             id={`game-base-3-inner`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': !isDebugMode })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
           </div>
@@ -102,12 +104,13 @@ const GameTable = ({
           id="game-info"
           className="col-span-1 col-start-2 row-start-2 relative flex justify-center items-center"
         >
-          <div id={`game-center`} className={clsx(`absolute top-auto`, { 'text-transparent': !isDebugMode })}>
+          <div
+            id={`game-center`}
+            className={clsx(`absolute top-auto`, { 'text-transparent': !DEBUG_ENABLED })}
+          >
             X
           </div>
-          {gameFlow.hasGameStarted && gameBidding && (
-            <GameFlippedCard cardState={cardState} card={game.trump} key={keyval} />
-          )}
+          <GameFlippedCard cardState={cardState} card={game.trump} key={keyval} visible={gameBidding} />
           {renderOrder[2]}
         </div>
         <div
@@ -116,14 +119,14 @@ const GameTable = ({
         >
           <div
             id={`game-base-4`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': !isDebugMode })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
           </div>
           <div
             ref={player4TableRef}
             id={`game-base-4-inner`}
-            className={clsx(`absolute top-auto left-0`, { 'text-transparent': !isDebugMode })}
+            className={clsx(`absolute top-auto left-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
           </div>
@@ -133,13 +136,16 @@ const GameTable = ({
           id="player1-region"
           className="col-span-1 col-start-2 row-start-3 relative flex justify-center items-center"
         >
-          <div id={`game-base-1`} className={clsx(`absolute bottom-0`, { 'text-transparent': !isDebugMode })}>
+          <div
+            id={`game-base-1`}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': !DEBUG_ENABLED })}
+          >
             X
           </div>
           <div
             ref={player1TableRef}
             id={`game-base-1-inner`}
-            className={clsx(`absolute top-0`, { 'text-transparent': !isDebugMode })}
+            className={clsx(`absolute top-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
           </div>

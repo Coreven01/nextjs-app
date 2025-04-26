@@ -5,6 +5,7 @@ const menuSvg =
   ` bg-no-repeat bg-center bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)]
 dark:bg-[rgba(25,115,25,0.9)] border border-black appearance-none cursor-pointer border rounded w-8 h-8 checked:dark:bg-stone-500`;
 
+export const DEBUG_ENABLED = false;
 export const RANDOM_FOR_DIFFICULTY = new Map<GameDifficulty, number>([
   ['novice', 0.7],
   ['intermediate', 0.35],

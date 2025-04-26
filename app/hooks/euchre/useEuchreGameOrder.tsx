@@ -38,36 +38,17 @@ export default function useEuchreGameOrder(state: EuchreGameState) {
 
     if (!state.bidResult) throw new Error('Bid result not found.');
     const newGame: EuchreGameInstance = orderTrump(state.euchreGame, state.bidResult);
+    if (!newGame.maker) throw Error('Maker not found - Order Trump.');
 
     state.addEvent(
       createEvent(
         'i',
-        newGame.currentPlayer,
+        newGame.maker,
         `Trump named: ${SUB_SUIT}. ${state.bidResult.loner ? ' Going alone.' : ''}`,
         [newGame.trump],
-        getTeamColor(newGame.currentPlayer, state.euchreSettings)
+        getTeamColor(newGame.maker, state.euchreSettings)
       )
     );
-
-    if (!newGame.maker) throw Error('Maker not found - Order Trump.');
-
-    // don't believe this is needed anymore:
-    // if (state.bidResult.loner) {
-    //   const partnerSittingOut = newGame.gamePlayers.find(
-    //     (p) => p.team === newGame.maker?.team && p !== newGame.maker
-    //   );
-    //   if (partnerSittingOut) {
-    //     const playerSetting = state.euchreGameFlow.shouldShowCardImagesForHand.find(
-    //       (i) => i.player === partnerSittingOut
-    //     );
-
-    //     if (playerSetting) playerSetting.value = false;
-    //     state.dispatchGameFlow({
-    //       type: EuchreFlowActionType.SET_STATE,
-    //       state: { ...state.euchreGameFlow }
-    //     });
-    //   }
-    // }
 
     state.dispatchStateChange(EuchreGameFlow.BEGIN_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
     state.setEuchreGame(newGame);

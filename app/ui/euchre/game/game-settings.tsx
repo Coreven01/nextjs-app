@@ -122,7 +122,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
             Player Name:{' '}
           </label>
           <input
-            className="text-black max-w-32 text-sm lg:p-1 lg:text-base"
+            className="text-black max-w-32 text-sm p-1 lg:text-base"
             placeholder="Player Name"
             id="playerName"
             type="text"
@@ -140,7 +140,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
             id="difficulty"
             name="difficulty"
             onChange={handleSelectionChanged}
-            className="text-black lg:p-1 min-w-48 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            className="text-black p-1 min-w-48 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={settings.difficulty}
           >
             {difficultyValues.map((value) => {
@@ -268,7 +268,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="gameSpeed"
             onChange={handleSpeedChanged}
-            className="text-black lg:min-w-32 lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            className="text-black lg:min-w-32 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={settings.gameSpeed}
           >
             {gameSpeedValues.map((value) => {
@@ -287,7 +287,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="notificationSpeed"
             onChange={handleNotificationSpeedChanged}
-            className="text-black lg:min-w-32 lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            className="text-black lg:min-w-32 p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={settings.notificationSpeed}
           >
             {notificationSpeedValues.map((value) => {
@@ -306,7 +306,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="teamOneColor"
             onChange={(e) => handleTeamColorChange(1, (e.target.value as TeamColor) ?? 'blue')}
-            className="text-black lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            className="text-black p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={teamOneColor}
           >
             {teamColors.map((k) => (
@@ -323,7 +323,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           <select
             id="teamTwoColor"
             onChange={(e) => handleTeamColorChange(2, (e.target.value as TeamColor) ?? 'red')}
-            className="text-black lg:p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
+            className="text-black p-1 min-w-24 max-h-8 lg:max-h-12 lg:text-base text-sm"
             value={teamTwoColor}
           >
             {teamColors.map((k) => (

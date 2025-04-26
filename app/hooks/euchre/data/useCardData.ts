@@ -28,6 +28,11 @@ const useCardData = () => {
     return location === 'center' ? CARD_HEIGHT : CARD_WIDTH;
   };
 
+  const getCardBackSrc = (location: 'center' | 'side') => {
+    const cardBackSvgSrc: string = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
+    return cardBackSvgSrc;
+  };
+
   /** Get the card color from the given suit.  */
   const getCardColor = useCallback((suit: Suit): CardColor => {
     return suit === '♠' || suit === '♣' ? 'B' : 'R';
@@ -374,6 +379,7 @@ const useCardData = () => {
     isPlaceHolder,
     getDisplayHeight,
     getDisplayWidth,
+    getCardBackSrc,
     createShuffledDeck,
     cardIsLeftBower,
     cardIsRightBower,

@@ -1,18 +1,17 @@
 import {
   Card,
+  DEBUG_ENABLED,
   EuchreGameInstance,
   EuchrePlayer,
-  EuchreSettings,
-  EuchreTrick
+  EuchreSettings
 } from '@/app/lib/euchre/definitions';
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
 import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import clsx from 'clsx';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
-import { RefObject, useRef } from 'react';
+import { RefObject } from 'react';
 import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
-//import { env } from 'node:process';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
@@ -28,7 +27,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   onInitDeal: () => void;
   onRegularDeal: () => void;
   onCardPlayed: (card: Card) => void;
-  onTrickComplete: (card: Card, trickId: string) => void;
+  onTrickComplete: (card: Card) => void;
   onPassDeal: () => void;
 }
 
@@ -51,7 +50,6 @@ export default function PlayerGameDeck({
   ...rest
 }: Props) {
   const { playerLocation } = usePlayerData();
-  const isDebugMode = true; //env.REACT_APP_DEBUG === 'true';
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
@@ -121,14 +119,14 @@ export default function PlayerGameDeck({
         />
         <div
           id={`player-base-${playerNumber}`}
-          className={clsx(position, { 'text-transparent': !isDebugMode })}
+          className={clsx(position, { 'text-transparent': !DEBUG_ENABLED })}
         >
           X
         </div>
         <div
           ref={deckRef}
           id={`player-deck-${playerNumber}`}
-          className={clsx(positionInner, { 'text-transparent': !isDebugMode })}
+          className={clsx(positionInner, { 'text-transparent': !DEBUG_ENABLED })}
         >
           X
         </div>

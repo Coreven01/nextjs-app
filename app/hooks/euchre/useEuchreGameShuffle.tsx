@@ -125,13 +125,78 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
   }, [isGameStateValidToContinue, state]);
 
   /** Update game state once card animation is complete and begin the bidding game state. */
-  const handleShuffleAndDealComplete = () => {
-    state.dispatchStateChange(EuchreGameFlow.BEGIN_BID_FOR_TRUMP, EuchreAnimationActionType.SET_NONE);
+  const handleBeginDealComplete = () => {
+    state.dispatchStateChange(EuchreGameFlow.END_DEAL_CARDS, EuchreAnimationActionType.SET_NONE);
   };
 
+  const endDealCards = useCallback(() => {
+    if (
+      !isGameStateValidToContinue(
+        state,
+        EuchreGameFlow.END_DEAL_CARDS,
+        EuchreAnimateType.NONE,
+        state.shouldCancel,
+        state.onCancel
+      )
+    )
+      return;
+
+    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+  }, [isGameStateValidToContinue, state]);
+
+  /**
+   *
+   */
+  useEffect(() => {
+    try {
+      endDealCards();
+    } catch (e) {
+      const error = e as Error;
+      state.onError(error, EuchreGameFlow.END_DEAL_CARDS, EuchreAnimationActionType.SET_NONE, 'endDealCards');
+    }
+  }, [endDealCards, state]);
+
+  /** Animate cards being dealt by an effect in useCardState  */
+  useEffect(() => {
+    const endAnimationForDealCards = async () => {
+      if (
+        !isGameStateValidToContinue(
+          state,
+          EuchreGameFlow.END_DEAL_CARDS,
+          EuchreAnimateType.ANIMATE,
+          state.shouldCancel,
+          state.onCancel
+        )
+      )
+        return;
+
+      // this state is being updated by the event handler [handleShuffleAndDealComplete]
+      // which gets executed by an effect in useCardState after the animation is complete for dealing cards.
+
+      // wait a short period to make sure the state chage was picked up by the useCardState effect.
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      state.dispatchStateChange(EuchreGameFlow.WAIT);
+    };
+
+    try {
+      endAnimationForDealCards();
+    } catch (e) {
+      const error = e as Error;
+      state.onError(
+        error,
+        EuchreGameFlow.END_DEAL_CARDS,
+        EuchreAnimationActionType.SET_ANIMATE,
+        'endAnimationForDealCards'
+      );
+    }
+  }, [isGameStateValidToContinue, state]);
+
+  const handleEndDealComplete = () => {
+    state.dispatchStateChange(EuchreGameFlow.BEGIN_BID_FOR_TRUMP, EuchreAnimationActionType.SET_NONE);
+  };
   //#endregion
 
-  return { handleShuffleAndDealComplete };
+  return { handleBeginDealComplete, handleEndDealComplete };
 };
 
 export default useEuchreGameShuffle;
