@@ -1,4 +1,4 @@
-import { BidResult, EuchreGameInstance, EuchreSettings, Suit } from '@/app/lib/euchre/definitions';
+import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions/game-state-definitions';
 import clsx from 'clsx';
 import Image from 'next/image';
 import React, { useState } from 'react';
@@ -13,6 +13,7 @@ import GameWarning from '../game/game-warning';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import useCardData from '@/app/hooks/euchre/data/useCardData';
+import { BidResult, Suit } from '../../../lib/euchre/definitions/definitions';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   firstRound: boolean;

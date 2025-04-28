@@ -1,15 +1,9 @@
 import useCardData from '@/app/hooks/euchre/data/useCardData';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
-import {
-  EuchreCard,
-  EuchreHandResult,
-  EuchrePlayer,
-  EuchreTrick,
-  ResultHighlight,
-  Suit
-} from '@/app/lib/euchre/definitions';
+import { EuchreCard, EuchrePlayer, EuchreTrick } from '@/app/lib/euchre/definitions/game-state-definitions';
 import clsx from 'clsx';
+import { EuchreHandResult, ResultHighlight, Suit } from '../../../lib/euchre/definitions/definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   trick: EuchreTrick;

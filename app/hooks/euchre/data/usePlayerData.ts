@@ -1,15 +1,11 @@
-import {
-  Card,
-  EuchreCard,
-  EuchrePlayer,
-  EuchreSettings,
-  Suit,
-  TEAM_COLOR_MAP,
-  TeamColor
-} from '@/app/lib/euchre/definitions';
+import { Card, TEAM_COLOR_MAP, TeamColor } from '@/app/lib/euchre/definitions/definitions';
 import useCardData from './useCardData';
 import { useCallback } from 'react';
-import { CardPosition } from './useCardTransform';
+import {
+  EuchreCard,
+  EuchrePlayer,
+  EuchreSettings
+} from '../../../lib/euchre/definitions/game-state-definitions';
 
 const usePlayerData = () => {
   const { cardEqual, cardIsLeftBower, createPlaceholderCards, getCardValues, getSuitCount } = useCardData();

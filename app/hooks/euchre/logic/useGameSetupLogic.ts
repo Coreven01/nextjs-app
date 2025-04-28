@@ -1,17 +1,16 @@
-import {
-  Card,
-  EuchreGameInstance,
-  EuchrePlayer,
-  EuchreSettings,
-  GameDifficulty
-} from '@/app/lib/euchre/definitions';
+import { Card, GameDifficulty } from '@/app/lib/euchre/definitions/definitions';
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
-import { InitDealResult, ShuffleResult } from '@/app/lib/euchre/logic-definitions';
+import { InitDealResult, ShuffleResult } from '@/app/lib/euchre/definitions/logic-definitions';
 import useGameData from '../data/useGameData';
 import usePlayerData from '../data/usePlayerData';
 import useCardData from '../data/useCardData';
 import { useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings
+} from '../../../lib/euchre/definitions/game-state-definitions';
 
 const useGameSetupLogic = () => {
   const { resetForNewDeal, dealCards, copyCardsFromReplay, verifyDealtCards, createTrick } = useGameData();
@@ -146,7 +145,8 @@ const useGameSetupLogic = () => {
       const gameDeck: Card[] = game.deck;
       const rotation: EuchrePlayer[] = getPlayerRotation(game.gamePlayers, game.dealer);
       const retval: InitDealResult = {
-        newDealer: game.dealer
+        newDealer: game.dealer,
+        cardIndex: 0
       };
 
       // Deal until the first jack is dealt
@@ -154,6 +154,7 @@ const useGameSetupLogic = () => {
         // exit loop once a jack is dealt.
         if (card.value === 'J') {
           retval.newDealer = rotation[counter % 4];
+          retval.cardIndex = counter;
           break;
         }
 
@@ -190,7 +191,8 @@ const useGameSetupLogic = () => {
 
         if (originalDealer) {
           newDealerResult = {
-            newDealer: originalDealer
+            newDealer: originalDealer,
+            cardIndex: 0
           };
         } else throw new Error();
       }

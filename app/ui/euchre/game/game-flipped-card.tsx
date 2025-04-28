@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import useCardData from '../../../hooks/euchre/data/useCardData';
 import GameBorder from './game-border';
 import GameCard from './game-card';
-import { Card } from '../../../lib/euchre/definitions';
+import { Card } from '../../../lib/euchre/definitions/definitions';
 import { motion, TargetAndTransition } from 'framer-motion';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 

@@ -1,4 +1,8 @@
-import { EuchreGameInstance, EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions';
+import {
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings
+} from '@/app/lib/euchre/definitions/game-state-definitions';
 import GameHighlight from '../game/game-highlight';
 import PlayerColor from './player-team-color';
 import GameBorderBare from '../game/game-border-bare';

@@ -1,7 +1,7 @@
 'use client';
 
-import { GameSpeed } from '@/app/lib/euchre/definitions';
 import { useCallback, useEffect, useState } from 'react';
+import { GameSpeed } from '../../lib/euchre/definitions/definitions';
 
 export interface FadeOutProps {
   id: string;

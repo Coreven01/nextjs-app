@@ -1,30 +1,24 @@
-import {
-  Card,
-  DEBUG_ENABLED,
-  EuchreGameInstance,
-  EuchrePlayer,
-  EuchreSettings
-} from '@/app/lib/euchre/definitions';
+import { Card, DEBUG_ENABLED } from '@/app/lib/euchre/definitions/definitions';
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
-import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import clsx from 'clsx';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import { RefObject } from 'react';
-import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
+import { EuchreGameState, EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
+import GameDeck from '../game/game-deck';
+import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
+import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
-  game: EuchreGameInstance;
-  gameFlow: EuchreGameFlowState;
-  gameSettings: EuchreSettings;
-  gameAnimation: EuchreAnimationState;
-  dealDeck: Card[];
+  state: EuchreGameState;
+  cardStates: CardState[];
+  showDealForDealerDeck: boolean;
   playedCard: Card | null;
-  playerTableRef: RefObject<HTMLDivElement>;
-  deckRef: RefObject<HTMLDivElement>;
-  playersDeckRef: Map<number, RefObject<HTMLDivElement>>;
-  onInitDeal: () => void;
+  playerTableRef: RefObject<HTMLDivElement | null> | undefined;
+  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerDeckRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  onDealForDealer: () => void;
   onRegularDeal: () => void;
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
@@ -33,23 +27,23 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 export default function PlayerGameDeck({
   player,
-  game,
-  gameFlow,
-  gameSettings,
-  gameAnimation,
-  dealDeck,
+  state,
+  cardStates,
+  showDealForDealerDeck,
   playedCard,
   playerTableRef,
-  deckRef,
-  playersDeckRef,
+  cardRefs,
+  playerDeckRefs,
   onCardPlayed,
-  onInitDeal,
+  onDealForDealer,
   onRegularDeal,
   onTrickComplete,
   onPassDeal,
   ...rest
 }: Props) {
   const { playerLocation } = usePlayerData();
+
+  const deckRef = playerDeckRefs.get(player.playerNumber);
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
@@ -58,6 +52,16 @@ export default function PlayerGameDeck({
   const location = playerLocation(player);
   const position = location === 'center' ? positionCenter : positionSide;
   const positionInner = location === 'center' ? positionCenterInner : positionSideInner;
+  const duration = state.euchreSettings.gameSpeed / 1000;
+  const initSpringValue = { opacity: 0, y: 100 };
+  const initAnimateValue = {
+    opacity: 1,
+    y: 20,
+    transition: {
+      opacity: { duration: duration },
+      y: { duration: duration }
+    }
+  };
 
   let playerInfoOuterClass = '';
   let playerInfoInnerClass = '';
@@ -85,14 +89,14 @@ export default function PlayerGameDeck({
       break;
   }
 
-  const playerInfo = gameFlow.hasGameStarted && player.hand.length > 0 && (
+  const playerInfo = state.euchreGameFlow.hasGameStarted && (
     <div className={clsx('relative lg:text-sm text-xs whitespace-nowrap z-40', playerInfoOuterClass)}>
       <div className={clsx('absolute', playerInfoInnerClass)}>
         <PlayerInfo
           id={`player-info-${player.playerNumber}`}
-          game={game}
+          game={state.euchreGame}
           player={player}
-          settings={gameSettings}
+          settings={state.euchreSettings}
         />
       </div>
     </div>
@@ -102,21 +106,29 @@ export default function PlayerGameDeck({
     <>
       <div className={playerHandClass} {...rest}>
         <PlayerHand
-          game={game}
-          gameSettings={gameSettings}
-          gameFlow={gameFlow}
-          gameAnimation={gameAnimation}
+          state={state}
           player={player}
           playedCard={playedCard}
           onCardPlayed={onCardPlayed}
-          onInitDeal={onInitDeal}
           onRegularDeal={onRegularDeal}
           onTrickComplete={onTrickComplete}
           onPassDeal={onPassDeal}
-          deckRef={deckRef}
-          playerTableRef={playerTableRef}
-          playersDeckRef={playersDeckRef}
+          playerCenterTableRef={playerTableRef}
+          playersDeckRef={playerDeckRefs}
         />
+        {showDealForDealerDeck && (
+          <GameDeck
+            deck={state.euchreGame.deck}
+            cardRefs={cardRefs}
+            location={location}
+            playerNumber={player.playerNumber}
+            cardStates={cardStates}
+            onDealComplete={onDealForDealer}
+            dealType={EuchreGameFlow.BEGIN_DEAL_FOR_DEALER}
+            initDeckState={initSpringValue}
+            initAnimationState={initAnimateValue}
+          ></GameDeck>
+        )}
         <div
           id={`player-base-${playerNumber}`}
           className={clsx(position, { 'text-transparent': !DEBUG_ENABLED })}

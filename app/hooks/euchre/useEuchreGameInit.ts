@@ -6,15 +6,26 @@ import {
 } from './reducers/gameFlowReducer';
 import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
 import { EuchreAnimateType, EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
-import { EuchreGameState } from './useEuchreGame';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import { useCallback, useEffect, useState } from 'react';
 import useGameStateLogic from './logic/useGameStateLogic';
 import useGameData from './data/useGameData';
-import { PromptType } from '../../lib/euchre/definitions';
+import {
+  EuchreGameSetters,
+  EuchreGameValues,
+  GameErrorHandlers
+} from '../../lib/euchre/definitions/game-state-definitions';
+import { GameEventHandlers } from './useEventLog';
+import { PromptType } from '../../lib/euchre/definitions/definitions';
+import { EuchrePauseActionType } from './reducers/gamePauseReducer';
 
 /** Handles game initialization. */
-export default function useEuchreGameInit(state: EuchreGameState) {
+export default function useEuchreGameInit(
+  state: EuchreGameValues,
+  setters: EuchreGameSetters,
+  eventHandlers: GameEventHandlers,
+  errorHandlers: GameErrorHandlers
+) {
   const [showIntro, setShowIntro] = useState(true);
   const { initDeckForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } = useGameSetupLogic();
   const { isGameStateValidToContinue } = useGameStateLogic();
@@ -28,19 +39,19 @@ export default function useEuchreGameInit(state: EuchreGameState) {
           EuchreGameFlow.BEGIN_INTRO,
           EuchreAnimateType.ANIMATE,
           state.shouldCancel,
-          state.onCancel
+          errorHandlers.onCancel
         )
       )
         return;
 
-      await notificationDelay(state.euchreSettings);
+      await notificationDelay(state.euchreSettings, 1);
 
-      state.dispatchStateChange(EuchreGameFlow.BEGIN_DEAL_FOR_DEALER, EuchreAnimationActionType.SET_NONE);
+      setters.dispatchStateChange(EuchreGameFlow.BEGIN_DEAL_FOR_DEALER, EuchreAnimationActionType.SET_NONE);
     };
     try {
       animateIntro();
     } catch (e) {}
-  }, [isGameStateValidToContinue, notificationDelay, state]);
+  }, [errorHandlers.onCancel, isGameStateValidToContinue, notificationDelay, setters, state]);
 
   /**
    * Reset game and game state flow to defaults.
@@ -48,7 +59,7 @@ export default function useEuchreGameInit(state: EuchreGameState) {
   const reset = useCallback(
     (resetForBeginGame: boolean) => {
       if (resetForBeginGame) {
-        state.dispatchGameFlow({
+        setters.dispatchGameFlow({
           type: EuchreFlowActionType.SET_STATE,
           state: {
             ...INIT_GAME_FLOW_STATE,
@@ -58,24 +69,24 @@ export default function useEuchreGameInit(state: EuchreGameState) {
           }
         });
 
-        state.dispatchGameAnimationFlow({
+        setters.dispatchGameAnimationFlow({
           type: EuchreAnimationActionType.SET_NONE
         });
       } else {
-        state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+        setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
       }
 
       if (showIntro) {
-        state.setPromptValue([{ type: PromptType.INTRO }]);
+        setters.setPromptValue([{ type: PromptType.INTRO }]);
       } else {
-        state.setPromptValue([]);
+        setters.setPromptValue([]);
       }
 
-      state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET, payload: undefined });
-      state.setBidResult(null);
-      state.setPlayedCard(null);
+      setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET, payload: undefined });
+      setters.setBidResult(null);
+      setters.setPlayedCard(null);
     },
-    [showIntro, state]
+    [setters, showIntro]
   );
 
   /** Create a new euchre game and begin intitial deal.
@@ -89,23 +100,23 @@ export default function useEuchreGameInit(state: EuchreGameState) {
       newGame
     );
 
-    state.dispatchGameFlow({
+    setters.dispatchGameFlow({
       type: EuchreFlowActionType.SET_STATE,
       state: newGameFlowState
     });
-    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+    setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
 
-    state.setPromptValue([]);
-    state.setEuchreGame(newGame);
-    state.setShouldCancel(false);
+    setters.setPromptValue([]);
+    setters.setEuchreGame(newGame);
+    setters.setShouldCancelGame(false);
   };
 
   /** Cancel the current state and set the current game to null. */
   const cancelAndReset = useCallback(() => {
-    state.setShouldCancel(true);
+    setters.setShouldCancelGame(true);
     reset(true);
-    state.setEuchreGame(createDefaultEuchreGame());
-  }, [createDefaultEuchreGame, reset, state]);
+    setters.setEuchreGame(createDefaultEuchreGame());
+  }, [createDefaultEuchreGame, reset, setters]);
 
   const handleBeginGame = () => {
     createGame();

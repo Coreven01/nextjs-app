@@ -1,4 +1,4 @@
-import { EuchrePlayer } from '@/app/lib/euchre/definitions';
+import { EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
 
 /** Values used to identify if certain values should be displayed for a player's hand. */
 interface PlayerDisplayValue {

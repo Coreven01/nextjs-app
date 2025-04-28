@@ -1,6 +1,4 @@
-import { GameEvent, GameEventType } from '@/app/hooks/euchre/useEventLog';
-import { Card, EuchrePlayer, TeamColor } from './definitions';
-import { v4 as uuidv4 } from 'uuid';
+import { GameEvent } from '@/app/hooks/euchre/useEventLog';
 
 const ENABLE_LOGGING = true;
 
@@ -26,25 +24,6 @@ function logDebugError(
   if (temp && temp.type === 'e') {
     console.error(message, params);
   }
-}
-
-function createEvent(
-  type: GameEventType,
-  player?: EuchrePlayer,
-  message?: string,
-  cards?: Card[],
-  teamColor?: TeamColor
-): GameEvent {
-  return {
-    id: uuidv4(),
-    time: new Date().toLocaleTimeString(),
-    type: type,
-    message: message,
-    player: player?.name,
-    team: player?.team,
-    teamColor: teamColor ? teamColor : 'blue',
-    cards: cards
-  };
 }
 
 /** Create range of numbers between the given start and end. Includes both start and end value. */
@@ -79,11 +58,4 @@ function scrollElementIntoViewIfNeeded(element: HTMLElement, container: HTMLElem
   }
 }
 
-export {
-  scrollElementIntoViewIfNeeded,
-  isElementFullyVisible,
-  createEvent,
-  createRange,
-  logDebugError,
-  logConsole
-};
+export { scrollElementIntoViewIfNeeded, isElementFullyVisible, createRange, logDebugError, logConsole };

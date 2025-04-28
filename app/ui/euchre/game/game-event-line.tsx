@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { GameEvent, GameEventType, SUB_SUIT } from '../../../hooks/euchre/useEventLog';
 import PlayerColor from '../player/player-team-color';
-import { Card } from '../../../lib/euchre/definitions';
+import { Card } from '../../../lib/euchre/definitions/definitions';
 
 interface Props {
   event: GameEvent;

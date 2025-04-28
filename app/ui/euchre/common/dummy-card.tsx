@@ -1,16 +1,15 @@
 import React, { CSSProperties } from 'react';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '../../../lib/euchre/definitions';
+import { RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '../../../lib/euchre/definitions/definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   width: number;
   height: number;
-  team: number;
+  location: 'side' | 'center';
   responsive?: boolean;
 }
-const DummyCard = ({ width, height, team, responsive, className, ...rest }: Props) => {
-  const sidePlayer = team && team === 2;
+const DummyCard = ({ width, height, location, responsive, className, ...rest }: Props) => {
   const cssValues: CSSProperties = {};
 
   if (responsive) {
@@ -27,7 +26,7 @@ const DummyCard = ({ width, height, team, responsive, className, ...rest }: Prop
     <div
       className={clsx(
         'pointer-events-none invisible',
-        sidePlayer ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
+        location === 'side' ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
         className
       )}
       {...rest}
@@ -36,7 +35,7 @@ const DummyCard = ({ width, height, team, responsive, className, ...rest }: Prop
         quality={25}
         width={width}
         height={height}
-        src={sidePlayer ? '/card-shadow-side.png' : '/card-shadow.png'}
+        src={location === 'side' ? '/card-shadow-side.png' : '/card-shadow.png'}
         alt={'positional card'}
         style={cssValues}
         aria-hidden

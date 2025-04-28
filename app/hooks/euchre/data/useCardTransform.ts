@@ -1,8 +1,9 @@
-import { delay, TargetAndTransition, Transition } from 'framer-motion';
-import { EuchrePlayer, GameSpeed } from '../../../lib/euchre/definitions';
-import { EuchreGameFlow, EuchreGameFlowState } from '../reducers/gameFlowReducer';
-import { useCallback } from 'react';
+import { TargetAndTransition, Transition } from 'framer-motion';
+import { Card, GameSpeed } from '../../../lib/euchre/definitions/definitions';
+import { RefObject, useCallback } from 'react';
 import { CardState } from '../reducers/cardStateReducer';
+import { EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
+import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
 
 const CARD_HEIGHT_OFFSET = 10;
 const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.
@@ -10,6 +11,7 @@ const INIT_ROTATION = 180;
 const INIT_OFFSET = 75;
 const INIT_OPACITY = 0.5;
 const INIT_Z_INDEX = 30;
+const GAME_PLAY_VARIATION = 10;
 
 const ROTATION_OFFSET = 6;
 const DEFAULT_TRANSITION_VAL: Transition = { rotateY: { duration: 0 }, rotateX: { duration: 0 } };
@@ -66,6 +68,7 @@ export interface CardSpringProps extends CardPosition {
 }
 
 const useCardTransform = () => {
+  //#region Randomize values used for card animation.
   const getRandomRotation = useCallback(() => {
     const min = 170;
     const max = 190;
@@ -90,15 +93,17 @@ const useCardTransform = () => {
     return Math.floor(Math.random() * range + min);
   }, []);
 
+  //#endregion
+
   /** Get the cards original position. Used in order to transform the card again to a new position. */
   const getCardOriginalPosition = (
     playerNumber: number,
     cardRef: HTMLElement,
-    currentSpring: CardSpringTarget
+    currentSpring?: CardSpringTarget
   ): CardRect => {
     const cardRect = cardRef.getBoundingClientRect();
-    const currentX = currentSpring.x;
-    const currentY = currentSpring.y;
+    const currentX = currentSpring?.x ?? 0;
+    const currentY = currentSpring?.y ?? 0;
     const orgLeft = cardRect.left - currentX;
     const orgRight = cardRect.right - currentX;
     const orgTop = cardRect.top - currentY;
@@ -118,12 +123,141 @@ const useCardTransform = () => {
     return retval;
   };
 
-  //#region spring for card played
+  //#region Spring for deal for dealer
+
+  const getSpringsForDealForDealer = (
+    outerTableRefs: Map<number, RefObject<HTMLDivElement | null>>,
+    cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
+    rotation: EuchrePlayer[],
+    cards: Card[],
+    dealResult: InitDealResult
+  ): CardSpringProps[] => {
+    const retval: CardSpringProps[] = [];
+    let counter = 0;
+
+    for (const card of cards) {
+      const destinationPlayer = rotation[counter % 4];
+      const cardRef = cardRefs.get(card.index);
+      const tableRef = outerTableRefs.get(destinationPlayer.playerNumber);
+
+      if (!cardRef?.current) throw new Error('Invalid card ref when dealing for dealer');
+      if (!tableRef?.current) throw new Error('Invalid deck ref when dealing for dealer');
+
+      let cardPlayedFunc: (cardRef: HTMLElement, tableRef: HTMLElement) => CardSpringTarget;
+
+      switch (destinationPlayer.playerNumber) {
+        case 1:
+          cardPlayedFunc = getPlayer1SpringForDealForDealer;
+          break;
+        case 2:
+          cardPlayedFunc = getPlayer2SpringForDealForDealer;
+          break;
+        case 3:
+          cardPlayedFunc = getPlayer3SpringForDealForDealer;
+          break;
+        default:
+          cardPlayedFunc = getPlayer4SpringForDealForDealer;
+      }
+      const newSpringVal = cardPlayedFunc(cardRef.current, tableRef.current);
+
+      newSpringVal.rotate = Math.random() * 360 - 180;
+      newSpringVal.rotateX = 0;
+      newSpringVal.rotateY = 0;
+      newSpringVal.opacity = 1;
+      newSpringVal.x += Math.random() * GAME_PLAY_VARIATION - GAME_PLAY_VARIATION / 2;
+      newSpringVal.y += Math.random() * GAME_PLAY_VARIATION - GAME_PLAY_VARIATION / 2;
+      newSpringVal.scale = 1;
+
+      retval.push({
+        springValue: newSpringVal,
+        cardIndex: card.index,
+        ordinalIndex: card.index
+      });
+
+      if (counter === dealResult.cardIndex) break;
+
+      counter++;
+    }
+
+    return retval;
+  };
+
+  const getPlayer1SpringForDealForDealer = (
+    cardRef: HTMLElement,
+    tableRef: HTMLElement
+  ): CardSpringTarget => {
+    const cardOriginalPosition = getCardOriginalPosition(1, cardRef);
+    const tableRect = tableRef.getBoundingClientRect();
+    const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
+    const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
+
+    return {
+      ...DEFAULT_SPRING_VAL,
+      x: tableCenter - cardOriginalPosition.center,
+      y: -(cardOriginalPosition.top - tableRect.top) - cardHeight
+    };
+  };
+
+  const getPlayer2SpringForDealForDealer = (
+    cardRef: HTMLElement,
+    tableRef: HTMLElement
+  ): CardSpringTarget => {
+    const cardOriginalPosition = getCardOriginalPosition(2, cardRef);
+    const tableRect = tableRef.getBoundingClientRect();
+    const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
+    const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
+
+    return {
+      ...DEFAULT_SPRING_VAL,
+      x: tableCenter - cardOriginalPosition.center,
+      y: tableRect.bottom - cardOriginalPosition.bottom + cardHeight
+    };
+  };
+
+  const getPlayer3SpringForDealForDealer = (
+    cardRef: HTMLElement,
+    tableRef: HTMLElement
+  ): CardSpringTarget => {
+    const cardOriginalPosition = getCardOriginalPosition(3, cardRef);
+    const tableRect = tableRef.getBoundingClientRect();
+    const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
+    const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
+
+    return {
+      ...DEFAULT_SPRING_VAL,
+      x: tableRect.right - cardOriginalPosition.right + cardWidth,
+      y: tableCenter - cardOriginalPosition.center
+    };
+  };
+
+  const getPlayer4SpringForDealForDealer = (
+    cardRef: HTMLElement,
+    tableRef: HTMLElement
+  ): CardSpringTarget => {
+    const cardOriginalPosition = getCardOriginalPosition(4, cardRef);
+    const tableRect = tableRef.getBoundingClientRect();
+    const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
+    const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
+
+    return {
+      ...DEFAULT_SPRING_VAL,
+      x: -(cardOriginalPosition.left - tableRect.left) - cardWidth,
+      y: tableCenter - cardOriginalPosition.center
+    };
+  };
+  //#endregion
+
+  //#region Spring for card played
 
   /** */
-  const getTransitionForCardPlayed = (cardState: CardState, duration: GameSpeed): Transition => {
+  const getTransitionForCardPlayed = (
+    cardState: CardState,
+    duration: GameSpeed,
+    initDelay?: number
+  ): Transition => {
     const percentRotate = 0.7;
     const durationSec = duration / 1000;
+    const delay = initDelay ?? 0;
 
     return {
       opacity: { duration: 0 },
@@ -131,24 +265,27 @@ const useCardTransform = () => {
         duration: durationSec,
         stiffness: cardState.xStiffness,
         damping: cardState.xDamping,
-        ease: 'easeOut'
+        ease: 'easeOut',
+        delay: delay
       },
       y: {
         duration: durationSec,
         stiffness: cardState.yStiffness,
         damping: cardState.yDamping,
-        ease: 'easeOut'
+        ease: 'easeOut',
+        delay: delay
       },
       rotate: {
-        duration: durationSec * percentRotate
+        duration: durationSec * percentRotate,
+        delay: delay
       },
       rotateY: {
         duration: durationSec * (1 - percentRotate),
-        delay: durationSec * percentRotate
+        delay: durationSec * percentRotate + delay
       },
       rotateX: {
         duration: durationSec * (1 - percentRotate),
-        delay: durationSec * percentRotate
+        delay: durationSec * percentRotate + delay
       },
       scale: { duration: 0 }
     };
@@ -279,7 +416,7 @@ const useCardTransform = () => {
 
     return {
       ...currentSpring,
-      x: -(cardOriginalPosition.left - tableRect.right) - cardWidth / 3,
+      x: -(cardOriginalPosition.left - tableRect.left) - cardWidth / 3,
       y: tableCenter - cardOriginalPosition.center
     };
   };
@@ -744,52 +881,6 @@ const useCardTransform = () => {
     };
   };
 
-  const getCardCssForPlayerLocation = (
-    cardIndex: number,
-    player: EuchrePlayer | undefined,
-    gameFlow: EuchreGameFlowState,
-    isAvailable: boolean
-  ): string => {
-    if (!player) return '';
-
-    const initDeg: number = -10;
-    const rotateVal: number = 5;
-    const offsetStart: number = 60;
-    const offset: number = 30;
-    const shouldShowHandImages = gameFlow.shouldShowCardImagesForHand.find((c) => c.player === player)?.value;
-    const activeClasses =
-      shouldShowHandImages &&
-      player.human &&
-      gameFlow.gameFlow === EuchreGameFlow.AWAIT_AI_INPUT &&
-      isAvailable
-        ? 'cursor-pointer md:hover:scale-[1.15] md:hover:translate-y-0'
-        : 'cursor-not-allowed';
-
-    let retval = '';
-    const baseClasses = `contain transition duration-300 ease-in-out ${activeClasses}`;
-    switch (player.playerNumber) {
-      case 1:
-        retval = `${baseClasses} rotate-[${initDeg + rotateVal * cardIndex}deg]
-        translate-x-[${offsetStart - offset * cardIndex}px] translate-y-[${[0, 4].includes(cardIndex) ? 25 : [1, 3].includes(cardIndex) ? 15 : 10}px]`;
-        break;
-      case 2:
-        retval = `${baseClasses} rotate-[${-initDeg - rotateVal * cardIndex}deg]
-      translate-x-[${offsetStart - offset * cardIndex}px] translate-y-[${[1, 3].includes(cardIndex) ? 10 : cardIndex === 2 ? 15 : 0}px] `;
-        break;
-      case 3:
-        retval = `${baseClasses} rotate-[${initDeg + rotateVal * cardIndex}deg]
-      translate-y-[${offsetStart - offset * cardIndex}px] translate-x-[${[1, 3].includes(cardIndex) ? 10 : cardIndex === 2 ? 15 : 0}px]`;
-        break;
-      case 4:
-        retval = `${baseClasses} transition rotate-[${-initDeg + -rotateVal * cardIndex}deg]
-      translate-y-[${offsetStart - offset * cardIndex}px] translate-x-[${[1, 3].includes(cardIndex) ? -10 : cardIndex === 2 ? -15 : 0}px]`;
-        break;
-    }
-
-    //retval = `${activeClasses}`;
-    return retval;
-  };
-
   return {
     getSpringsForCardPlayed,
     getRandomDamping,
@@ -799,7 +890,8 @@ const useCardTransform = () => {
     getCalculatedWidthOffset,
     groupHand,
     getSpringForTrickTaken,
-    getTransitionForCardPlayed
+    getTransitionForCardPlayed,
+    getSpringsForDealForDealer
   };
 };
 

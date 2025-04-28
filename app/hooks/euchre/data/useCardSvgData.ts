@@ -11,7 +11,7 @@ import {
   svgSideCardValues,
   TextData
 } from '@/app/lib/euchre/card-data';
-import { Card, CardValue, Suit } from '@/app/lib/euchre/definitions';
+import { Card, CardValue, Suit } from '@/app/lib/euchre/definitions/definitions';
 import useCardData from './useCardData';
 import { useCallback } from 'react';
 

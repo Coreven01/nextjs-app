@@ -23,7 +23,7 @@ export enum PlayerNotificationActionType {
   RESET
 }
 
-export const initialPlayerNotification: PlayerNotificationState = {
+export const INIT_PLAYER_NOTIFICATION: PlayerNotificationState = {
   player1GameInfo: undefined,
   player2GameInfo: undefined,
   player3GameInfo: undefined,
@@ -46,7 +46,7 @@ export function playerNotificationReducer(
   } else if (action.type === PlayerNotificationActionType.UPDATE_CENTER) {
     return { ...state, centerGameInfo: action.payload };
   } else if (action.type === PlayerNotificationActionType.RESET) {
-    return { ...initialPlayerNotification };
+    return { ...INIT_PLAYER_NOTIFICATION };
   } else {
     throw Error('Unknown action: ' + action.type);
   }

@@ -1,6 +1,6 @@
-import { GameSpeed } from '@/app/lib/euchre/definitions';
+import { GameSpeed } from '@/app/lib/euchre/definitions/definitions';
 import { useEffect, useState } from 'react';
-import { motion, Target, TargetAndTransition } from 'framer-motion';
+import { motion, Target } from 'framer-motion';
 import clsx from 'clsx';
 interface Props {
   children?: React.ReactNode;

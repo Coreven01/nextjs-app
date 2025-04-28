@@ -1,4 +1,4 @@
-import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/euchre/definitions';
+import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions/game-state-definitions';
 import HandResult from './hand-result';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import GamePrompt from './game-prompt';
@@ -7,6 +7,7 @@ import GameOverview from '../game/game-overview';
 import { scrollElementIntoViewIfNeeded } from '@/app/lib/euchre/util';
 import PromptHeader from './prompt-header';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
+import { EuchreHandResult } from '../../../lib/euchre/definitions/definitions';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;

@@ -1,36 +1,24 @@
-import { ActionDispatch, Dispatch, SetStateAction, useCallback, useMemo, useReducer, useState } from 'react';
-import {
-  initialPlayerNotification as INIT_PLAYER_NOTIFICATION,
-  PlayerNotificationAction,
-  PlayerNotificationActionType,
-  playerNotificationReducer,
-  PlayerNotificationState
-} from './reducers/playerNotificationReducer';
+import { useCallback, useMemo, useReducer, useState } from 'react';
+import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from './reducers/playerNotificationReducer';
 import {
   EuchreGameFlow,
   EuchreFlowActionType,
-  EuchreGameFlowState,
   gameFlowStateReducer,
-  INIT_GAME_FLOW_STATE,
-  GameFlowAction
+  INIT_GAME_FLOW_STATE
 } from './reducers/gameFlowReducer';
 import {
   EuchreAnimationActionType,
   gameAnimationFlowReducer,
-  initialGameAnimationState as INIT_GAME_ANIMATION_STATE,
-  EuchreAnimationState,
-  EuchreAnimationAction
+  INIT_GAME_ANIMATION_STATE
 } from './reducers/gameAnimationFlowReducer';
 import {
   BidResult,
   Card,
-  EuchreGameInstance,
-  EuchreSettings,
   INIT_GAME_SETTINGS,
   PromptType,
   PromptValue
-} from '@/app/lib/euchre/definitions';
-import { GameEvent, useEventLog } from './useEventLog';
+} from '@/app/lib/euchre/definitions/definitions';
+import { GameEventHandlers, useEventLog } from './useEventLog';
 import useEuchreGameInit from './useEuchreGameInit';
 import useEuchreGameInitDeal from './useEuchreGameInitDeal';
 import useEuchreGameShuffle from './useEuchreGameShuffle';
@@ -43,88 +31,20 @@ import useGameSetupLogic from './logic/useGameSetupLogic';
 import { v4 as uuidv4 } from 'uuid';
 import {
   EuchrePauseActionType,
-  EuchrePauseState,
   gamePauseFlowReducer,
   INIT_GAME_WAIT as INIT_PAUSE_STATE
 } from './reducers/gamePauseReducer';
-
-export interface EuchreGameBase {
-  /** Instance of information regarding the current euchre game being played. */
-  euchreGame: EuchreGameInstance;
-
-  /** Instance of a game that should be attempted to be replayed. The intent is to re-deal the same cards to the
-   * same players with the same trump card turned up. The player will have a chance to make a different decision during
-   * play that may change the outcome.
-   */
-  euchreReplayGame: EuchreGameInstance | null;
-
-  /** Game state used to indicate how the game is to proceed. Used when determine what to do next during game play.
-   */
-  euchreGameFlow: EuchreGameFlowState;
-
-  /** Game state used to indicate when to animate notifications
-   */
-  euchreAnimationFlow: EuchreAnimationState;
-
-  /** Settings/preferences that can be set by the user such as difficulty and game speed. */
-  euchreSettings: EuchreSettings;
-
-  /** Sets the reason why the game is paused, and shouldn't continue to proceed with the game flow until the wait type is handled. */
-  euchrePauseState: EuchrePauseState;
-}
-
-export interface EuchreGameState extends EuchreGameBase {
-  /** The card that was selected to be played either automatically or for the AI. */
-  playedCard: Card | null;
-
-  /** The resulting information from the bidding processes used by AI. */
-  bidResult: BidResult | null;
-  playerNotification: PlayerNotificationState;
-
-  /** A value to indicate which prompt is present during the game. The initial intent was the possibilty that more than one
-   * prompt could be present.
-   */
-  prompValue: PromptValue[];
-
-  /** Boolean value to indicate that the user pressed the cancel button. */
-  shouldCancel: boolean;
-
-  // the following are methods/functions used to update state.
-  setEuchreGame: Dispatch<SetStateAction<EuchreGameInstance>>;
-  setEuchreSettings: Dispatch<SetStateAction<EuchreSettings>>;
-  setPromptValue: Dispatch<SetStateAction<PromptValue[]>>;
-  setPlayedCard: Dispatch<SetStateAction<Card | null>>;
-  setBidResult: Dispatch<SetStateAction<BidResult | null>>;
-  setShouldCancel: Dispatch<SetStateAction<boolean>>;
-
-  /** Set both the game flow and game animation state if provided. */
-  dispatchStateChange: (gameAction?: EuchreGameFlow, gameAnimationAction?: EuchreAnimationActionType) => void;
-  dispatchPlayerNotification: ActionDispatch<[action: PlayerNotificationAction]>;
-  dispatchGameFlow: ActionDispatch<[action: GameFlowAction]>;
-  dispatchGameAnimationFlow: ActionDispatch<[action: EuchreAnimationAction]>;
-
-  /** The method that should be called if the user attempted to cancel the game. */
-  onCancel: () => void;
-
-  onError: (
-    e: Error,
-    gameFlow: EuchreGameFlow,
-    animationType: EuchreAnimationActionType,
-    func: string
-  ) => void;
-
-  /** Add an event. Used for debugging or for reference to see what happened during game play. */
-  addEvent: (e: GameEvent) => void;
-}
-
-export interface EuchreError {
-  time: Date;
-  id: string;
-  message: string | undefined;
-  gameFlow: EuchreGameFlow;
-  animationType: EuchreAnimationActionType;
-  func: string;
-}
+import {
+  EuchreError,
+  EuchreGameHandlers,
+  EuchreGameInstance,
+  EuchreGameSetters,
+  EuchreGameState,
+  EuchreGameValues,
+  EuchreSettings,
+  GameErrorHandlers
+} from '../../lib/euchre/definitions/game-state-definitions';
+import { InitDealResult } from '../../lib/euchre/definitions/logic-definitions';
 
 const getInitPlayerName = () => {
   const names = ['Joe', 'Jim', 'Jack', 'Jane', 'Joan', 'Jean'];
@@ -134,10 +54,10 @@ const getInitPlayerName = () => {
 };
 
 export default function useEuchreGame() {
-  //#region Hooks to control game flow *************************************************************************
+  //#region Hooks to store game state *************************************************************************
   const { createDefaultEuchreGame } = useGameSetupLogic();
   const [promptValue, setPromptValue] = useState<PromptValue[]>([{ type: PromptType.INTRO }]);
-  const [shouldCancelGame, setCancelGame] = useState(false);
+  const [shouldCancelGame, setShouldCancelGame] = useState(false);
   const [euchreReplayGame, setEuchreReplayGame] = useState<EuchreGameInstance | null>(null);
   const [euchreGame, setEuchreGame] = useState<EuchreGameInstance>(createDefaultEuchreGame());
   const [euchreSettings, setEuchreSettings] = useState<EuchreSettings>({
@@ -146,13 +66,12 @@ export default function useEuchreGame() {
   });
   const [errorState, setErrorState] = useState<EuchreError | null>(null);
   const [playedCard, setPlayedCard] = useState<Card | null>(null);
+  const [dealResult, setDealResult] = useState<InitDealResult | null>(null);
   const [bidResult, setBidResult] = useState<BidResult | null>(null);
-  const { events, addEvent, clearEvents } = useEventLog();
-
+  const { events, addEvent, clearEvents, createEvent } = useEventLog();
   const [playerNotification, dispatchPlayerNotification] = useReducer(playerNotificationReducer, {
     ...INIT_PLAYER_NOTIFICATION
   });
-
   const [gameFlow, dispatchGameFlow] = useReducer(gameFlowStateReducer, { ...INIT_GAME_FLOW_STATE });
   const [gameAnimationFlow, dispatchGameAnimationFlow] = useReducer(gameAnimationFlowReducer, {
     ...INIT_GAME_ANIMATION_STATE
@@ -160,15 +79,6 @@ export default function useEuchreGame() {
   const [euchrePauseState, dispatchPauseState] = useReducer(gamePauseFlowReducer, {
     ...INIT_PAUSE_STATE
   });
-
-  const handleCancelGame = useCallback(() => {
-    if (shouldCancelGame) return;
-
-    dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: EuchreGameFlow.BEGIN_INIT_DEAL });
-    dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
-    dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
-    setCancelGame(true);
-  }, [shouldCancelGame]);
 
   const dispatchStateChange = (
     gameAction?: EuchreGameFlow,
@@ -180,80 +90,104 @@ export default function useEuchreGame() {
     if (gameWait) dispatchPauseState({ type: gameWait });
   };
 
-  const handleError = useCallback(
-    (
-      e: Error | undefined,
-      gameFlow: EuchreGameFlow,
-      animationType: EuchreAnimationActionType,
-      func: string
-    ) => {
-      const error = e as Error;
+  const handleCancelGame = useCallback(() => {
+    if (shouldCancelGame) return;
 
-      dispatchStateChange(EuchreGameFlow.ERROR);
-      setErrorState({
-        time: new Date(),
-        id: uuidv4(),
-        message: error ? error.message : undefined,
-        gameFlow: gameFlow,
-        animationType: animationType,
-        func: func
-      });
-    },
-    []
-  );
+    dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_CANCEL);
+    setShouldCancelGame(true);
+  }, [shouldCancelGame]);
 
-  const gameState: EuchreGameState = useMemo(() => {
+  const setters: EuchreGameSetters = {
+    setEuchreGame: setEuchreGame,
+    setEuchreSettings: setEuchreSettings,
+    setPromptValue: setPromptValue,
+    setPlayedCard: setPlayedCard,
+    setBidResult: setBidResult,
+    setInitialDealerResult: setDealResult,
+    setShouldCancelGame: setShouldCancelGame,
+    dispatchStateChange: dispatchStateChange,
+    dispatchPlayerNotification: dispatchPlayerNotification,
+    dispatchGameFlow: dispatchGameFlow,
+    dispatchGameAnimationFlow: dispatchGameAnimationFlow
+  };
+
+  const state: EuchreGameState = useMemo(() => {
     return {
       euchreGame: euchreGame,
       euchreReplayGame: euchreReplayGame,
       euchreGameFlow: gameFlow,
       euchreSettings: euchreSettings,
       euchrePauseState: euchrePauseState,
-      playerNotification: playerNotification,
-      euchreAnimationFlow: gameAnimationFlow,
-      prompValue: promptValue,
-      playedCard: playedCard,
-      bidResult: bidResult,
-      shouldCancel: shouldCancelGame,
-      setEuchreGame: setEuchreGame,
-      setEuchreSettings: setEuchreSettings,
-      setPromptValue: setPromptValue,
-      setPlayedCard: setPlayedCard,
-      setBidResult: setBidResult,
-      setShouldCancel: setCancelGame,
-      dispatchStateChange: dispatchStateChange,
-      dispatchPlayerNotification: dispatchPlayerNotification,
-      dispatchGameFlow: dispatchGameFlow,
-      dispatchGameAnimationFlow: dispatchGameAnimationFlow,
-      onCancel: handleCancelGame,
-      onError: handleError,
-      addEvent: addEvent
+      euchreAnimationFlow: gameAnimationFlow
     };
-  }, [
-    addEvent,
-    bidResult,
-    euchreGame,
-    euchreReplayGame,
-    euchreSettings,
-    euchrePauseState,
-    gameAnimationFlow,
-    gameFlow,
-    handleCancelGame,
-    handleError,
-    playedCard,
-    playerNotification,
-    promptValue,
-    shouldCancelGame
-  ]);
+  }, [euchreGame, euchrePauseState, euchreReplayGame, euchreSettings, gameAnimationFlow, gameFlow]);
+
+  const stateValues: EuchreGameValues = {
+    euchreGame: state.euchreGame,
+    euchreReplayGame: state.euchreReplayGame,
+    euchreGameFlow: state.euchreGameFlow,
+    euchreSettings: state.euchreSettings,
+    euchrePauseState: state.euchrePauseState,
+    playerNotification: playerNotification,
+    euchreAnimationFlow: state.euchreAnimationFlow,
+    promptValue: promptValue,
+    playedCard: playedCard,
+    bidResult: bidResult,
+    initDealer: dealResult,
+    shouldCancel: shouldCancelGame
+  };
+
+  const handleError = useCallback((e: Error | undefined, func: string) => {
+    const error = e as Error;
+
+    dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_ERROR);
+    setErrorState({
+      time: new Date(),
+      id: uuidv4(),
+      message: error ? error.message : undefined,
+      func: func
+    });
+  }, []);
+
+  const eventHandlers: GameEventHandlers = useMemo(
+    () => ({
+      addEvent,
+      clearEvents,
+      createEvent
+    }),
+    [addEvent, clearEvents, createEvent]
+  );
+
+  const errorHandlers: GameErrorHandlers = {
+    onCancel: handleCancelGame,
+    onError: handleError
+  };
 
   const { reverseLastHandPlayed } = useGameData();
   const { getGameStateForNextHand } = useGamePlayLogic();
-  const { reset, handleBeginGame, cancelAndReset } = useEuchreGameInit(gameState);
-  const {} = useEuchreGameInitDeal(gameState);
-  const { handleBeginDealComplete, handleEndDealComplete } = useEuchreGameShuffle(gameState);
-  const { handleBidSubmit } = useEuchreGameBid(gameState);
-  const { handleDiscardSubmit } = useEuchreGameOrder(gameState);
-  const { handleCardPlayed, handleCloseHandResults, handleTrickFinished } = useEuchreGamePlay(gameState);
+  const { reset, handleBeginGame, cancelAndReset } = useEuchreGameInit(
+    stateValues,
+    setters,
+    eventHandlers,
+    errorHandlers
+  );
+
+  useEuchreGameInitDeal(stateValues, setters, eventHandlers, errorHandlers);
+  const { handleBeginDealComplete, handleEndDealComplete } = useEuchreGameShuffle(
+    stateValues,
+    setters,
+    eventHandlers,
+    errorHandlers
+  );
+
+  const { handleBidSubmit } = useEuchreGameBid(stateValues, setters, eventHandlers, errorHandlers);
+  const { handleDiscardSubmit } = useEuchreGameOrder(stateValues, setters, eventHandlers, errorHandlers);
+  const { handleCardPlayed, handleCloseHandResults, handleTrickFinished } = useEuchreGamePlay(
+    stateValues,
+    setters,
+    eventHandlers,
+    errorHandlers
+  );
 
   //#region Other Handlers *************************************************************************
 
@@ -293,26 +227,13 @@ export default function useEuchreGame() {
 
   const handleAttemptToRecover = () => {
     if (errorState) {
-      dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: errorState.gameFlow });
-      dispatchGameAnimationFlow({ type: errorState.animationType });
+      dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_NONE);
       setErrorState(null);
     }
   };
 
-  //#endregion
-
-  return {
-    euchreGame,
-    gameFlow,
-    gameAnimationFlow,
-    playerNotification,
-    promptValue,
-    euchreSettings,
-    events,
-    errorState,
-    playedCard,
+  const gameEvents: EuchreGameHandlers = {
     reset,
-    clearEvents,
     handleStartGame,
     handleBeginNewGame,
     handleBidSubmit,
@@ -328,5 +249,16 @@ export default function useEuchreGame() {
     handleBeginDealComplete,
     handleEndDealComplete,
     handleTrickFinished
+  };
+
+  //#endregion
+
+  return {
+    stateValues,
+    eventHandlers,
+    errorHandlers,
+    gameEvents,
+    events,
+    errorState
   };
 }

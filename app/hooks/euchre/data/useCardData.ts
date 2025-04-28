@@ -1,5 +1,5 @@
 import { offsuitValues, trumpValues } from '@/app/lib/euchre/card-data';
-import { Card, CardColor, CardValue, LEFT_BOWER_VALUE, Suit } from '@/app/lib/euchre/definitions';
+import { Card, CardColor, CardValue, LEFT_BOWER_VALUE, Suit } from '@/app/lib/euchre/definitions/definitions';
 import { createRange } from '@/app/lib/euchre/util';
 import { useCallback } from 'react';
 import { CardPosition } from './useCardTransform';
@@ -373,6 +373,27 @@ const useCardData = () => {
     return newCards;
   };
 
+  const getCardClassForPlayerLocation = (playerNumber: number, includePosition: boolean): string => {
+    let retval = '';
+
+    switch (playerNumber) {
+      case 1:
+        retval = `${includePosition ? 'left-[35%] lg:top-auto top-4' : ''}`;
+        break;
+      case 2:
+        retval = `${includePosition ? 'lg:left-[30%] lg:top-auto -top-12 left-[45%]' : ''}`;
+        break;
+      case 3:
+        retval = `${includePosition ? 'lg:left-auto lg:top-auto top-[35%] -left-12' : ''}`;
+        break;
+      case 4:
+        retval = `${includePosition ? 'lg:right-auto lg:top-auto top-[35%] -right-12' : ''}`;
+        break;
+    }
+
+    return retval;
+  };
+
   return {
     cardEqual,
     cardId,
@@ -394,7 +415,8 @@ const useCardData = () => {
     getHighAndLowExcludeSuit,
     getCardColor,
     sortCardsIndices,
-    indexCards
+    indexCards,
+    getCardClassForPlayerLocation
   };
 };
 

@@ -1,8 +1,9 @@
-import { EuchrePlayer, EuchreSettings, GameSpeed, Suit } from '@/app/lib/euchre/definitions';
+import { EuchrePlayer, EuchreSettings } from '@/app/lib/euchre/definitions/game-state-definitions';
 import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/16/solid';
 import EphemeralModal from '../common/ephemeral-modal';
 import UserInfo from './user-info';
 import clsx from 'clsx';
+import { GameSpeed, Suit } from '../../../lib/euchre/definitions/definitions';
 
 interface Props {
   dealer: EuchrePlayer;

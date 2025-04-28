@@ -1,4 +1,4 @@
-import { Card } from '@/app/lib/euchre/definitions';
+import { Card } from '@/app/lib/euchre/definitions/definitions';
 import Image from 'next/image';
 import { useState } from 'react';
 import GamePrompt from './game-prompt';

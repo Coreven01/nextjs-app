@@ -1,14 +1,10 @@
-import {
-  DIFFICULTY_MAP,
-  EuchreGameInstance,
-  EuchreHandResult,
-  EuchreSettings
-} from '@/app/lib/euchre/definitions';
+import { DIFFICULTY_MAP, EuchreHandResult } from '@/app/lib/euchre/definitions/definitions';
 import PromptHeader from '../prompt/prompt-header';
 import PlayerColor from '../player/player-team-color';
 import useGameData from '@/app/hooks/euchre/data/useGameData';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import useCardData from '@/app/hooks/euchre/data/useCardData';
+import { EuchreGameInstance, EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props {
   game: EuchreGameInstance;

@@ -1,18 +1,14 @@
-import { Card, EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions';
 import GameMenu from './game-menu';
-import { EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import GameTable from './game-table';
 import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import PlayerArea from '../player/player-area';
-import { useRef } from 'react';
-import { EuchreAnimationState } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 import clsx from 'clsx';
+import { EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
+import { Card } from '../../../lib/euchre/definitions/definitions';
+import useTableRefs from '../../../hooks/euchre/useTableRefs';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  game: EuchreGameInstance;
-  gameFlow: EuchreGameFlowState;
-  gameSettings: EuchreSettings;
-  gameAnimation: EuchreAnimationState;
+  state: EuchreGameValues;
   isFullScreen: boolean;
   showEvents: boolean;
   showSettings: boolean;
@@ -34,7 +30,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   onCancel: () => void;
 
   /** Deal to determine initial dealer */
-  onInitDeal: () => void;
+  onDealForDealer: () => void;
 
   /** Deal cards for regular play */
   onRegularDeal: () => void;
@@ -50,10 +46,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const GameArea = ({
-  game,
-  gameFlow,
-  gameSettings,
-  gameAnimation,
+  state,
   isFullScreen,
   showEvents,
   showSettings,
@@ -67,16 +60,17 @@ const GameArea = ({
   onScoreToggle,
   onCardPlayed,
   onCancel,
-  onInitDeal,
+  onDealForDealer,
   onRegularDeal,
   onTrickComplete,
   onPassDeal,
   ...rest
 }: Props) => {
-  const player1TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
-  const player2TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
-  const player3TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
-  const player4TableRef = useRef<HTMLDivElement>(null as unknown as HTMLDivElement);
+  /** Elements associated with the player's center. Used when playing a card to the center of the table. */
+  const centerTableRefs = useTableRefs(4);
+
+  /** Elements associated with the player's outer side. Used when dealing cards to a player. */
+  const outerTableRefs = useTableRefs(4);
 
   return (
     <div
@@ -100,29 +94,22 @@ const GameArea = ({
       <div className="col-start-2 row-start-2 col-span-1 row-span-1">
         <GameTable
           id="euchre-game-table"
-          game={game}
-          gameFlow={gameFlow}
+          game={state.euchreGame}
+          gameFlow={state.euchreGameFlow}
           playerNotification={playerNotification}
-          player1TableRef={player1TableRef}
-          player2TableRef={player2TableRef}
-          player3TableRef={player3TableRef}
-          player4TableRef={player4TableRef}
+          playerCenterTableRefs={centerTableRefs}
+          playerOuterTableRefs={outerTableRefs}
         />
       </div>
       <PlayerArea
         id="euchre-player-area"
-        key={game.handId}
-        game={game}
-        gameFlow={gameFlow}
-        gameSettings={gameSettings}
-        gameAnimation={gameAnimation}
+        key={state.euchreGame.handId}
+        state={state}
         playedCard={playedCard}
-        player1TableRef={player1TableRef}
-        player2TableRef={player2TableRef}
-        player3TableRef={player3TableRef}
-        player4TableRef={player4TableRef}
+        playerCenterTableRefs={centerTableRefs}
+        playerOuterTableRefs={outerTableRefs}
         onCardPlayed={onCardPlayed}
-        onInitDeal={onInitDeal}
+        onDealForDealer={onDealForDealer}
         onRegularDeal={onRegularDeal}
         onTrickComplete={onTrickComplete}
         onPassDeal={onPassDeal}

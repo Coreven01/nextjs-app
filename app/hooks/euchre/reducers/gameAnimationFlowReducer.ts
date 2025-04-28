@@ -16,7 +16,7 @@ export interface EuchreAnimationAction {
   type: EuchreAnimationActionType;
 }
 
-export const initialGameAnimationState: EuchreAnimationState = {
+export const INIT_GAME_ANIMATION_STATE: EuchreAnimationState = {
   animationType: EuchreAnimateType.NONE
 };
 

@@ -1,5 +1,7 @@
-import { Card, TeamColor } from '@/app/lib/euchre/definitions';
+import { Card, TeamColor } from '@/app/lib/euchre/definitions/definitions';
 import { useCallback, useRef, useState } from 'react';
+import { EuchrePlayer } from '../../lib/euchre/definitions/game-state-definitions';
+import { v4 as uuidv4 } from 'uuid';
 
 /** Information, Warn, Error, Debug, Verbose */
 export type GameEventType = 'i' | 'w' | 'e' | 'd' | 'v';
@@ -14,6 +16,18 @@ export interface GameEvent {
   team?: number;
   teamColor?: TeamColor;
   cards?: Card[];
+}
+
+export interface GameEventHandlers {
+  addEvent: (event: GameEvent) => void;
+  clearEvents: () => void;
+  createEvent: (
+    type: GameEventType,
+    player?: EuchrePlayer,
+    message?: string,
+    cards?: Card[],
+    teamColor?: TeamColor
+  ) => GameEvent;
 }
 
 export function useEventLog() {
@@ -38,5 +52,24 @@ export function useEventLog() {
     setEvents([]);
   }, []);
 
-  return { events, addEvent, clearEvents };
+  function createEvent(
+    type: GameEventType,
+    player?: EuchrePlayer,
+    message?: string,
+    cards?: Card[],
+    teamColor?: TeamColor
+  ): GameEvent {
+    return {
+      id: uuidv4(),
+      time: new Date().toLocaleTimeString(),
+      type: type,
+      message: message,
+      player: player?.name,
+      team: player?.team,
+      teamColor: teamColor ? teamColor : 'blue',
+      cards: cards
+    };
+  }
+
+  return { events, addEvent, clearEvents, createEvent };
 }

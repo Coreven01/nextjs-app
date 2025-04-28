@@ -1,4 +1,4 @@
-import { CardValue } from './definitions';
+import { CardValue } from './definitions/definitions';
 
 const offsuitValues: Map<CardValue, number> = new Map([
   ['9', 10],

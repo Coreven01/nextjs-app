@@ -1,18 +1,15 @@
-import {
-  BidResult,
-  Card,
-  EuchreGameInstance,
-  EuchrePlayer,
-  EuchreSettings,
-  GameDifficulty,
-  Suit
-} from '@/app/lib/euchre/definitions';
-import { GameBidLogic } from '@/app/lib/euchre/logic-definitions';
+import { BidResult, Card, GameDifficulty, Suit } from '@/app/lib/euchre/definitions/definitions';
 import useGameData from '../data/useGameData';
 import usePlayerData from '../data/usePlayerData';
 import useCardData from '../data/useCardData';
 import { useCallback } from 'react';
 import useGameSetupLogic from './useGameSetupLogic';
+import {
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import { GameBidLogic } from '../../../lib/euchre/definitions/logic-definitions';
 
 const useGameBidLogic = () => {
   const { teamPoints, getRandomScoreForDifficulty, playerSittingOut } = useGameData();

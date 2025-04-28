@@ -1,4 +1,4 @@
-import { Card, EuchrePlayer, RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '@/app/lib/euchre/definitions';
+import { Card, RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '@/app/lib/euchre/definitions/definitions';
 import React, { CSSProperties, forwardRef, PropsWithoutRef, useCallback, useRef } from 'react';
 import { motion, TargetAndTransition } from 'framer-motion';
 import clsx from 'clsx';
@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import { logConsole } from '../../../lib/euchre/util';
+import { EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   card: Card;
@@ -17,7 +18,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   runAnimationCompleteEffect?: EuchreGameFlow;
   player?: EuchrePlayer;
   responsive?: boolean;
-
+  hideBackFace?: boolean;
   /** */
   onCardClick?: (cardIndex: number) => void;
 
@@ -37,6 +38,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       player,
       runAnimationCompleteEffect,
       responsive,
+      hideBackFace = true,
       onCardClick,
       onAnimationComplete,
       ...rest
@@ -45,7 +47,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
   ) => {
     const actionsRun = useRef<EuchreGameFlow[]>([]);
     const sidePlayer = player && player.team === 2;
-    const cssValues: CSSProperties = { backfaceVisibility: 'hidden' };
+    const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
     const hoverEffect: TargetAndTransition | undefined =
       onCardClick !== undefined
         ? {
@@ -136,7 +138,11 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           draggable={false}
         />
         <Image
-          className={clsx('absolute top-0 left-0 pointer-events-auto')}
+          className={clsx(
+            'absolute top-0 left-0 pointer-events-auto',
+            { 'cursor-not-allowed': hoverEffect === undefined },
+            { 'cursor-pointer': hoverEffect !== undefined }
+          )}
           quality={100}
           width={width}
           height={height}

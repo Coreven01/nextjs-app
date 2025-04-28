@@ -1,6 +1,6 @@
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
-import { EuchrePlayer, EuchreSettings, TeamColor } from '@/app/lib/euchre/definitions';
 import clsx from 'clsx';
+import { TeamColor } from '../../../lib/euchre/definitions/definitions';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;

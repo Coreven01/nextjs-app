@@ -1,10 +1,11 @@
 'use client';
 
-import { EuchreGameInstance, EuchreHandResult, EuchreSettings } from '@/app/lib/euchre/definitions';
+import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions/game-state-definitions';
 import GamePrompt from './game-prompt';
 import HandResult from './hand-result';
 import clsx from 'clsx';
 import PromptHeader from './prompt-header';
+import { EuchreHandResult } from '../../../lib/euchre/definitions/definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;

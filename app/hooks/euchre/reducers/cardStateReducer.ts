@@ -1,4 +1,5 @@
-import { EuchrePlayer, GameSpeed } from '../../../lib/euchre/definitions';
+import { GameSpeed } from '../../../lib/euchre/definitions/definitions';
+import { EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
 import { CardSpringTarget } from '../data/useCardTransform';
 import { EuchreGameFlow } from './gameFlowReducer';
 

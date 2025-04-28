@@ -1,7 +1,7 @@
-import { EuchreError } from '@/app/hooks/euchre/useEuchreGame';
 import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import PromptHeader from './prompt-header';
+import { EuchreError } from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   errorState: EuchreError;

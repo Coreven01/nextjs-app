@@ -1,3 +1,5 @@
+import { EuchreCard, EuchrePlayer, EuchreSettings, EuchreTrick } from './game-state-definitions';
+
 const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
 const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
 const menuSvg =
@@ -135,27 +137,6 @@ export interface EuchrePlayersPassedResult {
   allPlayerCards: EuchreCard[];
 }
 
-export interface EuchreSettings {
-  shouldAnimate: boolean;
-  gameSpeed: GameSpeed;
-  notificationSpeed: GameSpeed;
-  showHandResult: boolean;
-  teamOneColor: TeamColor;
-  teamTwoColor: TeamColor;
-  enforceFollowSuit: boolean;
-  autoFollowSuit: boolean;
-  debugShowPlayersHand: boolean;
-  debugShowHandsWhenPassed: boolean;
-  debugAlwaysPass: boolean;
-  debugAllComputerPlayers: boolean;
-  debugShowDebugEvents: boolean;
-  difficulty: GameDifficulty;
-  viewPlayerInfoDetail: boolean;
-  cardColor: CardBackColor;
-  stickTheDealer: boolean;
-  playerName: string;
-}
-
 export interface BidResult {
   orderTrump: boolean;
   loner: boolean;
@@ -165,59 +146,8 @@ export interface BidResult {
   discard: Card | null;
 }
 
-export interface EuchrePlayer {
-  readonly name: string;
-  readonly playerNumber: 1 | 2 | 3 | 4;
-  readonly team: 1 | 2;
-
-  hand: Card[];
-  playedCards: Card[];
-  human: boolean;
-}
-
 export interface Card {
   readonly suit: Suit;
   readonly value: CardValue;
   index: number;
-}
-
-export interface EuchreGameInstance {
-  gameId: string;
-  handId: string;
-  player1: EuchrePlayer;
-  player2: EuchrePlayer;
-  player3: EuchrePlayer;
-  player4: EuchrePlayer;
-
-  deck: Card[];
-  kitty: Card[];
-  dealer: EuchrePlayer;
-  maker: EuchrePlayer | null;
-  loner: boolean;
-  trump: Card;
-  discard: Card | null;
-  turnedDown: Card | null;
-  cardDealCount: number[];
-  handResults: EuchreHandResult[];
-  gamePlayers: EuchrePlayer[];
-  dealPassedCount: number;
-
-  currentRound: number;
-  currentTrick: EuchreTrick;
-  currentTricks: EuchreTrick[];
-  currentPlayer: EuchrePlayer;
-}
-
-export interface EuchreTrick {
-  trickId: string;
-  taker: EuchrePlayer | null;
-  cardsPlayed: EuchreCard[];
-  playerSittingOut: EuchreCard | null;
-  playerRenege: EuchrePlayer | null;
-  round: number;
-}
-
-export interface EuchreCard {
-  player: EuchrePlayer;
-  card: Card;
 }

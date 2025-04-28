@@ -1,4 +1,4 @@
-import { Card, CardBackColor, CardValue, EuchrePlayer, Suit } from '@/app/lib/euchre/definitions';
+import { Card, CardBackColor, CardValue, Suit } from '@/app/lib/euchre/definitions/definitions';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';

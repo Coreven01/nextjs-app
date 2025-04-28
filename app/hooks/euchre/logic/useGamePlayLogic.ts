@@ -1,12 +1,4 @@
-import {
-  Card,
-  CardValue,
-  EuchreCard,
-  EuchreGameInstance,
-  EuchreSettings,
-  GameDifficulty,
-  Suit
-} from '@/app/lib/euchre/definitions';
+import { Card, CardValue, GameDifficulty, Suit } from '@/app/lib/euchre/definitions/definitions';
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import {
   GamePlayLogic,
@@ -14,10 +6,15 @@ import {
   TeamLogic,
   TrickLogic,
   TrumpLogic
-} from '@/app/lib/euchre/logic-definitions';
+} from '@/app/lib/euchre/definitions/logic-definitions';
 import usePlayerData from '../data/usePlayerData';
 import useGameData from '../data/useGameData';
 import useCardData from '../data/useCardData';
+import {
+  EuchreCard,
+  EuchreGameInstance,
+  EuchreSettings
+} from '../../../lib/euchre/definitions/game-state-definitions';
 
 const useGamePlayLogic = () => {
   const { playerEqual, availableCardsToPlay } = usePlayerData();

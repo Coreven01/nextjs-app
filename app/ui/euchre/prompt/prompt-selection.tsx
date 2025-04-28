@@ -1,5 +1,5 @@
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
-import { Suit } from '@/app/lib/euchre/definitions';
+import { Suit } from '@/app/lib/euchre/definitions/definitions';
 import clsx from 'clsx';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {

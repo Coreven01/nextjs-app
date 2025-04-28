@@ -1,20 +1,22 @@
 import {
   AVAILABLE_GAME_SPEED,
   Card,
-  EuchreCard,
-  EuchreGameInstance,
   EuchreHandResult,
-  EuchrePlayer,
-  EuchreSettings,
-  EuchreTrick,
   GameDifficulty,
   GameSpeed,
   RANDOM_FOR_DIFFICULTY
-} from '@/app/lib/euchre/definitions';
+} from '@/app/lib/euchre/definitions/definitions';
 import useCardData from './useCardData';
 import usePlayerData from './usePlayerData';
 import { useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  EuchreCard,
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings,
+  EuchreTrick
+} from '../../../lib/euchre/definitions/game-state-definitions';
 
 const useGameData = () => {
   const {

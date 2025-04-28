@@ -1,10 +1,4 @@
-import {
-  EuchreGameInstance,
-  EuchreHandResult,
-  EuchrePlayer,
-  EuchreSettings,
-  ResultHighlight
-} from '@/app/lib/euchre/definitions';
+import { EuchreHandResult, ResultHighlight } from '@/app/lib/euchre/definitions/definitions';
 import { useState } from 'react';
 import PlayerColor from '../player/player-team-color';
 import clsx from 'clsx';
@@ -12,6 +6,11 @@ import HandResultDetail from './hand-result-detail';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import GameWarning from '../game/game-warning';
 import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
+import {
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings
+} from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;

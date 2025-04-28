@@ -1,17 +1,26 @@
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './reducers/gameFlowReducer';
 import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
-import { EuchreGameState } from './useEuchreGame';
 import { useCallback, useEffect } from 'react';
-import { createEvent } from '@/app/lib/euchre/util';
 import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
-import { EuchreGameInstance } from '@/app/lib/euchre/definitions';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import useGameStateLogic from './logic/useGameStateLogic';
-import { SUB_SUIT as SUB_CARD } from './useEventLog';
+import { GameEventHandlers, SUB_SUIT as SUB_CARD } from './useEventLog';
 import usePlayerData from './data/usePlayerData';
+import {
+  EuchreGameInstance,
+  EuchreGameSetters,
+  EuchreGameValues,
+  GameErrorHandlers
+} from '../../lib/euchre/definitions/game-state-definitions';
+import { EuchrePauseActionType } from './reducers/gamePauseReducer';
 
-const useEuchreGameShuffle = (state: EuchreGameState) => {
+const useEuchreGameShuffle = (
+  state: EuchreGameValues,
+  setters: EuchreGameSetters,
+  eventHandlers: GameEventHandlers,
+  errorHandlers: GameErrorHandlers
+) => {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { shuffleAndDealHand } = useGameSetupLogic();
   const { getGameStateForNextHand } = useGamePlayLogic();
@@ -28,17 +37,19 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
         EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
         EuchreAnimateType.NONE,
         state.shouldCancel,
-        state.onCancel
+        errorHandlers.onCancel
       )
     )
       return;
 
-    state.dispatchStateChange(EuchreGameFlow.WAIT);
+    setters.dispatchStateChange(EuchreGameFlow.WAIT);
 
     let newGame: EuchreGameInstance = { ...state.euchreGame };
     if (!newGame.dealer) throw new Error('Dealer not found for shuffle and deal.');
 
-    state.addEvent(createEvent('v', newGame.dealer, 'Begin shuffle and deal for regular play.'));
+    eventHandlers.addEvent(
+      eventHandlers.createEvent('v', newGame.dealer, 'Begin shuffle and deal for regular play.')
+    );
 
     const shuffleResult = shuffleAndDealHand(
       newGame,
@@ -48,8 +59,8 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
     );
 
     newGame = shuffleResult.game;
-    state.addEvent(
-      createEvent(
+    eventHandlers.addEvent(
+      eventHandlers.createEvent(
         'i',
         newGame.dealer,
         `Flipped up ${SUB_CARD} for bidding.`,
@@ -58,7 +69,7 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
       )
     );
 
-    state.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
+    setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
 
     const newGameState: EuchreGameFlowState = getGameStateForNextHand(
       state.euchreGameFlow,
@@ -67,10 +78,19 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
     );
     newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 
-    state.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameState });
-    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
-    state.setEuchreGame(newGame);
-  }, [getGameStateForNextHand, getTeamColor, isGameStateValidToContinue, shuffleAndDealHand, state]);
+    setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameState });
+    setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+    setters.setEuchreGame(newGame);
+  }, [
+    errorHandlers.onCancel,
+    eventHandlers,
+    getGameStateForNextHand,
+    getTeamColor,
+    isGameStateValidToContinue,
+    setters,
+    shuffleAndDealHand,
+    state
+  ]);
 
   /**
    *
@@ -80,14 +100,9 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
       beginShuffleAndDealHand();
     } catch (e) {
       const error = e as Error;
-      state.onError(
-        error,
-        EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
-        EuchreAnimationActionType.SET_NONE,
-        'beginShuffleAndDealHand'
-      );
+      errorHandlers.onError(error, 'beginShuffleAndDealHand');
     }
-  }, [beginShuffleAndDealHand, state]);
+  }, [beginShuffleAndDealHand, errorHandlers]);
 
   /** Animate cards being dealt by an effect in useCardState  */
   useEffect(() => {
@@ -98,7 +113,7 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
           EuchreGameFlow.BEGIN_DEAL_CARDS,
           EuchreAnimateType.ANIMATE,
           state.shouldCancel,
-          state.onCancel
+          errorHandlers.onCancel
         )
       )
         return;
@@ -107,26 +122,21 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
       // which gets executed by an effect in useCardState after the animation is complete for dealing cards.
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
-      await new Promise((resolve) => setTimeout(resolve, 150));
-      state.dispatchStateChange(EuchreGameFlow.WAIT);
+      //await new Promise((resolve) => setTimeout(resolve, 150));
+      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_ANIMATE);
     };
 
     try {
       beginAnimationForDealCards();
     } catch (e) {
       const error = e as Error;
-      state.onError(
-        error,
-        EuchreGameFlow.BEGIN_DEAL_CARDS,
-        EuchreAnimationActionType.SET_ANIMATE,
-        'beginAnimationForDealCards'
-      );
+      errorHandlers.onError(error, 'beginAnimationForDealCards');
     }
-  }, [isGameStateValidToContinue, state]);
+  }, [errorHandlers, isGameStateValidToContinue, setters, state]);
 
   /** Update game state once card animation is complete and begin the bidding game state. */
   const handleBeginDealComplete = () => {
-    state.dispatchStateChange(EuchreGameFlow.END_DEAL_CARDS, EuchreAnimationActionType.SET_NONE);
+    setters.dispatchStateChange(EuchreGameFlow.END_DEAL_CARDS, EuchreAnimationActionType.SET_NONE);
   };
 
   const endDealCards = useCallback(() => {
@@ -136,13 +146,13 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
         EuchreGameFlow.END_DEAL_CARDS,
         EuchreAnimateType.NONE,
         state.shouldCancel,
-        state.onCancel
+        errorHandlers.onCancel
       )
     )
       return;
 
-    state.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
-  }, [isGameStateValidToContinue, state]);
+    setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+  }, [errorHandlers.onCancel, isGameStateValidToContinue, setters, state]);
 
   /**
    *
@@ -152,9 +162,9 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
       endDealCards();
     } catch (e) {
       const error = e as Error;
-      state.onError(error, EuchreGameFlow.END_DEAL_CARDS, EuchreAnimationActionType.SET_NONE, 'endDealCards');
+      errorHandlers.onError(error, 'endDealCards');
     }
-  }, [endDealCards, state]);
+  }, [endDealCards, errorHandlers]);
 
   /** Animate cards being dealt by an effect in useCardState  */
   useEffect(() => {
@@ -165,7 +175,7 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
           EuchreGameFlow.END_DEAL_CARDS,
           EuchreAnimateType.ANIMATE,
           state.shouldCancel,
-          state.onCancel
+          errorHandlers.onCancel
         )
       )
         return;
@@ -175,24 +185,19 @@ const useEuchreGameShuffle = (state: EuchreGameState) => {
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
       await new Promise((resolve) => setTimeout(resolve, 150));
-      state.dispatchStateChange(EuchreGameFlow.WAIT);
+      setters.dispatchStateChange(EuchreGameFlow.WAIT);
     };
 
     try {
       endAnimationForDealCards();
     } catch (e) {
       const error = e as Error;
-      state.onError(
-        error,
-        EuchreGameFlow.END_DEAL_CARDS,
-        EuchreAnimationActionType.SET_ANIMATE,
-        'endAnimationForDealCards'
-      );
+      errorHandlers.onError(error, 'endAnimationForDealCards');
     }
-  }, [isGameStateValidToContinue, state]);
+  }, [errorHandlers, isGameStateValidToContinue, setters, state]);
 
   const handleEndDealComplete = () => {
-    state.dispatchStateChange(EuchreGameFlow.BEGIN_BID_FOR_TRUMP, EuchreAnimationActionType.SET_NONE);
+    setters.dispatchStateChange(EuchreGameFlow.BEGIN_BID_FOR_TRUMP, EuchreAnimationActionType.SET_NONE);
   };
   //#endregion
 

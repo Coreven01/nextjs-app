@@ -1,4 +1,4 @@
-import { Card } from '@/app/lib/euchre/definitions';
+import { Card } from '@/app/lib/euchre/definitions/definitions';
 import PromptSelection from './prompt-selection';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import useCardData from '../../../hooks/euchre/data/useCardData';

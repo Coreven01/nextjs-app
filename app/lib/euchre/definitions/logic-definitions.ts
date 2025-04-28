@@ -1,7 +1,9 @@
-import { Card, EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreTrick, Suit } from './definitions';
+import { Card, Suit } from './definitions';
+import { EuchreCard, EuchreGameInstance, EuchrePlayer, EuchreTrick } from './game-state-definitions';
 
 export interface InitDealResult {
   newDealer: EuchrePlayer;
+  cardIndex: number;
 }
 
 export interface ShuffleResult {

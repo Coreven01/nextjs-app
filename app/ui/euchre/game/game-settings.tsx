@@ -1,16 +1,16 @@
 import {
   DEFAULT_GAME_SETTINGS,
   DIFFICULTY_MAP,
-  EuchreSettings,
   GAME_SPEED_MAP,
   GameSpeed,
   NOTIFICATION_SPEED_MAP,
   TEAM_COLOR_MAP,
   TeamColor
-} from '@/app/lib/euchre/definitions';
+} from '@/app/lib/euchre/definitions/definitions';
 import { ChangeEvent, useState } from 'react';
 import Switch from '@mui/material/Switch';
 import PromptHeader from '../prompt/prompt-header';
+import { EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
 
 type Props = {
   settings: EuchreSettings;

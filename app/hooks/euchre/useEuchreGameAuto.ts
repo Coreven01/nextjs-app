@@ -1,37 +1,36 @@
 import { EuchreGameFlowState, gameFlowStateReducer, INIT_GAME_FLOW_STATE } from './reducers/gameFlowReducer';
-import {
-  BidResult,
-  Card,
-  EuchreCard,
-  EuchreGameInstance,
-  EuchreSettings
-} from '@/app/lib/euchre/definitions';
-import { createEvent, logDebugError } from '@/app/lib/euchre/util';
+import { BidResult, Card } from '@/app/lib/euchre/definitions/definitions';
+import { logDebugError } from '@/app/lib/euchre/util';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import useGameBidLogic from './logic/useGameBidLogic';
 import usePlayerData from './data/usePlayerData';
 import useGameData from './data/useGameData';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import { useReducer, useState } from 'react';
-import { initialPlayerNotification, playerNotificationReducer } from './reducers/playerNotificationReducer';
-import { gameAnimationFlowReducer, initialGameAnimationState } from './reducers/gameAnimationFlowReducer';
+import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from './reducers/playerNotificationReducer';
+import { gameAnimationFlowReducer, INIT_GAME_ANIMATION_STATE } from './reducers/gameAnimationFlowReducer';
+import {
+  EuchreCard,
+  EuchreGameInstance,
+  EuchreSettings
+} from '../../lib/euchre/definitions/game-state-definitions';
+import { useEventLog } from './useEventLog';
 
 /**  */
 export default function useEuchreGameAuto() {
+  const { createEvent } = useEventLog();
   const [euchreGame, setEuchreGame] = useState<EuchreGameInstance | null>(null);
   const [playedCard, setPlayedCard] = useState<Card | null>(null);
-  const [playerNotification, dispatchPlayerNotification] = useReducer(
-    playerNotificationReducer,
-    initialPlayerNotification
-  );
+  const [playerNotification, dispatchPlayerNotification] = useReducer(playerNotificationReducer, {
+    ...INIT_PLAYER_NOTIFICATION
+  });
 
   const [euchreGameFlow, dispatchEuchreGameFlow] = useReducer(gameFlowStateReducer, {
     ...INIT_GAME_FLOW_STATE
   });
-  const [gameAnimationFlow, dispatchGameAnimationFlow] = useReducer(
-    gameAnimationFlowReducer,
-    initialGameAnimationState
-  );
+  const [gameAnimationFlow, dispatchGameAnimationFlow] = useReducer(gameAnimationFlowReducer, {
+    ...INIT_GAME_ANIMATION_STATE
+  });
 
   const { initDeckForInitialDeal, dealCardsForDealer, shuffleAndDealHand, createTrick } = useGameSetupLogic();
   const { determineBid, determineDiscard, orderTrump } = useGameBidLogic();
@@ -69,7 +68,7 @@ export default function useEuchreGameAuto() {
       while (!bidResult?.orderTrump && !allPassed) {
         bidResult = determineBid(newGame, newGame.trump, !gameFlow.hasFirstBiddingPassed, gameSetting);
 
-        if (bidResult.orderTrump) {
+        if (bidResult?.orderTrump) {
           return { game: newGame, bidResult: bidResult };
         } else {
           const biddingRoundFinished = playerEqual(newGame.dealer, newGame.currentPlayer);
@@ -220,7 +219,7 @@ export default function useEuchreGameAuto() {
         while (!trumpOrdered && !allPassed) {
           bidResult = determineBid(newGame, newGame.trump, !gameFlow.hasFirstBiddingPassed, gameSetting);
 
-          if (bidResult.orderTrump) {
+          if (bidResult?.orderTrump) {
             trumpOrdered = true;
           } else {
             const biddingRoundFinished = playerEqual(newGame.dealer, newGame.currentPlayer);

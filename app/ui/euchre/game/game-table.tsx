@@ -4,30 +4,27 @@ import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
 import { RefObject } from 'react';
 import GameFlippedCard from './game-flipped-card';
-import { DEBUG_ENABLED, EuchreGameInstance } from '../../../lib/euchre/definitions';
+import { DEBUG_ENABLED } from '../../../lib/euchre/definitions/definitions';
 import { EuchreGameFlow, EuchreGameFlowState } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
+import { EuchreGameInstance } from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
   gameFlow: EuchreGameFlowState;
   playerNotification: PlayerNotificationState;
-  player1TableRef: RefObject<HTMLDivElement>;
-  player2TableRef: RefObject<HTMLDivElement>;
-  player3TableRef: RefObject<HTMLDivElement>;
-  player4TableRef: RefObject<HTMLDivElement>;
+  playerCenterTableRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerOuterTableRefs: Map<number, RefObject<HTMLDivElement | null>>;
 }
 
 const GameTable = ({
   game,
   gameFlow,
   playerNotification,
-  player1TableRef,
-  player2TableRef,
-  player3TableRef,
-  player4TableRef,
+  playerCenterTableRefs,
+  playerOuterTableRefs,
   ...rest
 }: Props) => {
   const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
@@ -38,7 +35,7 @@ const GameTable = ({
     playerNotification.player4GameInfo,
     playerNotification.player1GameInfo
   ];
-  const keyval = `${game.dealPassedCount}-${game.currentRound}`;
+
   const gameBidding =
     game.maker === null &&
     (gameFlow.gameFlow === EuchreGameFlow.BEGIN_BID_FOR_TRUMP ||
@@ -72,12 +69,16 @@ const GameTable = ({
         {...rest}
       >
         <div id="player2-region" className="col-span-1 col-start-2 relative flex justify-center items-center">
-          <div id={`game-base-2`} className={clsx(`absolute top-0`, { 'text-transparent': !DEBUG_ENABLED })}>
+          <div
+            ref={playerOuterTableRefs.get(2)}
+            id={`game-base-2`}
+            className={clsx(`absolute top-0`, { 'text-transparent': !DEBUG_ENABLED })}
+          >
             X
           </div>
           <div
-            ref={player2TableRef}
-            id={`game-base-2-inner`}
+            ref={playerCenterTableRefs.get(2)}
+            id={`game-base-2-center`}
             className={clsx(`absolute bottom-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
@@ -88,12 +89,16 @@ const GameTable = ({
           id="player3-region"
           className="col-span-1 col-start-1 row-start-2 relative flex justify-center items-center"
         >
-          <div id={`game-base-3`} className={clsx(`absolute left-0`, { 'text-transparent': !DEBUG_ENABLED })}>
+          <div
+            ref={playerOuterTableRefs.get(3)}
+            id={`game-base-3`}
+            className={clsx(`absolute left-0`, { 'text-transparent': !DEBUG_ENABLED })}
+          >
             X
           </div>
           <div
-            ref={player3TableRef}
-            id={`game-base-3-inner`}
+            ref={playerCenterTableRefs.get(3)}
+            id={`game-base-3-center`}
             className={clsx(`absolute top-auto right-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
@@ -110,7 +115,7 @@ const GameTable = ({
           >
             X
           </div>
-          <GameFlippedCard cardState={cardState} card={game.trump} key={keyval} visible={gameBidding} />
+          <GameFlippedCard cardState={cardState} card={game.trump} key={game.handId} visible={gameBidding} />
           {renderOrder[2]}
         </div>
         <div
@@ -118,14 +123,15 @@ const GameTable = ({
           className="col-span-1 col-start-3 row-start-2 relative flex justify-center items-center"
         >
           <div
+            ref={playerOuterTableRefs.get(4)}
             id={`game-base-4`}
             className={clsx(`absolute top-auto right-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
           </div>
           <div
-            ref={player4TableRef}
-            id={`game-base-4-inner`}
+            ref={playerCenterTableRefs.get(4)}
+            id={`game-base-4-center`}
             className={clsx(`absolute top-auto left-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
@@ -137,14 +143,15 @@ const GameTable = ({
           className="col-span-1 col-start-2 row-start-3 relative flex justify-center items-center"
         >
           <div
+            ref={playerOuterTableRefs.get(1)}
             id={`game-base-1`}
             className={clsx(`absolute bottom-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
           </div>
           <div
-            ref={player1TableRef}
-            id={`game-base-1-inner`}
+            ref={playerCenterTableRefs.get(1)}
+            id={`game-base-1-center`}
             className={clsx(`absolute top-0`, { 'text-transparent': !DEBUG_ENABLED })}
           >
             X
