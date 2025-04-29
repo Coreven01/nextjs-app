@@ -1,5 +1,5 @@
 import useCardData from '@/app/hooks/euchre/data/useCardData';
-import { Card, RESPONSE_CARD_CENTER } from '@/app/lib/euchre/definitions/definitions';
+import { Card, RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '@/app/lib/euchre/definitions/definitions';
 import React, { RefObject } from 'react';
 import GameCard from './game-card';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
@@ -24,34 +24,31 @@ const GameDeck = ({
   cardStates,
   cardRefs,
   location,
-  playerNumber,
   dealType,
   initDeckState,
   initAnimationState,
   onDealComplete
 }: Props) => {
-  const { getCardClassForPlayerLocation } = useCardData();
   const { getDisplayWidth, getDisplayHeight } = useCardData();
   const width = getDisplayWidth(location);
   const height = getDisplayHeight(location);
-  console.log('init deck state', initDeckState);
+
   return (
     <motion.div
       className={clsx(
         'absolute min-w-[100px] z-30',
-        getCardClassForPlayerLocation(playerNumber, true),
-        RESPONSE_CARD_CENTER
+        location === 'center' ? RESPONSE_CARD_CENTER : RESPONSE_CARD_SIDE
       )}
       id="game-deck"
       initial={initDeckState}
       animate={initAnimationState}
     >
-      {/* <DummyCard width={width} height={height} responsive={true} location={location}></DummyCard> */}
       {deck.map((card) => {
         const cardState = cardStates[card.index];
         const cardRef = cardRefs.get(card.index);
         return (
           <GameCard
+            id={`game-deck-card-${card.index}`}
             ref={cardRef}
             className="absolute top-0"
             key={card.index}

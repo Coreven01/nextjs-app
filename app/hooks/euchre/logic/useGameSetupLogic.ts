@@ -64,6 +64,9 @@ const useGameSetupLogic = () => {
     [createTrick]
   );
 
+  /** Create default euchre game with default players and dummy cards.
+   *
+   */
   const createDefaultEuchreGame = () => {
     const player1: EuchrePlayer = createPlayer('Player 1', 1, 1);
     const player2: EuchrePlayer = createPlayer('Player 2', 1, 2);
@@ -75,9 +78,7 @@ const useGameSetupLogic = () => {
     return newGame;
   };
 
-  /** Create default euchre game with default players and dummy cards.
-   *
-   */
+  /** Create a game ready for initial deal. */
   const createEuchreGame = useCallback(
     (gameSettings: EuchreSettings): EuchreGameInstance => {
       const player1: EuchrePlayer = createPlayer(gameSettings.playerName, 1, 1);
@@ -89,6 +90,7 @@ const useGameSetupLogic = () => {
 
       const newGame: EuchreGameInstance = createBaseGame(player1, player2, player3, player4);
       newGame.deck = createPlaceholderCards(24);
+      newGame.handId = uuidv4();
       newGame.dealer = player1;
 
       return newGame;
@@ -121,7 +123,7 @@ const useGameSetupLogic = () => {
   };
 
   /** Initialize the game with shuffled deck and set player 1 for deal. */
-  const initDeckForInitialDeal = useCallback(
+  const createGameForInitialDeal = useCallback(
     (gameSettings: EuchreSettings, cancel: boolean): EuchreGameInstance => {
       const gameInstance: EuchreGameInstance = createEuchreGame(gameSettings);
 
@@ -210,20 +212,22 @@ const useGameSetupLogic = () => {
     replayGameInstance: EuchreGameInstance | null,
     cancel: boolean
   ): ShuffleResult => {
-    let newGame: EuchreGameInstance = { ...gameInstance };
-    const retval: ShuffleResult = { game: newGame };
+    let newGame: EuchreGameInstance | undefined;
+    const retval: ShuffleResult = { game: gameInstance };
 
     if (cancel) return retval;
 
-    const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
+    //const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
     const difficulty: GameDifficulty = gameSettings.difficulty;
     const redealLimit: number = 10;
     let counter: number = 0;
     let shouldReDeal: boolean = true;
-    const replayHand = replayGameInstance?.handResults.find((r) => r.roundNumber === newGame.currentRound);
+    const replayHand = replayGameInstance?.handResults.find(
+      (r) => r.roundNumber === gameInstance.currentRound
+    );
 
     while (shouldReDeal) {
-      newGame = resetForNewDeal(newGame);
+      newGame = resetForNewDeal(gameInstance);
 
       if (replayHand === undefined) {
         newGame.deck = createShuffledDeck(5);
@@ -249,6 +253,8 @@ const useGameSetupLogic = () => {
       }
     }
 
+    if (!newGame) throw new Error('[shuffleAndDealHand] - Invalid game when shuffling and dealing.');
+
     for (const player of newGame.gamePlayers) {
       player.hand = indexCards(player.hand);
     }
@@ -261,9 +267,8 @@ const useGameSetupLogic = () => {
       throw e;
     }
 
-    newGame.handId = uuidv4();
     retval.game = newGame;
-    retval.game.currentPlayer = rotation[0];
+    //retval.game.currentPlayer = rotation[0];
 
     return retval;
   };
@@ -271,7 +276,7 @@ const useGameSetupLogic = () => {
   return {
     shuffleAndDealHand,
     getGameStateForInitialDeal,
-    initDeckForInitialDeal,
+    createGameForInitialDeal,
     dealCardsForDealer,
     createPlayer,
     createDefaultEuchreGame,

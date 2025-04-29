@@ -12,8 +12,7 @@ type Props = {
   player: EuchrePlayer;
   playedCard: Card | null;
   playerCenterTableRef: RefObject<HTMLDivElement | null> | undefined;
-  playersDeckRef: Map<number, RefObject<HTMLDivElement | null>>;
-  onRegularDeal: () => void;
+  playerDeckRefs: Map<number, RefObject<HTMLDivElement | null>>;
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onPassDeal: () => void;
@@ -24,9 +23,8 @@ const PlayerHand = ({
   player,
   playedCard,
   playerCenterTableRef,
-  playersDeckRef,
+  playerDeckRefs,
   onCardPlayed,
-  onRegularDeal,
   onTrickComplete,
   onPassDeal
 }: Props) => {
@@ -43,7 +41,7 @@ const PlayerHand = ({
     playerLocation,
     getDisplayWidth,
     getDisplayHeight
-  } = useCardState(state, player, playersDeckRef, onRegularDeal, onTrickComplete, onPassDeal, onCardPlayed);
+  } = useCardState(state, player, playerDeckRefs, onTrickComplete, onPassDeal, onCardPlayed);
   const cardIndicesPlayed = useRef<Map<string, number>>(new Map<string, number>());
   const { getCardClassForPlayerLocation } = useCardData();
 

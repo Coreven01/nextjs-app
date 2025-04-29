@@ -8,11 +8,7 @@ import {
 } from '../../../lib/euchre/definitions/game-state-definitions';
 
 const usePlayerData = () => {
-  const { cardEqual, cardIsLeftBower, createPlaceholderCards, getCardValues, getSuitCount } = useCardData();
-
-  const euchreCardEqual = (card1: EuchreCard, card2: EuchreCard): boolean => {
-    return cardEqual(card1.card, card2.card) && playerEqual(card1.player, card2.player);
-  };
+  const { cardEqual, getDisplayWidth, getDisplayHeight } = useCardData();
 
   const innerPlayerBaseId = (player: EuchrePlayer): string => {
     return `game-base-${player.playerNumber}-inner`;
@@ -114,6 +110,54 @@ const usePlayerData = () => {
     []
   );
 
+  const getPlayerGridLayoutInfo = (players: EuchrePlayer[]) => {
+    const widthCenter = getDisplayWidth('center');
+    const widthSide = getDisplayWidth('side');
+    const heightCenter = getDisplayHeight('center');
+    const heightSide = getDisplayHeight('side');
+
+    const playerLayoutForGrid = [
+      {
+        player: players[0],
+        className:
+          'relative row-start-3 col-start-1 col-span-3 row-span-1 flex items-end lg:left-[25%] md:left-[15%] left-[10%]',
+        location: playerLocation(players[0]),
+        width: 0,
+        height: 0
+      },
+      {
+        player: players[1],
+        className: 'relative row-start-1 col-start-1 col-span-3 row-span-1 flex items-start left-[20%]',
+        location: playerLocation(players[1]),
+        width: 0,
+        height: 0
+      },
+      {
+        player: players[2],
+        className:
+          'relative row-start-1 col-start-1 row-span-3 col-span-1 flex flex-col items-start w-full grow lg:top-[20%] md:top-[5%] top-0',
+        location: playerLocation(players[2]),
+        width: 0,
+        height: 0
+      },
+      {
+        player: players[3],
+        className:
+          'relative row-start-1 col-start-3 row-span-3 flex flex-col items-end w-full grow lg:top-[20%] md:top-[5%] top-0',
+        location: playerLocation(players[3]),
+        width: 0,
+        height: 0
+      }
+    ];
+
+    for (const value of playerLayoutForGrid) {
+      value.width = value.location === 'center' ? widthCenter : widthSide;
+      value.height = value.location === 'center' ? heightCenter : heightSide;
+    }
+
+    return playerLayoutForGrid;
+  };
+
   return {
     availableCardsToPlay,
     playerEqual,
@@ -122,7 +166,8 @@ const usePlayerData = () => {
     playerLocation,
     getTeamCssClass,
     getTeamCssClassFromTeamColor,
-    getTeamColor
+    getTeamColor,
+    getPlayerGridLayoutInfo
   };
 };
 

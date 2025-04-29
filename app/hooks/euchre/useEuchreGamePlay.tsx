@@ -24,6 +24,7 @@ import {
   EuchreTrick,
   GameErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
+import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
 
 export default function useEuchreGamePlay(
   state: EuchreGameValues,
@@ -50,56 +51,22 @@ export default function useEuchreGamePlay(
   } = useGameData();
 
   /**
-   * Show an indicator in the player's area to show the card that won the trick.
+   * Show an indicator in the player's area to show which card won.
    */
-  const getPlayerNotificationForTrickWon = useCallback(
+  const getPlayerNotificationCheck = useCallback(
     (result: EuchreTrick) => {
       const newAction: PlayerNotificationAction = {
         type: PlayerNotificationActionType.UPDATE_CENTER,
         payload: undefined
       };
 
-      const icon: React.ReactNode = <CheckCircleIcon className="min-h-[18px] max-h-[20px] text-green-300" />;
-      let messageLocation = '';
-
-      switch (result.taker?.playerNumber) {
-        case 1:
-          messageLocation = 'lg:bottom-0 -bottom-8';
-          break;
-        case 2:
-          messageLocation = 'lg:top-0 -top-8';
-          break;
-        case 3:
-          messageLocation = 'lg:left-0 -left-8';
-          break;
-        case 4:
-          messageLocation = 'lg:right-0 -right-8';
-          break;
-      }
-
-      const infoDetail = (
-        <EphemeralModal
-          key={uuidv4()}
-          className={clsx(
-            `w-fit h-fit absolute whitespace-nowrap shadow-lg shadow-black z-50`,
-            messageLocation
-          )}
-          durationMs={500}
-          delayMs={state.euchreSettings.notificationSpeed}
-          fadeType="both"
-        >
-          <UserInfo
-            className={clsx(
-              `p-2 lg:text-lg text-base w-auto absolute whitespace-nowrap z-40 shadow-lg`,
-              messageLocation
-            )}
-          >
-            <div className="flex gap-2 items-center">{icon}</div>
-          </UserInfo>
-        </EphemeralModal>
+      newAction.payload = (
+        <GamePlayIndicator
+          playerNumber={result.taker?.playerNumber ?? 1}
+          notificationSpeed={state.euchreSettings.notificationSpeed}
+          side="center"
+        />
       );
-
-      newAction.payload = infoDetail;
 
       return newAction;
     },
@@ -159,9 +126,9 @@ export default function useEuchreGamePlay(
     if (!awaitForPlayerInput) {
       const selectedCard: Card = { ...determineCardToPlay(newGame, state.euchreSettings.difficulty) };
       setters.setPlayedCard(selectedCard);
-      setters.dispatchStateChange(EuchreGameFlow.AWAIT_AI_INPUT);
+      //setters.dispatchStateChange(EuchreGameFlow.AWAIT_AI_INPUT);
     } else {
-      setters.dispatchStateChange(EuchreGameFlow.AWAIT_USER_INPUT);
+      //setters.dispatchStateChange(EuchreGameFlow.AWAIT_USER_INPUT);
     }
   }, [
     availableCardsToPlay,
@@ -303,13 +270,13 @@ export default function useEuchreGamePlay(
    *
    */
   const handleCardPlayed = (cardPlayed: Card) => {
-    if (
-      state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_AI_INPUT ||
-      state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT
-    ) {
-      setters.setPlayedCard(cardPlayed);
-      setters.dispatchStateChange(EuchreGameFlow.BEGIN_PLAY_CARD, EuchreAnimationActionType.SET_ANIMATE);
-    }
+    // if (
+    //   state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_AI_INPUT ||
+    //   state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT
+    // ) {
+    //   setters.setPlayedCard(cardPlayed);
+    //   setters.dispatchStateChange(EuchreGameFlow.BEGIN_PLAY_CARD, EuchreAnimationActionType.SET_ANIMATE);
+    // }
   };
 
   /** Handle UI and animation updates after a player plays a card.
@@ -403,7 +370,7 @@ export default function useEuchreGamePlay(
       )
         return;
 
-      setters.dispatchStateChange(EuchreGameFlow.WAIT);
+      //setters.dispatchStateChange(EuchreGameFlow.WAIT);
 
       if (isTrickFinished(state.euchreGame)) {
         await animateEndResultTrickFinished();
@@ -425,7 +392,7 @@ export default function useEuchreGamePlay(
       const playedReneged: boolean = currentTrick.playerRenege !== null;
       if (!playedReneged) {
         const wonCard = currentTrick.cardsPlayed.find((c) => c.player === currentTrick.taker);
-        setters.dispatchPlayerNotification(getPlayerNotificationForTrickWon(currentTrick));
+        setters.dispatchPlayerNotification(getPlayerNotificationCheck(currentTrick));
         if (wonCard) {
           eventHandlers.addEvent(
             eventHandlers.createEvent(
@@ -483,7 +450,7 @@ export default function useEuchreGamePlay(
     errorHandlers,
     eventHandlers,
     gameDelay,
-    getPlayerNotificationForTrickWon,
+    getPlayerNotificationCheck,
     getTeamColor,
     incrementSpeed,
     isGameStateValidToContinue,
@@ -522,7 +489,7 @@ export default function useEuchreGamePlay(
         return;
 
       if (isHandFinished(state.euchreGame)) {
-        setters.dispatchStateChange(EuchreGameFlow.WAIT);
+        //setters.dispatchStateChange(EuchreGameFlow.WAIT);
 
         const handResult = state.euchreGame.handResults.at(-1);
         if (!handResult) throw new Error('Game result not found for trick finished.');
@@ -543,7 +510,7 @@ export default function useEuchreGamePlay(
         await notificationDelay(state.euchreSettings);
 
         setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
-        setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT, EuchreAnimationActionType.SET_NONE);
+        //setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT, EuchreAnimationActionType.SET_NONE);
 
         if (state.euchreSettings.showHandResult) {
           setters.setPromptValue([{ type: PromptType.HAND_RESULT }]);

@@ -115,7 +115,7 @@ export default function useEuchreGameBid(
       )
         return;
 
-      setters.dispatchStateChange(EuchreGameFlow.WAIT);
+      //setters.dispatchStateChange(EuchreGameFlow.WAIT);
 
       // delay for animation between players when passing bid.
       await notificationDelay(state.euchreSettings);
@@ -189,7 +189,7 @@ export default function useEuchreGameBid(
     }
 
     if (newGame.currentPlayer?.human) {
-      setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT);
+      //setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT);
       setters.setPromptValue([{ type: PromptType.BID }]); // Show prompt window for choosing trump or passing for human player.
     } else {
       const bidChoice: BidResult = determineBid(
@@ -274,10 +274,10 @@ export default function useEuchreGameBid(
    */
   const handleBidSubmit = useCallback(
     (result: BidResult) => {
-      if (state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT) {
-        setters.setPromptValue([]);
-        handlePlayerSelectionForBid(result);
-      }
+      // if (state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT) {
+      //   setters.setPromptValue([]);
+      //   handlePlayerSelectionForBid(result);
+      // }
     },
     [handlePlayerSelectionForBid, setters, state.euchreGameFlow.gameFlow]
   );
@@ -301,7 +301,7 @@ export default function useEuchreGameBid(
     )
       return;
 
-    setters.dispatchStateChange(EuchreGameFlow.WAIT);
+    //setters.dispatchStateChange(EuchreGameFlow.WAIT);
     eventHandlers.addEvent(
       eventHandlers.createEvent(
         'i',

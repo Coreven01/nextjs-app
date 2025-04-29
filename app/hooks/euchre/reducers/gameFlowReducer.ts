@@ -7,13 +7,6 @@ interface PlayerDisplayValue {
 }
 
 export enum EuchreGameFlow {
-  AWAIT_USER_INPUT = 1,
-  AWAIT_PROMPT,
-  AWAIT_AI_INPUT,
-
-  /** Used to prevent game from continuing to execute during its state is batching updates. When an action is started, this should be be the first state that's set. */
-  WAIT,
-  ERROR,
   BEGIN_INTRO,
   END_INTRO,
   BEGIN_INIT_DEAL,
@@ -83,7 +76,7 @@ export function gameFlowStateReducer(
   } else if (action.type === EuchreFlowActionType.SET_GAME_FLOW) {
     return {
       ...state,
-      gameFlow: action.gameFlow ?? EuchreGameFlow.ERROR
+      gameFlow: action.gameFlow ?? EuchreGameFlow.BEGIN_INTRO
     };
   } else {
     throw Error('Unknown game flow action: ' + action.type);

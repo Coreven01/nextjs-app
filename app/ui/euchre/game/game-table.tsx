@@ -40,9 +40,7 @@ const GameTable = ({
     game.maker === null &&
     (gameFlow.gameFlow === EuchreGameFlow.BEGIN_BID_FOR_TRUMP ||
       gameFlow.gameFlow === EuchreGameFlow.END_BID_FOR_TRUMP ||
-      gameFlow.gameFlow === EuchreGameFlow.BEGIN_PASS_DEAL ||
-      gameFlow.gameFlow === EuchreGameFlow.WAIT ||
-      gameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT);
+      gameFlow.gameFlow === EuchreGameFlow.BEGIN_PASS_DEAL);
 
   const cardState: CardState = {
     src: getEncodedCardSvg(game.trump, 'center'),

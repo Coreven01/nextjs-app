@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import useGameStateLogic from './logic/useGameStateLogic';
 import useGameData from './data/useGameData';
 import {
+  EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
   GameErrorHandlers
@@ -27,7 +28,8 @@ export default function useEuchreGameInit(
   errorHandlers: GameErrorHandlers
 ) {
   const [showIntro, setShowIntro] = useState(true);
-  const { initDeckForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } = useGameSetupLogic();
+  const { createGameForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } =
+    useGameSetupLogic();
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { notificationDelay } = useGameData();
 
@@ -62,19 +64,16 @@ export default function useEuchreGameInit(
         setters.dispatchGameFlow({
           type: EuchreFlowActionType.SET_STATE,
           state: {
-            ...INIT_GAME_FLOW_STATE,
-            shouldShowDeckImages: [],
-            shouldShowCardImagesForHand: [],
-            shouldShowCardValuesForHand: []
+            ...INIT_GAME_FLOW_STATE
           }
         });
-
-        setters.dispatchGameAnimationFlow({
-          type: EuchreAnimationActionType.SET_NONE
-        });
-      } else {
-        setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
       }
+
+      setters.dispatchStateChange(
+        undefined,
+        EuchreAnimationActionType.SET_NONE,
+        EuchrePauseActionType.SET_NONE
+      );
 
       if (showIntro) {
         setters.setPromptValue([{ type: PromptType.INTRO }]);
@@ -93,7 +92,7 @@ export default function useEuchreGameInit(
    *
    */
   const createGame = () => {
-    const newGame = initDeckForInitialDeal(state.euchreSettings, state.shouldCancel);
+    const newGame: EuchreGameInstance = createGameForInitialDeal(state.euchreSettings, false);
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
       state.euchreGameFlow,
       state.euchreSettings,

@@ -85,6 +85,8 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         logConsole(
           '[handleAnimationComplete] - game-card.tsx for card: ',
           card,
+          ' id: ',
+          id,
           ' play card effect: ',
           runAnimationCompleteEffect,
           ' player: ',
@@ -97,7 +99,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
         onAnimationComplete(card);
       }
-    }, [card, cardState, onAnimationComplete, player?.name, runAnimationCompleteEffect]);
+    }, [card, cardState, id, onAnimationComplete, player?.name, runAnimationCompleteEffect]);
 
     const handleCardClick = useCallback(() => {
       if (onCardClick) {

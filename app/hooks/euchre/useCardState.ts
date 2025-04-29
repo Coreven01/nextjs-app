@@ -16,6 +16,7 @@ import { EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { logConsole } from '../../lib/euchre/util';
 import { EuchreGameState, EuchrePlayer } from '../../lib/euchre/definitions/game-state-definitions';
 import useCardRefs from './useCardRefs';
+import { EuchrePauseActionType, EuchrePauseType } from './reducers/gamePauseReducer';
 
 const useCardState = (
   state: EuchreGameState,
@@ -23,7 +24,6 @@ const useCardState = (
 
   /** map of player number to the player's card deck area element. */
   playerDeckRefs: Map<number, RefObject<HTMLDivElement | null>>,
-  onRegularDeal?: () => void,
   onTrickComplete?: (card: Card) => void,
   onPassDeal?: () => void,
   onCardPlayed?: (card: Card) => void
@@ -249,7 +249,7 @@ const useCardState = (
     const newCardStates: CardState[] = [...cardStates];
     const awaitingPlayer =
       playerEqual(state.euchreGame.currentPlayer, player) &&
-      state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT;
+      state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT;
     const availableCards = getCardsAvailableIfFollowSuit().map((c) => c.index);
 
     for (const cardState of newCardStates) {
@@ -570,7 +570,7 @@ const useCardState = (
         if (currentSpring && cardRef && destinationDeckRef) {
           newSpring = getSpringForTrickTaken(
             trickWonPlayerNumber,
-            player,
+            player.playerNumber,
             cardRef,
             destinationDeckRef,
             currentSpring
@@ -605,7 +605,7 @@ const useCardState = (
   useEffect(() => {
     const shouldRunBeginUpdate =
       !cardsRegroupedPlayerTurn.current.includes(state.euchreGame.currentTrick.trickId) &&
-      state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_USER_INPUT &&
+      state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT &&
       playerEqual(player, state.euchreGame.currentPlayer) &&
       handState &&
       cardRefs;

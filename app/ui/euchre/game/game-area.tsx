@@ -3,9 +3,13 @@ import GameTable from './game-table';
 import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import PlayerArea from '../player/player-area';
 import clsx from 'clsx';
-import { EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
+import {
+  EuchreAnimationHandlers,
+  EuchreGameValues
+} from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card } from '../../../lib/euchre/definitions/definitions';
 import useTableRefs from '../../../hooks/euchre/useTableRefs';
+import PlayerCardArea from '../player/player-card-area';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameValues;
@@ -29,20 +33,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   /** Player canceled game play. */
   onCancel: () => void;
 
-  /** Deal to determine initial dealer */
-  onDealForDealer: () => void;
-
-  /** Deal cards for regular play */
-  onRegularDeal: () => void;
-
-  /** Card played during the player's turn */
-  onCardPlayed: (card: Card) => void;
-
-  /** Trick complete to set cards to winner of the trick. */
-  onTrickComplete: () => void;
-
-  /** Deal passed to the next player. */
-  onPassDeal: () => void;
+  animationHandlers: EuchreAnimationHandlers;
 }
 
 const GameArea = ({
@@ -58,12 +49,8 @@ const GameArea = ({
   onToggleEvents,
   onSettingsToggle,
   onScoreToggle,
-  onCardPlayed,
   onCancel,
-  onDealForDealer,
-  onRegularDeal,
-  onTrickComplete,
-  onPassDeal,
+  animationHandlers,
   ...rest
 }: Props) => {
   /** Elements associated with the player's center. Used when playing a card to the center of the table. */
@@ -71,7 +58,7 @@ const GameArea = ({
 
   /** Elements associated with the player's outer side. Used when dealing cards to a player. */
   const outerTableRefs = useTableRefs(4);
-
+  console.log('game area rendered hand id: ', state.euchreGame.handId);
   return (
     <div
       className={clsx(
@@ -103,18 +90,18 @@ const GameArea = ({
       </div>
       <PlayerArea
         id="euchre-player-area"
-        key={state.euchreGame.handId}
+        state={state}
+        className="col-start-1 row-start-1 col-span-3 row-span-3"
+      ></PlayerArea>
+      <PlayerCardArea
+        id="euchre-player-card-area"
         state={state}
         playedCard={playedCard}
         playerCenterTableRefs={centerTableRefs}
         playerOuterTableRefs={outerTableRefs}
-        onCardPlayed={onCardPlayed}
-        onDealForDealer={onDealForDealer}
-        onRegularDeal={onRegularDeal}
-        onTrickComplete={onTrickComplete}
-        onPassDeal={onPassDeal}
+        animationHandlers={animationHandlers}
         className="col-start-1 row-start-1 col-span-3 row-span-3"
-      ></PlayerArea>
+      ></PlayerCardArea>
     </div>
   );
 };

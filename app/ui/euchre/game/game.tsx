@@ -24,7 +24,8 @@ import GameIntro from '../prompt/game-intro';
 
 export default function EuchreGame() {
   // #region Hooks
-  const { stateValues, eventHandlers, errorHandlers, gameEvents, events, errorState } = useEuchreGame();
+  const { stateValues, eventHandlers, errorHandlers, gameHandlers, events, errorState, animationHandlers } =
+    useEuchreGame();
 
   const {
     isFullScreen,
@@ -44,13 +45,13 @@ export default function EuchreGame() {
 
   //#region Event Handlers
   const changeSettings = (settings: EuchreSettings) => {
-    gameEvents.handleSettingsChange(settings);
+    gameHandlers.handleSettingsChange(settings);
   };
 
   const handleStartNewGame = () => {
     setFullGameInstance(null);
     toggleSettings(false);
-    gameEvents.handleStartGame();
+    gameHandlers.handleBeginNewGame();
   };
 
   const handleRunFullGame = () => {
@@ -68,14 +69,14 @@ export default function EuchreGame() {
   };
 
   const handleCancel = useCallback(() => {
-    gameEvents.handleCancelAndReset();
+    gameHandlers.handleCancelAndReset();
     toggleSettings(false);
-  }, [gameEvents, toggleSettings]);
+  }, [gameHandlers, toggleSettings]);
 
   const handleBeginReplayGame = (gameToReplay: EuchreGameInstance) => {
     setFullGameInstance(null);
     toggleSettings(false);
-    gameEvents.handleReplayGame({ ...gameToReplay });
+    gameHandlers.handleReplayGame({ ...gameToReplay });
   };
 
   const handleShowSettings = () => {
@@ -83,11 +84,11 @@ export default function EuchreGame() {
   };
 
   const handleGameCardPlayed = (card: Card) => {
-    gameEvents.handleCardPlayed(card);
+    animationHandlers.handleCardPlayed(card);
   };
 
   const handleCloseGameResults = () => {
-    gameEvents.reset(true);
+    gameHandlers.reset(true);
   };
   //#endregion
 
@@ -97,7 +98,7 @@ export default function EuchreGame() {
     <GameErrorPrompt
       key={stateValues.euchreGame !== null ? 'modal' : 'init'}
       errorState={errorState}
-      onAttemptToRecover={gameEvents.handleAttemptToRecover}
+      onAttemptToRecover={gameHandlers.handleAttemptToRecover}
     />
   );
 
@@ -116,7 +117,7 @@ export default function EuchreGame() {
 
   const renderIntro = !showSettings && stateValues.promptValue.find((v) => v.type === PromptType.INTRO) && (
     <GamePrompt innerClass="bg-green-300 bg-opacity-10" id="euchre-game-intro" zIndex={90}>
-      <GameIntro onBegin={gameEvents.handleBeginNewGame} onSettings={handleShowSettings} />
+      <GameIntro onBegin={handleStartNewGame} onSettings={handleShowSettings} />
     </GamePrompt>
   );
 
@@ -125,7 +126,7 @@ export default function EuchreGame() {
       <BidPrompt
         game={stateValues.euchreGame}
         firstRound={!stateValues.euchreGameFlow.hasFirstBiddingPassed}
-        onBidSubmit={gameEvents.handleBidSubmit}
+        onBidSubmit={gameHandlers.handleBidSubmit}
         settings={stateValues.euchreSettings}
       />
     );
@@ -136,7 +137,7 @@ export default function EuchreGame() {
       <DiscardPrompt
         pickedUpCard={stateValues.euchreGame.trump}
         playerHand={stateValues.euchreGame.dealer.hand}
-        onDiscardSubmit={gameEvents.handleDiscardSubmit}
+        onDiscardSubmit={gameHandlers.handleDiscardSubmit}
       />
     );
 
@@ -147,8 +148,8 @@ export default function EuchreGame() {
         game={stateValues.euchreGame}
         settings={stateValues.euchreSettings}
         handResult={stateValues.euchreGame.handResults.at(-1) ?? null}
-        onClose={gameEvents.handleCloseHandResults}
-        onReplayHand={gameEvents.handleReplayHand}
+        onClose={gameHandlers.handleCloseHandResults}
+        onReplayHand={gameHandlers.handleReplayHand}
       />
     );
 
@@ -160,7 +161,7 @@ export default function EuchreGame() {
         settings={stateValues.euchreSettings}
         handResults={stateValues.euchreGame.handResults}
         onClose={handleCloseGameResults}
-        onNewGame={gameEvents.handleBeginNewGame}
+        onNewGame={gameHandlers.handleBeginNewGame}
         onReplayGame={() => handleBeginReplayGame(stateValues.euchreGame)}
       />
     );
@@ -211,14 +212,10 @@ export default function EuchreGame() {
               playedCard={stateValues.playedCard}
               onToggleFullscreen={toggleFullScreen}
               onToggleEvents={toggleEvents}
-              onCardPlayed={handleGameCardPlayed}
               onSettingsToggle={toggleSettings}
               onScoreToggle={toggleScore}
               onCancel={handleCancel}
-              onDealForDealer={() => null}
-              onRegularDeal={gameEvents.handleBeginDealComplete}
-              onTrickComplete={gameEvents.handleTrickFinished}
-              onPassDeal={() => null}
+              animationHandlers={animationHandlers}
             />
             {renderSettings}
             {renderIntro}

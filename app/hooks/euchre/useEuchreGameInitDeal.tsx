@@ -13,6 +13,13 @@ import {
 import { InitDealResult } from '../../lib/euchre/definitions/logic-definitions';
 import { GameEventHandlers } from './useEventLog';
 import { EuchrePauseActionType } from './reducers/gamePauseReducer';
+import useGameData from './data/useGameData';
+import {
+  getPlayerNotificationType,
+  PlayerNotificationAction,
+  PlayerNotificationActionType
+} from './reducers/playerNotificationReducer';
+import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
 
 /**
  * Hook used to initialize game play for dealing cards for intial dealer.
@@ -28,6 +35,7 @@ export default function useEuchreGameInitDeal(
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { dealCardsForDealer } = useGameSetupLogic();
   const { getTeamColor } = usePlayerData();
+  const { notificationDelay } = useGameData();
 
   //#region Deal Cards For Initial Dealer *************************************************************************
 
@@ -94,7 +102,6 @@ export default function useEuchreGameInitDeal(
       )
         return;
 
-      // ***** this game state is not being used.
       //setters.dispatchStateChange(EuchreGameFlow.END_DEAL_FOR_DEALER, EuchreAnimationActionType.SET_NONE);
     };
 
@@ -121,27 +128,91 @@ export default function useEuchreGameInitDeal(
     )
       return;
 
-    // newGame.currentPlayer = dealResult.newDealer;
-    // newGame.dealer = dealResult.newDealer;
+    if (!state.initDealer) throw new Error('Invalid deal state for end deal for dealer.');
 
-    // eventHandlers.addEvent(
-    //   eventHandlers.createEvent(
-    //     'i',
-    //     dealResult.newDealer,
-    //     'Set as initial dealer.',
-    //     undefined,
-    //     getTeamColor(dealResult.newDealer, state.euchreSettings)
-    //   )
-    // );
+    const newGame: EuchreGameInstance = { ...state.euchreGame };
+    newGame.currentPlayer = state.initDealer.newDealer;
+    newGame.dealer = state.initDealer.newDealer;
 
-    //setters.dispatchStateChange(EuchreGameFlow.BEGIN_SHUFFLE_CARDS, EuchreAnimationActionType.SET_NONE);
-  }, [errorHandlers.onCancel, isGameStateValidToContinue, state]);
+    eventHandlers.addEvent(
+      eventHandlers.createEvent(
+        'i',
+        state.initDealer.newDealer,
+        'Set as initial dealer.',
+        undefined,
+        getTeamColor(state.initDealer.newDealer, state.euchreSettings)
+      )
+    );
+
+    setters.setEuchreGame(newGame);
+    setters.dispatchStateChange(EuchreGameFlow.END_DEAL_FOR_DEALER, EuchreAnimationActionType.SET_ANIMATE);
+  }, [errorHandlers.onCancel, eventHandlers, getTeamColor, isGameStateValidToContinue, setters, state]);
 
   useEffect(() => {
-    endDealCardsForDealer();
-  }, [endDealCardsForDealer]);
+    try {
+      endDealCardsForDealer();
+    } catch (e) {
+      const error = e as Error;
+      errorHandlers.onError(error, 'endDealCardsForDealer');
+    }
+  }, [endDealCardsForDealer, errorHandlers]);
+
+  useEffect(() => {
+    const endAnimationForInitDeal = async () => {
+      if (
+        !isGameStateValidToContinue(
+          state,
+          EuchreGameFlow.END_DEAL_FOR_DEALER,
+          EuchreAnimateType.ANIMATE,
+          state.shouldCancel,
+          errorHandlers.onCancel
+        )
+      )
+        return;
+
+      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
+
+      const newAction: PlayerNotificationAction = {
+        type: getPlayerNotificationType(state.euchreGame.dealer.playerNumber),
+        payload: (
+          <GamePlayIndicator
+            playerNumber={state.euchreGame.dealer.playerNumber}
+            notificationSpeed={state.euchreSettings.notificationSpeed}
+            side="outer"
+          />
+        )
+      };
+      setters.dispatchPlayerNotification(newAction);
+      await notificationDelay(state.euchreSettings);
+      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_ANIMATE);
+    };
+
+    try {
+      endAnimationForInitDeal();
+    } catch (e) {
+      const error = e as Error;
+      errorHandlers.onError(error, 'endAnimationForInitDeal');
+    }
+  }, [errorHandlers, isGameStateValidToContinue, notificationDelay, setters, state]);
+
+  const handleBeginDealForDealerComplete = () => {
+    setters.dispatchStateChange(
+      EuchreGameFlow.END_DEAL_FOR_DEALER,
+      EuchreAnimationActionType.SET_NONE,
+      EuchrePauseActionType.SET_NONE
+    );
+  };
+
+  const handleEndDealForDealerComplete = () => {
+    setters.setInitialDealerResult(null);
+    setters.dispatchStateChange(
+      EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
+      EuchreAnimationActionType.SET_NONE,
+      EuchrePauseActionType.SET_NONE
+    );
+  };
 
   //#endregion
 
-  return {};
+  return { handleBeginDealForDealerComplete, handleEndDealForDealerComplete };
 }

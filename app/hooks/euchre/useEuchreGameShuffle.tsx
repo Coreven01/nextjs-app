@@ -5,7 +5,7 @@ import { PlayerNotificationActionType } from './reducers/playerNotificationReduc
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import useGamePlayLogic from './logic/useGamePlayLogic';
 import useGameStateLogic from './logic/useGameStateLogic';
-import { GameEventHandlers, SUB_SUIT as SUB_CARD } from './useEventLog';
+import { GameEventHandlers } from './useEventLog';
 import usePlayerData from './data/usePlayerData';
 import {
   EuchreGameInstance,
@@ -42,32 +42,29 @@ const useEuchreGameShuffle = (
     )
       return;
 
-    setters.dispatchStateChange(EuchreGameFlow.WAIT);
-
-    let newGame: EuchreGameInstance = { ...state.euchreGame };
-    if (!newGame.dealer) throw new Error('Dealer not found for shuffle and deal.');
+    if (!state.euchreGame.dealer) throw new Error('Dealer not found for shuffle and deal.');
 
     eventHandlers.addEvent(
-      eventHandlers.createEvent('v', newGame.dealer, 'Begin shuffle and deal for regular play.')
+      eventHandlers.createEvent('v', state.euchreGame.dealer, 'Begin shuffle and deal for regular play.')
     );
 
     const shuffleResult = shuffleAndDealHand(
-      newGame,
+      state.euchreGame,
       state.euchreSettings,
       state.euchreReplayGame,
       state.shouldCancel
     );
 
-    newGame = shuffleResult.game;
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
-        'i',
-        newGame.dealer,
-        `Flipped up ${SUB_CARD} for bidding.`,
-        [newGame.trump],
-        getTeamColor(newGame.dealer, state.euchreSettings)
-      )
-    );
+    const newGame = shuffleResult.game;
+    // eventHandlers.addEvent(
+    //   eventHandlers.createEvent(
+    //     'i',
+    //     newGame.dealer,
+    //     `Flipped up ${SUB_CARD} for bidding.`,
+    //     [newGame.trump],
+    //     getTeamColor(newGame.dealer, state.euchreSettings)
+    //   )
+    // );
 
     setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
 
@@ -79,13 +76,16 @@ const useEuchreGameShuffle = (
     newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 
     setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameState });
-    setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+    setters.dispatchStateChange(
+      undefined,
+      EuchreAnimationActionType.SET_ANIMATE,
+      EuchrePauseActionType.SET_ANIMATE
+    );
     setters.setEuchreGame(newGame);
   }, [
     errorHandlers.onCancel,
     eventHandlers,
     getGameStateForNextHand,
-    getTeamColor,
     isGameStateValidToContinue,
     setters,
     shuffleAndDealHand,
@@ -123,7 +123,7 @@ const useEuchreGameShuffle = (
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
       //await new Promise((resolve) => setTimeout(resolve, 150));
-      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_ANIMATE);
+      //setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_ANIMATE);
     };
 
     try {
@@ -185,7 +185,7 @@ const useEuchreGameShuffle = (
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
       await new Promise((resolve) => setTimeout(resolve, 150));
-      setters.dispatchStateChange(EuchreGameFlow.WAIT);
+      //setters.dispatchStateChange(EuchreGameFlow.WAIT);
     };
 
     try {
@@ -201,7 +201,10 @@ const useEuchreGameShuffle = (
   };
   //#endregion
 
-  return { handleBeginDealComplete, handleEndDealComplete };
+  return {
+    handleBeginRegularDealComplete: handleBeginDealComplete,
+    handleEndRegularDealComplete: handleEndDealComplete
+  };
 };
 
 export default useEuchreGameShuffle;

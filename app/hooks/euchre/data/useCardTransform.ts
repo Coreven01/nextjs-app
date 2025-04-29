@@ -579,7 +579,7 @@ const useCardTransform = () => {
 
   const getSpringForTrickTaken = (
     destinationPlayerNumber: number,
-    player: EuchrePlayer,
+    sourcePlayerNumber: number,
     cardRef: HTMLElement,
     destinationDeckRef: HTMLElement,
     currentValue: CardSpringTarget
@@ -589,7 +589,7 @@ const useCardTransform = () => {
       destinationDeckRef: HTMLElement,
       currentSprung: CardSpringTarget
     ) => CardSpringTarget;
-    switch (player.playerNumber) {
+    switch (sourcePlayerNumber) {
       case 1:
         cardPlayedFunc = getPlayer1SpringForTrickTaken;
         break;
@@ -680,6 +680,40 @@ const useCardTransform = () => {
       y: destCenter - cardOriginalPosition.center,
       rotate: 110
     };
+  };
+  //#endregion
+
+  //#region
+  const getSpringsToMoveToDealer = (
+    destinationPlayerNumber: number,
+    cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
+    destinationDeckRef: HTMLElement,
+    cardStates: CardState[]
+  ): CardSpringProps[] => {
+    const retval: CardSpringProps[] = [];
+
+    for (const cardRefMap of cardRefs) {
+      const state: CardState = cardStates[cardRefMap[0]];
+      const cardRef = cardRefMap[1].current;
+
+      if (!cardRef) throw new Error('Invalid card ref to move cards to dealer.');
+
+      const newPositon = getSpringForTrickTaken(
+        destinationPlayerNumber,
+        1,
+        cardRef,
+        destinationDeckRef,
+        state.springValue ?? DEFAULT_SPRING_VAL
+      );
+
+      newPositon.rotate = Math.random() * 720 - 360;
+      retval.push({
+        springValue: newPositon,
+        cardIndex: state.cardIndex,
+        ordinalIndex: state.cardIndex
+      });
+    }
+    return retval;
   };
   //#endregion
 
@@ -891,7 +925,8 @@ const useCardTransform = () => {
     groupHand,
     getSpringForTrickTaken,
     getTransitionForCardPlayed,
-    getSpringsForDealForDealer
+    getSpringsForDealForDealer,
+    getSpringsToMoveToDealer
   };
 };
 

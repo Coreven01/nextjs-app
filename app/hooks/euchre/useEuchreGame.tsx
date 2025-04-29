@@ -35,8 +35,9 @@ import {
   INIT_GAME_WAIT as INIT_PAUSE_STATE
 } from './reducers/gamePauseReducer';
 import {
+  EuchreAnimationHandlers,
   EuchreError,
-  EuchreGameHandlers,
+  EuchreGamePlayHandlers,
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameState,
@@ -172,8 +173,14 @@ export default function useEuchreGame() {
     errorHandlers
   );
 
-  useEuchreGameInitDeal(stateValues, setters, eventHandlers, errorHandlers);
-  const { handleBeginDealComplete, handleEndDealComplete } = useEuchreGameShuffle(
+  const { handleBeginDealForDealerComplete, handleEndDealForDealerComplete } = useEuchreGameInitDeal(
+    stateValues,
+    setters,
+    eventHandlers,
+    errorHandlers
+  );
+
+  const { handleBeginRegularDealComplete, handleEndRegularDealComplete } = useEuchreGameShuffle(
     stateValues,
     setters,
     eventHandlers,
@@ -190,10 +197,6 @@ export default function useEuchreGame() {
   );
 
   //#region Other Handlers *************************************************************************
-
-  const handleStartGame = () => {
-    reset(true);
-  };
 
   const handleBeginNewGame = () => {
     setEuchreReplayGame(null);
@@ -232,23 +235,27 @@ export default function useEuchreGame() {
     }
   };
 
-  const gameEvents: EuchreGameHandlers = {
+  const gameHandlers: EuchreGamePlayHandlers = {
     reset,
-    handleStartGame,
     handleBeginNewGame,
     handleBidSubmit,
     handleSettingsChange,
     handleCancelGame,
     handleDiscardSubmit,
     handleCloseHandResults,
-    handleCardPlayed,
     handleReplayHand,
     handleCancelAndReset,
     handleReplayGame,
-    handleAttemptToRecover,
-    handleBeginDealComplete,
-    handleEndDealComplete,
-    handleTrickFinished
+    handleAttemptToRecover
+  };
+
+  const animationHandlers: EuchreAnimationHandlers = {
+    handleBeginRegularDealComplete,
+    handleEndRegularDealComplete,
+    handleTrickFinished,
+    handleBeginDealForDealerComplete,
+    handleEndDealForDealerComplete,
+    handleCardPlayed
   };
 
   //#endregion
@@ -257,8 +264,9 @@ export default function useEuchreGame() {
     stateValues,
     eventHandlers,
     errorHandlers,
-    gameEvents,
+    gameHandlers,
     events,
-    errorState
+    errorState,
+    animationHandlers
   };
 }

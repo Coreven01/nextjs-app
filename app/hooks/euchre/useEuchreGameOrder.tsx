@@ -99,7 +99,7 @@ export default function useEuchreGameOrder(
       )
         return;
 
-      setters.dispatchStateChange(EuchreGameFlow.WAIT);
+      //setters.dispatchStateChange(EuchreGameFlow.WAIT);
 
       const game: EuchreGameInstance = state.euchreGame;
 
@@ -163,7 +163,7 @@ export default function useEuchreGameOrder(
     }
 
     if (newGame.dealer.human && shouldDiscard) {
-      setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT);
+      //setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT);
       setters.setPromptValue([{ type: PromptType.DISCARD }]);
     } else {
       if (shouldDiscard) {
@@ -243,19 +243,19 @@ export default function useEuchreGameOrder(
     (card: Card) => {
       const newGame = state.euchreGame ? { ...state.euchreGame } : null;
 
-      if (newGame?.trump && state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT) {
-        newGame.dealer.hand = discard(newGame.dealer, card, newGame.trump);
-        newGame.dealer.hand = indexCards(newGame.dealer.hand);
-        newGame.discard = card;
+      // if (newGame?.trump && state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT) {
+      //   newGame.dealer.hand = discard(newGame.dealer, card, newGame.trump);
+      //   newGame.dealer.hand = indexCards(newGame.dealer.hand);
+      //   newGame.discard = card;
 
-        eventHandlers.addEvent(
-          eventHandlers.createEvent('d', newGame.dealer, `Discarded: ${SUB_SUIT}`, [newGame.discard])
-        );
+      //   eventHandlers.addEvent(
+      //     eventHandlers.createEvent('d', newGame.dealer, `Discarded: ${SUB_SUIT}`, [newGame.discard])
+      //   );
 
-        setters.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
-        setters.setPromptValue([]);
-        setters.setEuchreGame(newGame);
-      }
+      //   setters.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
+      //   setters.setPromptValue([]);
+      //   setters.setEuchreGame(newGame);
+      // }
     },
     [discard, eventHandlers, indexCards, setters, state.euchreGame, state.euchreGameFlow.gameFlow]
   );

@@ -32,7 +32,8 @@ export default function useEuchreGameAuto() {
     ...INIT_GAME_ANIMATION_STATE
   });
 
-  const { initDeckForInitialDeal, dealCardsForDealer, shuffleAndDealHand, createTrick } = useGameSetupLogic();
+  const { createGameForInitialDeal, dealCardsForDealer, shuffleAndDealHand, createTrick } =
+    useGameSetupLogic();
   const { determineBid, determineDiscard, orderTrump } = useGameBidLogic();
   const { getPlayerRotation, discard, playerEqual } = usePlayerData();
   const { determineCardToPlay } = useGamePlayLogic();
@@ -135,7 +136,7 @@ export default function useEuchreGameAuto() {
    *
    */
   const runFullGame = (gameSetting: EuchreSettings): EuchreGameInstance => {
-    let newGame: EuchreGameInstance = initDeckForInitialDeal(gameSetting, false);
+    let newGame: EuchreGameInstance = createGameForInitialDeal(gameSetting, false);
     const gameFlow: EuchreGameFlowState = { ...INIT_GAME_FLOW_STATE };
 
     newGame.player1.human = false;
@@ -185,7 +186,7 @@ export default function useEuchreGameAuto() {
   };
 
   const runCardAnimation = async (gameSetting: EuchreSettings) => {
-    let newGame: EuchreGameInstance = initDeckForInitialDeal(gameSetting, false);
+    let newGame: EuchreGameInstance = createGameForInitialDeal(gameSetting, false);
     const gameFlow: EuchreGameFlowState = { ...INIT_GAME_FLOW_STATE };
 
     newGame.player1.human = false;

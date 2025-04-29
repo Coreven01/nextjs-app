@@ -13,13 +13,11 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
   state: EuchreGameState;
   cardStates: CardState[];
-  showDealForDealerDeck: boolean;
   playedCard: Card | null;
   playerTableRef: RefObject<HTMLDivElement | null> | undefined;
   cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
   playerDeckRefs: Map<number, RefObject<HTMLDivElement | null>>;
-  onDealForDealer: () => void;
-  onRegularDeal: () => void;
+  onDealComplete: () => void;
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onPassDeal: () => void;
@@ -29,39 +27,22 @@ export default function PlayerGameDeck({
   player,
   state,
   cardStates,
-  showDealForDealerDeck,
   playedCard,
   playerTableRef,
   cardRefs,
   playerDeckRefs,
   onCardPlayed,
-  onDealForDealer,
-  onRegularDeal,
+  onDealComplete,
   onTrickComplete,
   onPassDeal,
   ...rest
 }: Props) {
   const { playerLocation } = usePlayerData();
-
-  const deckRef = playerDeckRefs.get(player.playerNumber);
   const playerNumber = player.playerNumber;
   const positionCenter = `absolute ${playerNumber === 1 ? 'top-0' : 'bottom-0'}`;
   const positionSide = `absolute ${playerNumber === 3 ? 'right-0' : 'left-0'}`;
-  const positionCenterInner = `absolute ${playerNumber === 1 ? 'bottom-0' : 'top-0'}`;
-  const positionSideInner = `absolute ${playerNumber === 3 ? 'left-0' : 'right-0'}`;
   const location = playerLocation(player);
   const position = location === 'center' ? positionCenter : positionSide;
-  const positionInner = location === 'center' ? positionCenterInner : positionSideInner;
-  const duration = state.euchreSettings.gameSpeed / 1000;
-  const initSpringValue = { opacity: 0, y: 100 };
-  const initAnimateValue = {
-    opacity: 1,
-    y: 20,
-    transition: {
-      opacity: { duration: duration },
-      y: { duration: duration }
-    }
-  };
 
   let playerInfoOuterClass = '';
   let playerInfoInnerClass = '';
@@ -71,13 +52,13 @@ export default function PlayerGameDeck({
     case 1:
       playerInfoOuterClass = 'lg:w-auto lg:right-8';
       playerInfoInnerClass = 'lg:relative lg:-right-4 lg:left-0 lg:bottom-0 lg:min-w-32 right-0 bottom-0 ';
-      playerHandClass = 'grow flex relative justify-center';
+      playerHandClass = 'grow flex relative justify-center h-full';
       break;
     case 2:
       playerInfoOuterClass = 'lg:w-auto lg:right-16';
       playerInfoInnerClass =
         'lg:relative lg:-right-4 lg:left-0 lg:bottom-0 lg:top-auto lg:min-w-32 -right-16 top-0 ';
-      playerHandClass = 'grow flex relative justify-center';
+      playerHandClass = 'grow flex relative justify-center h-full';
       break;
     case 3:
       playerInfoInnerClass = 'lg:top-[-50px] lg:left-0 lg:min-w-32 -top-16';
@@ -110,38 +91,24 @@ export default function PlayerGameDeck({
           player={player}
           playedCard={playedCard}
           onCardPlayed={onCardPlayed}
-          onRegularDeal={onRegularDeal}
           onTrickComplete={onTrickComplete}
           onPassDeal={onPassDeal}
           playerCenterTableRef={playerTableRef}
-          playersDeckRef={playerDeckRefs}
+          playerDeckRefs={playerDeckRefs}
         />
-        {showDealForDealerDeck && (
-          <GameDeck
-            deck={state.euchreGame.deck}
-            cardRefs={cardRefs}
-            location={location}
-            playerNumber={player.playerNumber}
-            cardStates={cardStates}
-            onDealComplete={onDealForDealer}
-            dealType={EuchreGameFlow.BEGIN_DEAL_FOR_DEALER}
-            initDeckState={initSpringValue}
-            initAnimationState={initAnimateValue}
-          ></GameDeck>
-        )}
         <div
           id={`player-base-${playerNumber}`}
-          className={clsx(position, { 'text-transparent': !DEBUG_ENABLED })}
+          className={clsx(position, { 'text-transparent': DEBUG_ENABLED })}
         >
           X
         </div>
-        <div
+        {/* <div
           ref={deckRef}
-          id={`player-deck-${playerNumber}`}
+         
           className={clsx(positionInner, { 'text-transparent': !DEBUG_ENABLED })}
         >
           X
-        </div>
+        </div> */}
         {playerInfo}
       </div>
     </>

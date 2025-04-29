@@ -98,6 +98,7 @@ const useGameData = () => {
     newGame.turnedDown = null;
     newGame.cardDealCount = [];
     newGame.currentTricks = [];
+    newGame.handId = uuidv4();
 
     for (const player of newGame.gamePlayers) {
       player.hand = [];

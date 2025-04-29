@@ -129,23 +129,27 @@ export interface GameErrorHandlers {
   onError: (e: Error, func: string) => void;
 }
 
-export interface EuchreGameHandlers {
+export interface EuchreGamePlayHandlers {
   reset: (resetForBeginGame: boolean) => void;
-  handleStartGame: () => void;
   handleBeginNewGame: () => void;
   handleBidSubmit: (result: BidResult) => void;
   handleSettingsChange: (setting: EuchreSettings) => void;
   handleCancelGame: () => void;
   handleDiscardSubmit: (card: Card) => void;
   handleCloseHandResults: () => void;
-  handleCardPlayed: (cardPlayed: Card) => void;
   handleReplayHand: () => void;
   handleCancelAndReset: () => void;
   handleReplayGame: (replayGame: EuchreGameInstance) => void;
   handleAttemptToRecover: () => void;
-  handleBeginDealComplete: () => void;
-  handleEndDealComplete: () => void;
+}
+
+export interface EuchreAnimationHandlers {
+  handleBeginRegularDealComplete: () => void;
+  handleEndRegularDealComplete: () => void;
+  handleBeginDealForDealerComplete: () => void;
+  handleEndDealForDealerComplete: () => void;
   handleTrickFinished: () => void;
+  handleCardPlayed: (cardPlayed: Card) => void;
 }
 
 export interface EuchreGameSetters {
