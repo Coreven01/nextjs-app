@@ -87,6 +87,7 @@ const useGameData = () => {
     return newGame;
   };
 
+  /** Reset game state for the current game for a new hand to be dealt. Sets a new hand ID. */
   const resetForNewDeal = (game: EuchreGameInstance): EuchreGameInstance => {
     const newGame: EuchreGameInstance = { ...game };
     newGame.kitty = [];
@@ -108,6 +109,7 @@ const useGameData = () => {
     return newGame;
   };
 
+  /** Deal cards to players for the current hand and sets the remaining cards as the kitty. */
   const dealCards = (game: EuchreGameInstance): EuchreGameInstance => {
     const newGame: EuchreGameInstance = { ...game };
     const playerRotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
@@ -128,13 +130,13 @@ const useGameData = () => {
       }
 
       for (let j = 0; j < numberOfCards; j++) {
-        currentPlayer.hand.push(newGame.deck[counter]);
+        currentPlayer.hand.push({ ...newGame.deck[counter] });
         counter++;
       }
     }
 
     while (counter < newGame.deck.length) {
-      newGame.kitty.push(newGame.deck[counter]);
+      newGame.kitty.push({ ...newGame.deck[counter] });
       counter++;
     }
 

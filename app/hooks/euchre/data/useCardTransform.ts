@@ -1,4 +1,4 @@
-import { TargetAndTransition, Transition } from 'framer-motion';
+import { Target, TargetAndTransition, Transition } from 'framer-motion';
 import { Card, GameSpeed } from '../../../lib/euchre/definitions/definitions';
 import { RefObject, useCallback } from 'react';
 import { CardState } from '../reducers/cardStateReducer';
@@ -31,11 +31,11 @@ export const DEFAULT_SPRING_VAL: CardSpringTarget = {
 export interface CardSpringTarget extends TargetAndTransition {
   x: number;
   y: number;
-  rotate: number | number[];
-  opacity: number;
-  rotateY: number | number[];
-  rotateX: number | number[];
-  zIndex: number;
+  rotate?: number | number[];
+  opacity?: number;
+  rotateY?: number | number[];
+  rotateX?: number | number[];
+  zIndex?: number;
 }
 
 interface CardOffsetValues {
@@ -47,12 +47,13 @@ interface CardOffsetValues {
   rotationOffset: number;
 }
 
-interface CardRect {
+interface ElementRect {
   left: number;
   right: number;
   top: number;
   bottom: number;
-  center: number;
+  centerX: number;
+  centerY: number;
 }
 
 export interface CardPosition {
@@ -95,34 +96,53 @@ const useCardTransform = () => {
 
   //#endregion
 
-  /** Get the cards original position. Used in order to transform the card again to a new position. */
-  const getCardOriginalPosition = (
-    playerNumber: number,
-    cardRef: HTMLElement,
+  /** Get an element's original position. Used in order to transform the card again to a new position. */
+  const getElementOriginalPosition = (
+    sourceRef: HTMLElement,
     currentSpring?: CardSpringTarget
-  ): CardRect => {
-    const cardRect = cardRef.getBoundingClientRect();
+  ): ElementRect => {
+    const sourceRect = sourceRef.getBoundingClientRect();
     const currentX = currentSpring?.x ?? 0;
     const currentY = currentSpring?.y ?? 0;
-    const orgLeft = cardRect.left - currentX;
-    const orgRight = cardRect.right - currentX;
-    const orgTop = cardRect.top - currentY;
-    const orgBottom = cardRect.bottom - currentY;
-    const cardCenter =
-      playerNumber === 1 || playerNumber === 2
-        ? orgLeft + (orgRight - orgLeft) / 2
-        : orgTop + (orgBottom - orgTop) / 2;
+    const orgLeft = sourceRect.left - currentX;
+    const orgRight = sourceRect.right - currentX;
+    const orgTop = sourceRect.top - currentY;
+    const orgBottom = sourceRect.bottom - currentY;
 
-    const retval: CardRect = {
+    const retval: ElementRect = {
       left: orgLeft,
       right: orgRight,
       top: orgTop,
       bottom: orgBottom,
-      center: cardCenter
+      centerX: orgLeft + sourceRect.width / 2,
+      centerY: orgTop + sourceRect.height / 2
     };
     return retval;
   };
 
+  /** */
+  const getSpringMoveElement = (
+    sourceRef: HTMLElement,
+    destinationRef: HTMLElement,
+    currentSourceSpring?: CardSpringTarget
+  ): CardSpringTarget => {
+    const sourceRect = getElementOriginalPosition(sourceRef, currentSourceSpring);
+    const destRect = getElementOriginalPosition(destinationRef);
+
+    return {
+      ...DEFAULT_SPRING_VAL,
+      x: destRect.centerX - sourceRect.centerX,
+      y: destRect.centerY - sourceRect.centerY
+    };
+  };
+
+  /** */
+  const getCardOffsetForPlayer = (playerNumber: number, longSide: number): CardSpringTarget => {
+    return {
+      x: playerNumber === 1 || playerNumber === 2 ? 0 : (longSide / 2) * (playerNumber === 4 ? -1 : 1),
+      y: playerNumber === 3 || playerNumber === 4 ? 0 : (longSide / 2) * (playerNumber === 1 ? -1 : 1)
+    };
+  };
   //#region Spring for deal for dealer
 
   const getSpringsForDealForDealer = (
@@ -160,13 +180,14 @@ const useCardTransform = () => {
       }
       const newSpringVal = cardPlayedFunc(cardRef.current, tableRef.current);
 
-      newSpringVal.rotate = Math.random() * 360 - 180;
+      newSpringVal.rotate = Math.random() * 720 - 360;
       newSpringVal.rotateX = 0;
       newSpringVal.rotateY = 0;
       newSpringVal.opacity = 1;
       newSpringVal.x += Math.random() * GAME_PLAY_VARIATION - GAME_PLAY_VARIATION / 2;
       newSpringVal.y += Math.random() * GAME_PLAY_VARIATION - GAME_PLAY_VARIATION / 2;
       newSpringVal.scale = 1;
+      newSpringVal.zIndex = INIT_Z_INDEX + card.index;
 
       retval.push({
         springValue: newSpringVal,
@@ -186,14 +207,14 @@ const useCardTransform = () => {
     cardRef: HTMLElement,
     tableRef: HTMLElement
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(1, cardRef);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef);
     const tableRect = tableRef.getBoundingClientRect();
     const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
     const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
 
     return {
       ...DEFAULT_SPRING_VAL,
-      x: tableCenter - cardOriginalPosition.center,
+      x: tableCenter - cardOriginalPosition.centerX,
       y: -(cardOriginalPosition.top - tableRect.top) - cardHeight
     };
   };
@@ -202,14 +223,14 @@ const useCardTransform = () => {
     cardRef: HTMLElement,
     tableRef: HTMLElement
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(2, cardRef);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef);
     const tableRect = tableRef.getBoundingClientRect();
     const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
     const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
 
     return {
       ...DEFAULT_SPRING_VAL,
-      x: tableCenter - cardOriginalPosition.center,
+      x: tableCenter - cardOriginalPosition.centerX,
       y: tableRect.bottom - cardOriginalPosition.bottom + cardHeight
     };
   };
@@ -218,7 +239,7 @@ const useCardTransform = () => {
     cardRef: HTMLElement,
     tableRef: HTMLElement
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(3, cardRef);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef);
     const tableRect = tableRef.getBoundingClientRect();
     const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
     const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
@@ -226,7 +247,7 @@ const useCardTransform = () => {
     return {
       ...DEFAULT_SPRING_VAL,
       x: tableRect.right - cardOriginalPosition.right + cardWidth,
-      y: tableCenter - cardOriginalPosition.center
+      y: tableCenter - cardOriginalPosition.centerY
     };
   };
 
@@ -234,7 +255,7 @@ const useCardTransform = () => {
     cardRef: HTMLElement,
     tableRef: HTMLElement
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(4, cardRef);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef);
     const tableRect = tableRef.getBoundingClientRect();
     const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
     const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
@@ -242,7 +263,7 @@ const useCardTransform = () => {
     return {
       ...DEFAULT_SPRING_VAL,
       x: -(cardOriginalPosition.left - tableRect.left) - cardWidth,
-      y: tableCenter - cardOriginalPosition.center
+      y: tableCenter - cardOriginalPosition.centerY
     };
   };
   //#endregion
@@ -359,14 +380,14 @@ const useCardTransform = () => {
     tableRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(1, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const tableRect = tableRef.getBoundingClientRect();
     const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
     const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
 
     return {
       ...currentSpring,
-      x: tableCenter - cardOriginalPosition.center,
+      x: tableCenter - cardOriginalPosition.centerX,
       y: -(cardOriginalPosition.top - tableRect.top) - cardHeight / 3
     };
   };
@@ -376,13 +397,13 @@ const useCardTransform = () => {
     tableRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(2, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const tableRect = tableRef.getBoundingClientRect();
     const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
     const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
     return {
       ...currentSpring,
-      x: tableCenter - cardOriginalPosition.center,
+      x: tableCenter - cardOriginalPosition.centerX,
       y: tableRect.bottom - cardOriginalPosition.bottom + cardHeight / 3
     };
   };
@@ -392,7 +413,7 @@ const useCardTransform = () => {
     tableRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(3, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const tableRect = tableRef.getBoundingClientRect();
     const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
     const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
@@ -400,7 +421,7 @@ const useCardTransform = () => {
     return {
       ...currentSpring,
       x: tableRect.right - cardOriginalPosition.right + cardWidth / 3,
-      y: tableCenter - cardOriginalPosition.center
+      y: tableCenter - cardOriginalPosition.centerY
     };
   };
 
@@ -409,7 +430,7 @@ const useCardTransform = () => {
     tableRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(4, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const tableRect = tableRef.getBoundingClientRect();
     const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
     const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
@@ -417,7 +438,7 @@ const useCardTransform = () => {
     return {
       ...currentSpring,
       x: -(cardOriginalPosition.left - tableRect.left) - cardWidth / 3,
-      y: tableCenter - cardOriginalPosition.center
+      y: tableCenter - cardOriginalPosition.centerY
     };
   };
   //#endregion
@@ -615,14 +636,14 @@ const useCardTransform = () => {
     destinationDeckRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(1, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const destRect = destinationDeckRef.getBoundingClientRect();
     const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
     const destCenter = destRect.left + (destRect.right - destRect.left) / 2;
 
     return {
       ...currentSpring,
-      x: destCenter - cardOriginalPosition.center,
+      x: destCenter - cardOriginalPosition.centerX,
       y: -(cardOriginalPosition.top - destRect.top) - cardHeight / 3,
       rotate: -110
     };
@@ -633,14 +654,14 @@ const useCardTransform = () => {
     destinationDeckRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(2, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const destRect = destinationDeckRef.getBoundingClientRect();
     const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
     const destCenter = destRect.left + (destRect.right - destRect.left) / 2;
 
     return {
       ...currentSpring,
-      x: destCenter - cardOriginalPosition.center,
+      x: destCenter - cardOriginalPosition.centerX,
       y: destRect.bottom - cardOriginalPosition.bottom + cardHeight / 3,
       rotate: -80
     };
@@ -651,7 +672,7 @@ const useCardTransform = () => {
     destinationDeckRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(3, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
     const destRect = destinationDeckRef.getBoundingClientRect();
     const destCenter = destRect.top + (destRect.bottom - destRect.top) / 2;
@@ -659,7 +680,7 @@ const useCardTransform = () => {
     return {
       ...currentSpring,
       x: destRect.right - cardOriginalPosition.right + cardWidth / 3,
-      y: destCenter - cardOriginalPosition.center,
+      y: destCenter - cardOriginalPosition.centerY,
       rotate: 80
     };
   };
@@ -669,7 +690,7 @@ const useCardTransform = () => {
     tableRef: HTMLElement,
     currentSpring: CardSpringTarget
   ): CardSpringTarget => {
-    const cardOriginalPosition = getCardOriginalPosition(4, cardRef, currentSpring);
+    const cardOriginalPosition = getElementOriginalPosition(cardRef, currentSpring);
     const destRect = tableRef.getBoundingClientRect();
     const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
     const destCenter = destRect.top + (destRect.bottom - destRect.top) / 2;
@@ -677,7 +698,7 @@ const useCardTransform = () => {
     return {
       ...currentSpring,
       x: -(cardOriginalPosition.left - destRect.right) - cardWidth / 3,
-      y: destCenter - cardOriginalPosition.center,
+      y: destCenter - cardOriginalPosition.centerY,
       rotate: 110
     };
   };
@@ -926,7 +947,9 @@ const useCardTransform = () => {
     getSpringForTrickTaken,
     getTransitionForCardPlayed,
     getSpringsForDealForDealer,
-    getSpringsToMoveToDealer
+    getSpringsToMoveToDealer,
+    getSpringMoveElement,
+    getCardOffsetForPlayer
   };
 };
 

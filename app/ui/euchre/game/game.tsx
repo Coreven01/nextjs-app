@@ -195,9 +195,13 @@ export default function EuchreGame() {
         )}
       >
         <GameBorder
-          className={clsx('w-full lg:w-auto lg:h-auto overflow-auto h-screen', { 'm-auto': !showEvents })}
+          className={clsx('w-full lg:w-auto lg:h-auto lg:max-h-full overflow-auto h-screen max-h-[800px]', {
+            'm-auto': !showEvents
+          })}
         >
-          <div className={`${SECTION_STYLE} lg:m-1 lg:h-auto grow relative bg-[url(/felt1.png)] h-full`}>
+          <div
+            className={`${SECTION_STYLE} lg:m-1 lg:h-auto lg:max-h-full grow relative bg-[url(/felt1.png)] h-full max-h-[800px]`}
+          >
             <GameArea
               id="euchre-game-area"
               state={stateValues}

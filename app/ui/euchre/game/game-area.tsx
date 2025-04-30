@@ -58,7 +58,7 @@ const GameArea = ({
 
   /** Elements associated with the player's outer side. Used when dealing cards to a player. */
   const outerTableRefs = useTableRefs(4);
-  console.log('game area rendered hand id: ', state.euchreGame.handId);
+
   return (
     <div
       className={clsx(
@@ -92,7 +92,7 @@ const GameArea = ({
         id="euchre-player-area"
         state={state}
         className="col-start-1 row-start-1 col-span-3 row-span-3"
-      ></PlayerArea>
+      />
       <PlayerCardArea
         id="euchre-player-card-area"
         state={state}
@@ -100,8 +100,8 @@ const GameArea = ({
         playerCenterTableRefs={centerTableRefs}
         playerOuterTableRefs={outerTableRefs}
         animationHandlers={animationHandlers}
-        className="col-start-1 row-start-1 col-span-3 row-span-3"
-      ></PlayerCardArea>
+        className="relative col-start-1 row-start-1 col-span-3 row-span-3"
+      />
     </div>
   );
 };

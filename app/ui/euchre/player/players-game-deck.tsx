@@ -70,19 +70,6 @@ export default function PlayerGameDeck({
       break;
   }
 
-  const playerInfo = state.euchreGameFlow.hasGameStarted && (
-    <div className={clsx('relative lg:text-sm text-xs whitespace-nowrap z-40', playerInfoOuterClass)}>
-      <div className={clsx('absolute', playerInfoInnerClass)}>
-        <PlayerInfo
-          id={`player-info-${player.playerNumber}`}
-          game={state.euchreGame}
-          player={player}
-          settings={state.euchreSettings}
-        />
-      </div>
-    </div>
-  );
-
   return (
     <>
       <div className={playerHandClass} {...rest}>
@@ -109,7 +96,6 @@ export default function PlayerGameDeck({
         >
           X
         </div> */}
-        {playerInfo}
       </div>
     </>
   );

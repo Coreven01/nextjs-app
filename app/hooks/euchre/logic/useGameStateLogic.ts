@@ -34,7 +34,19 @@ const useGameStateLogic = () => {
     []
   );
 
-  return { isGameStateValidToContinue };
+  /** Game states where the game deck should be rendered. */
+  const getGameStatesForDeal = useCallback(() => {
+    return [
+      EuchreGameFlow.BEGIN_INIT_DEAL,
+      EuchreGameFlow.END_INIT_DEAL,
+      EuchreGameFlow.BEGIN_DEAL_FOR_DEALER,
+      EuchreGameFlow.END_DEAL_FOR_DEALER,
+      EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
+      EuchreGameFlow.END_SHUFFLE_CARDS,
+      EuchreGameFlow.BEGIN_DEAL_CARDS
+    ];
+  }, []);
+  return { isGameStateValidToContinue, getGameStatesForDeal };
 };
 
 export default useGameStateLogic;

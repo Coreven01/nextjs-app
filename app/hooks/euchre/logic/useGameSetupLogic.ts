@@ -217,7 +217,6 @@ const useGameSetupLogic = () => {
 
     if (cancel) return retval;
 
-    //const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
     const difficulty: GameDifficulty = gameSettings.difficulty;
     const redealLimit: number = 10;
     let counter: number = 0;
@@ -232,7 +231,7 @@ const useGameSetupLogic = () => {
       if (replayHand === undefined) {
         newGame.deck = createShuffledDeck(5);
         newGame = dealCards(newGame);
-        newGame.trump = newGame.kitty[0];
+        newGame.trump = { ...newGame.kitty[0] };
       } else {
         newGame = copyCardsFromReplay(newGame, replayHand);
       }
@@ -268,7 +267,6 @@ const useGameSetupLogic = () => {
     }
 
     retval.game = newGame;
-    //retval.game.currentPlayer = rotation[0];
 
     return retval;
   };

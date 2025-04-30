@@ -110,40 +110,49 @@ const usePlayerData = () => {
     []
   );
 
+  /** Returns information regarding the position for each player's cards/hand and player information panel
+   *
+   */
   const getPlayerGridLayoutInfo = (players: EuchrePlayer[]) => {
     const widthCenter = getDisplayWidth('center');
     const widthSide = getDisplayWidth('side');
     const heightCenter = getDisplayHeight('center');
     const heightSide = getDisplayHeight('side');
 
+    //lg:left-[25%] md:left-[15%] left-[10%]
     const playerLayoutForGrid = [
       {
         player: players[0],
-        className:
-          'relative row-start-3 col-start-1 col-span-3 row-span-1 flex items-end lg:left-[25%] md:left-[15%] left-[10%]',
+        locationClass: 'row-start-3 col-start-1 col-span-3 row-span-1',
+        innerClassName: 'flex items-end h-full justify-center',
+        playerInfoClass: 'lg:relative lg:right-12 lg:bottom-8 lg:min-w-32 right-32 bottom-4',
         location: playerLocation(players[0]),
         width: 0,
         height: 0
       },
       {
         player: players[1],
-        className: 'relative row-start-1 col-start-1 col-span-3 row-span-1 flex items-start left-[20%]',
+        locationClass: 'row-start-1 col-start-1 col-span-3 row-span-1',
+        innerClassName: 'flex h-full items-start justify-center',
+        playerInfoClass: 'lg:relative lg:right-8 lg:bottom-0 lg:top-auto lg:min-w-32 right-32 top-0',
         location: playerLocation(players[1]),
         width: 0,
         height: 0
       },
       {
         player: players[2],
-        className:
-          'relative row-start-1 col-start-1 row-span-3 col-span-1 flex flex-col items-start w-full grow lg:top-[20%] md:top-[5%] top-0',
+        locationClass: 'row-start-1 col-start-1 row-span-3 col-span-1',
+        innerClassName: ' flex flex-col items-start w-full lg:top-[20%] md:top-[5%] top-0',
+        playerInfoClass: 'lg:bottom-0 lg:left-0 lg:min-w-32 bottom-0',
         location: playerLocation(players[2]),
         width: 0,
         height: 0
       },
       {
         player: players[3],
-        className:
-          'relative row-start-1 col-start-3 row-span-3 flex flex-col items-end w-full grow lg:top-[20%] md:top-[5%] top-0',
+        locationClass: 'row-start-1 col-start-3 row-span-3 row-span-1',
+        innerClassName: 'flex flex-col items-end w-full lg:top-[20%] md:top-[5%] top-0',
+        playerInfoClass: 'lg:bottom-0 lg:right-0 lg:min-w-32 bottom-0',
         location: playerLocation(players[3]),
         width: 0,
         height: 0

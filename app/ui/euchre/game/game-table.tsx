@@ -70,16 +70,16 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(2)}
             id={`game-base-2`}
-            className={clsx(`absolute top-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute top-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            T-2
           </div>
           <div
             ref={playerCenterTableRefs.get(2)}
             id={`game-base-2-center`}
-            className={clsx(`absolute bottom-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            C-2
           </div>
           {renderOrder[0]}
         </div>
@@ -90,16 +90,16 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(3)}
             id={`game-base-3`}
-            className={clsx(`absolute left-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute left-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            T-3
           </div>
           <div
             ref={playerCenterTableRefs.get(3)}
             id={`game-base-3-center`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            C-3
           </div>
           {renderOrder[1]}
         </div>
@@ -109,9 +109,9 @@ const GameTable = ({
         >
           <div
             id={`game-center`}
-            className={clsx(`absolute top-auto`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute top-auto`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            C
           </div>
           <GameFlippedCard cardState={cardState} card={game.trump} key={game.handId} visible={gameBidding} />
           {renderOrder[2]}
@@ -123,16 +123,16 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(4)}
             id={`game-base-4`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            T-4
           </div>
           <div
             ref={playerCenterTableRefs.get(4)}
             id={`game-base-4-center`}
-            className={clsx(`absolute top-auto left-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute top-auto left-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            C-4
           </div>
           {renderOrder[3]}
         </div>
@@ -143,16 +143,16 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(1)}
             id={`game-base-1`}
-            className={clsx(`absolute bottom-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            T-1
           </div>
           <div
             ref={playerCenterTableRefs.get(1)}
             id={`game-base-1-center`}
-            className={clsx(`absolute top-0`, { 'text-transparent': !DEBUG_ENABLED })}
+            className={clsx(`absolute top-0`, { 'text-transparent': DEBUG_ENABLED })}
           >
-            X
+            C-1
           </div>
           {renderOrder[4]}
         </div>

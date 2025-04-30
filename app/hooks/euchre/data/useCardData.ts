@@ -238,6 +238,7 @@ const useCardData = () => {
 
     for (let i = 0; i < shuffleCount; i++) newDeck = shuffleDeck(newDeck);
 
+    newDeck = indexCards(newDeck);
     return newDeck;
   };
 
@@ -287,9 +288,7 @@ const useCardData = () => {
     }
 
     for (let num = 0; num < deckSize; num++) {
-      const card = deck[randomNumbers[num]];
-      card.index = num;
-      newDeck.push(card);
+      newDeck.push(deck[randomNumbers[num]]);
     }
 
     if (newDeck.length < deckSize) throw Error('Logic error: wrong deck size');
