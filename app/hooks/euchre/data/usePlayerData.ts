@@ -1,34 +1,10 @@
 import { Card, TEAM_COLOR_MAP, TeamColor } from '@/app/lib/euchre/definitions/definitions';
 import useCardData from './useCardData';
 import { useCallback } from 'react';
-import {
-  EuchreCard,
-  EuchrePlayer,
-  EuchreSettings
-} from '../../../lib/euchre/definitions/game-state-definitions';
+import { EuchrePlayer, EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
 
 const usePlayerData = () => {
   const { cardEqual, getDisplayWidth, getDisplayHeight } = useCardData();
-
-  const innerPlayerBaseId = (player: EuchrePlayer): string => {
-    return `game-base-${player.playerNumber}-inner`;
-  };
-
-  const outerPlayerBaseId = (player: EuchrePlayer): string => {
-    return `game-base-${player.playerNumber}`;
-  };
-
-  const playerBase = (player: EuchrePlayer): string => {
-    return `player-base-${player.playerNumber}`;
-  };
-
-  const playerLocation = (player: EuchrePlayer): 'center' | 'side' => {
-    return player.playerNumber === 1 || player.playerNumber === 2 ? 'center' : 'side';
-  };
-
-  const availableCards = (player: EuchrePlayer): Card[] => {
-    return player.hand.filter((c) => c.value !== 'P');
-  };
 
   const playerEqual = useCallback((first: EuchrePlayer, second: EuchrePlayer): boolean => {
     return first.playerNumber === second.playerNumber;
@@ -114,55 +90,41 @@ const usePlayerData = () => {
    *
    */
   const getPlayerGridLayoutInfo = (players: EuchrePlayer[]) => {
-    const widthCenter = getDisplayWidth('center');
-    const widthSide = getDisplayWidth('side');
-    const heightCenter = getDisplayHeight('center');
-    const heightSide = getDisplayHeight('side');
-
     //lg:left-[25%] md:left-[15%] left-[10%]
     const playerLayoutForGrid = [
       {
         player: players[0],
         locationClass: 'row-start-3 col-start-1 col-span-3 row-span-1',
         innerClassName: 'flex items-end h-full justify-center',
-        playerInfoClass: 'lg:relative lg:right-12 lg:bottom-8 lg:min-w-32 right-32 bottom-4',
-        location: playerLocation(players[0]),
-        width: 0,
-        height: 0
+        playerInfoClass: 'lg:relative lg:right-12 lg:bottom-8 lg:min-w-32 right-28 bottom-4',
+        width: getDisplayWidth(players[0].location),
+        height: getDisplayHeight(players[0].location)
       },
       {
         player: players[1],
         locationClass: 'row-start-1 col-start-1 col-span-3 row-span-1',
         innerClassName: 'flex h-full items-start justify-center',
-        playerInfoClass: 'lg:relative lg:right-8 lg:bottom-0 lg:top-auto lg:min-w-32 right-32 top-0',
-        location: playerLocation(players[1]),
-        width: 0,
-        height: 0
+        playerInfoClass: 'lg:relative lg:right-8 lg:bottom-0 lg:top-auto lg:min-w-32 right-24 top-0',
+        width: getDisplayWidth(players[1].location),
+        height: getDisplayHeight(players[1].location)
       },
       {
         player: players[2],
         locationClass: 'row-start-1 col-start-1 row-span-3 col-span-1',
         innerClassName: ' flex flex-col items-start w-full lg:top-[20%] md:top-[5%] top-0',
-        playerInfoClass: 'lg:bottom-0 lg:left-0 lg:min-w-32 bottom-0',
-        location: playerLocation(players[2]),
-        width: 0,
-        height: 0
+        playerInfoClass: 'lg:bottom-0 lg:left-0 lg:min-w-32 -bottom-4',
+        width: getDisplayWidth(players[2].location),
+        height: getDisplayHeight(players[2].location)
       },
       {
         player: players[3],
         locationClass: 'row-start-1 col-start-3 row-span-3 row-span-1',
         innerClassName: 'flex flex-col items-end w-full lg:top-[20%] md:top-[5%] top-0',
-        playerInfoClass: 'lg:bottom-0 lg:right-0 lg:min-w-32 bottom-0',
-        location: playerLocation(players[3]),
-        width: 0,
-        height: 0
+        playerInfoClass: 'lg:bottom-0 lg:right-0 lg:min-w-32 -bottom-4',
+        width: getDisplayWidth(players[3].location),
+        height: getDisplayHeight(players[3].location)
       }
     ];
-
-    for (const value of playerLayoutForGrid) {
-      value.width = value.location === 'center' ? widthCenter : widthSide;
-      value.height = value.location === 'center' ? heightCenter : heightSide;
-    }
 
     return playerLayoutForGrid;
   };
@@ -172,7 +134,6 @@ const usePlayerData = () => {
     playerEqual,
     getPlayerRotation,
     discard,
-    playerLocation,
     getTeamCssClass,
     getTeamCssClassFromTeamColor,
     getTeamColor,

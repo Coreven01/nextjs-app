@@ -1,13 +1,19 @@
-import { Card, RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '@/app/lib/euchre/definitions/definitions';
+import {
+  Card,
+  RESPONSE_CARD_CENTER,
+  RESPONSE_CARD_SIDE,
+  TableLocation
+} from '@/app/lib/euchre/definitions/definitions';
 import React, { forwardRef, PropsWithoutRef, RefObject } from 'react';
 import GameCard from './game-card';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import clsx from 'clsx';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import { AnimationControls, motion, TargetAndTransition } from 'framer-motion';
+import DummyCard from '../common/dummy-card';
 
 interface Props {
-  location: 'center' | 'side';
+  location: TableLocation;
   playerNumber: number;
   deck?: Card[];
   cardStates?: CardState[];
@@ -38,19 +44,23 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     }: Props,
     ref
   ) => {
-    console.log('**** [GameDeck] render. handId: ', handId);
+    const sideLocation = location === 'left' || location === 'right';
+
+    console.log('**** [GameDeck] render. handId: ', handId, ' card states: ', cardStates);
     return (
       <motion.div
+        style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
         className={clsx(
-          'absolute min-w-[100px] z-30',
+          'absolute z-20 overflow-visible',
           { invisible: deck === undefined || cardStates === undefined },
-          location === 'center' ? RESPONSE_CARD_CENTER : RESPONSE_CARD_SIDE
+          sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER
         )}
         ref={ref}
         id="game-deck"
         initial={initDeckState}
         animate={controls}
       >
+        <DummyCard responsive width={width} height={height} location={location} />
         {deck &&
           cardStates &&
           deckCardRefs &&
@@ -62,6 +72,7 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
                 id={`game-deck-card-${card.index}`}
                 key={`${card.index}`}
                 ref={cardRef}
+                location={location}
                 className="absolute top-0"
                 card={card}
                 cardState={cardState}

@@ -28,6 +28,7 @@ const useGameData = () => {
     getSuitCount,
     indexCards
   } = useCardData();
+
   const { availableCardsToPlay, playerEqual, getPlayerRotation } = usePlayerData();
 
   const createTrick = useCallback((round: number): EuchreTrick => {
@@ -57,19 +58,24 @@ const useGameData = () => {
   const isHandFinished = (game: EuchreGameInstance): boolean => {
     const playerReneged: boolean = game.currentTrick.playerRenege !== null;
     const allCardsPlayed: boolean = game.currentTricks.filter((t) => t.taker !== null).length === 5;
+
     return playerReneged || allCardsPlayed;
   };
 
+  /** Returns true if all players have played a card for the current trick. Returns true if a player reneges */
   const isTrickFinished = (game: EuchreGameInstance): boolean => {
     const playerReneged: boolean = game.currentTrick && game.currentTrick.playerRenege !== null;
     const allPlayersPlayed: boolean = game.currentTrick.cardsPlayed.length === (game.loner ? 3 : 4);
+
     return playerReneged || allPlayersPlayed;
   };
 
+  /** Returns true if a team reaches 10 points or more. */
   const isGameOver = (game: EuchreGameInstance): boolean => {
     return teamPoints(game, 1) >= 10 || teamPoints(game, 2) >= 10;
   };
 
+  /** Total points for the given team for the current game. */
   const teamPoints = (game: EuchreGameInstance, teamNumber: 1 | 2): number => {
     return game.handResults
       .filter((t) => t.teamWon === teamNumber)
@@ -219,7 +225,7 @@ const useGameData = () => {
     }
   };
 
-  /** */
+  /** Create a hand result for the current round of play. Determines and sets the winning team and points. */
   const getHandResult = (game: EuchreGameInstance): EuchreHandResult => {
     if (!game.maker) throw new Error('Maker not found for hand result.');
 
@@ -277,6 +283,7 @@ const useGameData = () => {
     return retval;
   };
 
+  /** Validates the hand result was created correctly. */
   const validateHandResult = (result: EuchreHandResult): void => {
     const msg: string = 'Hand result validation failed.';
     const allCards: Card[] = [...result.allPlayerCards.map((c) => c.card), ...result.kitty];
@@ -560,6 +567,7 @@ const useGameData = () => {
     return 0;
   }
 
+  /** Returns the next speed value based on the offset. */
   const incrementSpeed = useCallback((gameSpeed: GameSpeed, offset: number): GameSpeed => {
     if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
       const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + offset) ?? 150;

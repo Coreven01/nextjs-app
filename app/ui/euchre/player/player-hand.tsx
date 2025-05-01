@@ -38,7 +38,6 @@ const PlayerHand = ({
     onCardPlayedComplete,
     getCardsToDisplay,
     handlePlayCardAnimation,
-    playerLocation,
     getDisplayWidth,
     getDisplayHeight
   } = useCardState(state, player, playerDeckRefs, onTrickComplete, onPassDeal, onCardPlayed);
@@ -64,7 +63,7 @@ const PlayerHand = ({
 
   const gameCards: React.ReactNode[] = [];
   const playerCurrentHand: Card[] = getCardsToDisplay();
-  const location = playerLocation(player);
+  const location = player.location;
   const width: number = handState?.width ?? getDisplayWidth(location);
   const height: number = handState?.height ?? getDisplayHeight(location);
 
@@ -72,7 +71,7 @@ const PlayerHand = ({
     // used to make sure the player area always has 5 cards placed to make sure elements flow correctly.
     gameCards.push(
       <DummyCard
-        className={getCardClassForPlayerLocation(player.playerNumber, false)}
+        className={getCardClassForPlayerLocation(location, false)}
         key={`dummy-${i}`}
         width={width}
         height={height}
@@ -111,10 +110,10 @@ const PlayerHand = ({
           return (
             <GameCard
               key={keyval}
-              className={clsx('absolute', getCardClassForPlayerLocation(player.playerNumber, true))}
+              className={clsx('absolute', getCardClassForPlayerLocation(location, true))}
+              location={location}
               card={card}
               cardState={cardState}
-              player={player}
               runAnimationCompleteEffect={cardState.runEffectForState}
               ref={cardRef}
               width={handState.width}

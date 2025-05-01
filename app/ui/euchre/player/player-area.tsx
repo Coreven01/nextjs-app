@@ -6,6 +6,7 @@ import GameGrid from '../game/game-grid';
 import useCardData from '../../../hooks/euchre/data/useCardData';
 import PlayerInfo from './player-info';
 import clsx from 'clsx';
+import { TableLocation } from '../../../lib/euchre/definitions/definitions';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameValues;
@@ -20,19 +21,14 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
   const players = state.euchreGame.gamePlayers;
   const playerLayoutForGrid = getPlayerGridLayoutInfo(players);
 
-  const creatDummyCards = (
-    player: EuchrePlayer,
-    width: number,
-    height: number,
-    location: 'center' | 'side'
-  ) => {
+  const creatDummyCards = (player: EuchrePlayer, width: number, height: number, location: TableLocation) => {
     const retval: React.ReactNode[] = [];
     for (let i = 0; i < 5; i++) {
       retval.push(
         <DummyCard
           id={`dummy-${player.playerNumber}-${i}`}
           key={`dummy-${player.playerNumber}-${i}`}
-          className={getCardClassForPlayerLocation(player.playerNumber, false)}
+          className={getCardClassForPlayerLocation(location, false)}
           width={width}
           height={height}
           responsive={true}
@@ -53,7 +49,12 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
         className={clsx('relative', playerInfo.locationClass)}
       >
         <div className={clsx('relative', playerInfo.innerClassName)}>
-          {creatDummyCards(playerInfo.player, playerInfo.width, playerInfo.height, playerInfo.location)}
+          {creatDummyCards(
+            playerInfo.player,
+            playerInfo.width,
+            playerInfo.height,
+            playerInfo.player.location
+          )}
           <div
             className={clsx('absolute lg:text-sm text-xs whitespace-nowrap z-30', playerInfo.playerInfoClass)}
           >

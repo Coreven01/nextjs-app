@@ -1,5 +1,12 @@
-import { offsuitValues, trumpValues } from '@/app/lib/euchre/card-data';
-import { Card, CardColor, CardValue, LEFT_BOWER_VALUE, Suit } from '@/app/lib/euchre/definitions/definitions';
+import { OFFSUIT_VALUES, TRUMP_VALUES } from '@/app/lib/euchre/card-data';
+import {
+  Card,
+  CardColor,
+  CardValue,
+  LEFT_BOWER_VALUE,
+  Suit,
+  TableLocation
+} from '@/app/lib/euchre/definitions/definitions';
 import { createRange } from '@/app/lib/euchre/util';
 import { useCallback } from 'react';
 import { CardPosition } from './useCardTransform';
@@ -12,24 +19,27 @@ const useCardData = () => {
     return card1.value === card2.value && card1.suit === card2.suit;
   }, []);
 
-  const cardId = (card: Card): string => {
-    return `card-${card.index}`;
-  };
-
   const isPlaceHolder = (card: Card): boolean => {
     return card.value === 'P';
   };
 
-  const getDisplayWidth = (location: 'center' | 'side'): number => {
-    return location === 'center' ? CARD_WIDTH : CARD_HEIGHT;
+  const getDisplayWidth = (location: TableLocation): number => {
+    return location === 'top' || location === 'bottom' ? CARD_WIDTH : CARD_HEIGHT;
   };
 
-  const getDisplayHeight = (location: 'center' | 'side'): number => {
-    return location === 'center' ? CARD_HEIGHT : CARD_WIDTH;
+  const getDisplayHeight = (location: TableLocation): number => {
+    return location === 'top' || location === 'bottom' ? CARD_HEIGHT : CARD_WIDTH;
   };
 
-  const getCardBackSrc = (location: 'center' | 'side') => {
-    const cardBackSvgSrc: string = location === 'center' ? '/card-back.svg' : '/card-back-side.svg';
+  const getCardBackSrc = (location: TableLocation) => {
+    const cardBackSvgSrc: string =
+      location === 'top' || location === 'bottom' ? '/card-back.svg' : '/card-back-side.svg';
+    return cardBackSvgSrc;
+  };
+
+  const getCardShadowSrc = (location: TableLocation) => {
+    const cardBackSvgSrc: string =
+      location === 'top' || location === 'bottom' ? '/card-shadow.png' : '/card-shadow-side.png';
     return cardBackSvgSrc;
   };
 
@@ -55,11 +65,11 @@ const useCardData = () => {
       let retval = 0;
 
       if (trumpCard && card.suit === trumpCard.suit) {
-        retval = trumpValues.get(card.value) ?? 0;
+        retval = TRUMP_VALUES.get(card.value) ?? 0;
       } else if (trumpCard && cardIsLeftBower(card, trumpCard)) {
         retval = LEFT_BOWER_VALUE;
       } else {
-        retval = offsuitValues.get(card.value) ?? 0;
+        retval = OFFSUIT_VALUES.get(card.value) ?? 0;
       }
 
       return retval;
@@ -372,20 +382,20 @@ const useCardData = () => {
     return newCards;
   };
 
-  const getCardClassForPlayerLocation = (playerNumber: number, includePosition: boolean): string => {
+  const getCardClassForPlayerLocation = (location: TableLocation, includePosition: boolean): string => {
     let retval = '';
 
-    switch (playerNumber) {
-      case 1:
+    switch (location) {
+      case 'bottom':
         retval = `${includePosition ? 'left-[35%] lg:top-auto top-4' : ''}`;
         break;
-      case 2:
+      case 'top':
         retval = `${includePosition ? 'lg:left-[30%] lg:top-auto -top-12 left-[45%]' : ''}`;
         break;
-      case 3:
+      case 'left':
         retval = `${includePosition ? 'lg:left-auto lg:top-auto top-[35%] -left-12' : ''}`;
         break;
-      case 4:
+      case 'right':
         retval = `${includePosition ? 'lg:right-auto lg:top-auto top-[35%] -right-12' : ''}`;
         break;
     }
@@ -395,7 +405,6 @@ const useCardData = () => {
 
   return {
     cardEqual,
-    cardId,
     isPlaceHolder,
     getDisplayHeight,
     getDisplayWidth,
@@ -415,7 +424,8 @@ const useCardData = () => {
     getCardColor,
     sortCardsIndices,
     indexCards,
-    getCardClassForPlayerLocation
+    getCardClassForPlayerLocation,
+    getCardShadowSrc
   };
 };
 

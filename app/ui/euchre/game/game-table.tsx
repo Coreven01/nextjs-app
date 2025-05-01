@@ -17,6 +17,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   playerNotification: PlayerNotificationState;
   playerCenterTableRefs: Map<number, RefObject<HTMLDivElement | null>>;
   playerOuterTableRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  directCenterRef: RefObject<HTMLDivElement | null>;
 }
 
 const GameTable = ({
@@ -25,9 +26,11 @@ const GameTable = ({
   playerNotification,
   playerCenterTableRefs,
   playerOuterTableRefs,
+  directCenterRef,
   ...rest
 }: Props) => {
   const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
+  const debugEnabled = DEBUG_ENABLED;
   const renderOrder = [
     playerNotification.player2GameInfo,
     playerNotification.player3GameInfo,
@@ -43,7 +46,7 @@ const GameTable = ({
       gameFlow.gameFlow === EuchreGameFlow.BEGIN_PASS_DEAL);
 
   const cardState: CardState = {
-    src: getEncodedCardSvg(game.trump, 'center'),
+    src: getEncodedCardSvg(game.trump, 'top'),
     cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
     cardIndex: 0,
     initSpringValue: {
@@ -70,14 +73,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(2)}
             id={`game-base-2`}
-            className={clsx(`absolute top-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute top-0`, { 'text-transparent': debugEnabled })}
           >
             T-2
           </div>
           <div
             ref={playerCenterTableRefs.get(2)}
             id={`game-base-2-center`}
-            className={clsx(`absolute bottom-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': debugEnabled })}
           >
             C-2
           </div>
@@ -90,14 +93,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(3)}
             id={`game-base-3`}
-            className={clsx(`absolute left-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute left-0`, { 'text-transparent': debugEnabled })}
           >
             T-3
           </div>
           <div
             ref={playerCenterTableRefs.get(3)}
             id={`game-base-3-center`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': debugEnabled })}
           >
             C-3
           </div>
@@ -109,7 +112,8 @@ const GameTable = ({
         >
           <div
             id={`game-center`}
-            className={clsx(`absolute top-auto`, { 'text-transparent': DEBUG_ENABLED })}
+            ref={directCenterRef}
+            className={clsx(`absolute top-auto`, { 'text-transparent': debugEnabled })}
           >
             C
           </div>
@@ -123,14 +127,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(4)}
             id={`game-base-4`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': debugEnabled })}
           >
             T-4
           </div>
           <div
             ref={playerCenterTableRefs.get(4)}
             id={`game-base-4-center`}
-            className={clsx(`absolute top-auto left-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute top-auto left-0`, { 'text-transparent': debugEnabled })}
           >
             C-4
           </div>
@@ -143,14 +147,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get(1)}
             id={`game-base-1`}
-            className={clsx(`absolute bottom-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': debugEnabled })}
           >
             T-1
           </div>
           <div
             ref={playerCenterTableRefs.get(1)}
             id={`game-base-1-center`}
-            className={clsx(`absolute top-0`, { 'text-transparent': DEBUG_ENABLED })}
+            className={clsx(`absolute top-0`, { 'text-transparent': debugEnabled })}
           >
             C-1
           </div>

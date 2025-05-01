@@ -11,7 +11,7 @@ import {
   svgSideCardValues,
   TextData
 } from '@/app/lib/euchre/card-data';
-import { Card, CardValue, Suit } from '@/app/lib/euchre/definitions/definitions';
+import { Card, CardValue, Suit, TableLocation } from '@/app/lib/euchre/definitions/definitions';
 import useCardData from './useCardData';
 import { useCallback } from 'react';
 
@@ -29,12 +29,14 @@ const useCardSvgData = () => {
   const getCardSvg = useCallback(
     (
       card: Card,
-      location: 'center' | 'side',
+      location: TableLocation,
       addOpaqueOverlay?: boolean,
       color?: string,
       opacity?: number
     ): string => {
-      let retval = location === 'center' ? baseCard : baseCardSide;
+      const centerLocation = location === 'top' || location === 'bottom';
+
+      let retval = centerLocation ? baseCard : baseCardSide;
 
       const cardColor = color ?? '#ffffff';
       const cardOpacity = opacity ?? 1;
@@ -43,22 +45,20 @@ const useCardSvgData = () => {
       const textValues = [];
       const imageKeys: string[] = cardSvgValues.get(card.value) ?? [];
       const imageColor: string = svgCardColors.get(getCardColor(card.suit)) ?? '#000';
-      const cardValues = location === 'center' ? svgCenterCardValues : svgSideCardValues;
-      const baseCardRect =
-        location === 'center'
-          ? getBaseCardColor(cardColor, cardOpacity)
-          : getBaseCardSideColor(cardColor, cardOpacity);
+      const cardValues = centerLocation ? svgCenterCardValues : svgSideCardValues;
+      const baseCardRect = centerLocation
+        ? getBaseCardColor(cardColor, cardOpacity)
+        : getBaseCardSideColor(cardColor, cardOpacity);
       const overlayColor: string = '#333333';
       let baseCardOverlayRect = '';
 
       if (addCardOverlay)
-        baseCardOverlayRect =
-          location === 'center'
-            ? getBaseCardColor(overlayColor, 0.5)
-            : getBaseCardSideColor(overlayColor, 0.5);
+        baseCardOverlayRect = centerLocation
+          ? getBaseCardColor(overlayColor, 0.5)
+          : getBaseCardSideColor(overlayColor, 0.5);
 
       for (const text of imageKeys) {
-        const imageLocation = location === 'center' ? centerSvgVals.get(text) : sideSvgVals.get(text);
+        const imageLocation = centerLocation ? centerSvgVals.get(text) : sideSvgVals.get(text);
 
         if (imageLocation) {
           const xml = getCardText(imageLocation, imageColor, text === 's2-b' ? card.value : card.suit);
@@ -90,13 +90,7 @@ const useCardSvgData = () => {
 
   /** */
   const getEncodedCardSvg = useCallback(
-    (
-      card: Card,
-      location: 'center' | 'side',
-      addOpaqueOverlay?: boolean,
-      color?: string,
-      opacity?: number
-    ) => {
+    (card: Card, location: TableLocation, addOpaqueOverlay?: boolean, color?: string, opacity?: number) => {
       const cardSvg = getCardSvg(card, location, addOpaqueOverlay, color, opacity);
       const dynamicSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cardSvg)}`;
 
@@ -141,8 +135,6 @@ const useCardSvgData = () => {
       case '♥':
         return 'Heart';
     }
-
-    return '';
   }
 
   function getCardValueName(value: CardValue): string {

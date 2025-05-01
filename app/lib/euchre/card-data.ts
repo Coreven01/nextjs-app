@@ -1,6 +1,6 @@
 import { CardValue } from './definitions/definitions';
 
-const offsuitValues: Map<CardValue, number> = new Map([
+const OFFSUIT_VALUES: Map<CardValue, number> = new Map([
   ['9', 10],
   ['10', 15],
   ['J', 20],
@@ -9,7 +9,7 @@ const offsuitValues: Map<CardValue, number> = new Map([
   ['A', 90]
 ]);
 
-const trumpValues: Map<CardValue, number> = new Map([
+const TRUMP_VALUES: Map<CardValue, number> = new Map([
   ['9', 100],
   ['10', 110],
   ['Q', 120],
@@ -377,16 +377,16 @@ const svgCardColors = new Map<string, string>([
 ]);
 
 export {
-  offsuitValues,
-  trumpValues,
+  OFFSUIT_VALUES,
+  TRUMP_VALUES,
   baseCard,
   baseCardSide,
   cardSvgValues,
   svgSideCardValues,
   svgCenterCardValues,
-  getBaseCardSideColor,
-  getBaseCardColor,
   centerSvgVals,
   sideSvgVals,
-  svgCardColors
+  svgCardColors,
+  getBaseCardSideColor,
+  getBaseCardColor
 };

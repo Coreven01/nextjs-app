@@ -10,6 +10,7 @@ import {
 import { Card } from '../../../lib/euchre/definitions/definitions';
 import useTableRefs from '../../../hooks/euchre/useTableRefs';
 import PlayerCardArea from '../player/player-card-area';
+import { useRef } from 'react';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameValues;
@@ -55,6 +56,7 @@ const GameArea = ({
 }: Props) => {
   /** Elements associated with the player's center. Used when playing a card to the center of the table. */
   const centerTableRefs = useTableRefs(4);
+  const directCenterRef = useRef<HTMLDivElement>(null);
 
   /** Elements associated with the player's outer side. Used when dealing cards to a player. */
   const outerTableRefs = useTableRefs(4);
@@ -86,12 +88,13 @@ const GameArea = ({
           playerNotification={playerNotification}
           playerCenterTableRefs={centerTableRefs}
           playerOuterTableRefs={outerTableRefs}
+          directCenterRef={directCenterRef}
         />
       </div>
       <PlayerArea
         id="euchre-player-area"
         state={state}
-        className="col-start-1 row-start-1 col-span-3 row-span-3"
+        className="col-start-1 row-start-1 col-span-3 row-span-3 overflow-hidden"
       />
       <PlayerCardArea
         id="euchre-player-card-area"
@@ -99,8 +102,9 @@ const GameArea = ({
         playedCard={playedCard}
         playerCenterTableRefs={centerTableRefs}
         playerOuterTableRefs={outerTableRefs}
+        directCenterRef={directCenterRef}
         animationHandlers={animationHandlers}
-        className="relative col-start-1 row-start-1 col-span-3 row-span-3"
+        className="relative col-start-1 row-start-1 col-span-3 row-span-3 overflow-hidden"
       />
     </div>
   );

@@ -65,10 +65,10 @@ const useCardState = (
     getSpringsForCardInit,
     getCalculatedWidthOffset,
     getSpringForTrickTaken,
-    getTransitionForCardPlayed
+    getTransitionForCardMoved
   } = useCardTransform();
   const { getDisplayWidth, getDisplayHeight, cardEqual, sortCardsIndices, getCardBackSrc } = useCardData();
-  const { playerLocation, playerEqual, availableCardsToPlay } = usePlayerData();
+  const { playerEqual, availableCardsToPlay } = usePlayerData();
   const { getCardsAvailableToPlay, isHandFinished, playerSittingOut, gameDelay } = useGameData();
   const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
   const sittingOutPlayer = playerSittingOut(state.euchreGame);
@@ -120,7 +120,7 @@ const useCardState = (
 
   /** Create and set the initial hand state for the player's hand. */
   const setInitialPlayerHandState = () => {
-    const location = playerLocation(player);
+    const location = player.location;
     const width: number = getDisplayWidth(location);
     const height: number = getDisplayHeight(location);
     const showCardImage = state.euchreGameFlow.shouldShowCardImagesForHand.find((c) =>
@@ -149,8 +149,7 @@ const useCardState = (
   /** Set initial card state used when animation of cards being played. */
   const setInitialCardStates = useCallback((): void => {
     const retval: CardState[] = [];
-    const location = playerLocation(player);
-    const cardBackSvgSrc: string = getCardBackSrc(location);
+    const cardBackSvgSrc: string = getCardBackSrc(player.location);
 
     for (const card of player.hand) {
       retval.push({
@@ -174,8 +173,7 @@ const useCardState = (
     getRandomRotation,
     getRandomStiffness,
     getSpringsForCardInit,
-    player,
-    playerLocation
+    player
   ]);
 
   /** Gets the cards that are available to be played for the current trick. If enforce follow suit setting is enabled, then only
@@ -226,7 +224,11 @@ const useCardState = (
         initCalculatedWidth.current = getCalculatedWidthOffset(cardRef);
       }
 
-      const newProps: CardSpringProps[] = groupHand(player, initCalculatedWidth.current, currentProps);
+      const newProps: CardSpringProps[] = groupHand(
+        player.location,
+        initCalculatedWidth.current,
+        currentProps
+      );
       for (const cardState of newCardStates) {
         const tempVal = newProps.find((p) => p.cardIndex === cardState.cardIndex)?.springValue;
 
@@ -274,7 +276,7 @@ const useCardState = (
     player,
     playerEqual,
     state.euchreGame.currentPlayer,
-    state.euchreGameFlow.gameFlow
+    state.euchrePauseState.pauseType
   ]);
 
   /** Returns the cards should be displayed on the game table. Ensures the played cards stays center table until the trick is finished.
@@ -319,7 +321,7 @@ const useCardState = (
   ) => {
     const newCardStates: CardState[] = [...cardStates];
     const card = player.hand[cardIndex];
-    const location = playerLocation(player);
+    const location = player.location;
     const currentProps: CardSpringProps[] = getAvailableCardsAndState(true);
     const cardWidthOffset = initCalculatedWidth.current;
     logConsole('[playCard] - useCardState.ts ');
@@ -341,7 +343,7 @@ const useCardState = (
       cardState.springValue = val.springValue;
 
       if (val.cardIndex === cardIndex) {
-        cardState.springValue.transition = getTransitionForCardPlayed(
+        cardState.springValue.transition = getTransitionForCardMoved(
           cardState,
           state.euchreSettings.gameSpeed
         );
@@ -370,7 +372,8 @@ const useCardState = (
   /** Animates flipping a player's hand so the card values are visible. */
   const flipPlayerHand = useCallback(() => {
     const newCardStates: CardState[] = [...cardStates];
-    const location = playerLocation(player);
+    const location = player.location;
+
     for (const cardState of newCardStates) {
       const card = player.hand[cardState.cardIndex];
 
@@ -388,7 +391,7 @@ const useCardState = (
     }
 
     setCardStates(newCardStates);
-  }, [cardStates, getCardFullName, getEncodedCardSvg, player, playerLocation]);
+  }, [cardStates, getCardFullName, getEncodedCardSvg, player.hand, player.location]);
 
   //#endregion
 
@@ -624,7 +627,7 @@ const useCardState = (
     playerEqual,
     state.euchreGame.currentPlayer,
     state.euchreGame.currentTrick.trickId,
-    state.euchreGameFlow.gameFlow,
+    state.euchrePauseState.pauseType,
     updateCardStateForTurn
   ]);
 
@@ -673,7 +676,6 @@ const useCardState = (
     handlePlayCardAnimation,
     cardEqual,
     playerEqual,
-    playerLocation,
     getDisplayWidth,
     getDisplayHeight
   };

@@ -1,4 +1,4 @@
-import { Card, GameDifficulty } from '@/app/lib/euchre/definitions/definitions';
+import { Card, GameDifficulty, TableLocation } from '@/app/lib/euchre/definitions/definitions';
 import { EuchreGameFlow, EuchreGameFlowState } from '@/app/hooks/euchre/reducers/gameFlowReducer';
 import { InitDealResult, ShuffleResult } from '@/app/lib/euchre/definitions/logic-definitions';
 import useGameData from '../data/useGameData';
@@ -17,14 +17,20 @@ const useGameSetupLogic = () => {
   const { getPlayerRotation, getTeamColor } = usePlayerData();
   const { createPlaceholderCards, getSuitCount, createShuffledDeck, indexCards } = useCardData();
 
-  const createPlayer = (name: string, team: 1 | 2, playerNumber: 1 | 2 | 3 | 4): EuchrePlayer => {
+  const createPlayer = (
+    name: string,
+    team: 1 | 2,
+    playerNumber: 1 | 2 | 3 | 4,
+    location: TableLocation
+  ): EuchrePlayer => {
     return {
       name: name,
       team: team,
       playerNumber: playerNumber,
       hand: [],
       playedCards: [],
-      human: false
+      human: false,
+      location: location
     };
   };
 
@@ -68,10 +74,10 @@ const useGameSetupLogic = () => {
    *
    */
   const createDefaultEuchreGame = () => {
-    const player1: EuchrePlayer = createPlayer('Player 1', 1, 1);
-    const player2: EuchrePlayer = createPlayer('Player 2', 1, 2);
-    const player3: EuchrePlayer = createPlayer('Player 3', 2, 3);
-    const player4: EuchrePlayer = createPlayer('Player 4', 2, 4);
+    const player1: EuchrePlayer = createPlayer('Player 1', 1, 1, 'bottom');
+    const player2: EuchrePlayer = createPlayer('Player 2', 1, 2, 'top');
+    const player3: EuchrePlayer = createPlayer('Player 3', 2, 3, 'left');
+    const player4: EuchrePlayer = createPlayer('Player 4', 2, 4, 'right');
 
     const newGame: EuchreGameInstance = createBaseGame(player1, player2, player3, player4);
 
@@ -81,10 +87,10 @@ const useGameSetupLogic = () => {
   /** Create a game ready for initial deal. */
   const createEuchreGame = useCallback(
     (gameSettings: EuchreSettings): EuchreGameInstance => {
-      const player1: EuchrePlayer = createPlayer(gameSettings.playerName, 1, 1);
-      const player2: EuchrePlayer = createPlayer('Jerry', 1, 2);
-      const player3: EuchrePlayer = createPlayer('George', 2, 3);
-      const player4: EuchrePlayer = createPlayer('Elaine', 2, 4);
+      const player1: EuchrePlayer = createPlayer(gameSettings.playerName, 1, 1, 'bottom');
+      const player2: EuchrePlayer = createPlayer('Jerry', 1, 2, 'top');
+      const player3: EuchrePlayer = createPlayer('George', 2, 3, 'left');
+      const player4: EuchrePlayer = createPlayer('Elaine', 2, 4, 'right');
 
       player1.human = !gameSettings.debugAllComputerPlayers;
 
@@ -151,13 +157,16 @@ const useGameSetupLogic = () => {
         cardIndex: 0
       };
 
+      let jackCount = 0;
       // Deal until the first jack is dealt
       for (const card of gameDeck) {
         // exit loop once a jack is dealt.
         if (card.value === 'J') {
           retval.newDealer = rotation[counter % 4];
           retval.cardIndex = counter;
-          break;
+          jackCount++;
+
+          if (jackCount === 1) break;
         }
 
         counter++;

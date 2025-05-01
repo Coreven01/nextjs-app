@@ -76,11 +76,7 @@ const useEuchreGameShuffle = (
     newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 
     setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameState });
-    setters.dispatchStateChange(
-      undefined,
-      EuchreAnimationActionType.SET_ANIMATE,
-      EuchrePauseActionType.SET_ANIMATE
-    );
+    setters.dispatchStateChange(undefined, EuchreAnimationActionType.SET_ANIMATE);
     setters.setEuchreGame(newGame);
   }, [
     errorHandlers.onCancel,
@@ -122,8 +118,8 @@ const useEuchreGameShuffle = (
       // which gets executed by an effect in useCardState after the animation is complete for dealing cards.
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
-      //await new Promise((resolve) => setTimeout(resolve, 150));
-      //setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_ANIMATE);
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_ANIMATE);
     };
 
     try {

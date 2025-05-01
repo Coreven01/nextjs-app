@@ -59,9 +59,9 @@ export default function DiscardPrompt({
                 <Image
                   className={`contain row-span-1 col-span-1`}
                   quality={100}
-                  width={getDisplayWidth('center')}
-                  height={getDisplayHeight('center')}
-                  src={getEncodedCardSvg(pickedUpCard, 'center')}
+                  width={getDisplayWidth('top')}
+                  height={getDisplayHeight('top')}
+                  src={getEncodedCardSvg(pickedUpCard, 'top')}
                   alt={getCardFullName(pickedUpCard)}
                   title={getCardFullName(pickedUpCard)}
                   style={{

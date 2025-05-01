@@ -1,4 +1,9 @@
-import { Card, RESPONSE_CARD_CENTER, RESPONSE_CARD_SIDE } from '@/app/lib/euchre/definitions/definitions';
+import {
+  Card,
+  RESPONSE_CARD_CENTER,
+  RESPONSE_CARD_SIDE,
+  TableLocation
+} from '@/app/lib/euchre/definitions/definitions';
 import React, { CSSProperties, forwardRef, PropsWithoutRef, useCallback, useRef } from 'react';
 import { motion, TargetAndTransition } from 'framer-motion';
 import clsx from 'clsx';
@@ -6,7 +11,7 @@ import Image from 'next/image';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import { logConsole } from '../../../lib/euchre/util';
-import { EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
+import useCardData from '../../../hooks/euchre/data/useCardData';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   card: Card;
@@ -16,7 +21,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
 
   /** If set, effect should run for this effect if it hasn't been executed yet. */
   runAnimationCompleteEffect?: EuchreGameFlow;
-  player?: EuchrePlayer;
+  location: TableLocation;
   responsive?: boolean;
   hideBackFace?: boolean;
   /** */
@@ -35,7 +40,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       width,
       height,
       className,
-      player,
+      location,
       runAnimationCompleteEffect,
       responsive,
       hideBackFace = true,
@@ -45,9 +50,11 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     }: Props,
     ref
   ) => {
+    const { getCardBackSrc, getCardShadowSrc } = useCardData();
+
+    /** Used to prevent the same animation event handler from running more than once for a particular action. */
     const actionsRun = useRef<EuchreGameFlow[]>([]);
-    const sidePlayer = player && player.team === 2;
-    const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
+    const sideLocation = location === 'left' || location === 'right';
     const hoverEffect: TargetAndTransition | undefined =
       onCardClick !== undefined
         ? {
@@ -59,9 +66,9 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
             }
           }
         : undefined;
-    const cardBackSrc = sidePlayer ? '/card-back-side.svg' : '/card-back.svg';
-    const cardShadowSrc = sidePlayer ? '/card-shadow-side.png' : '/card-shadow.png';
+    const cardBackSrc = getCardBackSrc(location);
 
+    const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
     if (responsive) {
       cssValues.width = '100%';
       cssValues.height = '100%';
@@ -72,6 +79,9 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       cssValues.maxWidth = width;
     }
 
+    /** Handle the animation complete event if an event handler was passed in and the
+     * specific type of effect wasn't already handled.
+     */
     const handleAnimationComplete = useCallback(() => {
       const shouldRunEffect =
         runAnimationCompleteEffect &&
@@ -89,8 +99,8 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           id,
           ' play card effect: ',
           runAnimationCompleteEffect,
-          ' player: ',
-          player?.name,
+          ' location: ',
+          location,
           ' card state: ',
           cardState,
           ' actions run: ',
@@ -99,8 +109,9 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
         onAnimationComplete(card);
       }
-    }, [card, cardState, id, onAnimationComplete, player?.name, runAnimationCompleteEffect]);
+    }, [card, cardState, id, location, onAnimationComplete, runAnimationCompleteEffect]);
 
+    /** Handle card click event. */
     const handleCardClick = useCallback(() => {
       if (onCardClick) {
         logConsole('[handleCardClick] - game-card.tsx', ' card index: ', card.index);
@@ -116,8 +127,8 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       <motion.div
         style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
         className={clsx(
-          'pointer-events-none',
-          sidePlayer ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
+          'pointer-events-none overflow-visible',
+          sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
           className
         )}
         title={cardState.cardFullName}
@@ -130,11 +141,11 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         draggable={false}
       >
         <Image
-          className={clsx(`relative`, getShadowOffsetForPlayer(player?.playerNumber ?? 1))}
+          className={clsx(`relative`, getShadowOffsetForPlayer(location))}
           quality={50}
           width={width}
           height={height}
-          src={cardShadowSrc}
+          src={getCardShadowSrc(location)}
           alt={'card shadow'}
           style={{ ...cssValues, backfaceVisibility: 'visible' }}
           draggable={false}
@@ -165,7 +176,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           unoptimized={true}
           style={{
             ...cssValues,
-            transform: sidePlayer ? 'rotateX(180deg)' : 'rotateY(180deg)'
+            transform: sideLocation ? 'rotateX(180deg)' : 'rotateY(180deg)'
           }}
           draggable={false}
         />
@@ -174,15 +185,15 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
   }
 );
 
-const getShadowOffsetForPlayer = (playerNumber: number): string => {
-  switch (playerNumber) {
-    case 1:
+const getShadowOffsetForPlayer = (sideLocation: TableLocation): string => {
+  switch (sideLocation) {
+    case 'bottom':
       return 'top-2 left-2';
-    case 2:
+    case 'top':
       return '-top-2 left-2';
-    case 3:
+    case 'left':
       return 'top-2 -left-2';
-    case 4:
+    case 'right':
       return 'top-2 -right-2';
   }
 

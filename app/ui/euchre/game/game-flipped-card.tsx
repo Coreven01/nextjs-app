@@ -29,8 +29,9 @@ const GameFlippedCard = ({ card, cardState, visible }: Props) => {
             cardState={cardState}
             card={card}
             responsive={true}
-            width={getDisplayWidth('center')}
-            height={getDisplayHeight('center')}
+            width={getDisplayWidth('top')}
+            height={getDisplayHeight('top')}
+            location="top"
             title={cardState.cardFullName}
           ></GameCard>
         </div>

@@ -68,7 +68,7 @@ const TestPage = () => {
           style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
         >
           <Image
-            src={getEncodedCardSvg({ suit: '♠', value: '2', index: 0 }, 'center')}
+            src={getEncodedCardSvg({ suit: '♠', value: '2', index: 0 }, 'top')}
             alt=""
             width={100}
             height={150}

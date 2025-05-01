@@ -17,6 +17,7 @@ import {
   GameDifficulty,
   GameSpeed,
   PromptValue,
+  TableLocation,
   TeamColor
 } from './definitions';
 import {
@@ -57,6 +58,7 @@ export interface EuchrePlayer {
   readonly name: string;
   readonly playerNumber: 1 | 2 | 3 | 4;
   readonly team: 1 | 2;
+  readonly location: TableLocation;
 
   hand: Card[];
   playedCards: Card[];
