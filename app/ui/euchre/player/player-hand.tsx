@@ -1,10 +1,9 @@
 import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
-import DummyCard from '../common/dummy-card';
 import useCardState from '../../../hooks/euchre/useCardState';
 import { EuchreGameState, EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
-import { Card } from '../../../lib/euchre/definitions/definitions';
+import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
 import useCardData from '../../../hooks/euchre/data/useCardData';
 
 type Props = {
@@ -12,10 +11,11 @@ type Props = {
   player: EuchrePlayer;
   playedCard: Card | null;
   playerCenterTableRef: RefObject<HTMLDivElement | null> | undefined;
-  playerDeckRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onPassDeal: () => void;
+  onDealComplete: () => void;
 };
 
 const PlayerHand = ({
@@ -26,7 +26,8 @@ const PlayerHand = ({
   playerDeckRefs,
   onCardPlayed,
   onTrickComplete,
-  onPassDeal
+  onPassDeal,
+  onDealComplete
 }: Props) => {
   //#region Hooks
   // used to keep the card visible after it's been played for the current trick.
@@ -40,7 +41,7 @@ const PlayerHand = ({
     handlePlayCardAnimation,
     getDisplayWidth,
     getDisplayHeight
-  } = useCardState(state, player, playerDeckRefs, onTrickComplete, onPassDeal, onCardPlayed);
+  } = useCardState(state, player, playerDeckRefs, onTrickComplete, onPassDeal, onCardPlayed, onDealComplete);
   const cardIndicesPlayed = useRef<Map<string, number>>(new Map<string, number>());
   const { getCardClassForPlayerLocation } = useCardData();
 
@@ -64,22 +65,6 @@ const PlayerHand = ({
   const gameCards: React.ReactNode[] = [];
   const playerCurrentHand: Card[] = getCardsToDisplay();
   const location = player.location;
-  const width: number = handState?.width ?? getDisplayWidth(location);
-  const height: number = handState?.height ?? getDisplayHeight(location);
-
-  for (let i = 0; i < 5; i++) {
-    // used to make sure the player area always has 5 cards placed to make sure elements flow correctly.
-    gameCards.push(
-      <DummyCard
-        className={getCardClassForPlayerLocation(location, false)}
-        key={`dummy-${i}`}
-        width={width}
-        height={height}
-        responsive={true}
-        location={location}
-      ></DummyCard>
-    );
-  }
 
   const handleCardClick = (cardIndex: number) => {
     console.log('[handleCardClick] - player-hand.tsx - player: ', player.name);
@@ -94,6 +79,14 @@ const PlayerHand = ({
     }
   };
 
+  // console.log(
+  //   '******* [PlayerHand] - render cards: ',
+  //   cardsDealtRef.current,
+  //   ' hand state: ',
+  //   handState,
+  //   ' current hand: ',
+  //   playerCurrentHand
+  // );
   return (
     <>
       {gameCards}
@@ -110,7 +103,7 @@ const PlayerHand = ({
           return (
             <GameCard
               key={keyval}
-              className={clsx('absolute', getCardClassForPlayerLocation(location, true))}
+              className={clsx('absolute', getCardClassForPlayerLocation(player.location))}
               location={location}
               card={card}
               cardState={cardState}

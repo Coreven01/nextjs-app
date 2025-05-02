@@ -1,11 +1,12 @@
 import React from 'react';
+import { TableLocation } from '../../../lib/euchre/definitions/definitions';
 
 export interface PlayerNotificationState {
   /** Values used to identify what information is dynamically shown in the center of the game. */
-  player1GameInfo: React.ReactNode;
-  player2GameInfo: React.ReactNode;
-  player3GameInfo: React.ReactNode;
-  player4GameInfo: React.ReactNode;
+  bottomGameInfo: React.ReactNode;
+  topGameInfo: React.ReactNode;
+  leftGameInfo: React.ReactNode;
+  rightGameInfo: React.ReactNode;
   centerGameInfo: React.ReactNode;
 }
 
@@ -15,19 +16,19 @@ export interface PlayerNotificationAction {
 }
 
 export enum PlayerNotificationActionType {
-  UPDATE_PLAYER1,
-  UPDATE_PLAYER2,
-  UPDATE_PLAYER3,
-  UPDATE_PLAYER4,
+  UPDATE_BOTTOM,
+  UPDATE_TOP,
+  UPDATE_LEFT,
+  UPDATE_RIGHT,
   UPDATE_CENTER,
   RESET
 }
 
 export const INIT_PLAYER_NOTIFICATION: PlayerNotificationState = {
-  player1GameInfo: undefined,
-  player2GameInfo: undefined,
-  player3GameInfo: undefined,
-  player4GameInfo: undefined,
+  bottomGameInfo: undefined,
+  topGameInfo: undefined,
+  leftGameInfo: undefined,
+  rightGameInfo: undefined,
   centerGameInfo: undefined
 };
 
@@ -35,14 +36,14 @@ export function playerNotificationReducer(
   state: PlayerNotificationState,
   action: PlayerNotificationAction
 ): PlayerNotificationState {
-  if (action.type === PlayerNotificationActionType.UPDATE_PLAYER1) {
-    return { ...state, player1GameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.UPDATE_PLAYER2) {
-    return { ...state, player2GameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.UPDATE_PLAYER3) {
-    return { ...state, player3GameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.UPDATE_PLAYER4) {
-    return { ...state, player4GameInfo: action.payload };
+  if (action.type === PlayerNotificationActionType.UPDATE_BOTTOM) {
+    return { ...state, bottomGameInfo: action.payload };
+  } else if (action.type === PlayerNotificationActionType.UPDATE_TOP) {
+    return { ...state, topGameInfo: action.payload };
+  } else if (action.type === PlayerNotificationActionType.UPDATE_LEFT) {
+    return { ...state, leftGameInfo: action.payload };
+  } else if (action.type === PlayerNotificationActionType.UPDATE_RIGHT) {
+    return { ...state, rightGameInfo: action.payload };
   } else if (action.type === PlayerNotificationActionType.UPDATE_CENTER) {
     return { ...state, centerGameInfo: action.payload };
   } else if (action.type === PlayerNotificationActionType.RESET) {
@@ -52,17 +53,17 @@ export function playerNotificationReducer(
   }
 }
 
-export function getPlayerNotificationType(playerNumber: number): PlayerNotificationActionType {
-  switch (playerNumber) {
-    case 1:
-      return PlayerNotificationActionType.UPDATE_PLAYER1;
-    case 2:
-      return PlayerNotificationActionType.UPDATE_PLAYER2;
-    case 3:
-      return PlayerNotificationActionType.UPDATE_PLAYER3;
-    case 4:
-      return PlayerNotificationActionType.UPDATE_PLAYER4;
+export function getPlayerNotificationType(location: TableLocation): PlayerNotificationActionType {
+  switch (location) {
+    case 'bottom':
+      return PlayerNotificationActionType.UPDATE_BOTTOM;
+    case 'top':
+      return PlayerNotificationActionType.UPDATE_TOP;
+    case 'left':
+      return PlayerNotificationActionType.UPDATE_LEFT;
+    case 'right':
+      return PlayerNotificationActionType.UPDATE_RIGHT;
   }
 
-  return PlayerNotificationActionType.UPDATE_PLAYER1;
+  return PlayerNotificationActionType.UPDATE_BOTTOM;
 }

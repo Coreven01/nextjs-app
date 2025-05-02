@@ -1,12 +1,11 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import {
   EuchreAnimationHandlers,
+  EuchreGameInstance,
   EuchreGameValues,
   EuchrePlayer
 } from '../../lib/euchre/definitions/game-state-definitions';
 import { EuchreGameFlow } from './reducers/gameFlowReducer';
-import { EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
-import { EuchrePauseType } from './reducers/gamePauseReducer';
 import { CardState } from './reducers/cardStateReducer';
 import useGameData from './data/useGameData';
 import useCardTransform, {
@@ -22,6 +21,7 @@ import useTableRef from './useTableRefs';
 import { useAnimation } from 'framer-motion';
 import useCardData from './data/useCardData';
 import useGameStateLogic from './logic/useGameStateLogic';
+import useAnimationDeckState from './phases/useAnimationDeckState';
 
 export interface GameDeckState {
   deck: Card[];
@@ -29,6 +29,8 @@ export interface GameDeckState {
   handleAnimationComplete: () => void;
   dealType: EuchreGameFlow;
   initSpringValue?: CardSpringTarget;
+
+  /** Dealer location */
   location: TableLocation;
   playerNumber: number;
   handId: string;
@@ -40,8 +42,9 @@ export interface GameDeckState {
 /** */
 const useDeckState = (
   state: EuchreGameValues,
-  outerTableRefs: Map<number, RefObject<HTMLDivElement | null>>,
-  directCenterRef: RefObject<HTMLDivElement | null>,
+  outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
+  directCenterHRef: RefObject<HTMLDivElement | null>,
+  directCenterVRef: RefObject<HTMLDivElement | null>,
   animationHandlers: EuchreAnimationHandlers
 ) => {
   const {
@@ -51,16 +54,18 @@ const useDeckState = (
     getSpringsForDealForDealer,
     getSpringsToMoveToPlayer,
     getSpringMoveElement,
-    getCardOffsetForLocation,
+    getElementOffsetForLocation,
     getSpringsForDealForRegularPlay,
-    getElementOriginalPosition
+    getElementOriginalPosition,
+    getDestinationOffset
   } = useCardTransform();
   const { getPlayerRotation } = usePlayerData();
   const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
   const { gameDelay } = useGameData();
-  const { getDisplayWidth, getDisplayHeight, getCardBackSrc } = useCardData();
-  const { getGameStatesForDeal } = useGameStateLogic();
-
+  const { getDisplayWidth, getDisplayHeight } = useCardData();
+  const { getGameStatesForDeal, getGameStatesForPlay } = useGameStateLogic();
+  const { shouldBeginDealForDealer, shouldEndDealForDealer, shouldBeginDealCards } =
+    useAnimationDeckState(state);
   /** Used to position the deck near the player when dealing and animation to bring the deck into view. */
   const deckAnimationControls = useAnimation();
 
@@ -73,24 +78,24 @@ const useDeckState = (
   /** Set to true to trigger an effect that the deal for initial dealer is finished and should proceed to the next state in the game flow. */
   const [endInitialDeal, setEndInitialDeal] = useState(false);
 
-  const [endMoveCardsToDealer, setEndMoveCardsToDealer] = useState(false);
-  const initDealerState = useRef(false);
-  const initBeginDealForDealer = useRef(false);
+  /** Set to true to trigger an effect that the regular deal is finished and should proceed to the next state in the game flow. */
+  const [endRegularDeal, setEndRegularDeal] = useState(false);
 
   /** Used to prevent the same effect from triggering more than once. Set to true when the handler is triggered during the initial
    * deal phase, during begin deal for dealer game flow.
    */
-  const endBeginDealForDealer = useRef(false);
-  const initEndDealForDealer = useRef(false);
+  const initBeginDealForDealerEffect = useRef(false);
+  const endBeginDealForDealerEffect = useRef(false);
+  const initEndDealForDealerEffect = useRef(false);
+  const initBeginDealForRegularPlayEffect = useRef(false);
+  const endBeginDealForRegularPlayEffect = useRef(false);
   const cardsDealtCount = useRef(0);
-  const initBeginDealForRegularPlay = useRef(false);
-  const endBeginDealForRegularPlay = useRef(false);
 
   /** Elements associated with a player's area, outside of the table. */
-  const playerDeckRefs = useTableRef(4);
+  const playerDeckRefs = useTableRef();
 
   /** Elements associated with a player's area, closer to the center of the table. */
-  const playerInnerDeckRefs = useTableRef(4);
+  const playerInnerDeckRefs = useTableRef();
 
   /** map of card index to reference to the card elements, used to calc transitions between elements */
   const deckCardRefs = useCardRefs(24);
@@ -98,6 +103,7 @@ const useDeckState = (
   /** Reference to the element containing the deck of cards to be dealt. */
   const gameDeckRef = useRef<HTMLDivElement>(null);
   const gameDeckVisible = getGameStatesForDeal().includes(state.euchreGameFlow.gameFlow);
+  const gameHandVisible = getGameStatesForPlay().includes(state.euchreGameFlow.gameFlow);
   /** ************************************************************************************************************************************* */
 
   /**
@@ -107,20 +113,30 @@ const useDeckState = (
     setGameDeckState(undefined);
     setCardStates([]);
     setEndInitialDeal(false);
-    initDealerState.current = false;
-    initBeginDealForDealer.current = false;
-    endBeginDealForDealer.current = false;
-    initEndDealForDealer.current = false;
+    initBeginDealForDealerEffect.current = false;
+    endBeginDealForDealerEffect.current = false;
+    initEndDealForDealerEffect.current = false;
     cardsDealtCount.current = 0;
-    initBeginDealForRegularPlay.current = false;
-    endBeginDealForRegularPlay.current = false;
+    initBeginDealForRegularPlayEffect.current = false;
+    endBeginDealForRegularPlayEffect.current = false;
   };
+
+  /** Get the element that's relative to the player's location that's used as an offset. */
+  const getRelativeCenter = useCallback(
+    (location: TableLocation) => {
+      if (location === 'top' || location === 'bottom') {
+        return directCenterHRef.current;
+      } else {
+        return directCenterVRef.current;
+      }
+    },
+    [directCenterHRef, directCenterVRef]
+  );
 
   /** Increment the card count when dealing cards for initial deal. Once the cards have been dealt,
    * this should then trigger an effect for the next animation state.
    */
   const handleBeginDealForDealerComplete = useCallback(() => {
-    //console.log('[handleBeginDealForDealerComplete] - ', cardsDealtCount.current);
     if (cardsDealtCount.current === state.initDealer?.cardIndex) {
       setEndInitialDeal(true);
       cardsDealtCount.current = 0;
@@ -133,9 +149,7 @@ const useDeckState = (
    * call handler that the game should proceed to the next state.
    */
   const handleEndDealForDealerComplete = useCallback(() => {
-    //console.log('[handleEndDealForDealerComplete] - ', cardsDealtCount.current);
     if (cardsDealtCount.current === 23) {
-      setEndMoveCardsToDealer(true);
       cardsDealtCount.current = 0;
       animationHandlers.handleEndDealForDealerComplete();
     } else {
@@ -143,14 +157,24 @@ const useDeckState = (
     }
   }, [animationHandlers]);
 
+  /** */
+  const handleBeginDealForRegularPlayComplete = useCallback(() => {
+    if (cardsDealtCount.current === 20) {
+      setEndRegularDeal(true);
+      cardsDealtCount.current = 0;
+    } else {
+      cardsDealtCount.current += 1;
+    }
+  }, []);
+
   /** Create the intial card state values for beginning deal.
    *
    */
   const createCardStatesFromGameDeck = useCallback(
     (location: TableLocation, includeCardValue: boolean) => {
       const newCardStates: CardState[] = [];
-      const initZIndex = DEFAULT_SPRING_VAL.zIndex ?? 30;
-      const centerLocation = location === 'top' || location === 'bottom';
+      const initZIndex: number = DEFAULT_SPRING_VAL.zIndex ?? 30;
+      const centerLocation: boolean = location === 'top' || location === 'bottom';
 
       const initSpringValue: CardSpringTarget = {
         ...DEFAULT_SPRING_VAL,
@@ -161,8 +185,8 @@ const useDeckState = (
       for (const card of state.euchreGame.deck) {
         const cardState: CardState = {
           cardIndex: card.index,
-          src: includeCardValue ? getEncodedCardSvg(card, location) : getCardBackSrc(location),
-          cardFullName: getCardFullName(card),
+          src: includeCardValue ? getEncodedCardSvg(card, location) : undefined,
+          cardFullName: includeCardValue ? getCardFullName(card) : 'Player Card',
           initSpringValue: { ...initSpringValue, zIndex: initZIndex + card.index },
           springValue: {
             ...initSpringValue,
@@ -173,7 +197,8 @@ const useDeckState = (
           yDamping: getRandomDamping(),
           yStiffness: getRandomDamping(),
           rotation: 0,
-          enabled: false
+          enabled: false,
+          location: location
         };
 
         newCardStates.push(cardState);
@@ -181,63 +206,56 @@ const useDeckState = (
 
       return newCardStates;
     },
-    [
-      getCardBackSrc,
-      getCardFullName,
-      getEncodedCardSvg,
-      getRandomDamping,
-      getRandomStiffness,
-      state.euchreGame.deck
-    ]
+    [getCardFullName, getEncodedCardSvg, getRandomDamping, getRandomStiffness, state.euchreGame.deck]
   );
 
   /**
    * Initialize game deck state and card state for beginning a new deal.
    */
-  const initDeckStateForNewDealer = useCallback(async () => {
-    const location = state.euchreGame.dealer.location;
+  const initDeckStateForNewDealer = useCallback(
+    async (includeCardValue: boolean) => {
+      const game: EuchreGameInstance = state.euchreGame;
+      const location: TableLocation = game.dealer.location;
 
-    const newGameDeckState: GameDeckState = {
-      deck: state.euchreGame.deck,
-      cardRefs: deckCardRefs,
-      handleAnimationComplete: () => null,
-      dealType: EuchreGameFlow.BEGIN_INTRO,
-      location: location,
-      playerNumber: state.euchreGame.dealer.playerNumber,
-      initSpringValue: { ...DEFAULT_SPRING_VAL, opacity: 0 },
-      handId: state.euchreGame.handId,
-      gameId: state.euchreGame.gameId,
-      width: getDisplayWidth(location),
-      height: getDisplayHeight(location)
-    };
+      const newGameDeckState: GameDeckState = {
+        deck: game.deck,
+        cardRefs: deckCardRefs,
+        handleAnimationComplete: () => null,
+        dealType: EuchreGameFlow.BEGIN_INTRO,
+        location: location,
+        playerNumber: game.dealer.playerNumber,
+        initSpringValue: { ...DEFAULT_SPRING_VAL, opacity: 0 },
+        handId: game.handId,
+        gameId: game.gameId,
+        width: getDisplayWidth(location),
+        height: getDisplayHeight(location)
+      };
 
-    const gameStateExists = gameDeckState !== undefined;
+      const gameStateExists = gameDeckState !== undefined;
 
-    if (gameStateExists) {
-      // if game state already exists, then make sure the position is return back to its original location.
-      await deckAnimationControls.start({
-        x: 0,
-        y: 0,
-        opacity: 0,
-        transition: { duration: 0 }
-      });
-    }
+      if (gameStateExists) {
+        // if game state already exists, then make sure the position is return back to its original location.
+        await deckAnimationControls.start({
+          x: 0,
+          y: 0,
+          opacity: 0,
+          transition: { duration: 0 }
+        });
+      }
 
-    setGameDeckState(newGameDeckState);
-    setCardStates(createCardStatesFromGameDeck(location, true));
-  }, [
-    createCardStatesFromGameDeck,
-    deckAnimationControls,
-    deckCardRefs,
-    gameDeckState,
-    getDisplayHeight,
-    getDisplayWidth,
-    state.euchreGame.dealer.location,
-    state.euchreGame.dealer.playerNumber,
-    state.euchreGame.deck,
-    state.euchreGame.gameId,
-    state.euchreGame.handId
-  ]);
+      setGameDeckState(newGameDeckState);
+      setCardStates(createCardStatesFromGameDeck(location, includeCardValue));
+    },
+    [
+      createCardStatesFromGameDeck,
+      deckAnimationControls,
+      deckCardRefs,
+      gameDeckState,
+      getDisplayHeight,
+      getDisplayWidth,
+      state.euchreGame
+    ]
+  );
 
   /** Function that's called from an effect to initialize the game deck state for a new deal.
    * Only executes if the game deck has yet to be created, or the hand ID has changed.
@@ -248,8 +266,7 @@ const useDeckState = (
       state.euchreGame.deck.length === 24 && !state.euchreGame.deck.find((c) => c.value === 'P');
 
     if (handChanged && validDeck) {
-      console.log('[initDealerForNewDealer] - running init dealer change. game state: ', state);
-      await initDeckStateForNewDealer();
+      await initDeckStateForNewDealer(false);
     }
   }, [gameDeckState, initDeckStateForNewDealer, state]);
 
@@ -259,19 +276,20 @@ const useDeckState = (
   const initAnimationForInitialDeal = useCallback(async () => {
     if (!gameDeckState) throw new Error('Invalid game deck state for initializing deal.');
 
-    const destRef = playerDeckRefs.get(gameDeckState.playerNumber);
+    const destRef = playerDeckRefs.get(gameDeckState.location);
+    const directCenterRef = getRelativeCenter(gameDeckState.location);
 
     if (!destRef?.current) throw new Error('Invalid destination ref for initializing deal.');
     if (!gameDeckRef.current) throw new Error('Invalid game deck ref for initializing deal.');
-    if (!directCenterRef.current) throw new Error('Invalid direct center ref for initializing deal.');
+    if (!directCenterRef) throw new Error('Invalid direct center ref for initializing deal.');
 
     const duration = state.euchreSettings.gameSpeed / 1000;
     const srcRect = getElementOriginalPosition(gameDeckRef.current);
     const destRect = getElementOriginalPosition(destRef.current);
-    const relativeRect = getElementOriginalPosition(directCenterRef.current);
+    const relativeRect = getElementOriginalPosition(directCenterRef);
 
     const moveToElementSpring = getSpringMoveElement(gameDeckRef.current, destRef.current);
-    const offsets = getCardOffsetForLocation(srcRect, destRect, relativeRect, 'out');
+    const offsets = getElementOffsetForLocation(srcRect, destRect, relativeRect, 'out');
 
     // initial move from its absolute postion to the dealer's player location.
     const initMoveToDealer = {
@@ -291,15 +309,14 @@ const useDeckState = (
       transition: { opacity: { duration: duration }, x: { duration: duration }, y: { duration: duration } }
     };
 
-    //console.log('[initGameDeckStateForInitialDeal] - begin deck animation: ', initMoveToDealer);
     await deckAnimationControls.start(initMoveToDealer);
     await deckAnimationControls.start(moveIntoView);
   }, [
     deckAnimationControls,
-    directCenterRef,
     gameDeckState,
-    getCardOffsetForLocation,
+    getElementOffsetForLocation,
     getElementOriginalPosition,
+    getRelativeCenter,
     getSpringMoveElement,
     playerDeckRefs,
     state.euchreSettings.gameSpeed
@@ -309,29 +326,38 @@ const useDeckState = (
    * Create the animation values for the cards being dealt for initial deal.
    * */
   const dealCardsForInitialDeal = useCallback(() => {
-    const rotation: EuchrePlayer[] = getPlayerRotation(state.euchreGame.gamePlayers, state.euchreGame.dealer);
-    const duration: number = state.euchreSettings.gameSpeed / 1000;
-    const delayBetweenDeal: number = duration / 2;
-
     if (!gameDeckState) throw new Error('Invalid deck state for dealing cards.');
-    if (!directCenterRef.current) throw new Error('Invalid direct center ref for initializing deal.');
+
+    const game: EuchreGameInstance = state.euchreGame;
+    const rotation: EuchrePlayer[] = getPlayerRotation(game.gamePlayers, game.dealer);
+    const duration: number = state.euchreSettings.gameSpeed / 1000;
+    const delayBetweenDeal: number = duration / 3;
+    const directCenterH = directCenterHRef.current;
+    const directCenterV = directCenterVRef.current;
+
+    if (!directCenterH) throw new Error('Invalid direct center ref for initializing deal.');
+    if (!directCenterV) throw new Error('Invalid direct center ref for initializing deal.');
 
     setCardStates((prev) => {
       if (!state.initDealer) throw new Error('Invalid deal result for dealing cards.');
 
+      const newState = [...prev];
+
       const springsForDeal: CardSpringProps[] = getSpringsForDealForDealer(
         outerTableRefs,
         deckCardRefs,
-        directCenterRef,
+        directCenterH,
+        directCenterV,
         rotation,
-        state.euchreGame.deck,
+        game.deck,
         state.initDealer
       );
 
       for (const updatedSpring of springsForDeal) {
-        const cardState = prev.at(updatedSpring.cardIndex);
+        const cardState = newState.at(updatedSpring.cardIndex);
+        const card = game.deck.at(updatedSpring.cardIndex);
 
-        if (cardState) {
+        if (cardState?.location && card) {
           updatedSpring.springValue.transition = getTransitionForCardMoved(
             cardState,
             state.euchreSettings.gameSpeed,
@@ -339,10 +365,12 @@ const useDeckState = (
           );
           cardState.runEffectForState = EuchreGameFlow.BEGIN_DEAL_FOR_DEALER;
           cardState.springValue = updatedSpring.springValue;
+          cardState.src = getEncodedCardSvg(card, cardState.location);
+          cardState.cardFullName = getCardFullName(card);
         }
       }
 
-      return [...prev];
+      return newState;
     });
 
     setGameDeckState({
@@ -352,28 +380,32 @@ const useDeckState = (
     });
   }, [
     deckCardRefs,
-    directCenterRef,
+    directCenterHRef,
+    directCenterVRef,
     gameDeckState,
+    getCardFullName,
+    getEncodedCardSvg,
     getPlayerRotation,
     getSpringsForDealForDealer,
     getTransitionForCardMoved,
     handleBeginDealForDealerComplete,
     outerTableRefs,
-    state.euchreGame.dealer,
-    state.euchreGame.deck,
-    state.euchreGame.gamePlayers,
+    state.euchreGame,
     state.euchreSettings.gameSpeed,
     state.initDealer
   ]);
 
-  /** Animate cards going to a player side of the game board. */
+  /** Animate cards going to a player side of the game board after cards have been dealt.
+   *
+   */
   const moveCardsToPlayer = useCallback(
     (destinationPlayer: EuchrePlayer) => {
       const duration = state.euchreSettings.gameSpeed / 1000;
       const delayBetweenDeal = duration / 5;
 
       setCardStates((prev) => {
-        const destRef = playerDeckRefs.get(destinationPlayer.playerNumber);
+        const newState = [...prev];
+        const destRef = playerDeckRefs.get(destinationPlayer.location);
 
         if (!destRef?.current) throw new Error('Invalid destination ref to move cards to dealer');
 
@@ -384,21 +416,23 @@ const useDeckState = (
           cardStates
         );
 
-        for (const updatedSpring of springsToMove) {
-          const cardState = prev.at(updatedSpring.cardIndex);
+        for (const cardState of newState) {
+          const spring = springsToMove.at(cardState.cardIndex);
 
-          if (cardState) {
-            updatedSpring.springValue.transition = getTransitionForCardMoved(
+          if (spring) {
+            spring.springValue.transition = getTransitionForCardMoved(
               cardState,
               state.euchreSettings.gameSpeed,
               delayBetweenDeal * Math.floor(Math.random() * 3)
             );
             cardState.runEffectForState = EuchreGameFlow.END_DEAL_FOR_DEALER;
-            cardState.springValue = updatedSpring.springValue;
+            cardState.springValue = spring.springValue;
           }
+
+          cardState.location = destinationPlayer.location;
         }
 
-        return [...prev];
+        return newState;
       });
     },
     [
@@ -411,8 +445,10 @@ const useDeckState = (
     ]
   );
 
-  /** */
-  const setGameStateForEndDealForDealer = useCallback(() => {
+  /**
+   * Update the game deck state to handle animation complete for game flow end deal for dealer.
+   */
+  const setGameDeckStateForEndDealForDealer = useCallback(() => {
     if (!gameDeckState) throw new Error('Invalid deck state for moving cards.');
 
     setGameDeckState({
@@ -422,73 +458,122 @@ const useDeckState = (
     });
   }, [gameDeckState, handleEndDealForDealerComplete]);
 
-  /** Create the animation values for the cards being dealt for regular play. */
+  /** Create the animation values for the cards being dealt for regular play.
+   *
+   */
   const dealCardsForRegularPlay = useCallback(() => {
+    if (!gameDeckState) throw new Error('Invalid deck state for dealing cards for regular play.');
+
     const rotation: EuchrePlayer[] = getPlayerRotation(state.euchreGame.gamePlayers, state.euchreGame.dealer);
     const duration: number = state.euchreSettings.gameSpeed / 1000;
-    const delayBetweenDeal: number = duration / 3;
+    const delayBetweenDeal: number = duration / 5;
+    const game: EuchreGameInstance = state.euchreGame;
+    const directCenterH = directCenterHRef.current;
+    const directCenterV = directCenterVRef.current;
 
-    if (!gameDeckState) throw new Error('Invalid deck state for dealing cards for regular play.');
-    if (!directCenterRef) throw new Error('Invalid direct center ref for initializing deal.');
-
-    const longSide = Math.max(gameDeckState.width, gameDeckState.height);
+    if (!directCenterH) throw new Error('Invalid direct center ref for initializing deal.');
+    if (!directCenterV) throw new Error('Invalid direct center ref for initializing deal.');
 
     setCardStates((prev) => {
+      const newState = [...prev];
       const springsForDeal: CardSpringProps[] = getSpringsForDealForRegularPlay(
         outerTableRefs,
         deckCardRefs,
-        directCenterRef,
+        directCenterH,
+        directCenterV,
         rotation,
-        state.euchreGame.cardDealCount,
-        state.euchreGame.deck,
-        state.euchreGame.dealer.location,
-        state.euchreGame.trump
+        game.cardDealCount,
+        game.deck,
+        game.dealer.location,
+        game.trump
       );
 
-      for (const updatedSpring of springsForDeal) {
-        const cardState = prev.at(updatedSpring.cardIndex);
+      for (const cardState of newState) {
+        const spring = springsForDeal.at(cardState.cardIndex);
+        const card = game.deck.at(cardState.cardIndex);
+        const cardIsTrump = cardState.cardIndex === game.trump.index;
+        if (spring && card) {
+          const newSrc = cardIsTrump ? getEncodedCardSvg(card, game.dealer.location) : undefined;
+          const cardName = cardIsTrump ? getCardFullName(game.trump) : 'Player Card';
 
-        if (cardState) {
-          const newSrc = updatedSpring.cardIndex !== cardState.cardIndex ? undefined : cardState.src;
-
-          updatedSpring.springValue.transition = getTransitionForCardMoved(
+          spring.springValue.transition = getTransitionForCardMoved(
             cardState,
             state.euchreSettings.gameSpeed,
             delayBetweenDeal * cardState.cardIndex
           );
           cardState.src = newSrc;
+          cardState.cardFullName = cardName;
           cardState.runEffectForState = EuchreGameFlow.BEGIN_DEAL_CARDS;
-          cardState.springValue = updatedSpring.springValue;
+          cardState.springValue = spring.springValue;
+          cardState.location = spring.location;
+        } else if (!cardIsTrump) {
+          cardState.location = game.dealer.location;
         }
       }
 
-      return [...prev];
+      return newState;
     });
 
     setGameDeckState({
       ...gameDeckState,
       dealType: EuchreGameFlow.BEGIN_DEAL_CARDS,
-      handleAnimationComplete: () => null
+      handleAnimationComplete: handleBeginDealForRegularPlayComplete
     });
   }, [
     deckCardRefs,
-    directCenterRef,
+    directCenterHRef,
+    directCenterVRef,
     gameDeckState,
+    getCardFullName,
+    getEncodedCardSvg,
     getPlayerRotation,
     getSpringsForDealForRegularPlay,
     getTransitionForCardMoved,
+    handleBeginDealForRegularPlayComplete,
     outerTableRefs,
-    state.euchreGame.cardDealCount,
-    state.euchreGame.dealer,
-    state.euchreGame.deck,
-    state.euchreGame.gamePlayers,
-    state.euchreGame.trump,
+    state.euchreGame,
     state.euchreSettings.gameSpeed
   ]);
 
-  const getDealCompleteEvent = (): (() => void) => {
-    return handleBeginDealForDealerComplete;
-  };
+  /** After cards have been dealt to the player's table area, move cards to outside the bound of the game area, as if the
+   * player picked them up.
+   */
+  const moveCardsToPlayersForRegularPlay = useCallback(() => {
+    setCardStates((prev) => {
+      const newState = [...prev];
+      for (const cardState of newState) {
+        if (cardState.location) {
+          const destRef = playerDeckRefs.get(cardState.location);
+          const cardRef = deckCardRefs.get(cardState.cardIndex);
+          const offsets = getDestinationOffset(cardState.location);
+
+          if (destRef?.current && cardRef?.current) {
+            const spring = getSpringMoveElement(
+              cardRef.current,
+              destRef.current,
+              undefined,
+              cardState.springValue
+            );
+
+            spring.x += offsets.x;
+            spring.y += offsets.y;
+
+            spring.transition = getTransitionForCardMoved(cardState, state.euchreSettings.gameSpeed);
+            cardState.springValue = spring;
+          }
+        }
+      }
+
+      return newState;
+    });
+  }, [
+    deckCardRefs,
+    getDestinationOffset,
+    getSpringMoveElement,
+    getTransitionForCardMoved,
+    playerDeckRefs,
+    state.euchreSettings.gameSpeed
+  ]);
 
   /** ************************************************************************************************************************************* */
   //#region Effects to control deal animation.
@@ -502,22 +587,18 @@ const useDeckState = (
   }, [initDealerForNewDealerEffect]);
 
   /** Begin animation for dealing to determine the game's initial dealer. First jack dealt will
-   * become the game dealer.
+   * become the game dealer. This should be only run once at the beginning of the game.
    */
   useEffect(() => {
     const beginAnimationForBeginDealForDealer = async () => {
-      const shouldDealCards =
-        !initBeginDealForDealer.current &&
-        state.euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_DEAL_FOR_DEALER &&
-        state.euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE &&
-        state.euchrePauseState.pauseType === EuchrePauseType.ANIMATE;
+      const shouldDealCards = !initBeginDealForDealerEffect.current && shouldBeginDealForDealer;
 
       if (shouldDealCards) {
-        console.log('[beginAnimationForBeginDealForDealer]');
-        initBeginDealForDealer.current = true;
+        initBeginDealForDealerEffect.current = true;
         await gameDelay(state.euchreSettings);
         await initAnimationForInitialDeal();
         await gameDelay(state.euchreSettings);
+
         dealCardsForInitialDeal();
       }
     };
@@ -527,21 +608,17 @@ const useDeckState = (
     dealCardsForInitialDeal,
     gameDelay,
     initAnimationForInitialDeal,
-    initDealerForNewDealerEffect,
-    state.euchreAnimationFlow.animationType,
-    state.euchreGameFlow.gameFlow,
-    state.euchrePauseState.pauseType,
+    shouldBeginDealForDealer,
     state.euchreSettings
   ]);
 
   /** Pause game after dealing to finish animation. After the delay, move cards to the new dealer.*/
   useEffect(() => {
     const endAnimationForBeginDealForDealer = async () => {
-      const endAnimate = endInitialDeal && !endBeginDealForDealer.current;
+      const endAnimate = endInitialDeal && !endBeginDealForDealerEffect.current;
 
       if (endAnimate) {
-        endBeginDealForDealer.current = true;
-        console.log('[endAnimationForBeginDealForDealer]');
+        endBeginDealForDealerEffect.current = true;
         animationHandlers.handleBeginDealForDealerComplete();
       }
     };
@@ -554,69 +631,59 @@ const useDeckState = (
    */
   useEffect(() => {
     const beginAnimationForEndDealForDealer = async () => {
-      const shouldAnimate =
-        !initEndDealForDealer.current &&
-        state.euchreGameFlow.gameFlow === EuchreGameFlow.END_DEAL_FOR_DEALER &&
-        state.euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE &&
-        state.euchrePauseState.pauseType === EuchrePauseType.ANIMATE;
+      const shouldAnimate = !initEndDealForDealerEffect.current && shouldEndDealForDealer;
 
       if (shouldAnimate) {
-        initEndDealForDealer.current = true;
-        console.log('[beginAnimationForEndDealForDealer] move cards to new dealer');
+        initEndDealForDealerEffect.current = true;
 
         if (!state.initDealer) throw new Error('Invalid deal result for moving cards.');
 
-        setGameStateForEndDealForDealer();
+        setGameDeckStateForEndDealForDealer();
         moveCardsToPlayer(state.initDealer.newDealer);
       }
     };
 
     beginAnimationForEndDealForDealer();
-  }, [
-    animationHandlers,
-    gameDelay,
-    moveCardsToPlayer,
-    setGameStateForEndDealForDealer,
-    state.euchreAnimationFlow.animationType,
-    state.euchreGameFlow.gameFlow,
-    state.euchrePauseState.pauseType,
-    state.euchreSettings,
-    state.initDealer
-  ]);
+  }, [moveCardsToPlayer, setGameDeckStateForEndDealForDealer, shouldEndDealForDealer, state.initDealer]);
 
+  /** Animate dealing cards for regular play. This should be run at the beginning of each hand during regular play. */
   useEffect(() => {
     const beginAnimationForRegularPlay = async () => {
-      const shouldDealCards =
-        !initBeginDealForRegularPlay.current &&
-        state.euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_DEAL_CARDS &&
-        state.euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE &&
-        state.euchrePauseState.pauseType === EuchrePauseType.ANIMATE;
+      const shouldAnimate = !initBeginDealForRegularPlayEffect.current && shouldBeginDealCards;
 
-      if (shouldDealCards) {
-        initBeginDealForRegularPlay.current = true;
-        console.log('[beginAnimationForRegularPlay]');
+      if (shouldAnimate) {
+        initBeginDealForRegularPlayEffect.current = true;
         await initAnimationForInitialDeal();
         dealCardsForRegularPlay();
-        //dealerPlayerNumber.current = state.euchreGame.dealer.playerNumber;
-
-        //await gameDelay(state.euchreSettings);
-        //dealCardsForInitialDeal();
       }
     };
 
     beginAnimationForRegularPlay();
-  }, [
-    dealCardsForRegularPlay,
-    gameDelay,
-    initAnimationForInitialDeal,
-    state.euchreAnimationFlow.animationType,
-    state.euchreGameFlow.gameFlow,
-    state.euchrePauseState.pauseType,
-    state.euchreSettings
-  ]);
+  }, [dealCardsForRegularPlay, initAnimationForInitialDeal, shouldBeginDealCards]);
+
+  /** After cards have been dealt for regular play, animate moving cards to player's hand area. After animation is complete,
+   * move to the next state to show player's cards. This is the last state to be run in this hook.
+   * Player card animation is handled is useCardState.ts
+   */
+  useEffect(() => {
+    const endAnimationForRegularPlay = async () => {
+      const shouldAnimate = endRegularDeal && !endBeginDealForRegularPlayEffect.current;
+
+      if (shouldAnimate) {
+        endBeginDealForRegularPlayEffect.current = true;
+        moveCardsToPlayersForRegularPlay();
+        await gameDelay(state.euchreSettings);
+        animationHandlers.handleBeginRegularDealComplete();
+      }
+    };
+
+    endAnimationForRegularPlay();
+  }, [animationHandlers, endRegularDeal, gameDelay, moveCardsToPlayersForRegularPlay, state.euchreSettings]);
+
   //#endregion
 
   return {
+    gameHandVisible,
     gameDeckVisible,
     deckAnimationControls,
     gameDeckRef,

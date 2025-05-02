@@ -1,4 +1,4 @@
-import { Card, DEBUG_ENABLED } from '@/app/lib/euchre/definitions/definitions';
+import { Card, DEBUG_ENABLED, TableLocation } from '@/app/lib/euchre/definitions/definitions';
 import PlayerHand from './player-hand';
 import PlayerInfo from './player-info';
 import clsx from 'clsx';
@@ -15,8 +15,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   cardStates: CardState[];
   playedCard: Card | null;
   playerTableRef: RefObject<HTMLDivElement | null> | undefined;
-  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
-  playerDeckRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   onDealComplete: () => void;
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
@@ -29,7 +28,6 @@ export default function PlayerGameDeck({
   cardStates,
   playedCard,
   playerTableRef,
-  cardRefs,
   playerDeckRefs,
   onCardPlayed,
   onDealComplete,

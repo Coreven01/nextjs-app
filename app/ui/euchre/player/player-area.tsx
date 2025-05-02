@@ -18,8 +18,7 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
   const { getPlayerGridLayoutInfo } = usePlayerData();
   const { getCardClassForPlayerLocation } = useCardData();
   const cardAreas: React.ReactNode[] = [];
-  const players = state.euchreGame.gamePlayers;
-  const playerLayoutForGrid = getPlayerGridLayoutInfo(players);
+  const playerLayoutForGrid = getPlayerGridLayoutInfo();
 
   const creatDummyCards = (player: EuchrePlayer, width: number, height: number, location: TableLocation) => {
     const retval: React.ReactNode[] = [];
@@ -28,7 +27,7 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
         <DummyCard
           id={`dummy-${player.playerNumber}-${i}`}
           key={`dummy-${player.playerNumber}-${i}`}
-          className={getCardClassForPlayerLocation(location, false)}
+          className={getCardClassForPlayerLocation(location)}
           width={width}
           height={height}
           responsive={true}
@@ -41,28 +40,25 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
   };
 
   for (let i = 0; i < playerLayoutForGrid.length; i++) {
-    const playerInfo = playerLayoutForGrid[i];
+    const info = playerLayoutForGrid[i];
+    const player = state.euchreGame.gamePlayers.find((p) => p.location === info.location);
+
+    if (!player) throw new Error('Player not found for location: ' + info.location);
+
     cardAreas.push(
       <div
-        id={`player-${playerInfo.player.playerNumber}-area`}
-        key={`player-${playerInfo.player.playerNumber}-area`}
-        className={clsx('relative', playerInfo.locationClass)}
+        id={`player-${player.playerNumber}-area`}
+        key={`player-${player.playerNumber}-area`}
+        className={clsx('relative', info.locationClass)}
       >
-        <div className={clsx('relative', playerInfo.innerClassName)}>
-          {creatDummyCards(
-            playerInfo.player,
-            playerInfo.width,
-            playerInfo.height,
-            playerInfo.player.location
-          )}
-          <div
-            className={clsx('absolute lg:text-sm text-xs whitespace-nowrap z-30', playerInfo.playerInfoClass)}
-          >
+        <div className={clsx('relative', info.innerClassName)}>
+          {creatDummyCards(player, info.width, info.height, player.location)}
+          <div className={clsx('absolute lg:text-sm text-xs whitespace-nowrap z-30', info.playerInfoClass)}>
             {state.euchreGameFlow.hasGameStarted && (
               <PlayerInfo
-                id={`player-info-${playerInfo.player.playerNumber}`}
+                id={`player-info-${player.playerNumber}`}
                 game={state.euchreGame}
-                player={playerInfo.player}
+                player={player}
                 settings={state.euchreSettings}
               />
             )}

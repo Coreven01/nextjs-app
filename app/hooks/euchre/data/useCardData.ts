@@ -382,21 +382,21 @@ const useCardData = () => {
     return newCards;
   };
 
-  const getCardClassForPlayerLocation = (location: TableLocation, includePosition: boolean): string => {
+  const getCardClassForPlayerLocation = (location: TableLocation): string => {
     let retval = '';
 
     switch (location) {
       case 'bottom':
-        retval = `${includePosition ? 'left-[35%] lg:top-auto top-4' : ''}`;
+        retval = `lg:left-[35%] left-[40%] bottom-0`;
         break;
       case 'top':
-        retval = `${includePosition ? 'lg:left-[30%] lg:top-auto -top-12 left-[45%]' : ''}`;
+        retval = `left-[35%] top-0`;
         break;
       case 'left':
-        retval = `${includePosition ? 'lg:left-auto lg:top-auto top-[35%] -left-12' : ''}`;
+        retval = 'lg:top-[40%] top-[35%] left-0';
         break;
       case 'right':
-        retval = `${includePosition ? 'lg:right-auto lg:top-auto top-[35%] -right-12' : ''}`;
+        retval = `lg:top-[40%] top-[35%] right-0`;
         break;
     }
 

@@ -1,5 +1,5 @@
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from './reducers/gameFlowReducer';
-import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
+import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
 import { useCallback, useEffect } from 'react';
 import {
   getPlayerNotificationType,
@@ -9,7 +9,6 @@ import {
 import { BidResult, PromptType } from '@/app/lib/euchre/definitions/definitions';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameStateLogic from './logic/useGameStateLogic';
 import useGameBidLogic from './logic/useGameBidLogic';
 import usePlayerData from './data/usePlayerData';
 import useGameData from './data/useGameData';
@@ -23,6 +22,8 @@ import {
   GameErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
 import { GameEventHandlers } from './useEventLog';
+import { EuchrePauseActionType, EuchrePauseType } from './reducers/gamePauseReducer';
+import useGameBidState from './phases/useGameBidState';
 
 export default function useEuchreGameBid(
   state: EuchreGameValues,
@@ -30,7 +31,8 @@ export default function useEuchreGameBid(
   eventHandlers: GameEventHandlers,
   errorHandlers: GameErrorHandlers
 ) {
-  const { isGameStateValidToContinue } = useGameStateLogic();
+  const { shouldBeginBidForTrump, shouldAnimateBeginBidForTrump, shouldEndBidForTrump, shouldBeginPassDeal } =
+    useGameBidState(state, errorHandlers);
   const { determineBid } = useGameBidLogic();
   const { getGameStateForNextHand } = useGamePlayLogic();
   const { getPlayerRotation, playerEqual, getTeamColor } = usePlayerData();
@@ -59,6 +61,9 @@ export default function useEuchreGameBid(
 
   //#region Bid for Trump *************************************************************************
 
+  /** ************************************************************************************************************************************* */
+
+  //#region Handlers
   /** Handle passing the bid to the next player.*/
   const handlePassForBid = useCallback(
     (bidResult: BidResult) => {
@@ -101,86 +106,80 @@ export default function useEuchreGameBid(
     [eventHandlers, getTeamColor, setters, state.euchreGame.currentPlayer, state.euchreSettings]
   );
 
-  /** Effect to animate events after the initial bid for trump. */
-  useEffect(() => {
-    const beginAnimationForBidForTrump = async () => {
-      if (
-        !isGameStateValidToContinue(
-          state,
-          EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
-          EuchreAnimateType.ANIMATE,
-          state.shouldCancel,
-          errorHandlers.onCancel
-        )
-      )
-        return;
-
-      //setters.dispatchStateChange(EuchreGameFlow.WAIT);
-
-      // delay for animation between players when passing bid.
-      await notificationDelay(state.euchreSettings);
-
-      eventHandlers.addEvent(eventHandlers.createEvent('v', undefined, 'End Animation for bid for trump'));
-      setters.dispatchStateChange(EuchreGameFlow.END_BID_FOR_TRUMP, EuchreAnimationActionType.SET_NONE);
-    };
-
-    try {
-      beginAnimationForBidForTrump();
-    } catch (e) {
-      const error = e as Error;
-      errorHandlers.onError(error, 'beginAnimationForBidForTrump');
-    }
-  }, [errorHandlers, eventHandlers, isGameStateValidToContinue, notificationDelay, setters, state]);
-
   /** Handle the result when the player ordered trump and update the game state.
    *
    */
   const handlePlayerOrderTrumpFromBid = useCallback(() => {
     // player called trump, either by suit or telling the deal er to pick up the card.
-    setters.dispatchStateChange(EuchreGameFlow.BEGIN_ORDER_TRUMP, EuchreAnimationActionType.SET_NONE);
-  }, [setters]);
+    //setters.dispatchStateChange(EuchreGameFlow.BEGIN_ORDER_TRUMP, EuchreAnimationActionType.SET_NONE);
+  }, []);
 
   /** Either order trump or pass bid from user selection.
    *
    */
   const handlePlayerSelectionForBid = useCallback(
     (result: BidResult) => {
-      setters.setBidResult(result);
+      const currentPlayer = state.euchreGame.currentPlayer;
+      eventHandlers.addEvent(
+        eventHandlers.createEvent(
+          'v',
+          currentPlayer,
+          'Handle bid selection.',
+          undefined,
+          getTeamColor(currentPlayer, state.euchreSettings)
+        )
+      );
 
-      if (
-        result.orderTrump &&
-        (!state.euchreSettings.debugAlwaysPass || state.euchreGame.currentPlayer.human)
-      ) {
+      setters.setBidResult(result);
+      if (result.orderTrump && (!state.euchreSettings.debugAlwaysPass || currentPlayer.human)) {
         handlePlayerOrderTrumpFromBid();
       } else {
         handlePassForBid(result);
       }
     },
     [
+      eventHandlers,
+      getTeamColor,
       handlePassForBid,
       handlePlayerOrderTrumpFromBid,
       setters,
-      state.euchreGame.currentPlayer.human,
-      state.euchreSettings.debugAlwaysPass
+      state.euchreGame.currentPlayer,
+      state.euchreSettings
     ]
   );
+
+  /** Submit the resulting bid from user input.
+   *
+   */
+  const handleBidSubmit = useCallback(
+    (result: BidResult) => {
+      if (state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT) {
+        setters.setPromptValue([]);
+        handlePlayerSelectionForBid(result);
+      }
+    },
+    [handlePlayerSelectionForBid, setters, state.euchrePauseState.pauseType]
+  );
+
+  //#endregion
 
   /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
    * or if a player will name suit. */
   const beginBidForTrump = useCallback(() => {
-    if (
-      !isGameStateValidToContinue(
-        state,
-        EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
-        EuchreAnimateType.NONE,
-        state.shouldCancel,
-        errorHandlers.onCancel
-      )
-    )
-      return;
+    if (!shouldBeginBidForTrump) return;
+
+    setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
 
     const newGame: EuchreGameInstance = { ...state.euchreGame };
-    eventHandlers.addEvent(eventHandlers.createEvent('v', newGame.currentPlayer, 'Begin bid For trump.'));
+    eventHandlers.addEvent(
+      eventHandlers.createEvent(
+        'v',
+        newGame.currentPlayer,
+        'Begin bid For trump.',
+        undefined,
+        getTeamColor(newGame.currentPlayer, state.euchreSettings)
+      )
+    );
 
     if (state.euchreGameFlow.hasSecondBiddingPassed) {
       // all users have passed. pass the deal to the next user and begin to re-deal.
@@ -189,7 +188,7 @@ export default function useEuchreGameBid(
     }
 
     if (newGame.currentPlayer?.human) {
-      //setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT);
+      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_USER_INPUT);
       setters.setPromptValue([{ type: PromptType.BID }]); // Show prompt window for choosing trump or passing for human player.
     } else {
       const bidChoice: BidResult = determineBid(
@@ -203,12 +202,58 @@ export default function useEuchreGameBid(
     }
   }, [
     determineBid,
-    errorHandlers.onCancel,
     eventHandlers,
+    getTeamColor,
     handlePlayerSelectionForBid,
-    isGameStateValidToContinue,
     setters,
-    state
+    shouldBeginBidForTrump,
+    state.euchreGame,
+    state.euchreGameFlow.hasFirstBiddingPassed,
+    state.euchreGameFlow.hasSecondBiddingPassed,
+    state.euchreSettings
+  ]);
+
+  /** Effect to animate events after the initial bid for trump. */
+  useEffect(() => {
+    const beginAnimationForBidForTrump = async () => {
+      if (!shouldAnimateBeginBidForTrump) return;
+
+      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
+      eventHandlers.addEvent(
+        eventHandlers.createEvent(
+          'v',
+          undefined,
+          'Begin animation for bid for trump.',
+          undefined,
+          getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
+        )
+      );
+
+      // delay for animation between players when passing bid.
+      await notificationDelay(state.euchreSettings);
+
+      setters.dispatchStateChange(
+        EuchreGameFlow.END_BID_FOR_TRUMP,
+        EuchreAnimationActionType.SET_NONE,
+        EuchrePauseActionType.SET_NONE
+      );
+    };
+
+    try {
+      beginAnimationForBidForTrump();
+    } catch (e) {
+      const error = e as Error;
+      errorHandlers.onError(error, 'beginAnimationForBidForTrump');
+    }
+  }, [
+    errorHandlers,
+    eventHandlers,
+    getTeamColor,
+    notificationDelay,
+    setters,
+    shouldAnimateBeginBidForTrump,
+    state.euchreGame.currentPlayer,
+    state.euchreSettings
   ]);
 
   /** Begin bid for trump game flow.
@@ -226,20 +271,21 @@ export default function useEuchreGameBid(
   /** Modify the game state depending on if the user named trump or passed based on player bid choice.
    *
    */
-  const endBidForTrump = useCallback(async () => {
-    if (
-      !isGameStateValidToContinue(
-        state,
-        EuchreGameFlow.END_BID_FOR_TRUMP,
-        EuchreAnimateType.NONE,
-        state.shouldCancel,
-        errorHandlers.onCancel
-      )
-    )
-      return;
+  const endBidForTrump = useCallback(() => {
+    if (!shouldEndBidForTrump) return;
 
     const newGame: EuchreGameInstance = { ...state.euchreGame };
     const newGameFlow: EuchreGameFlowState = { ...state.euchreGameFlow };
+
+    eventHandlers.addEvent(
+      eventHandlers.createEvent(
+        'v',
+        undefined,
+        'Begin finalize bid for trump.',
+        undefined,
+        getTeamColor(newGame.currentPlayer, state.euchreSettings)
+      )
+    );
 
     const biddingRoundFinished = playerEqual(newGame.dealer, newGame.currentPlayer);
     const firstRound = !state.euchreGameFlow.hasFirstBiddingPassed;
@@ -255,7 +301,17 @@ export default function useEuchreGameBid(
 
     setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
     setters.setEuchreGame(newGame);
-  }, [errorHandlers.onCancel, getPlayerRotation, isGameStateValidToContinue, playerEqual, setters, state]);
+  }, [
+    eventHandlers,
+    getPlayerRotation,
+    getTeamColor,
+    playerEqual,
+    setters,
+    shouldEndBidForTrump,
+    state.euchreGame,
+    state.euchreGameFlow,
+    state.euchreSettings
+  ]);
 
   /**
    *
@@ -269,19 +325,6 @@ export default function useEuchreGameBid(
     }
   }, [endBidForTrump, errorHandlers]);
 
-  /** Submit the resulting bid from user input.
-   *
-   */
-  const handleBidSubmit = useCallback(
-    (result: BidResult) => {
-      // if (state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT) {
-      //   setters.setPromptValue([]);
-      //   handlePlayerSelectionForBid(result);
-      // }
-    },
-    [handlePlayerSelectionForBid, setters, state.euchreGameFlow.gameFlow]
-  );
-
   //#endregion
 
   //#region Pass Deal *************************************************************************
@@ -290,18 +333,10 @@ export default function useEuchreGameBid(
    *
    */
   const beginPassDeal = useCallback(async () => {
-    if (
-      !isGameStateValidToContinue(
-        state,
-        EuchreGameFlow.BEGIN_PASS_DEAL,
-        EuchreAnimateType.NONE,
-        state.shouldCancel,
-        errorHandlers.onCancel
-      )
-    )
-      return;
+    if (!shouldBeginPassDeal) return;
 
-    //setters.dispatchStateChange(EuchreGameFlow.WAIT);
+    setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
+
     eventHandlers.addEvent(
       eventHandlers.createEvent(
         'i',
@@ -327,30 +362,35 @@ export default function useEuchreGameBid(
       type: EuchreFlowActionType.SET_STATE,
       state: getGameStateForNextHand(state.euchreGameFlow, state.euchreSettings, newGame)
     });
+    setters.dispatchStateChange(
+      undefined,
+      EuchreAnimationActionType.SET_NONE,
+      EuchrePauseActionType.SET_NONE
+    );
     setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
-    setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_NONE });
   }, [
-    errorHandlers.onCancel,
     eventHandlers,
     getGameStateForNextHand,
     getPlayerNotificationForAllPassed,
     getPlayerRotation,
     getTeamColor,
-    isGameStateValidToContinue,
     notificationDelay,
     setters,
-    state
+    shouldBeginPassDeal,
+    state.euchreGame,
+    state.euchreGameFlow,
+    state.euchreSettings
   ]);
 
   useEffect(() => {
-    const executePassDeal = async () => {
+    const passDeal = async () => {
       await beginPassDeal();
     };
     try {
-      executePassDeal();
+      passDeal();
     } catch (e) {
       const error = e as Error;
-      errorHandlers.onError(error, 'executePassDeal');
+      errorHandlers.onError(error, 'passDeal');
     }
   }, [beginPassDeal, errorHandlers]);
   //#endregion

@@ -30,7 +30,7 @@ const DummyCard = ({ width, height, location, responsive, className, ...rest }: 
   return (
     <div
       className={clsx(
-        'pointer-events-none invisible',
+        'pointer-events-none',
         sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
         className
       )}

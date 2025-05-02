@@ -7,17 +7,21 @@ import {
   EuchreGameValues,
   EuchrePlayer
 } from '../../../lib/euchre/definitions/game-state-definitions';
-import { Card } from '../../../lib/euchre/definitions/definitions';
+import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
 import useDeckState from '../../../hooks/euchre/useDeckState';
 import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
+import PlayerGameDeck from './players-game-deck';
+import PlayerHand from './player-hand';
+import useCardData from '../../../hooks/euchre/data/useCardData';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameValues;
   playedCard: Card | null;
-  playerCenterTableRefs: Map<number, RefObject<HTMLDivElement | null>>;
-  playerOuterTableRefs: Map<number, RefObject<HTMLDivElement | null>>;
-  directCenterRef: RefObject<HTMLDivElement | null>;
+  playerCenterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  playerOuterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  directCenterHRef: RefObject<HTMLDivElement | null>;
+  directCenterVRef: RefObject<HTMLDivElement | null>;
   animationHandlers: EuchreAnimationHandlers;
   className: string;
 }
@@ -28,12 +32,14 @@ const PlayerCardArea = ({
   playedCard,
   playerCenterTableRefs,
   playerOuterTableRefs,
-  directCenterRef,
+  directCenterHRef,
+  directCenterVRef,
   animationHandlers,
   className,
   ...rest
 }: DivProps) => {
   const {
+    gameHandVisible,
     gameDeckVisible,
     gameDeckRef,
     playerDeckRefs,
@@ -42,13 +48,13 @@ const PlayerCardArea = ({
     gameDeckState,
     deckAnimationControls,
     cardStates
-  } = useDeckState(state, playerOuterTableRefs, directCenterRef, animationHandlers);
+  } = useDeckState(state, playerOuterTableRefs, directCenterHRef, directCenterVRef, animationHandlers);
 
-  const { getPlayerGridLayoutInfo } = usePlayerData();
+  const { getPlayerGridLayoutInfo, playerEqual } = usePlayerData();
   const { playerSittingOut } = useGameData();
+  const { getCardClassForPlayerLocation } = useCardData();
 
-  const players = state.euchreGame.gamePlayers;
-  const playerLayoutForGrid = getPlayerGridLayoutInfo(players);
+  const playerLayoutForGrid = getPlayerGridLayoutInfo();
   const sittingOutPlayer: EuchrePlayer | null = playerSittingOut(state.euchreGame);
   const cardCountDuringPlay: number = sittingOutPlayer ? 3 : 4;
 
@@ -91,71 +97,58 @@ const PlayerCardArea = ({
   //   [animationHandlers, cardCountDuringPlay, state.euchreGame.currentTrick]
   // );
 
-  console.log(
-    '**** [PlayerCardArea] render. gameDeckState: ',
-    gameDeckState,
-    ' deck visible: ',
-    gameDeckVisible,
-    ' game state: ',
-    state
-  );
+  // console.log(
+  //   '**** [PlayerCardArea] render. gameDeckState: ',
+  //   gameDeckState,
+  //   ' deck visible: ',
+  //   gameDeckVisible,
+  //   ' game state: ',
+  //   state
+  // );
 
   return (
     <GameGrid className={className} {...rest}>
       {playerLayoutForGrid.map((info) => {
-        const deckRef = playerDeckRefs.get(info.player.playerNumber);
-        const innerDeckRef = playerInnerDeckRefs.get(info.player.playerNumber);
-        const playerBottom = info.player.location === 'bottom';
-        const playerTop = info.player.location === 'top';
-        const playerLeft = info.player.location === 'left';
-        const playerRight = info.player.location === 'right';
+        const player = state.euchreGame.gamePlayers.find((p) => p.location === info.location);
 
+        if (!player) throw new Error('Player not found for location: ' + info.location);
+
+        const deckRef = playerDeckRefs.get(player.location);
+        const innerDeckRef = playerInnerDeckRefs.get(player.location);
+        const centerTableRef = playerCenterTableRefs.get(player.location);
+
+        if (!centerTableRef) throw new Error('Invalid center table ref in player card area.');
         return (
           <div
             className={clsx('relative', info.locationClass)}
-            key={`player${info.player.playerNumber}-game-deck`}
+            key={`player${player.playerNumber}-game-deck`}
           >
-            {/* <PlayerGameDeck
-              id={info.id}
-              playerTableRef={info.tableRef}
-              playerDeckRefs={playerDeckRefs}
-              cardRefs={cardRefs}
-              player={info.player}
-              state={state}
-              cardStates={cardStates}
-              onDealComplete={getDealCompleteEvent()}
-              onCardPlayed={animationHandlers.handleCardPlayed}
-              onTrickComplete={handleTrickFinished}
-              onPassDeal={() => null}
-              playedCard={
-                playedCard && playerEqual(state.euchreGame.currentPlayer, info.player) ? playedCard : null
-              }
-            /> */}
+            {gameHandVisible && (
+              <PlayerHand
+                state={state}
+                player={player}
+                playedCard={null}
+                playerCenterTableRef={centerTableRef}
+                playerDeckRefs={playerDeckRefs}
+                onCardPlayed={() => null}
+                onTrickComplete={() => null}
+                onPassDeal={() => null}
+                onDealComplete={animationHandlers.handleEndRegularDealComplete}
+              />
+            )}
             <div
               ref={deckRef}
-              id={`player-deck-${info.player.playerNumber}`}
-              className={clsx(
-                'absolute',
-                { 'lg:left-1/2 left-[40%] bottom-0': playerBottom },
-                { 'lg:left-1/2 left-[45%] top-0': playerTop },
-                { 'lg:top-1/2 top-[35%] left-0': playerLeft },
-                { 'lg:top-1/2 top-[35%] right-0': playerRight }
-              )}
+              id={`player-deck-${player.playerNumber}`}
+              className={clsx('absolute', getCardClassForPlayerLocation(player.location))}
             >
-              {`D-${info.player.playerNumber}`}
+              {`D-${player.playerNumber}`}
             </div>
             <div
               ref={innerDeckRef}
-              id={`player-inner-deck-${info.player.playerNumber}`}
-              className={clsx(
-                'absolute',
-                { 'left-1/2 top-0': playerBottom },
-                { 'left-1/2 bottom-0': playerTop },
-                { 'top-1/2 right-0': playerLeft },
-                { 'top-1/2 left-0': playerRight }
-              )}
+              id={`player-inner-deck-${player.playerNumber}`}
+              className={clsx('absolute', info.playerInnerDeckOffsetClass)}
             >
-              {`I-${info.player.playerNumber}`}
+              {`I-${player.playerNumber}`}
             </div>
           </div>
         );
@@ -182,3 +175,21 @@ const PlayerCardArea = ({
 };
 
 export default PlayerCardArea;
+
+{
+  /* <PlayerGameDeck
+                id={''}
+                playerTableRef={undefined}
+                playerDeckRefs={playerDeckRefs}
+                player={info.player}
+                state={state}
+                cardStates={cardStates}
+                onDealComplete={() => null}
+                onCardPlayed={animationHandlers.handleCardPlayed}
+                onTrickComplete={() => null}
+                onPassDeal={() => null}
+                playedCard={
+                  playedCard && playerEqual(state.euchreGame.currentPlayer, info.player) ? playedCard : null
+                }
+              /> */
+}

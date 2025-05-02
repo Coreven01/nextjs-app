@@ -30,6 +30,7 @@ export interface CardState {
   yStiffness?: number;
   rotation?: number;
   runEffectForState?: EuchreGameFlow;
+  location?: TableLocation;
   enabled: boolean;
 }
 

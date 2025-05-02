@@ -55,11 +55,12 @@ const GameArea = ({
   ...rest
 }: Props) => {
   /** Elements associated with the player's center. Used when playing a card to the center of the table. */
-  const centerTableRefs = useTableRefs(4);
-  const directCenterRef = useRef<HTMLDivElement>(null);
+  const centerTableRefs = useTableRefs();
+  const directCenterHRef = useRef<HTMLDivElement>(null);
+  const directCenterVRef = useRef<HTMLDivElement>(null);
 
   /** Elements associated with the player's outer side. Used when dealing cards to a player. */
-  const outerTableRefs = useTableRefs(4);
+  const outerTableRefs = useTableRefs();
 
   return (
     <div
@@ -88,7 +89,8 @@ const GameArea = ({
           playerNotification={playerNotification}
           playerCenterTableRefs={centerTableRefs}
           playerOuterTableRefs={outerTableRefs}
-          directCenterRef={directCenterRef}
+          directCenterHRef={directCenterHRef}
+          directCenterVRef={directCenterVRef}
         />
       </div>
       <PlayerArea
@@ -102,7 +104,8 @@ const GameArea = ({
         playedCard={playedCard}
         playerCenterTableRefs={centerTableRefs}
         playerOuterTableRefs={outerTableRefs}
-        directCenterRef={directCenterRef}
+        directCenterHRef={directCenterHRef}
+        directCenterVRef={directCenterVRef}
         animationHandlers={animationHandlers}
         className="relative col-start-1 row-start-1 col-span-3 row-span-3 overflow-hidden"
       />

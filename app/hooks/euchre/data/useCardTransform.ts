@@ -166,7 +166,7 @@ const useCardTransform = () => {
     };
   };
 
-  /** */
+  /** Moves an element an offset closer/further from the relative element. */
   const getElementOffsetForLocation = (
     sourceRect: ElementRect,
     destRect: ElementRect,
@@ -217,12 +217,13 @@ const useCardTransform = () => {
   //#region Spring for deal
 
   /**
-   *
+   * Get animation values for dealing cards for initial deal for dealer.
    */
   const getSpringsForDealForDealer = (
-    outerTableRefs: Map<number, RefObject<HTMLDivElement | null>>,
+    outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
     cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
-    relativeRef: RefObject<HTMLDivElement | null>,
+    relativeHRef: HTMLDivElement,
+    relativeVRef: HTMLDivElement,
     rotation: EuchrePlayer[],
     cards: Card[],
     dealResult: InitDealResult
@@ -230,20 +231,22 @@ const useCardTransform = () => {
     const retval: CardSpringProps[] = [];
     let counter = 0;
 
-    if (!relativeRef?.current) throw new Error('Invalid relative ref when dealing for dealer');
-
     for (const card of cards) {
       const destinationPlayer = rotation[counter % 4];
       const cardRef = cardRefs.get(card.index);
-      const outerTableRef = outerTableRefs.get(destinationPlayer.playerNumber);
+      const outerTableRef = outerTableRefs.get(destinationPlayer.location);
 
       if (!cardRef?.current) throw new Error('Invalid card ref when dealing for dealer');
-      if (!outerTableRef?.current) throw new Error('Invalid deck ref when dealing for dealer');
+      if (!outerTableRef?.current) throw new Error('Invalid table ref when dealing for dealer');
 
+      const relativeRef =
+        destinationPlayer.location === 'top' || destinationPlayer.location === 'bottom'
+          ? relativeHRef
+          : relativeVRef;
       const newSpringVal = getSpringMoveElement(
         cardRef.current,
         outerTableRef.current,
-        relativeRef.current,
+        relativeRef,
         undefined,
         true,
         'in',
@@ -270,69 +273,6 @@ const useCardTransform = () => {
     return retval;
   };
 
-  // const getPlayer1SpringForDealForDealer = (
-  //   cardRef: HTMLElement,
-  //   tableRef: HTMLElement
-  // ): CardSpringTarget => {
-  //   const cardOriginalPosition = getElementOriginalPosition(cardRef);
-  //   const tableRect = tableRef.getBoundingClientRect();
-  //   const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
-  //   const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
-
-  //   return {
-  //     ...DEFAULT_SPRING_VAL,
-  //     x: tableCenter - cardOriginalPosition.centerX,
-  //     y: -(cardOriginalPosition.top - tableRect.top) - cardHeight
-  //   };
-  // };
-
-  // const getPlayer2SpringForDealForDealer = (
-  //   cardRef: HTMLElement,
-  //   tableRef: HTMLElement
-  // ): CardSpringTarget => {
-  //   const cardOriginalPosition = getElementOriginalPosition(cardRef);
-  //   const tableRect = tableRef.getBoundingClientRect();
-  //   const cardHeight = cardOriginalPosition.bottom - cardOriginalPosition.top;
-  //   const tableCenter = tableRect.left + (tableRect.right - tableRect.left) / 2;
-
-  //   return {
-  //     ...DEFAULT_SPRING_VAL,
-  //     x: tableCenter - cardOriginalPosition.centerX,
-  //     y: tableRect.bottom - cardOriginalPosition.bottom + cardHeight
-  //   };
-  // };
-
-  // const getPlayer3SpringForDealForDealer = (
-  //   cardRef: HTMLElement,
-  //   tableRef: HTMLElement
-  // ): CardSpringTarget => {
-  //   const cardOriginalPosition = getElementOriginalPosition(cardRef);
-  //   const tableRect = tableRef.getBoundingClientRect();
-  //   const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
-  //   const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
-
-  //   return {
-  //     ...DEFAULT_SPRING_VAL,
-  //     x: tableRect.right - cardOriginalPosition.right + cardWidth,
-  //     y: tableCenter - cardOriginalPosition.centerY
-  //   };
-  // };
-
-  // const getPlayer4SpringForDealForDealer = (
-  //   cardRef: HTMLElement,
-  //   tableRef: HTMLElement
-  // ): CardSpringTarget => {
-  //   const cardOriginalPosition = getElementOriginalPosition(cardRef);
-  //   const tableRect = tableRef.getBoundingClientRect();
-  //   const cardWidth = cardOriginalPosition.right - cardOriginalPosition.left;
-  //   const tableCenter = tableRect.top + (tableRect.bottom - tableRect.top) / 2;
-
-  //   return {
-  //     ...DEFAULT_SPRING_VAL,
-  //     x: -(cardOriginalPosition.left - tableRect.left) - cardWidth,
-  //     y: tableCenter - cardOriginalPosition.centerY
-  //   };
-  // };
   //#endregion
 
   //#region  Spring for deal for regular play
@@ -363,13 +303,19 @@ const useCardTransform = () => {
 
     return newSpringVal;
   };
+
   /**
-   *
+   * Get animation values for dealing cards for regular play.
+   * Typically cards aren't dealt one by one, but dealt in groups, and rotated between players.
+   * All players should have 5 cards after 2 rounds of dealing.
+   * The next card to be dealt after each player receives 5 cards will be the flipped up card for
+   * bidding for trump.
    */
   const getSpringsForDealForRegularPlay = (
-    outerTableRefs: Map<number, RefObject<HTMLDivElement | null>>,
+    outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
     cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
-    centerTableRef: RefObject<HTMLDivElement | null>,
+    relativeHRef: HTMLDivElement,
+    relativeVRef: HTMLDivElement,
     playerRotation: EuchrePlayer[],
     cardDealCount: number[],
     cards: Card[],
@@ -378,7 +324,6 @@ const useCardTransform = () => {
   ): CardSpringProps[] => {
     const retval: CardSpringProps[] = [];
     const centerLocation = dealerLocation === 'top' || dealerLocation === 'bottom';
-    if (!centerTableRef?.current) throw new Error('Invalid center table ref when dealing for regular play');
 
     let counter = 0;
 
@@ -386,7 +331,11 @@ const useCardTransform = () => {
       let numberOfCards = 0;
       const destinationPlayer = playerRotation[i % 4];
       const firstRound: boolean = i < 4;
-      const tableRef = outerTableRefs.get(destinationPlayer.playerNumber);
+      const tableRef = outerTableRefs.get(destinationPlayer.location);
+      const relativeRef =
+        destinationPlayer.location === 'top' || destinationPlayer.location === 'bottom'
+          ? relativeHRef
+          : relativeVRef;
 
       if (!tableRef?.current) throw new Error('Invalid deck ref when dealing for regular play');
 
@@ -405,10 +354,11 @@ const useCardTransform = () => {
         const newSpringVal = getSpringForDeal(
           cardRef.current,
           tableRef.current,
-          centerTableRef.current,
+          relativeRef,
           card,
           centerLocation
         );
+
         retval.push({
           springValue: newSpringVal,
           cardIndex: card.index,
@@ -423,13 +373,10 @@ const useCardTransform = () => {
     const cardRef = cardRefs.get(trump.index);
     if (!cardRef?.current) throw new Error('Invalid card ref when dealing for regular play');
 
-    const newSpringVal = getSpringForDeal(
-      cardRef.current,
-      centerTableRef.current,
-      undefined,
-      trump,
-      centerLocation
-    );
+    const newSpringVal = getSpringForDeal(cardRef.current, relativeHRef, undefined, trump, centerLocation);
+    newSpringVal.rotate = centerLocation ? 360 : 270;
+    newSpringVal.rotateY = 0;
+    newSpringVal.rotateX = 0;
     retval.push({
       springValue: newSpringVal,
       cardIndex: trump.index,
@@ -808,6 +755,7 @@ const useCardTransform = () => {
 
   //#region Send cards to player after trick taken
 
+  /** */
   const getDestinationOffset = (location: TableLocation): { x: number; y: number } => {
     const retval: { x: number; y: number } = { x: 0, y: 0 };
 
@@ -1118,11 +1066,12 @@ const useCardTransform = () => {
     getSpringsForDealForDealer,
     getSpringsToMoveToPlayer,
     getSpringMoveElement,
-    getCardOffsetForLocation: getElementOffsetForLocation,
+    getElementOffsetForLocation,
     getSpringsForDealForRegularPlay,
     getElementOriginalPosition,
     getSpringsForCardInit,
-    getCalculatedWidthOffset
+    getCalculatedWidthOffset,
+    getDestinationOffset
   };
 };
 

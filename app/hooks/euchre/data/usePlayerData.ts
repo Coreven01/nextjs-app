@@ -89,40 +89,43 @@ const usePlayerData = () => {
   /** Returns information regarding the position for each player's cards/hand and player information panel
    *
    */
-  const getPlayerGridLayoutInfo = (players: EuchrePlayer[]) => {
-    //lg:left-[25%] md:left-[15%] left-[10%]
+  const getPlayerGridLayoutInfo = () => {
     const playerLayoutForGrid = [
       {
-        player: players[0],
+        location: 'bottom',
         locationClass: 'row-start-3 col-start-1 col-span-3 row-span-1',
         innerClassName: 'flex items-end h-full justify-center',
-        playerInfoClass: 'lg:relative lg:right-12 lg:bottom-8 lg:min-w-32 right-28 bottom-4',
-        width: getDisplayWidth(players[0].location),
-        height: getDisplayHeight(players[0].location)
+        playerInfoClass: 'lg:relative lg:right-0 lg:bottom-8 lg:min-w-32 right-28 bottom-4',
+        playerInnerDeckOffsetClass: 'left-1/2 top-0',
+        width: getDisplayWidth('bottom'),
+        height: getDisplayHeight('bottom')
       },
       {
-        player: players[1],
+        location: 'top',
         locationClass: 'row-start-1 col-start-1 col-span-3 row-span-1',
         innerClassName: 'flex h-full items-start justify-center',
-        playerInfoClass: 'lg:relative lg:right-8 lg:bottom-0 lg:top-auto lg:min-w-32 right-24 top-0',
-        width: getDisplayWidth(players[1].location),
-        height: getDisplayHeight(players[1].location)
+        playerInfoClass: 'lg:relative lg:right-0 lg:top-2 lg:top-auto lg:min-w-32 right-24 top-0',
+        playerInnerDeckOffsetClass: 'left-1/2 bottom-0',
+        width: getDisplayWidth('top'),
+        height: getDisplayHeight('top')
       },
       {
-        player: players[2],
+        location: 'left',
         locationClass: 'row-start-1 col-start-1 row-span-3 col-span-1',
         innerClassName: ' flex flex-col items-start w-full lg:top-[20%] md:top-[5%] top-0',
-        playerInfoClass: 'lg:bottom-0 lg:left-0 lg:min-w-32 -bottom-4',
-        width: getDisplayWidth(players[2].location),
-        height: getDisplayHeight(players[2].location)
+        playerInfoClass: 'lg:-bottom-16 lg:left-2 lg:min-w-32 -bottom-4',
+        playerInnerDeckOffsetClass: 'top-1/2 right-0',
+        width: getDisplayWidth('left'),
+        height: getDisplayHeight('left')
       },
       {
-        player: players[3],
+        location: 'right',
         locationClass: 'row-start-1 col-start-3 row-span-3 row-span-1',
         innerClassName: 'flex flex-col items-end w-full lg:top-[20%] md:top-[5%] top-0',
-        playerInfoClass: 'lg:bottom-0 lg:right-0 lg:min-w-32 -bottom-4',
-        width: getDisplayWidth(players[3].location),
-        height: getDisplayHeight(players[3].location)
+        playerInfoClass: 'lg:-bottom-16 lg:right-2 lg:min-w-32 -bottom-4',
+        playerInnerDeckOffsetClass: 'top-1/2 left-0',
+        width: getDisplayWidth('right'),
+        height: getDisplayHeight('right')
       }
     ];
 

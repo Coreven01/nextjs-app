@@ -1,14 +1,8 @@
-import {
-  EuchreFlowActionType,
-  EuchreGameFlow,
-  EuchreGameFlowState,
-  INIT_GAME_FLOW_STATE
-} from './reducers/gameFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlowState, INIT_GAME_FLOW_STATE } from './reducers/gameFlowReducer';
 import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
-import { EuchreAnimateType, EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
+import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import { useCallback, useEffect, useState } from 'react';
-import useGameStateLogic from './logic/useGameStateLogic';
 import useGameData from './data/useGameData';
 import {
   EuchreGameInstance,
@@ -19,6 +13,7 @@ import {
 import { GameEventHandlers } from './useEventLog';
 import { PromptType } from '../../lib/euchre/definitions/definitions';
 import { EuchrePauseActionType } from './reducers/gamePauseReducer';
+import useGameInitState from './phases/useGameInitState';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(
@@ -27,33 +22,29 @@ export default function useEuchreGameInit(
   eventHandlers: GameEventHandlers,
   errorHandlers: GameErrorHandlers
 ) {
+  const { shouldBeginIntro, continueToBeginDealCardsForDealer } = useGameInitState(
+    state,
+    setters,
+    errorHandlers
+  );
   const [showIntro, setShowIntro] = useState(true);
   const { createGameForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } =
     useGameSetupLogic();
-  const { isGameStateValidToContinue } = useGameStateLogic();
   const { notificationDelay } = useGameData();
 
+  /** Show an introduction to the game when the board loads. */
   useEffect(() => {
     const animateIntro = async () => {
-      if (
-        !isGameStateValidToContinue(
-          state,
-          EuchreGameFlow.BEGIN_INTRO,
-          EuchreAnimateType.ANIMATE,
-          state.shouldCancel,
-          errorHandlers.onCancel
-        )
-      )
-        return;
+      if (!shouldBeginIntro) return;
 
       await notificationDelay(state.euchreSettings, 1);
 
-      setters.dispatchStateChange(EuchreGameFlow.BEGIN_DEAL_FOR_DEALER, EuchreAnimationActionType.SET_NONE);
+      continueToBeginDealCardsForDealer();
     };
     try {
       animateIntro();
     } catch (e) {}
-  }, [errorHandlers.onCancel, isGameStateValidToContinue, notificationDelay, setters, state]);
+  }, [continueToBeginDealCardsForDealer, notificationDelay, shouldBeginIntro, state.euchreSettings]);
 
   /**
    * Reset game and game state flow to defaults.
@@ -117,6 +108,7 @@ export default function useEuchreGameInit(
     setters.setEuchreGame(createDefaultEuchreGame());
   }, [createDefaultEuchreGame, reset, setters]);
 
+  /** */
   const handleBeginGame = () => {
     createGame();
   };
