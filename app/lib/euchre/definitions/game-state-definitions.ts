@@ -124,11 +124,13 @@ export interface EuchreGameValues extends EuchreGameState {
   shouldCancel: boolean;
 }
 
-export interface GameErrorHandlers {
-  /** The method that should be called if the user attempted to cancel the game. */
+export interface ErrorHandlers {
+  /** The method that should be called if the user attempted to cancel. */
   onCancel: () => void;
 
-  onError: (e: Error, func: string) => void;
+  onError: (e: Error, name: string) => void;
+
+  catchAsync: (func: () => Promise<void>, onError: (e: Error, name: string) => void, fnName: string) => void;
 }
 
 export interface EuchreGamePlayHandlers {
@@ -157,7 +159,6 @@ export interface EuchreAnimationHandlers {
 export interface EuchreGameSetters {
   // the following are methods/functions used to update state.
   setEuchreGame: Dispatch<SetStateAction<EuchreGameInstance>>;
-  setEuchreSettings: Dispatch<SetStateAction<EuchreSettings>>;
   setPromptValue: Dispatch<SetStateAction<PromptValue[]>>;
   setPlayedCard: Dispatch<SetStateAction<Card | null>>;
   setInitialDealerResult: Dispatch<SetStateAction<InitDealResult | null>>;
@@ -173,6 +174,7 @@ export interface EuchreGameSetters {
   dispatchPlayerNotification: ActionDispatch<[action: PlayerNotificationAction]>;
   dispatchGameFlow: ActionDispatch<[action: GameFlowAction]>;
   dispatchGameAnimationFlow: ActionDispatch<[action: EuchreAnimationAction]>;
+  dispatchPause: () => void;
 }
 
 export interface EuchreError {

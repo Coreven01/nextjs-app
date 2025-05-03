@@ -4,7 +4,7 @@ import {
   RESPONSE_CARD_SIDE,
   TableLocation
 } from '@/app/lib/euchre/definitions/definitions';
-import React, { forwardRef, PropsWithoutRef, RefObject } from 'react';
+import React, { forwardRef, PropsWithoutRef, RefObject, useEffect } from 'react';
 import GameCard from './game-card';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import clsx from 'clsx';
@@ -25,6 +25,7 @@ interface Props {
   height: number;
   handId: string;
   onAnimationComplete?: () => void;
+  onFirstRender?: (ready: boolean) => void;
 }
 
 const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
@@ -40,13 +41,26 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       width,
       height,
       handId,
-      onAnimationComplete
+      onAnimationComplete,
+      onFirstRender
     }: Props,
     ref
   ) => {
     const sideLocation = location === 'left' || location === 'right';
 
+    /** Notify parent component that component rendered and refs should be set. */
+    useEffect(() => {
+      const localOnFirstRender = onFirstRender;
+
+      if (localOnFirstRender) localOnFirstRender(true);
+
+      return () => {
+        if (localOnFirstRender) localOnFirstRender(false);
+      };
+    });
+
     console.log('**** [GameDeck] render. handId: ', handId, ' card states: ', cardStates);
+
     return (
       <motion.div
         style={{ perspective: 1000, transformStyle: 'preserve-3d' }}

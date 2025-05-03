@@ -77,6 +77,7 @@ export default function PlayerGameDeck({
           onCardPlayed={onCardPlayed}
           onTrickComplete={onTrickComplete}
           onPassDeal={onPassDeal}
+          onDealComplete={() => null}
           playerCenterTableRef={playerTableRef}
           playerDeckRefs={playerDeckRefs}
         />

@@ -27,7 +27,7 @@ const useCardState = (
   onTrickComplete?: (card: Card) => void,
   onPassDeal?: () => void,
   onCardPlayed?: (card: Card) => void,
-  onDealComplete?: () => void
+  onDealComplete?: (playerNumber: number) => void
 ) => {
   //#region Hooks/Variables
 
@@ -82,13 +82,16 @@ const useCardState = (
 
   //#region Functions/Methods
 
-  const handleDealComplete = useCallback(() => {
-    if (onDealComplete) {
-      onDealComplete();
-    } else {
-      throw new Error('Invalid event handler for deal complete.');
-    }
-  }, [onDealComplete]);
+  const handleDealComplete = useCallback(
+    (playerNumber: number) => {
+      if (onDealComplete) {
+        onDealComplete(playerNumber);
+      } else {
+        throw new Error('Invalid event handler for deal complete.');
+      }
+    },
+    [onDealComplete]
+  );
 
   /** Create and set the initial hand state for the player's hand. */
   const setInitialPlayerHandState = () => {
@@ -421,7 +424,6 @@ const useCardState = (
 
     if (shouldCreateHandState) {
       setInitialPlayerHandState();
-      //dealCards();
     }
   });
 
@@ -471,15 +473,16 @@ const useCardState = (
         await new Promise((resolve) => setTimeout(resolve, delay));
         cardsRefSet.current = true;
         regroupCards(false, cardRef);
-        beginFlipCards();
-        handleDealComplete();
+        await beginFlipCards();
+        handleDealComplete(player.playerNumber);
+        await gameDelay(state.euchreSettings);
       }
     };
 
     const beginFlipCards = async () => {
       // flip cards over to see their values if enabled for the current player.
       if (handState?.shouldShowCardValue) {
-        await new Promise((resolve) => setTimeout(resolve, state.euchreSettings.gameSpeed));
+        await gameDelay(state.euchreSettings);
         animateFlipPlayerHand();
       }
     };
@@ -489,11 +492,13 @@ const useCardState = (
     animateFlipPlayerHand,
     cardRefs,
     cardStates.length,
+    gameDelay,
     handState,
     handleDealComplete,
+    player.playerNumber,
     player.team,
     regroupCards,
-    state.euchreSettings.gameSpeed
+    state.euchreSettings
   ]);
 
   // useEffect(() => {

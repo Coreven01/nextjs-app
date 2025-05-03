@@ -337,7 +337,7 @@ const useCardTransform = () => {
           ? relativeHRef
           : relativeVRef;
 
-      if (!tableRef?.current) throw new Error('Invalid deck ref when dealing for regular play');
+      if (!tableRef?.current) throw new Error('Invalid outer table ref when dealing for regular play.');
 
       if (firstRound) {
         numberOfCards = i % 2 ? cardDealCount[0] : cardDealCount[1];
@@ -349,7 +349,7 @@ const useCardTransform = () => {
         const card = cards[counter];
         const cardRef = cardRefs.get(counter);
 
-        if (!cardRef?.current) throw new Error('Invalid card ref when dealing for regular play');
+        if (!cardRef?.current) throw new Error('Invalid card ref when dealing for regular play.');
 
         const newSpringVal = getSpringForDeal(
           cardRef.current,
@@ -1007,53 +1007,53 @@ const useCardTransform = () => {
     };
   };
 
-  const getPlayer1AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
-    const values = getHandOffsetValues(5, cardWidthOffset);
+  // const getPlayer1AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+  //   const values = getHandOffsetValues(5, cardWidthOffset);
 
-    return {
-      ...DEFAULT_SPRING_VAL,
-      x: values.widthOffsetStart + values.widthOffset * cardOrder,
-      y: -values.heightOffsetIndices[cardOrder] * values.heightOffset,
-      opacity: 1,
-      rotate: values.rotationStart + values.rotationOffset * cardOrder
-    };
-  };
+  //   return {
+  //     ...DEFAULT_SPRING_VAL,
+  //     x: values.widthOffsetStart + values.widthOffset * cardOrder,
+  //     y: -values.heightOffsetIndices[cardOrder] * values.heightOffset,
+  //     opacity: 1,
+  //     rotate: values.rotationStart + values.rotationOffset * cardOrder
+  //   };
+  // };
 
-  const getPlayer2AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
-    const values = getHandOffsetValues(5, cardWidthOffset);
+  // const getPlayer2AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+  //   const values = getHandOffsetValues(5, cardWidthOffset);
 
-    return {
-      ...DEFAULT_SPRING_VAL,
-      x: values.widthOffsetStart + values.widthOffset * cardOrder,
-      y: values.heightOffsetIndices[cardOrder],
-      opacity: 1,
-      rotate: -(values.rotationStart + values.rotationOffset * cardOrder)
-    };
-  };
+  //   return {
+  //     ...DEFAULT_SPRING_VAL,
+  //     x: values.widthOffsetStart + values.widthOffset * cardOrder,
+  //     y: values.heightOffsetIndices[cardOrder],
+  //     opacity: 1,
+  //     rotate: -(values.rotationStart + values.rotationOffset * cardOrder)
+  //   };
+  // };
 
-  const getPlayer3AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
-    const values = getHandOffsetValues(5, cardWidthOffset);
+  // const getPlayer3AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+  //   const values = getHandOffsetValues(5, cardWidthOffset);
 
-    return {
-      ...DEFAULT_SPRING_VAL,
-      x: -values.heightOffsetIndices[cardOrder],
-      y: values.widthOffsetStart + values.widthOffset * cardOrder,
-      opacity: 1,
-      rotate: values.rotationStart + values.rotationOffset * cardOrder
-    };
-  };
+  //   return {
+  //     ...DEFAULT_SPRING_VAL,
+  //     x: -values.heightOffsetIndices[cardOrder],
+  //     y: values.widthOffsetStart + values.widthOffset * cardOrder,
+  //     opacity: 1,
+  //     rotate: values.rotationStart + values.rotationOffset * cardOrder
+  //   };
+  // };
 
-  const getPlayer4AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
-    const values = getHandOffsetValues(5, cardWidthOffset);
+  // const getPlayer4AnimateStartForCard = (cardOrder: number, cardWidthOffset: number) => {
+  //   const values = getHandOffsetValues(5, cardWidthOffset);
 
-    return {
-      ...DEFAULT_SPRING_VAL,
-      x: values.heightOffsetIndices[cardOrder],
-      y: values.widthOffsetStart + values.widthOffset * cardOrder,
-      opacity: 1,
-      rotate: -(values.rotationStart + values.rotationOffset * cardOrder)
-    };
-  };
+  //   return {
+  //     ...DEFAULT_SPRING_VAL,
+  //     x: values.heightOffsetIndices[cardOrder],
+  //     y: values.widthOffsetStart + values.widthOffset * cardOrder,
+  //     opacity: 1,
+  //     rotate: -(values.rotationStart + values.rotationOffset * cardOrder)
+  //   };
+  // };
 
   return {
     getSpringsForCardPlayed,

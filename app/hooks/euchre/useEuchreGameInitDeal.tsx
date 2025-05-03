@@ -1,19 +1,18 @@
 import { useCallback, useEffect } from 'react';
 import useGameSetupLogic from './logic/useGameSetupLogic';
-import usePlayerData from './data/usePlayerData';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
 import { InitDealResult } from '../../lib/euchre/definitions/logic-definitions';
 import { GameEventHandlers } from './useEventLog';
-import { EuchrePauseActionType } from './reducers/gamePauseReducer';
 import useGameData from './data/useGameData';
 import { getPlayerNotificationType, PlayerNotificationAction } from './reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
 import useGameInitDealState from './phases/useGameInitDealState';
+import useGameEventsInitDeal from './events/useGameEventsInitDeal';
 
 /**
  * Hook used to initialize game play for dealing cards for intial dealer.
@@ -24,11 +23,11 @@ export default function useEuchreGameInitDeal(
   state: EuchreGameValues,
   setters: EuchreGameSetters,
   eventHandlers: GameEventHandlers,
-  errorHandlers: GameErrorHandlers
+  errorHandlers: ErrorHandlers
 ) {
   const { dealCardsForDealer } = useGameSetupLogic();
-  const { getTeamColor } = usePlayerData();
   const { notificationDelay } = useGameData();
+  const { addInitialDealEvent, addInitialDealerSetEvent } = useGameEventsInitDeal(state, eventHandlers);
   const {
     shouldBeginDealCardsForDealer,
     shouldAnimateBeginDealCardsForDealer,
@@ -49,9 +48,7 @@ export default function useEuchreGameInitDeal(
   const beginDealCardsForDealer = useCallback(() => {
     if (!shouldBeginDealCardsForDealer) return;
 
-    eventHandlers.addEvent(
-      eventHandlers.createEvent('v', undefined, 'Begin deal cards to determine initial dealer.')
-    );
+    addInitialDealEvent();
 
     const dealResult: InitDealResult | null = dealCardsForDealer(
       state.euchreGame,
@@ -64,8 +61,8 @@ export default function useEuchreGameInitDeal(
     setters.setInitialDealerResult(dealResult);
     pauseForAnimateBeginDealCardsForDealer();
   }, [
+    addInitialDealEvent,
     dealCardsForDealer,
-    eventHandlers,
     pauseForAnimateBeginDealCardsForDealer,
     setters,
     shouldBeginDealCardsForDealer,
@@ -115,26 +112,16 @@ export default function useEuchreGameInitDeal(
     newGame.currentPlayer = state.initDealer.newDealer;
     newGame.dealer = state.initDealer.newDealer;
 
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
-        'i',
-        state.initDealer.newDealer,
-        'Set as initial dealer.',
-        undefined,
-        getTeamColor(state.initDealer.newDealer, state.euchreSettings)
-      )
-    );
+    addInitialDealerSetEvent(newGame.dealer);
 
     setters.setEuchreGame(newGame);
     continueToAnimateEndDealCardsForDealer();
   }, [
+    addInitialDealerSetEvent,
     continueToAnimateEndDealCardsForDealer,
-    eventHandlers,
-    getTeamColor,
     setters,
     shouldEndDealCardsForDealer,
     state.euchreGame,
-    state.euchreSettings,
     state.initDealer
   ]);
 
@@ -153,7 +140,7 @@ export default function useEuchreGameInitDeal(
     const endAnimationForInitDeal = async () => {
       if (!shouldAnimateEndDealCardsForDealer) return;
 
-      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
+      setters.dispatchPause();
 
       // show an indicator who will be the next dealer.
       const newAction: PlayerNotificationAction = {
@@ -166,6 +153,7 @@ export default function useEuchreGameInitDeal(
           />
         )
       };
+
       setters.dispatchPlayerNotification(newAction);
       await notificationDelay(state.euchreSettings);
       pauseForAnimateEndDealCardsForDealer();

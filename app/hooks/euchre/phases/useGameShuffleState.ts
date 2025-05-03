@@ -2,7 +2,7 @@ import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useGamePlayLogic from '../logic/useGamePlayLogic';
 import useGameStateLogic from '../logic/useGameStateLogic';
@@ -13,7 +13,7 @@ import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 const useGameShuffleState = (
   state: EuchreGameValues,
   setters: EuchreGameSetters,
-  handlers: GameErrorHandlers
+  handlers: ErrorHandlers
 ) => {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { getGameStateForNextHand } = useGamePlayLogic();

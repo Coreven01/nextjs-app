@@ -5,15 +5,19 @@ import PlayerArea from '../player/player-area';
 import clsx from 'clsx';
 import {
   EuchreAnimationHandlers,
-  EuchreGameValues
+  EuchreGameValues,
+  ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card } from '../../../lib/euchre/definitions/definitions';
 import useTableRefs from '../../../hooks/euchre/useTableRefs';
 import PlayerCardArea from '../player/player-card-area';
 import { useRef } from 'react';
+import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameValues;
+  eventHandlers: GameEventHandlers;
+  errorHandlers: ErrorHandlers;
   isFullScreen: boolean;
   showEvents: boolean;
   showSettings: boolean;
@@ -39,6 +43,8 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 const GameArea = ({
   state,
+  eventHandlers,
+  errorHandlers,
   isFullScreen,
   showEvents,
   showSettings,
@@ -101,6 +107,8 @@ const GameArea = ({
       <PlayerCardArea
         id="euchre-player-card-area"
         state={state}
+        eventHandlers={eventHandlers}
+        errorHandlers={errorHandlers}
         playedCard={playedCard}
         playerCenterTableRefs={centerTableRefs}
         playerOuterTableRefs={outerTableRefs}

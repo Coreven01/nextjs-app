@@ -22,7 +22,7 @@ import {
   EuchreGameSetters,
   EuchreGameValues,
   EuchreTrick,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
 import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
 
@@ -30,7 +30,7 @@ export default function useEuchreGamePlay(
   state: EuchreGameValues,
   setters: EuchreGameSetters,
   eventHandlers: GameEventHandlers,
-  errorHandlers: GameErrorHandlers
+  errorHandlers: ErrorHandlers
 ) {
   const playerAutoPlayed = useRef(false);
   const { isGameStateValidToContinue } = useGameStateLogic();

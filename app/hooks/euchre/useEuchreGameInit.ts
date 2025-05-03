@@ -8,20 +8,22 @@ import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
 import { GameEventHandlers } from './useEventLog';
 import { PromptType } from '../../lib/euchre/definitions/definitions';
 import { EuchrePauseActionType } from './reducers/gamePauseReducer';
 import useGameInitState from './phases/useGameInitState';
+import useGameEventsInit from './events/useGameEventsInit';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(
   state: EuchreGameValues,
   setters: EuchreGameSetters,
   eventHandlers: GameEventHandlers,
-  errorHandlers: GameErrorHandlers
+  errorHandlers: ErrorHandlers
 ) {
+  const { addIntroEvent } = useGameEventsInit(state, eventHandlers);
   const { shouldBeginIntro, continueToBeginDealCardsForDealer } = useGameInitState(
     state,
     setters,
@@ -37,14 +39,24 @@ export default function useEuchreGameInit(
     const animateIntro = async () => {
       if (!shouldBeginIntro) return;
 
+      setters.dispatchPause();
+      addIntroEvent();
       await notificationDelay(state.euchreSettings, 1);
 
       continueToBeginDealCardsForDealer();
     };
+
     try {
       animateIntro();
     } catch (e) {}
-  }, [continueToBeginDealCardsForDealer, notificationDelay, shouldBeginIntro, state.euchreSettings]);
+  }, [
+    addIntroEvent,
+    continueToBeginDealCardsForDealer,
+    notificationDelay,
+    setters,
+    shouldBeginIntro,
+    state.euchreSettings
+  ]);
 
   /**
    * Reset game and game state flow to defaults.
@@ -54,9 +66,7 @@ export default function useEuchreGameInit(
       if (resetForBeginGame) {
         setters.dispatchGameFlow({
           type: EuchreFlowActionType.SET_STATE,
-          state: {
-            ...INIT_GAME_FLOW_STATE
-          }
+          state: { ...INIT_GAME_FLOW_STATE }
         });
       }
 
@@ -72,7 +82,7 @@ export default function useEuchreGameInit(
         setters.setPromptValue([]);
       }
 
-      setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET, payload: undefined });
+      setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
       setters.setBidResult(null);
       setters.setPlayedCard(null);
     },

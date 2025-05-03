@@ -1,0 +1,35 @@
+import { EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
+import usePlayerData from '../data/usePlayerData';
+import { GameEventHandlers, SUB_SUIT } from '../useEventLog';
+
+const useGameEventsShuffle = (state: EuchreGameValues, eventHandlers: GameEventHandlers) => {
+  const { getTeamColor } = usePlayerData();
+
+  const addBeginShuffleEvent = () => {
+    eventHandlers.addEvent(
+      eventHandlers.createEvent(
+        'v',
+        state.euchreGame.dealer,
+        'Begin shuffle and deal for regular play.',
+        undefined,
+        getTeamColor(state.euchreGame.dealer, state.euchreSettings)
+      )
+    );
+  };
+
+  const addTrumpCardFlippedEvent = () => {
+    eventHandlers.addEvent(
+      eventHandlers.createEvent(
+        'i',
+        state.euchreGame.dealer,
+        `Flipped up ${SUB_SUIT} for bidding.`,
+        [state.euchreGame.trump],
+        getTeamColor(state.euchreGame.dealer, state.euchreSettings)
+      )
+    );
+  };
+
+  return { addBeginShuffleEvent, addTrumpCardFlippedEvent };
+};
+
+export default useGameEventsShuffle;

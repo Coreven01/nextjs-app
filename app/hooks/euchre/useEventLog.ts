@@ -1,5 +1,5 @@
 import { Card, TeamColor } from '@/app/lib/euchre/definitions/definitions';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { EuchrePlayer } from '../../lib/euchre/definitions/game-state-definitions';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -32,12 +32,9 @@ export interface GameEventHandlers {
 
 export function useEventLog() {
   const [events, setEvents] = useState<GameEvent[]>([]);
-  const counter = useRef(0);
 
   const addEvent = useCallback(
     (event: GameEvent) => {
-      counter.current++;
-
       if (events.length > 200) {
         setEvents((prev) => [...prev.slice(1), event]);
       } else {
@@ -48,7 +45,6 @@ export function useEventLog() {
   );
 
   const clearEvents = useCallback(() => {
-    counter.current = 0;
     setEvents([]);
   }, []);
 
@@ -66,7 +62,7 @@ export function useEventLog() {
       message: message,
       player: player?.name,
       team: player?.team,
-      teamColor: teamColor ? teamColor : 'blue',
+      teamColor: teamColor,
       cards: cards
     };
   }

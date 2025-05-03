@@ -1,7 +1,7 @@
 import {
   EuchreGameSetters,
   EuchreGameValues,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useGameStateLogic from '../logic/useGameStateLogic';
 import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
@@ -11,7 +11,7 @@ import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 const useGameInitDealState = (
   state: EuchreGameValues,
   setters: EuchreGameSetters,
-  handlers: GameErrorHandlers
+  handlers: ErrorHandlers
 ) => {
   const { isGameStateValidToContinue } = useGameStateLogic();
 

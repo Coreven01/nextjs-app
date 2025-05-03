@@ -14,14 +14,14 @@ import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
 
 export default function useEuchreGameOrder(
   state: EuchreGameValues,
   setters: EuchreGameSetters,
   eventHandlers: GameEventHandlers,
-  errorHandlers: GameErrorHandlers
+  errorHandlers: ErrorHandlers
 ) {
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { orderTrump, determineDiscard } = useGameBidLogic();
@@ -108,7 +108,7 @@ export default function useEuchreGameOrder(
 
       const orderType = state.bidResult.calledSuit ? 'named' : 'order';
       const notification: PlayerNotificationAction = {
-        type: getPlayerNotificationType(game.maker.playerNumber),
+        type: getPlayerNotificationType(game.maker.location),
         payload: (
           <PlayerNotification
             dealer={game.dealer}

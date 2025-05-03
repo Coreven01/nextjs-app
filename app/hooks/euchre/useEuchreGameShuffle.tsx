@@ -1,24 +1,26 @@
 import { useCallback, useEffect } from 'react';
 import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
 import useGameSetupLogic from './logic/useGameSetupLogic';
-import { GameEventHandlers, SUB_SUIT } from './useEventLog';
+import { GameEventHandlers } from './useEventLog';
 import usePlayerData from './data/usePlayerData';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
 import useGameShuffleState from './phases/useGameShuffleState';
+import useGameEventsShuffle from './events/useGameEventsShuffle';
 
 const useEuchreGameShuffle = (
   state: EuchreGameValues,
   setters: EuchreGameSetters,
   eventHandlers: GameEventHandlers,
-  errorHandlers: GameErrorHandlers
+  errorHandlers: ErrorHandlers
 ) => {
+  const { addBeginShuffleEvent, addTrumpCardFlippedEvent } = useGameEventsShuffle(state, eventHandlers);
   const { shuffleAndDealHand } = useGameSetupLogic();
-  const { getTeamColor, getPlayerRotation } = usePlayerData();
+  const { getPlayerRotation } = usePlayerData();
   const {
     shouldShuffleCards,
     shouldAnimateBeginDealCards,
@@ -34,14 +36,28 @@ const useEuchreGameShuffle = (
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
 
+  /** Update game state once card animation is complete and begin the bidding game state. */
+  const handleBeginDealComplete = () => {
+    addTrumpCardFlippedEvent();
+    continueToEndDealCards();
+  };
+
+  /** */
+  const handleEndDealComplete = () => {
+    const newGame: EuchreGameInstance = { ...state.euchreGame };
+    const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
+    newGame.currentPlayer = rotation[0];
+
+    setters.setEuchreGame(newGame);
+    continueToBeginBidForTrump();
+  };
+
   /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
    * or if a player will name suit. After deal logic is run, begin animation for dealing cards to players. */
   const beginShuffleAndDealHand = useCallback(() => {
     if (!shouldShuffleCards) return;
 
-    eventHandlers.addEvent(
-      eventHandlers.createEvent('v', state.euchreGame.dealer, 'Begin shuffle and deal for regular play.')
-    );
+    addBeginShuffleEvent();
 
     const shuffleResult = shuffleAndDealHand(
       state.euchreGame,
@@ -57,8 +73,8 @@ const useEuchreGameShuffle = (
     setters.setEuchreGame(newGame);
     continueToAnimateDealCards(newGame);
   }, [
+    addBeginShuffleEvent,
     continueToAnimateDealCards,
-    eventHandlers,
     setters,
     shouldShuffleCards,
     shuffleAndDealHand,
@@ -101,23 +117,6 @@ const useEuchreGameShuffle = (
     }
   }, [errorHandlers, pauseForAnimateBeginDealCards, shouldAnimateBeginDealCards]);
 
-  /** Update game state once card animation is complete and begin the bidding game state. */
-  const handleBeginDealComplete = () => {
-    const game = state.euchreGame;
-
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
-        'i',
-        game.dealer,
-        `Flipped up ${SUB_SUIT} for bidding.`,
-        [game.trump],
-        getTeamColor(game.dealer, state.euchreSettings)
-      )
-    );
-
-    continueToEndDealCards();
-  };
-
   /** */
   const endDealCards = useCallback(() => {
     if (!shouldEndDealCards) return;
@@ -158,15 +157,6 @@ const useEuchreGameShuffle = (
     }
   }, [errorHandlers, pauseForAnimateEndDealCards, shouldAnimateEndDealCards]);
 
-  /** */
-  const handleEndDealComplete = () => {
-    const newGame: EuchreGameInstance = { ...state.euchreGame };
-    const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
-    newGame.currentPlayer = rotation[0];
-
-    setters.setEuchreGame(newGame);
-    continueToBeginBidForTrump();
-  };
   //#endregion
 
   return {

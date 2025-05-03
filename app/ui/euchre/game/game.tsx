@@ -54,6 +54,10 @@ export default function EuchreGame() {
     gameHandlers.handleBeginNewGame();
   };
 
+  const handleReturnFromSettings = () => {
+    toggleSettings(false);
+  };
+
   const handleRunFullGame = () => {
     const game = runFullGame(stateValues.euchreSettings);
     setFullGameInstance(game);
@@ -107,7 +111,7 @@ export default function EuchreGame() {
       <GameSettings
         key={stateValues.euchreGame !== null ? 'modal' : 'init'}
         settings={stateValues.euchreSettings}
-        onReturn={handleStartNewGame}
+        onReturn={handleReturnFromSettings}
         onApplySettings={changeSettings}
         onRunFullGame={handleRunFullGame}
         onRunFullGameLoop={handleRunFullGameLoop}
@@ -205,6 +209,8 @@ export default function EuchreGame() {
             <GameArea
               id="euchre-game-area"
               state={stateValues}
+              eventHandlers={eventHandlers}
+              errorHandlers={errorHandlers}
               className={clsx('transition-opacity opacity-10 duration-1000', {
                 '!opacity-100': renderIntro === undefined
               })}

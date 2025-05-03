@@ -15,7 +15,7 @@ type Props = {
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onPassDeal: () => void;
-  onDealComplete: () => void;
+  onDealComplete: (playerNumber: number) => void;
 };
 
 const PlayerHand = ({
@@ -38,9 +38,7 @@ const PlayerHand = ({
     cardStates,
     onCardPlayedComplete,
     getCardsToDisplay,
-    handlePlayCardAnimation,
-    getDisplayWidth,
-    getDisplayHeight
+    handlePlayCardAnimation
   } = useCardState(state, player, playerDeckRefs, onTrickComplete, onPassDeal, onCardPlayed, onDealComplete);
   const cardIndicesPlayed = useRef<Map<string, number>>(new Map<string, number>());
   const { getCardClassForPlayerLocation } = useCardData();

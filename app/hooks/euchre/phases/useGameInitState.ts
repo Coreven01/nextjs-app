@@ -1,18 +1,14 @@
 import {
   EuchreGameSetters,
   EuchreGameValues,
-  GameErrorHandlers
+  ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useGameStateLogic from '../logic/useGameStateLogic';
 import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 
-const useGameInitState = (
-  state: EuchreGameValues,
-  setters: EuchreGameSetters,
-  handlers: GameErrorHandlers
-) => {
+const useGameInitState = (state: EuchreGameValues, setters: EuchreGameSetters, handlers: ErrorHandlers) => {
   const { isGameStateValidToContinue } = useGameStateLogic();
 
   const shouldBeginIntro = isGameStateValidToContinue(

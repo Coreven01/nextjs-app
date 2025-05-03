@@ -5,18 +5,21 @@ import useGameData from '../../../hooks/euchre/data/useGameData';
 import {
   EuchreAnimationHandlers,
   EuchreGameValues,
-  EuchrePlayer
+  EuchrePlayer,
+  ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
 import useDeckState from '../../../hooks/euchre/useDeckState';
 import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
-import PlayerGameDeck from './players-game-deck';
 import PlayerHand from './player-hand';
 import useCardData from '../../../hooks/euchre/data/useCardData';
+import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameValues;
+  eventHandlers: GameEventHandlers;
+  errorHandlers: ErrorHandlers;
   playedCard: Card | null;
   playerCenterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   playerOuterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
@@ -29,6 +32,8 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 /** Area for card animation for dealing and player's cards. */
 const PlayerCardArea = ({
   state,
+  eventHandlers,
+  errorHandlers,
   playedCard,
   playerCenterTableRefs,
   playerOuterTableRefs,
@@ -39,6 +44,7 @@ const PlayerCardArea = ({
   ...rest
 }: DivProps) => {
   const {
+    handleRefChange,
     gameHandVisible,
     gameDeckVisible,
     gameDeckRef,
@@ -48,7 +54,15 @@ const PlayerCardArea = ({
     gameDeckState,
     deckAnimationControls,
     cardStates
-  } = useDeckState(state, playerOuterTableRefs, directCenterHRef, directCenterVRef, animationHandlers);
+  } = useDeckState(
+    state,
+    eventHandlers,
+    errorHandlers,
+    playerOuterTableRefs,
+    directCenterHRef,
+    directCenterVRef,
+    animationHandlers
+  );
 
   const { getPlayerGridLayoutInfo, playerEqual } = usePlayerData();
   const { playerSittingOut } = useGameData();
@@ -65,15 +79,16 @@ const PlayerCardArea = ({
   /** Set of trick id's where the event handler was executed to finish the trick. */
   const tricksFinished = useRef<Set<string>>(new Set<string>());
 
-  // const handleInitComplete = (playerNumber: number) => {
-  //   console.log('[handleInitComplete] - player-area.tsx');
-  //   if (playersInitDealFinished.current.values().toArray().length === 4) return;
+  const handleDealComplete = (playerNumber: number) => {
+    console.log('[handleInitComplete] - player-card-area.tsx');
+    if (playersInitDealFinished.current.values().toArray().length === 4) return;
 
-  //   playersInitDealFinished.current.add(playerNumber);
+    playersInitDealFinished.current.add(playerNumber);
 
-  //   if (playersInitDealFinished.current.values().toArray().length === 4) {
-  //   }
-  // };
+    if (playersInitDealFinished.current.values().toArray().length === 4) {
+      animationHandlers.handleEndRegularDealComplete();
+    }
+  };
 
   // const handleTrickFinished = useCallback(
   //   (card: Card) => {
@@ -97,14 +112,16 @@ const PlayerCardArea = ({
   //   [animationHandlers, cardCountDuringPlay, state.euchreGame.currentTrick]
   // );
 
-  // console.log(
-  //   '**** [PlayerCardArea] render. gameDeckState: ',
-  //   gameDeckState,
-  //   ' deck visible: ',
-  //   gameDeckVisible,
-  //   ' game state: ',
-  //   state
-  // );
+  console.log(
+    '**** [PlayerCardArea] render. gameDeckState: ',
+    gameDeckState,
+    ' deck visible: ',
+    gameDeckVisible,
+    ' game state: ',
+    state,
+    ' deck card refs: ',
+    deckCardRefs
+  );
 
   return (
     <GameGrid className={className} {...rest}>
@@ -116,8 +133,10 @@ const PlayerCardArea = ({
         const deckRef = playerDeckRefs.get(player.location);
         const innerDeckRef = playerInnerDeckRefs.get(player.location);
         const centerTableRef = playerCenterTableRefs.get(player.location);
+        const gameCard = playerEqual(player, state.euchreGame.currentPlayer) ? playedCard : null;
 
         if (!centerTableRef) throw new Error('Invalid center table ref in player card area.');
+
         return (
           <div
             className={clsx('relative', info.locationClass)}
@@ -127,13 +146,13 @@ const PlayerCardArea = ({
               <PlayerHand
                 state={state}
                 player={player}
-                playedCard={null}
+                playedCard={gameCard}
                 playerCenterTableRef={centerTableRef}
                 playerDeckRefs={playerDeckRefs}
                 onCardPlayed={() => null}
                 onTrickComplete={() => null}
                 onPassDeal={() => null}
-                onDealComplete={animationHandlers.handleEndRegularDealComplete}
+                onDealComplete={handleDealComplete}
               />
             )}
             <div
@@ -168,6 +187,7 @@ const PlayerCardArea = ({
           width={gameDeckState.width}
           height={gameDeckState.height}
           handId={gameDeckState.handId}
+          onFirstRender={handleRefChange}
         />
       )}
     </GameGrid>
