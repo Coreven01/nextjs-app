@@ -1,15 +1,16 @@
 import clsx from 'clsx';
-import React, { RefObject, useRef } from 'react';
+import React, { RefObject, useCallback, useEffect, useRef } from 'react';
 import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
 import useGameData from '../../../hooks/euchre/data/useGameData';
 import {
   EuchreAnimationHandlers,
   EuchreGameValues,
   EuchrePlayer,
-  ErrorHandlers
+  ErrorHandlers,
+  EuchreTrick
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import useDeckState from '../../../hooks/euchre/useDeckState';
+import useDeckState from '../../../hooks/euchre/state/useDeckState';
 import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
 import PlayerHand from './player-hand';
@@ -67,19 +68,28 @@ const PlayerCardArea = ({
   const { getPlayerGridLayoutInfo, playerEqual } = usePlayerData();
   const { playerSittingOut } = useGameData();
   const { getCardClassForPlayerLocation } = useCardData();
-
   const playerLayoutForGrid = getPlayerGridLayoutInfo();
   const sittingOutPlayer: EuchrePlayer | null = playerSittingOut(state.euchreGame);
-  const cardCountDuringPlay: number = sittingOutPlayer ? 3 : 4;
+  const currentHandId = useRef(state.euchreGame.handId);
 
+  const cardCountDuringPlay: number = sittingOutPlayer ? 3 : 4;
   const playersInitDealFinished = useRef<Set<number>>(new Set<number>());
+  const cardsPassedDeal = useRef<Set<string>>(new Set<string>());
+
   /** Map of trick id to the card values that were played for that trick. */
   const cardsPlayedForTrick = useRef<Map<string, Set<string>>>(new Map<string, Set<string>>());
 
   /** Set of trick id's where the event handler was executed to finish the trick. */
   const tricksFinished = useRef<Set<string>>(new Set<string>());
 
-  const handleDealComplete = (playerNumber: number) => {
+  useEffect(() => {
+    if (currentHandId.current !== state.euchreGame.handId) {
+      playersInitDealFinished.current.clear();
+      cardsPassedDeal.current.clear();
+    }
+  }, [state.euchreGame.handId]);
+
+  const handleDealAnimationComplete = (playerNumber: number) => {
     console.log('[handleInitComplete] - player-card-area.tsx');
     if (playersInitDealFinished.current.values().toArray().length === 4) return;
 
@@ -90,37 +100,49 @@ const PlayerCardArea = ({
     }
   };
 
-  // const handleTrickFinished = useCallback(
-  //   (card: Card) => {
-  //     console.log('[handleTrickFinished] - player-area.tsx');
+  const handlePassDealAnimationComplete = (card: Card) => {
+    console.log('[handlePassDealComplete] - player-card-area.tsx');
+    if (cardsPassedDeal.current.values().toArray().length === 20) return;
 
-  //     const trick: EuchreTrick | undefined = state.euchreGame.currentTrick;
-  //     const trickFinished = tricksFinished.current.has(trick.trickId);
+    cardsPassedDeal.current.add(`${card.value}${card.suit}`);
 
-  //     if (trickFinished) return;
+    if (cardsPassedDeal.current.values().toArray().length === 20) {
+      animationHandlers.handlePassDealComplete();
+    }
+  };
 
-  //     const cardVals = cardsPlayedForTrick.current.get(trick.trickId) ?? new Set<string>();
+  const handleCardPlayed = (card: Card) => {
+    animationHandlers.handleCardPlayed(card);
+  };
 
-  //     cardVals.add(`${card.value}-${card.suit}`);
-  //     cardsPlayedForTrick.current.set(trick.trickId, cardVals);
+  const handleTrickFinished = useCallback(
+    (card: Card) => {
+      console.log('[handleTrickFinished] - player-area.tsx');
 
-  //     if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
-  //       tricksFinished.current.add(trick.trickId);
-  //       animationHandlers.handleTrickFinished(); //  onTrickComplete();
-  //     }
-  //   },
-  //   [animationHandlers, cardCountDuringPlay, state.euchreGame.currentTrick]
-  // );
+      const trick: EuchreTrick | undefined = state.euchreGame.currentTrick;
+      const trickFinished = tricksFinished.current.has(trick.trickId);
+
+      if (trickFinished) return;
+
+      const cardVals = cardsPlayedForTrick.current.get(trick.trickId) ?? new Set<string>();
+
+      cardVals.add(`${card.value}-${card.suit}`);
+      cardsPlayedForTrick.current.set(trick.trickId, cardVals);
+
+      if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
+        tricksFinished.current.add(trick.trickId);
+        animationHandlers.handleTrickFinished(); //  onTrickComplete();
+      }
+    },
+    [animationHandlers, cardCountDuringPlay, state.euchreGame.currentTrick]
+  );
 
   console.log(
-    '**** [PlayerCardArea] render. gameDeckState: ',
-    gameDeckState,
+    '**** [PlayerCardArea] render.',
     ' deck visible: ',
     gameDeckVisible,
-    ' game state: ',
-    state,
-    ' deck card refs: ',
-    deckCardRefs
+    ' hand visible: ',
+    gameHandVisible
   );
 
   return (
@@ -145,14 +167,16 @@ const PlayerCardArea = ({
             {gameHandVisible && (
               <PlayerHand
                 state={state}
+                eventHandlers={eventHandlers}
+                errorHandlers={errorHandlers}
                 player={player}
                 playedCard={gameCard}
                 playerCenterTableRef={centerTableRef}
                 playerDeckRefs={playerDeckRefs}
-                onCardPlayed={() => null}
-                onTrickComplete={() => null}
-                onPassDeal={() => null}
-                onDealComplete={handleDealComplete}
+                onCardPlayed={handleCardPlayed}
+                onTrickComplete={handleTrickFinished}
+                onPassDeal={handlePassDealAnimationComplete}
+                onDealComplete={handleDealAnimationComplete}
               />
             )}
             <div

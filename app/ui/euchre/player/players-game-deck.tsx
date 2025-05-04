@@ -70,7 +70,7 @@ export default function PlayerGameDeck({
   return (
     <>
       <div className={playerHandClass} {...rest}>
-        <PlayerHand
+        {/* <PlayerHand
           state={state}
           player={player}
           playedCard={playedCard}
@@ -80,7 +80,7 @@ export default function PlayerGameDeck({
           onDealComplete={() => null}
           playerCenterTableRef={playerTableRef}
           playerDeckRefs={playerDeckRefs}
-        />
+        /> */}
         <div
           id={`player-base-${playerNumber}`}
           className={clsx(position, { 'text-transparent': DEBUG_ENABLED })}

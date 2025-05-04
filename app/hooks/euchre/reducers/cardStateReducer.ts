@@ -4,6 +4,7 @@ import { CardSpringTarget } from '../data/useCardTransform';
 import { EuchreGameFlow } from './gameFlowReducer';
 
 export interface PlayerHandState {
+  handId: string;
   width: number;
   height: number;
   location: TableLocation;

@@ -86,6 +86,7 @@ const useGameInitDealState = (
       EuchrePauseActionType.SET_NONE
     );
   };
+
   return {
     shouldBeginDealCardsForDealer,
     shouldAnimateBeginDealCardsForDealer,

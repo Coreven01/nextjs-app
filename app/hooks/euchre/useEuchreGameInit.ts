@@ -46,12 +46,11 @@ export default function useEuchreGameInit(
       continueToBeginDealCardsForDealer();
     };
 
-    try {
-      animateIntro();
-    } catch (e) {}
+    errorHandlers.catchAsync(animateIntro, errorHandlers.onError, 'animateIntro');
   }, [
     addIntroEvent,
     continueToBeginDealCardsForDealer,
+    errorHandlers,
     notificationDelay,
     setters,
     shouldBeginIntro,

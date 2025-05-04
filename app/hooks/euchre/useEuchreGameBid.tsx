@@ -39,11 +39,12 @@ export default function useEuchreGameBid(
     continueToBeginPassDeal,
     continueToEndBidForTrump,
     updateStateAndContinueToBidForTrump,
-    updateStateForNewHand,
-    continueToBeginOrderTrump
+    pauseForPassDeal,
+    continueToBeginOrderTrump,
+    continueToShuffleCards
   } = useGameBidState(state, setters, errorHandlers);
   const { determineBid } = useGameBidLogic();
-  const { getPlayerRotation, getTeamColor } = usePlayerData();
+  const { getPlayerRotation } = usePlayerData();
   const { notificationDelay } = useGameData();
   const {
     addBeginBidForTrumpEvent,
@@ -165,6 +166,10 @@ export default function useEuchreGameBid(
     [handlePlayerSelectionForBid, setters, state.euchrePauseState.pauseType]
   );
 
+  const handlePassDealComplete = useCallback(() => {
+    continueToShuffleCards();
+  }, [continueToShuffleCards]);
+
   //#endregion
 
   /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
@@ -206,6 +211,18 @@ export default function useEuchreGameBid(
     state.euchreSettings
   ]);
 
+  /** Begin bid for trump game flow.
+   *
+   */
+  useEffect(() => {
+    try {
+      beginBidForTrump();
+    } catch (e) {
+      const error = e as Error;
+      errorHandlers.onError(error, 'beginBidForTrump');
+    }
+  }, [beginBidForTrump, errorHandlers]);
+
   /** Effect to animate events after the initial bid for trump. */
   useEffect(() => {
     const beginAnimationForBidForTrump = async () => {
@@ -220,12 +237,11 @@ export default function useEuchreGameBid(
       continueToEndBidForTrump();
     };
 
-    try {
-      beginAnimationForBidForTrump();
-    } catch (e) {
-      const error = e as Error;
-      errorHandlers.onError(error, 'beginAnimationForBidForTrump');
-    }
+    errorHandlers.catchAsync(
+      beginAnimationForBidForTrump,
+      errorHandlers.onError,
+      'beginAnimationForBidForTrump'
+    );
   }, [
     addAnimateBeginBidForTrumpEvent,
     continueToEndBidForTrump,
@@ -236,18 +252,6 @@ export default function useEuchreGameBid(
     state.euchreSettings
   ]);
 
-  /** Begin bid for trump game flow.
-   *
-   */
-  useEffect(() => {
-    try {
-      beginBidForTrump();
-    } catch (e) {
-      const error = e as Error;
-      errorHandlers.onError(error, 'beginBidForTrump');
-    }
-  }, [beginBidForTrump, errorHandlers]);
-
   /** Modify the game state depending on if the user named trump or passed based on player bid choice.
    *
    */
@@ -255,12 +259,12 @@ export default function useEuchreGameBid(
     if (!shouldEndBidForTrump) return;
 
     addFinalizeBidForTrumpEvent();
+    updateStateAndContinueToBidForTrump(state.euchreGame, state.euchreGameFlow);
 
     const newGame: EuchreGameInstance = { ...state.euchreGame };
     const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
     newGame.currentPlayer = rotation[0];
 
-    updateStateAndContinueToBidForTrump(newGame, state.euchreGameFlow);
     setters.setEuchreGame(newGame);
   }, [
     addFinalizeBidForTrumpEvent,
@@ -308,32 +312,28 @@ export default function useEuchreGameBid(
     await notificationDelay(state.euchreSettings, 1);
 
     setters.setEuchreGame(newGame);
-    updateStateForNewHand(newGame);
+    pauseForPassDeal();
     setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
   }, [
     addBeginPassDealEvent,
     getPlayerNotificationForAllPassed,
     getPlayerRotation,
     notificationDelay,
+    pauseForPassDeal,
     setters,
     shouldBeginPassDeal,
     state.euchreGame,
-    state.euchreSettings,
-    updateStateForNewHand
+    state.euchreSettings
   ]);
 
   useEffect(() => {
     const passDeal = async () => {
       await beginPassDeal();
     };
-    try {
-      passDeal();
-    } catch (e) {
-      const error = e as Error;
-      errorHandlers.onError(error, 'passDeal');
-    }
+
+    errorHandlers.catchAsync(passDeal, errorHandlers.onError, 'passDeal');
   }, [beginPassDeal, errorHandlers]);
   //#endregion
 
-  return { handleBidSubmit };
+  return { handleBidSubmit, handlePassDealComplete };
 }

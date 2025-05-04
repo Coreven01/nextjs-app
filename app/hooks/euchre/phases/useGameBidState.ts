@@ -49,6 +49,14 @@ const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, ha
     handlers.onCancel
   );
 
+  const shouldAnimateBeginPassDeal = isGameStateValidToContinue(
+    state,
+    EuchreGameFlow.BEGIN_PASS_DEAL,
+    EuchreAnimateType.ANIMATE,
+    state.shouldCancel,
+    handlers.onCancel
+  );
+
   const continueToAnimateBeginBidForTrump = () => {
     setters.dispatchStateChange(
       EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
@@ -117,18 +125,37 @@ const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, ha
     );
   };
 
+  const pauseForPassDeal = () => {
+    setters.dispatchStateChange(
+      EuchreGameFlow.BEGIN_PASS_DEAL,
+      EuchreAnimationActionType.SET_NONE,
+      EuchrePauseActionType.SET_ANIMATE
+    );
+  };
+
+  const continueToShuffleCards = () => {
+    setters.dispatchStateChange(
+      EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
+      EuchreAnimationActionType.SET_NONE,
+      EuchrePauseActionType.SET_NONE
+    );
+  };
+
   return {
     shouldBeginBidForTrump,
     shouldAnimateBeginBidForTrump,
     shouldEndBidForTrump,
     shouldBeginPassDeal,
+    shouldAnimateBeginPassDeal,
     continueToAnimateBeginBidForTrump,
     pauseForBidForTrump,
     continueToBeginPassDeal,
     continueToEndBidForTrump,
     updateStateAndContinueToBidForTrump,
     updateStateForNewHand,
-    continueToBeginOrderTrump
+    continueToBeginOrderTrump,
+    pauseForPassDeal,
+    continueToShuffleCards
   };
 };
 

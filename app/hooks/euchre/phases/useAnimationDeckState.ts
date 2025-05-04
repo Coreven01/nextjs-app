@@ -1,9 +1,9 @@
-import { EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
+import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
 import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
 
-const useAnimationDeckState = (state: EuchreGameValues) => {
+const useAnimationDeckState = (state: EuchreGameState) => {
   const { euchreGameFlow, euchreAnimationFlow, euchrePauseState } = state;
 
   const isAnimatePhase =

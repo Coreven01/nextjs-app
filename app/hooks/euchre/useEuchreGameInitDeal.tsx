@@ -159,12 +159,7 @@ export default function useEuchreGameInitDeal(
       pauseForAnimateEndDealCardsForDealer();
     };
 
-    try {
-      endAnimationForInitDeal();
-    } catch (e) {
-      const error = e as Error;
-      errorHandlers.onError(error, 'endAnimationForInitDeal');
-    }
+    errorHandlers.catchAsync(endAnimationForInitDeal, errorHandlers.onError, 'endAnimationForInitDeal');
   }, [
     errorHandlers,
     notificationDelay,
@@ -176,13 +171,13 @@ export default function useEuchreGameInitDeal(
     state.euchreSettings
   ]);
 
-  const handleBeginDealForDealerComplete = () => {
+  const handleBeginDealForDealerComplete = useCallback(() => {
     continueToEndDealCardsForDealer();
-  };
+  }, [continueToEndDealCardsForDealer]);
 
-  const handleEndDealForDealerComplete = () => {
+  const handleEndDealForDealerComplete = useCallback(() => {
     continueToShuffleCards();
-  };
+  }, [continueToShuffleCards]);
 
   //#endregion
 

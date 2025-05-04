@@ -912,6 +912,46 @@ const useCardTransform = () => {
     }
     return retval;
   };
+
+  const getSpringsToMoveToPlayerWithTransition = (
+    gameSpeed: GameSpeed,
+    cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
+    destinationDeckRef: HTMLElement,
+    destinationLocation: TableLocation,
+    cardStates: CardState[]
+  ): CardSpringProps[] => {
+    const retval: CardSpringProps[] = [];
+    const offsets = getDestinationOffset(destinationLocation);
+    const duration = gameSpeed / 1000;
+    const delayBetweenDeal = duration / 5;
+
+    for (const cardRefMap of cardRefs) {
+      const cardRef = cardRefMap[1].current;
+      const cardIndex = cardRefMap[0];
+      const state: CardState = cardStates[cardIndex];
+
+      if (!cardRef) throw new Error('Invalid card ref to move cards to player.');
+
+      const newSpring = getSpringMoveElement(cardRef, destinationDeckRef, undefined, state.springValue);
+
+      newSpring.x += offsets.x;
+      newSpring.y += offsets.y;
+      newSpring.rotate = Math.random() * 720 - 360;
+      newSpring.transition = getTransitionForCardMoved(
+        state,
+        gameSpeed,
+        delayBetweenDeal * Math.floor(Math.random() * 3)
+      );
+
+      retval.push({
+        springValue: newSpring,
+        cardIndex: state.cardIndex,
+        ordinalIndex: state.cardIndex
+      });
+    }
+    return retval;
+  };
+
   //#endregion
 
   const getSpringsForCardInit = useCallback((player: EuchrePlayer | undefined): CardSpringTarget => {
@@ -1065,6 +1105,7 @@ const useCardTransform = () => {
     getTransitionForCardMoved,
     getSpringsForDealForDealer,
     getSpringsToMoveToPlayer,
+    getSpringsToMoveToPlayerWithTransition,
     getSpringMoveElement,
     getElementOffsetForLocation,
     getSpringsForDealForRegularPlay,

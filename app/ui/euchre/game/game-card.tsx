@@ -45,8 +45,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       responsive,
       hideBackFace = true,
       onCardClick,
-      onAnimationComplete,
-      ...rest
+      onAnimationComplete
     }: Props,
     ref
   ) => {
@@ -66,8 +65,8 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
             }
           }
         : undefined;
-    const cardBackSrc = getCardBackSrc(location);
 
+    const cardBackSrc = getCardBackSrc(location);
     const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
     if (responsive) {
       cssValues.width = '100%';
@@ -94,22 +93,24 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         actionsRun.current.push(runAnimationCompleteEffect);
         logConsole(
           '[handleAnimationComplete] - game-card.tsx for card: ',
-          card,
-          ' id: ',
-          id,
-          ' play card effect: ',
-          runAnimationCompleteEffect,
-          ' location: ',
-          location,
-          ' card state: ',
-          cardState,
-          ' actions run: ',
-          actionsRun.current
+          card
+          // ' id: ',
+          // id,
+          // ' play card effect: ',
+          // runAnimationCompleteEffect,
+          // ' location: ',
+          // location,
+          // ' card state: ',
+          // cardState,
+          // ' actions run: ',
+          // actionsRun.current
         );
 
         onAnimationComplete(card);
+      } else {
+        console.log('Actions run: ', actionsRun);
       }
-    }, [card, cardState, id, location, onAnimationComplete, runAnimationCompleteEffect]);
+    }, [card, cardState.runEffectForState, onAnimationComplete, runAnimationCompleteEffect]);
 
     /** Handle card click event. */
     const handleCardClick = useCallback(() => {

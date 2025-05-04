@@ -57,9 +57,9 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       return () => {
         if (localOnFirstRender) localOnFirstRender(false);
       };
-    });
+    }, [onFirstRender]);
 
-    console.log('**** [GameDeck] render. handId: ', handId, ' card states: ', cardStates);
+    console.log('**** [GameDeck] render. handId: ', handId);
 
     return (
       <motion.div

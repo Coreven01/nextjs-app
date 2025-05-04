@@ -1,25 +1,34 @@
 import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
-import useCardState from '../../../hooks/euchre/useCardState';
-import { EuchreGameState, EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
+import useCardState from '../../../hooks/euchre/state/useCardState';
+import {
+  ErrorHandlers,
+  EuchreGameState,
+  EuchrePlayer
+} from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
 import useCardData from '../../../hooks/euchre/data/useCardData';
+import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 
 type Props = {
   state: EuchreGameState;
+  eventHandlers: GameEventHandlers;
+  errorHandlers: ErrorHandlers;
   player: EuchrePlayer;
   playedCard: Card | null;
   playerCenterTableRef: RefObject<HTMLDivElement | null> | undefined;
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
-  onPassDeal: () => void;
+  onPassDeal: (card: Card) => void;
   onDealComplete: (playerNumber: number) => void;
 };
 
 const PlayerHand = ({
   state,
+  eventHandlers,
+  errorHandlers,
   player,
   playedCard,
   playerCenterTableRef,
@@ -32,14 +41,24 @@ const PlayerHand = ({
   //#region Hooks
   // used to keep the card visible after it's been played for the current trick.
   const {
-    cardsDealtRef,
+    initCardStateCreated,
     cardRefs,
     handState,
     cardStates,
-    onCardPlayedComplete,
+    onAnimationComplete,
     getCardsToDisplay,
     handlePlayCardAnimation
-  } = useCardState(state, player, playerDeckRefs, onTrickComplete, onPassDeal, onCardPlayed, onDealComplete);
+  } = useCardState(
+    state,
+    eventHandlers,
+    errorHandlers,
+    player,
+    playerDeckRefs,
+    onTrickComplete,
+    onPassDeal,
+    onCardPlayed,
+    onDealComplete
+  );
   const cardIndicesPlayed = useRef<Map<string, number>>(new Map<string, number>());
   const { getCardClassForPlayerLocation } = useCardData();
 
@@ -77,18 +96,19 @@ const PlayerHand = ({
     }
   };
 
-  // console.log(
-  //   '******* [PlayerHand] - render cards: ',
-  //   cardsDealtRef.current,
-  //   ' hand state: ',
-  //   handState,
-  //   ' current hand: ',
-  //   playerCurrentHand
-  // );
+  console.log(
+    '******* [PlayerHand] - render cards: ',
+    initCardStateCreated,
+    ' hand state: ',
+    handState,
+    ' current hand: ',
+    playerCurrentHand
+  );
+
   return (
     <>
       {gameCards}
-      {cardsDealtRef.current &&
+      {initCardStateCreated &&
         handState &&
         playerCurrentHand.map((card) => {
           const keyval = `${player.playerNumber}-${card.index}`;
@@ -111,7 +131,7 @@ const PlayerHand = ({
               height={handState.height}
               responsive={true}
               onCardClick={cardState.enabled ? handleCardClick : undefined}
-              onAnimationComplete={onCardPlayedComplete.current}
+              onAnimationComplete={onAnimationComplete.current}
             />
           );
         })}

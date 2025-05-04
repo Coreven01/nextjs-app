@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
 import { INIT_GAME_SETTINGS } from '../../../lib/euchre/definitions/definitions';
 
@@ -24,11 +24,11 @@ const useGameSettings = () => {
     }
   }, []);
 
-  const saveSettings = (setting: EuchreSettings) => {
-    const json = JSON.stringify(setting);
+  const saveSettings = useCallback((settings: EuchreSettings) => {
+    const json = JSON.stringify(settings);
     localStorage.setItem('euchre-game-settings', json);
-    setEuchreSettings(setting);
-  };
+    setEuchreSettings(settings);
+  }, []);
 
   return { euchreSettings, saveSettings };
 };

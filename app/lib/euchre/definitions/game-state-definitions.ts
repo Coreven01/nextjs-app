@@ -154,11 +154,13 @@ export interface EuchreAnimationHandlers {
   handleEndDealForDealerComplete: () => void;
   handleTrickFinished: () => void;
   handleCardPlayed: (cardPlayed: Card) => void;
+  handlePassDealComplete: () => void;
 }
 
 export interface EuchreGameSetters {
   // the following are methods/functions used to update state.
   setEuchreGame: Dispatch<SetStateAction<EuchreGameInstance>>;
+  setEuchreReplayGame: Dispatch<SetStateAction<EuchreGameInstance | null>>;
   setPromptValue: Dispatch<SetStateAction<PromptValue[]>>;
   setPlayedCard: Dispatch<SetStateAction<Card | null>>;
   setInitialDealerResult: Dispatch<SetStateAction<InitDealResult | null>>;

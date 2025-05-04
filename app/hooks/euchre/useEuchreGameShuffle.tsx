@@ -109,12 +109,7 @@ const useEuchreGameShuffle = (
       pauseForAnimateBeginDealCards();
     };
 
-    try {
-      beginAnimationForDealCards();
-    } catch (e) {
-      const error = e as Error;
-      errorHandlers.onError(error, 'beginAnimationForDealCards');
-    }
+    errorHandlers.catchAsync(beginAnimationForDealCards, errorHandlers.onError, 'beginAnimationForDealCards');
   }, [errorHandlers, pauseForAnimateBeginDealCards, shouldAnimateBeginDealCards]);
 
   /** */
@@ -149,12 +144,7 @@ const useEuchreGameShuffle = (
       pauseForAnimateEndDealCards();
     };
 
-    try {
-      endAnimationEndDealCards();
-    } catch (e) {
-      const error = e as Error;
-      errorHandlers.onError(error, 'endAnimationEndDealCards');
-    }
+    errorHandlers.catchAsync(endAnimationEndDealCards, errorHandlers.onError, 'endAnimationEndDealCards');
   }, [errorHandlers, pauseForAnimateEndDealCards, shouldAnimateEndDealCards]);
 
   //#endregion

@@ -106,6 +106,7 @@ const GameArea = ({
       />
       <PlayerCardArea
         id="euchre-player-card-area"
+        key={state.euchreGame.gameId}
         state={state}
         eventHandlers={eventHandlers}
         errorHandlers={errorHandlers}

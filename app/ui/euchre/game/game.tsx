@@ -4,7 +4,7 @@ import React, { useCallback, useState } from 'react';
 import { SECTION_STYLE } from '../../home/home-description';
 import { inter } from '../../fonts';
 import { EuchreGameInstance, EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
-import { Card, PromptType } from '../../../lib/euchre/definitions/definitions';
+import { PromptType } from '../../../lib/euchre/definitions/definitions';
 import GameSettings from './game-settings';
 import useEuchreGame from '@/app/hooks/euchre/useEuchreGame';
 import GameScore from './game-score';
@@ -85,10 +85,6 @@ export default function EuchreGame() {
 
   const handleShowSettings = () => {
     toggleSettings(true);
-  };
-
-  const handleGameCardPlayed = (card: Card) => {
-    animationHandlers.handleCardPlayed(card);
   };
 
   const handleCloseGameResults = () => {

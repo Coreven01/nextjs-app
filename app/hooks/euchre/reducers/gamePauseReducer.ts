@@ -28,7 +28,7 @@ export interface EuchrePauseAction {
   type: EuchrePauseActionType;
 }
 
-export const INIT_GAME_WAIT: EuchrePauseState = {
+export const INIT_PAUSE_STATE: EuchrePauseState = {
   pauseType: EuchrePauseType.NONE
 };
 
