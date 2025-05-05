@@ -1,21 +1,21 @@
 import { Card, PromptType } from '@/app/lib/euchre/definitions/definitions';
-import { EuchreGameFlow } from './reducers/gameFlowReducer';
 import { getPlayerNotificationType, PlayerNotificationAction } from './reducers/playerNotificationReducer';
-import { EuchreAnimationActionType, EuchreAnimateType } from './reducers/gameAnimationFlowReducer';
 import { useCallback, useEffect } from 'react';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameStateLogic from './logic/useGameStateLogic';
 import useGameBidLogic from './logic/useGameBidLogic';
 import useGameData from './data/useGameData';
 import usePlayerData from './data/usePlayerData';
 import useCardData from './data/useCardData';
-import { GameEventHandlers, SUB_SUIT } from './useEventLog';
+import { GameEventHandlers } from './useEventLog';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
   ErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
+import useGameOrderState from './phases/useGameOrderState';
+import useGameEventsOrder from './events/useGameEventsOrder';
+import { EuchrePauseType } from './reducers/gamePauseReducer';
 
 export default function useEuchreGameOrder(
   state: EuchreGameValues,
@@ -23,52 +23,75 @@ export default function useEuchreGameOrder(
   eventHandlers: GameEventHandlers,
   errorHandlers: ErrorHandlers
 ) {
-  const { isGameStateValidToContinue } = useGameStateLogic();
+  const {
+    shouldBeginOrderTrump,
+    shouldAnimateBeginOrderTrump,
+    shouldEndOrderTrump,
+    shouldAnimateEndOrderTrump,
+    continueToAnimateBeginOrderTrump,
+    continueToEndOrderTrump,
+    pauseForUserDiscardSelection,
+    continueToAnimateEndOrderTrump,
+    continueToBeginPlayCard
+  } = useGameOrderState(state, setters, errorHandlers);
+  const { addTrumpOrderedEvent, addDiscardEvent } = useGameEventsOrder(state, eventHandlers);
   const { orderTrump, determineDiscard } = useGameBidLogic();
   const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
-  const { discard, playerEqual, getTeamColor } = usePlayerData();
+  const { discard, playerEqual } = usePlayerData();
   const { indexCards } = useCardData();
 
   //#region Order Trump *************************************************************************
 
+  /** Submit the resulting discard from user input after flip card has been picked up.
+   *
+   */
+  const handleDiscardSubmit = useCallback(
+    (card: Card) => {
+      const newGame = state.euchreGame ? { ...state.euchreGame } : null;
+
+      if (newGame?.trump && state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT) {
+        newGame.dealer.hand = discard(newGame.dealer, card, newGame.trump);
+        newGame.dealer.hand = indexCards(newGame.dealer.hand);
+        newGame.discard = card;
+
+        addDiscardEvent(newGame.discard);
+        continueToAnimateEndOrderTrump();
+
+        setters.removePromptValue(PromptType.DISCARD);
+        setters.setEuchreGame(newGame);
+      }
+    },
+    [
+      addDiscardEvent,
+      continueToAnimateEndOrderTrump,
+      discard,
+      indexCards,
+      setters,
+      state.euchreGame,
+      state.euchrePauseState.pauseType
+    ]
+  );
+
   /** Player has ordered trump either by naming suit or telling the dealer to pick up the flipped card.
    */
   const beginOrderTrump = useCallback(() => {
-    if (
-      !isGameStateValidToContinue(
-        state,
-        EuchreGameFlow.BEGIN_ORDER_TRUMP,
-        EuchreAnimateType.NONE,
-        state.shouldCancel,
-        errorHandlers.onCancel
-      )
-    )
-      return;
+    if (!shouldBeginOrderTrump) return;
 
     if (!state.bidResult) throw new Error('Bid result not found.');
     const newGame: EuchreGameInstance = orderTrump(state.euchreGame, state.bidResult);
     if (!newGame.maker) throw Error('Maker not found - Order Trump.');
 
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
-        'i',
-        newGame.maker,
-        `Trump named: ${SUB_SUIT}. ${state.bidResult.loner ? ' Going alone.' : ''}`,
-        [newGame.trump],
-        getTeamColor(newGame.maker, state.euchreSettings)
-      )
-    );
-
-    setters.dispatchStateChange(EuchreGameFlow.BEGIN_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
+    addTrumpOrderedEvent(newGame.maker, state.bidResult);
+    continueToAnimateBeginOrderTrump();
     setters.setEuchreGame(newGame);
   }, [
-    errorHandlers.onCancel,
-    eventHandlers,
-    getTeamColor,
-    isGameStateValidToContinue,
+    addTrumpOrderedEvent,
+    continueToAnimateBeginOrderTrump,
     orderTrump,
     setters,
-    state
+    shouldBeginOrderTrump,
+    state.bidResult,
+    state.euchreGame
   ]);
 
   /**
@@ -88,19 +111,9 @@ export default function useEuchreGameOrder(
    */
   useEffect(() => {
     const beginAnimationOrderTrump = async () => {
-      if (
-        !isGameStateValidToContinue(
-          state,
-          EuchreGameFlow.BEGIN_ORDER_TRUMP,
-          EuchreAnimateType.ANIMATE,
-          state.shouldCancel,
-          errorHandlers.onCancel
-        )
-      )
-        return;
+      if (!shouldAnimateBeginOrderTrump) return;
 
-      //setters.dispatchStateChange(EuchreGameFlow.WAIT);
-
+      setters.dispatchPause();
       const game: EuchreGameInstance = state.euchreGame;
 
       if (!state.bidResult) throw new Error('Bid result not found');
@@ -125,7 +138,7 @@ export default function useEuchreGameOrder(
       setters.dispatchPlayerNotification(notification);
       await notificationDelay(state.euchreSettings, 1);
 
-      setters.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_NONE);
+      continueToEndOrderTrump();
     };
 
     try {
@@ -134,22 +147,23 @@ export default function useEuchreGameOrder(
       const error = e as Error;
       errorHandlers.onError(error, 'beginAnimationOrderTrump');
     }
-  }, [errorHandlers, incrementSpeed, isGameStateValidToContinue, notificationDelay, setters, state]);
+  }, [
+    continueToEndOrderTrump,
+    errorHandlers,
+    incrementSpeed,
+    notificationDelay,
+    setters,
+    shouldAnimateBeginOrderTrump,
+    state.bidResult,
+    state.euchreGame,
+    state.euchreSettings
+  ]);
 
   /**
    *
    */
   const endOrderTrump = useCallback(() => {
-    if (
-      !isGameStateValidToContinue(
-        state,
-        EuchreGameFlow.END_ORDER_TRUMP,
-        EuchreAnimateType.NONE,
-        state.shouldCancel,
-        errorHandlers.onCancel
-      )
-    )
-      return;
+    if (!shouldEndOrderTrump) return;
 
     const newGame: EuchreGameInstance = { ...state.euchreGame };
 
@@ -163,35 +177,32 @@ export default function useEuchreGameOrder(
     }
 
     if (newGame.dealer.human && shouldDiscard) {
-      //setters.dispatchStateChange(EuchreGameFlow.AWAIT_PROMPT);
-      setters.setPromptValue([{ type: PromptType.DISCARD }]);
+      setters.addPromptValue(PromptType.DISCARD);
+      pauseForUserDiscardSelection();
     } else {
       if (shouldDiscard) {
         newGame.discard = determineDiscard(newGame, newGame.dealer, state.euchreSettings.difficulty);
         newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
 
-        eventHandlers.addEvent(
-          eventHandlers.createEvent(
-            'd',
-            newGame.dealer,
-            `Dealer discarded: ${newGame.discard?.value}-${newGame.discard?.suit}`
-          )
-        );
+        addDiscardEvent(newGame.discard);
       }
 
-      setters.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
+      continueToAnimateEndOrderTrump();
       setters.setEuchreGame(newGame);
     }
   }, [
+    addDiscardEvent,
+    continueToAnimateEndOrderTrump,
     determineDiscard,
     discard,
-    errorHandlers.onCancel,
-    eventHandlers,
-    isGameStateValidToContinue,
+    pauseForUserDiscardSelection,
     playerEqual,
     playerSittingOut,
     setters,
-    state
+    shouldEndOrderTrump,
+    state.bidResult,
+    state.euchreGame,
+    state.euchreSettings.difficulty
   ]);
 
   /**
@@ -211,21 +222,14 @@ export default function useEuchreGameOrder(
    */
   useEffect(() => {
     const endAnimationOrderTrump = async () => {
-      if (
-        !isGameStateValidToContinue(
-          state,
-          EuchreGameFlow.END_ORDER_TRUMP,
-          EuchreAnimateType.ANIMATE,
-          state.shouldCancel,
-          errorHandlers.onCancel
-        )
-      )
-        return;
+      if (!shouldAnimateEndOrderTrump) return;
+
+      setters.dispatchPause();
 
       // update player's hand in an effect in useCardState with the new card if player had to discard.
       await notificationDelay(state.euchreSettings);
 
-      setters.dispatchStateChange(EuchreGameFlow.BEGIN_PLAY_CARD, EuchreAnimationActionType.SET_NONE);
+      continueToBeginPlayCard();
     };
 
     try {
@@ -234,31 +238,14 @@ export default function useEuchreGameOrder(
       const error = e as Error;
       errorHandlers.onError(error, 'endAnimationOrderTrump');
     }
-  }, [errorHandlers, isGameStateValidToContinue, notificationDelay, setters, state]);
-
-  /** Submit the resulting discard from user input after flip card has been picked up.
-   *
-   */
-  const handleDiscardSubmit = useCallback(
-    (card: Card) => {
-      const newGame = state.euchreGame ? { ...state.euchreGame } : null;
-
-      // if (newGame?.trump && state.euchreGameFlow.gameFlow === EuchreGameFlow.AWAIT_PROMPT) {
-      //   newGame.dealer.hand = discard(newGame.dealer, card, newGame.trump);
-      //   newGame.dealer.hand = indexCards(newGame.dealer.hand);
-      //   newGame.discard = card;
-
-      //   eventHandlers.addEvent(
-      //     eventHandlers.createEvent('d', newGame.dealer, `Discarded: ${SUB_SUIT}`, [newGame.discard])
-      //   );
-
-      //   setters.dispatchStateChange(EuchreGameFlow.END_ORDER_TRUMP, EuchreAnimationActionType.SET_ANIMATE);
-      //   setters.setPromptValue([]);
-      //   setters.setEuchreGame(newGame);
-      // }
-    },
-    [discard, eventHandlers, indexCards, setters, state.euchreGame, state.euchreGameFlow.gameFlow]
-  );
+  }, [
+    continueToBeginPlayCard,
+    errorHandlers,
+    notificationDelay,
+    setters,
+    shouldAnimateEndOrderTrump,
+    state.euchreSettings
+  ]);
 
   //#endregion
 

@@ -1,8 +1,9 @@
 import { GameSpeed } from '@/app/lib/euchre/definitions/definitions';
 import { useEffect, useState } from 'react';
-import { motion, Target } from 'framer-motion';
+import { motion, MotionProps, Target } from 'framer-motion';
 import clsx from 'clsx';
-interface Props {
+
+interface Props extends MotionProps {
   children?: React.ReactNode;
   durationMs?: number;
   delayMs?: GameSpeed;
@@ -10,7 +11,14 @@ interface Props {
   className?: string;
 }
 
-export default function EphemeralModal({ children, durationMs, delayMs, fadeType, className }: Props) {
+export default function EphemeralModal({
+  children,
+  durationMs,
+  delayMs,
+  fadeType,
+  className,
+  ...rest
+}: Props) {
   const [initState] = useState<Target>(
     fadeType === 'in' || fadeType === 'both' ? { opacity: 0 } : { opacity: 1 }
   );
@@ -35,6 +43,7 @@ export default function EphemeralModal({ children, durationMs, delayMs, fadeType
       initial={initState}
       animate={animateState}
       transition={{ duration: (durationMs ?? 1000) / 1000 }}
+      {...rest}
     >
       {children}
     </motion.div>

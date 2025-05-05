@@ -145,13 +145,7 @@ export default function useEuchreGameInitDeal(
       // show an indicator who will be the next dealer.
       const newAction: PlayerNotificationAction = {
         type: getPlayerNotificationType(state.euchreGame.dealer.location),
-        payload: (
-          <GamePlayIndicator
-            playerNumber={state.euchreGame.dealer.playerNumber}
-            notificationSpeed={state.euchreSettings.notificationSpeed}
-            side="outer"
-          />
-        )
+        payload: <GamePlayIndicator notificationSpeed={state.euchreSettings.notificationSpeed} />
       };
 
       setters.dispatchPlayerNotification(newAction);

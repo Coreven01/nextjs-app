@@ -2,7 +2,7 @@ import { EuchreFlowActionType, EuchreGameFlowState, INIT_GAME_FLOW_STATE } from 
 import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
 import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
 import useGameSetupLogic from './logic/useGameSetupLogic';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect } from 'react';
 import useGameData from './data/useGameData';
 import {
   EuchreGameInstance,
@@ -29,7 +29,6 @@ export default function useEuchreGameInit(
     setters,
     errorHandlers
   );
-  const [showIntro, setShowIntro] = useState(true);
   const { createGameForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } =
     useGameSetupLogic();
   const { notificationDelay } = useGameData();
@@ -75,17 +74,12 @@ export default function useEuchreGameInit(
         EuchrePauseActionType.SET_NONE
       );
 
-      if (showIntro) {
-        setters.setPromptValue([{ type: PromptType.INTRO }]);
-      } else {
-        setters.setPromptValue([]);
-      }
-
+      setters.addPromptValue(PromptType.INTRO);
       setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
       setters.setBidResult(null);
       setters.setPlayedCard(null);
     },
-    [setters, showIntro]
+    [setters]
   );
 
   /** Create a new euchre game and begin intitial deal.
@@ -96,7 +90,7 @@ export default function useEuchreGameInit(
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
       state.euchreGameFlow,
       state.euchreSettings,
-      newGame
+      newGame.gamePlayers
     );
 
     setters.dispatchGameFlow({
@@ -104,8 +98,6 @@ export default function useEuchreGameInit(
       state: newGameFlowState
     });
     setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
-
-    setters.setPromptValue([]);
     setters.setEuchreGame(newGame);
     setters.setShouldCancelGame(false);
   };

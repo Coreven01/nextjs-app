@@ -1,0 +1,80 @@
+import { useCallback, useMemo } from 'react';
+import {
+  ErrorHandlers,
+  EuchreDebugHandlers,
+  EuchreGamePlayHandlers,
+  EuchreGameSetters,
+  EuchreGameValues
+} from '../../lib/euchre/definitions/game-state-definitions';
+import { GameEventHandlers } from './useEventLog';
+import { GameSpeed, PromptType, TableLocation } from '../../lib/euchre/definitions/definitions';
+import useGameSetupLogic from './logic/useGameSetupLogic';
+import { EuchreGameFlow } from './reducers/gameFlowReducer';
+import { PlayerNotificationAction, PlayerNotificationActionType } from './reducers/playerNotificationReducer';
+import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
+
+const useEuchreDebug = (
+  state: EuchreGameValues,
+  gameHandlers: EuchreGamePlayHandlers,
+  setters: EuchreGameSetters,
+  eventHandlers: GameEventHandlers,
+  errorHandlers: ErrorHandlers
+) => {
+  const { createDefaultEuchreGame } = useGameSetupLogic();
+
+  const getNotification = useCallback((type: PlayerNotificationActionType, speed: GameSpeed) => {
+    const newAction: PlayerNotificationAction = {
+      type: type,
+      payload: undefined
+    };
+
+    newAction.payload = <GamePlayIndicator notificationSpeed={speed} />;
+
+    return newAction;
+  }, []);
+
+  const handleStartGameForDebug = useCallback(() => {
+    setters.setEuchreGame(createDefaultEuchreGame());
+    setters.replacePromptValues([PromptType.DEBUG]);
+  }, [createDefaultEuchreGame, setters]);
+
+  const handleCloseDebugGame = useCallback(() => {
+    gameHandlers.handleCancelAndReset();
+    setters.setEuchreGame(createDefaultEuchreGame());
+    setters.replacePromptValues([PromptType.INTRO]);
+    setters.setEuchreDebug(undefined);
+  }, [createDefaultEuchreGame, gameHandlers, setters]);
+
+  const handleRunInitDeal = useCallback(() => {
+    setters.setEuchreDebug(EuchreGameFlow.BEGIN_DEAL_CARDS);
+    gameHandlers.handleBeginNewGame();
+  }, [gameHandlers, setters]);
+
+  const handleRunTrickNotification = useCallback(async () => {
+    console.log('game speed: ', state.euchreSettings.notificationSpeed);
+    const types: PlayerNotificationActionType[] = [
+      PlayerNotificationActionType.UPDATE_TOP,
+      PlayerNotificationActionType.UPDATE_BOTTOM,
+      PlayerNotificationActionType.UPDATE_LEFT,
+      PlayerNotificationActionType.UPDATE_RIGHT,
+      PlayerNotificationActionType.UPDATE_CENTER
+    ];
+
+    for (let t = 0; t < types.length; t++) {
+      setters.dispatchPlayerNotification(getNotification(types[t], 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }, [getNotification, setters, state.euchreSettings.notificationSpeed]);
+
+  const debugHandlers: EuchreDebugHandlers = useMemo(
+    () => ({
+      handleRunInitGame: handleRunInitDeal,
+      handleRunTrickNotification
+    }),
+    [handleRunInitDeal, handleRunTrickNotification]
+  );
+
+  return { handleStartGameForDebug, handleCloseDebugGame, debugHandlers };
+};
+
+export default useEuchreDebug;

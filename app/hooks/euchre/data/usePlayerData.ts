@@ -95,7 +95,7 @@ const usePlayerData = () => {
         location: 'bottom',
         locationClass: 'row-start-3 col-start-1 col-span-3 row-span-1',
         innerClassName: 'flex items-end h-full justify-center',
-        playerInfoClass: 'lg:relative lg:right-0 lg:bottom-8 lg:min-w-32 right-28 bottom-4',
+        playerInfoClass: 'lg:relative lg:right-4 lg:bottom-8 lg:min-w-32 right-28 bottom-4',
         playerInnerDeckOffsetClass: 'left-1/2 top-0',
         width: getDisplayWidth('bottom'),
         height: getDisplayHeight('bottom')
@@ -104,7 +104,7 @@ const usePlayerData = () => {
         location: 'top',
         locationClass: 'row-start-1 col-start-1 col-span-3 row-span-1',
         innerClassName: 'flex h-full items-start justify-center',
-        playerInfoClass: 'lg:relative lg:right-0 lg:top-2 lg:top-auto lg:min-w-32 right-24 top-0',
+        playerInfoClass: 'lg:relative lg:right-4 lg:top-2 lg:top-auto lg:min-w-32 right-24 top-0',
         playerInnerDeckOffsetClass: 'left-1/2 bottom-0',
         width: getDisplayWidth('top'),
         height: getDisplayHeight('top')

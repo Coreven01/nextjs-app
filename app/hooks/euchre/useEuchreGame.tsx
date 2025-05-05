@@ -21,6 +21,7 @@ import {
   ErrorHandlers
 } from '../../lib/euchre/definitions/game-state-definitions';
 import useEuchreGameState from './state/useEuchreGameState';
+import { PromptType } from '../../lib/euchre/definitions/definitions';
 
 export default function useEuchreGame() {
   //#region Hooks to store game state *************************************************************************
@@ -122,6 +123,7 @@ export default function useEuchreGame() {
 
   const handleBeginNewGame = useCallback(() => {
     setters.setEuchreReplayGame(null);
+    setters.removePromptValue(PromptType.INTRO);
     handleBeginGame();
   }, [handleBeginGame, setters]);
 
@@ -139,9 +141,13 @@ export default function useEuchreGame() {
 
   /** Reverse game state to play the hand again. Used for testing/debugging */
   const handleReplayHand = useCallback(() => {
-    setters.setPromptValue([]);
+    setters.removePromptValue(PromptType.HAND_RESULT);
     const newGame = reverseLastHandPlayed(state.euchreGame);
-    const newGameFlow = getGameStateForNextHand(state.euchreGameFlow, state.euchreSettings, newGame);
+    const newGameFlow = getGameStateForNextHand(
+      state.euchreGameFlow,
+      state.euchreSettings,
+      newGame.gamePlayers
+    );
     newGameFlow.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
     setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
     setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
@@ -224,6 +230,7 @@ export default function useEuchreGame() {
 
   return {
     stateValues,
+    setters,
     eventHandlers,
     errorHandlers,
     gameHandlers,

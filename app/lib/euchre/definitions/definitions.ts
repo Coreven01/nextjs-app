@@ -1,11 +1,11 @@
 import { EuchreCard, EuchrePlayer, EuchreSettings, EuchreTrick } from './game-state-definitions';
 
-const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
-const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
-const menuSvg =
-  (true ? arrowDownSvg : arrowUpSvg) +
-  ` bg-no-repeat bg-center bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)]
-dark:bg-[rgba(25,115,25,0.9)] border border-black appearance-none cursor-pointer border rounded w-8 h-8 checked:dark:bg-stone-500`;
+// const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
+// const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
+// const menuSvg =
+//   (true ? arrowDownSvg : arrowUpSvg) +
+//   ` bg-no-repeat bg-center bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)]
+// dark:bg-[rgba(25,115,25,0.9)] border border-black appearance-none cursor-pointer border rounded w-8 h-8 checked:dark:bg-stone-500`;
 
 export const DEBUG_ENABLED = false;
 export const RANDOM_FOR_DIFFICULTY = new Map<GameDifficulty, number>([
@@ -56,11 +56,9 @@ export enum PromptType {
   BID,
   GAME_RESULT,
   HAND_RESULT,
-  DISCARD
+  DISCARD,
+  DEBUG
 }
-export type PromptValue = {
-  type: PromptType;
-};
 
 export const RESPONSE_CARD_CENTER = 'lg:h-[125px] md:h-[115px] sm:h-[95px] h-[75px]';
 export const RESPONSE_CARD_SIDE = 'lg:w-[125px] md:w-[115px] sm:w-[95px] w-[75px]';
@@ -95,7 +93,7 @@ export type CardColor = 'R' | 'B';
 
 /** Initial game settings. */
 export const DEFAULT_GAME_SETTINGS = {
-  gameSpeed: 700 as GameSpeed,
+  gameSpeed: 600 as GameSpeed,
   showHandResult: true,
   enforceFollowSuit: false,
   autoFollowSuit: false,

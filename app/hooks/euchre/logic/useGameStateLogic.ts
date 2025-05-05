@@ -9,16 +9,19 @@ const useGameStateLogic = () => {
   const isGameStateValidToContinue = useCallback(
     (
       state: EuchreGameState,
-      gameFlow: EuchreGameFlow,
-      gameAnimationFlow: EuchreAnimateType,
+      expectedGameFlow: EuchreGameFlow,
+      expectedGameAnimationFlow: EuchreAnimateType,
       shouldCancel: boolean,
       handleCancel: () => void
     ): boolean => {
       if (state.euchrePauseState.pauseType !== EuchrePauseType.NONE) return false;
 
+      // if debugging, then end processing further game state with the set value.
+      if (state.euchreDebug && state.euchreDebug === expectedGameFlow) return false;
+
       if (
-        state.euchreGameFlow.gameFlow !== gameFlow ||
-        state.euchreAnimationFlow.animationType !== gameAnimationFlow
+        state.euchreGameFlow.gameFlow !== expectedGameFlow ||
+        state.euchreAnimationFlow.animationType !== expectedGameAnimationFlow
       ) {
         return false;
       }

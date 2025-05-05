@@ -13,6 +13,7 @@ import useCardData from '../data/useCardData';
 import {
   EuchreCard,
   EuchreGameInstance,
+  EuchrePlayer,
   EuchreSettings
 } from '../../../lib/euchre/definitions/game-state-definitions';
 
@@ -704,19 +705,18 @@ const useGamePlayLogic = () => {
   const getGameStateForNextHand = (
     gameState: EuchreGameFlowState,
     settings: EuchreSettings,
-    game: EuchreGameInstance
+    gamePlayers: EuchrePlayer[]
   ): EuchreGameFlowState => {
     const showAllCards = settings.debugShowPlayersHand;
-    const showCardValues = game.gamePlayers.map((p) => {
+    const showCardValues = gamePlayers.map((p) => {
       return { player: p, value: showAllCards || p.human };
     });
 
     const newGameState: EuchreGameFlowState = {
       ...gameState,
       hasGameStarted: true,
-      shouldShowDeckImages: settings.shouldAnimate ? [{ player: game.player1, value: true }] : [],
       shouldShowCardImagesForHand: !settings.shouldAnimate
-        ? game.gamePlayers.map((p) => {
+        ? gamePlayers.map((p) => {
             return { player: p, value: true };
           })
         : [],

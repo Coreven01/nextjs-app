@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { RefObject, useEffect, useRef } from 'react';
-import Draggable, { DraggableEvent } from 'react-draggable';
+import Draggable from 'react-draggable';
 import GameBorder from './game-border';
 import { GameEvent, GameEventType } from '@/app/hooks/euchre/useEventLog';
 import PromptHeader from '../prompt/prompt-header';
@@ -50,7 +50,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
     onClose();
   };
 
-  const handleDrag = (e: DraggableEvent, data: object) => {};
+  //const handleDrag = (e: DraggableEvent, data: object) => {};
   const handleToggleDebug = (e: ChangeEvent<HTMLInputElement>) => setShowDebugEvents(e.target.checked);
   const handleToggleInfomation = (e: ChangeEvent<HTMLInputElement>) =>
     setShowInformationEvents(e.target.checked);

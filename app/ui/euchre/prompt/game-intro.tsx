@@ -2,13 +2,15 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 import { caveat } from '../../fonts';
 import { motion } from 'framer-motion';
+import GameButton from '../game/game-button';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   onBegin: () => void;
   onSettings: () => void;
+  onRunDebug: () => void;
 }
 
-const GameIntro = ({ className, onBegin, onSettings }: DivProps) => {
+const GameIntro = ({ className, onBegin, onSettings, onRunDebug }: DivProps) => {
   const titleElement = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -44,18 +46,15 @@ const GameIntro = ({ className, onBegin, onSettings }: DivProps) => {
           </div>
         </div>
         <div className="my-2 mx-4 flex gap-2">
-          <button
-            className="bg-stone-800 text-white border border-white lg:p-2 p-1 m-auto min-w-32"
-            onClick={onBegin}
-          >
+          <GameButton type="primary" onClick={onBegin}>
             Begin
-          </button>
-          <button
-            className="bg-stone-800 text-white border border-white lg:p-2 p-1 m-auto min-w-32"
-            onClick={onSettings}
-          >
+          </GameButton>
+          <GameButton type="danger" onClick={onRunDebug}>
+            Debug Game
+          </GameButton>
+          <GameButton type="primary" onClick={onSettings}>
             Settings
-          </button>
+          </GameButton>
         </div>
       </div>
     </div>

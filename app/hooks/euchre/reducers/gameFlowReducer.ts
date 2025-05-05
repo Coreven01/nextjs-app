@@ -40,9 +40,6 @@ export interface EuchreGameFlowState {
   hasFirstBiddingPassed: boolean;
   hasSecondBiddingPassed: boolean;
 
-  /** Should show the game deck. Shown when animating dealing cards to users. */
-  shouldShowDeckImages: PlayerDisplayValue[];
-
   /** Should show the images for cards for the player. This does not show the value of the cards, but the back of the card. */
   shouldShowCardImagesForHand: PlayerDisplayValue[];
 
@@ -59,7 +56,6 @@ export interface GameFlowAction {
 
 export const INIT_GAME_FLOW_STATE: EuchreGameFlowState = {
   hasGameStarted: false,
-  shouldShowDeckImages: [],
   shouldShowCardImagesForHand: [],
   shouldShowCardValuesForHand: [],
   hasSecondBiddingPassed: false,

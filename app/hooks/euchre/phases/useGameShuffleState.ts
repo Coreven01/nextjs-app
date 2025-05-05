@@ -54,7 +54,7 @@ const useGameShuffleState = (
     const newGameState: EuchreGameFlowState = getGameStateForNextHand(
       state.euchreGameFlow,
       state.euchreSettings,
-      game
+      game.gamePlayers
     );
     newGameState.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
 

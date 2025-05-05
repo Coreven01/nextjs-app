@@ -4,7 +4,7 @@ import {
   PlayerNotificationAction,
   PlayerNotificationActionType
 } from './reducers/playerNotificationReducer';
-import { BidResult } from '@/app/lib/euchre/definitions/definitions';
+import { BidResult, PromptType } from '@/app/lib/euchre/definitions/definitions';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
 import useGameBidLogic from './logic/useGameBidLogic';
@@ -159,7 +159,7 @@ export default function useEuchreGameBid(
   const handleBidSubmit = useCallback(
     (result: BidResult) => {
       if (state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT) {
-        setters.setPromptValue([]);
+        setters.removePromptValue(PromptType.BID);
         handlePlayerSelectionForBid(result);
       }
     },

@@ -21,11 +21,29 @@ import useEuchreGameAuto from '@/app/hooks/euchre/useEuchreGameAuto';
 import clsx from 'clsx';
 import GameErrorPrompt from '../prompt/game-error-prompt';
 import GameIntro from '../prompt/game-intro';
+import GameDebugMenu from './game-debug-menu';
+import useEuchreDebug from '../../../hooks/euchre/useEuchreDebug';
 
 export default function EuchreGame() {
-  // #region Hooks
-  const { stateValues, eventHandlers, errorHandlers, gameHandlers, events, errorState, animationHandlers } =
-    useEuchreGame();
+  //#region Hooks
+  const {
+    stateValues,
+    setters,
+    eventHandlers,
+    errorHandlers,
+    gameHandlers,
+    events,
+    errorState,
+    animationHandlers
+  } = useEuchreGame();
+
+  const { handleStartGameForDebug, handleCloseDebugGame, debugHandlers } = useEuchreDebug(
+    stateValues,
+    gameHandlers,
+    setters,
+    eventHandlers,
+    errorHandlers
+  );
 
   const {
     isFullScreen,
@@ -88,11 +106,38 @@ export default function EuchreGame() {
   };
 
   const handleCloseGameResults = () => {
+    setters.clearPromptValues();
     gameHandlers.reset(true);
   };
+
+  const handleOpenDebugMenu = () => {
+    handleStartGameForDebug();
+  };
+
+  const handleCloseDebugMenu = () => {
+    handleCloseDebugGame();
+  };
+
   //#endregion
 
   //#region Conditional prompt components to render.
+
+  const renderGameEvents = showEvents && (
+    <GameEvents
+      events={events}
+      onClear={eventHandlers.clearEvents}
+      onClose={() => toggleEvents(false)}
+      className="right-16 top-0 dark:text-white"
+    />
+  );
+
+  const renderDebugMenu = !showSettings && stateValues.promptValues.includes(PromptType.DEBUG) && (
+    <GameDebugMenu
+      handlers={debugHandlers}
+      onClose={handleCloseDebugMenu}
+      className="right-16 top-0 dark:text-white"
+    />
+  );
 
   const renderErrorMessage = errorState && stateValues.euchreGame && (
     <GameErrorPrompt
@@ -115,13 +160,17 @@ export default function EuchreGame() {
     </GamePrompt>
   );
 
-  const renderIntro = !showSettings && stateValues.promptValue.find((v) => v.type === PromptType.INTRO) && (
+  const renderIntro = !showSettings && stateValues.promptValues.includes(PromptType.INTRO) && (
     <GamePrompt innerClass="bg-green-300 bg-opacity-10" id="euchre-game-intro" zIndex={90}>
-      <GameIntro onBegin={handleStartNewGame} onSettings={handleShowSettings} />
+      <GameIntro
+        onRunDebug={handleOpenDebugMenu}
+        onBegin={handleStartNewGame}
+        onSettings={handleShowSettings}
+      />
     </GamePrompt>
   );
 
-  const renderBidPrompt = stateValues.promptValue.find((v) => v.type === PromptType.BID) &&
+  const renderBidPrompt = stateValues.promptValues.includes(PromptType.BID) &&
     stateValues.euchreGame?.trump && (
       <BidPrompt
         game={stateValues.euchreGame}
@@ -131,7 +180,7 @@ export default function EuchreGame() {
       />
     );
 
-  const renderDiscardPrompt = stateValues.promptValue.find((v) => v.type === PromptType.DISCARD) &&
+  const renderDiscardPrompt = stateValues.promptValues.includes(PromptType.DISCARD) &&
     stateValues.euchreGame?.trump &&
     stateValues.euchreGame.dealer && (
       <DiscardPrompt
@@ -141,7 +190,7 @@ export default function EuchreGame() {
       />
     );
 
-  const renderHandResults = stateValues.promptValue.find((v) => v.type === PromptType.HAND_RESULT) &&
+  const renderHandResults = stateValues.promptValues.includes(PromptType.HAND_RESULT) &&
     stateValues.euchreGame &&
     stateValues.euchreGame.handResults.length > 0 && (
       <HandResults
@@ -153,7 +202,7 @@ export default function EuchreGame() {
       />
     );
 
-  const renderGameResults = stateValues.promptValue.find((v) => v.type === PromptType.GAME_RESULT) &&
+  const renderGameResults = stateValues.promptValues.includes(PromptType.GAME_RESULT) &&
     stateValues.euchreGame &&
     stateValues.euchreGame.handResults.length > 0 && (
       <GameResult
@@ -208,7 +257,7 @@ export default function EuchreGame() {
               eventHandlers={eventHandlers}
               errorHandlers={errorHandlers}
               className={clsx('transition-opacity opacity-10 duration-1000', {
-                '!opacity-100': renderIntro === undefined
+                '!opacity-100': !renderIntro
               })}
               isFullScreen={isFullScreen}
               showEvents={showEvents}
@@ -241,14 +290,8 @@ export default function EuchreGame() {
             )}
           </div>
         </GameBorder>
-        {showEvents && (
-          <GameEvents
-            events={events}
-            onClear={eventHandlers.clearEvents}
-            onClose={() => toggleEvents(false)}
-            className="right-16 top-0 dark:text-white"
-          />
-        )}
+        {renderDebugMenu}
+        {renderGameEvents}
       </div>
 
       {/* <RenderCards color="red" size="12" rotate={true} /> */}

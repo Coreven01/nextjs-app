@@ -16,7 +16,7 @@ import {
   EuchreHandResult,
   GameDifficulty,
   GameSpeed,
-  PromptValue,
+  PromptType,
   TableLocation,
   TeamColor
 } from './definitions';
@@ -102,6 +102,9 @@ export interface EuchreGameState {
 
   /** Sets the reason why the game is paused, and shouldn't continue to proceed with the game flow until the wait type is handled. */
   euchrePauseState: EuchrePauseState;
+
+  /** Value to stop executing while debugging. */
+  euchreDebug: EuchreGameFlow | undefined;
 }
 
 export interface EuchreGameValues extends EuchreGameState {
@@ -118,7 +121,7 @@ export interface EuchreGameValues extends EuchreGameState {
   /** A value to indicate which prompt is present during the game. The initial intent was the possibilty that more than one
    * prompt could be present.
    */
-  promptValue: PromptValue[];
+  promptValues: PromptType[];
 
   /** Boolean value to indicate that the user pressed the cancel button. */
   shouldCancel: boolean;
@@ -147,6 +150,11 @@ export interface EuchreGamePlayHandlers {
   handleAttemptToRecover: () => void;
 }
 
+export interface EuchreDebugHandlers {
+  handleRunInitGame: () => void;
+  handleRunTrickNotification: () => void;
+}
+
 export interface EuchreAnimationHandlers {
   handleBeginRegularDealComplete: () => void;
   handleEndRegularDealComplete: () => void;
@@ -159,13 +167,18 @@ export interface EuchreAnimationHandlers {
 
 export interface EuchreGameSetters {
   // the following are methods/functions used to update state.
-  setEuchreGame: Dispatch<SetStateAction<EuchreGameInstance>>;
+  setEuchreGame: (game: EuchreGameInstance) => void;
   setEuchreReplayGame: Dispatch<SetStateAction<EuchreGameInstance | null>>;
-  setPromptValue: Dispatch<SetStateAction<PromptValue[]>>;
+  setEuchreDebug: (value: EuchreGameFlow | undefined) => void;
   setPlayedCard: Dispatch<SetStateAction<Card | null>>;
   setInitialDealerResult: Dispatch<SetStateAction<InitDealResult | null>>;
   setBidResult: Dispatch<SetStateAction<BidResult | null>>;
   setShouldCancelGame: Dispatch<SetStateAction<boolean>>;
+
+  addPromptValue: (value: PromptType) => void;
+  removePromptValue: (value: PromptType) => void;
+  replacePromptValues: (value: PromptType[]) => void;
+  clearPromptValues: () => void;
 
   /** Set both the game flow, game animation, game pauses state if provided. */
   dispatchStateChange: (

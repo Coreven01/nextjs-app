@@ -20,7 +20,7 @@ import {
   INIT_GAME_ANIMATION_STATE
 } from '../reducers/gameAnimationFlowReducer';
 import { EuchrePauseActionType, gamePauseFlowReducer, INIT_PAUSE_STATE } from '../reducers/gamePauseReducer';
-import { BidResult, Card, PromptType, PromptValue } from '../../../lib/euchre/definitions/definitions';
+import { BidResult, Card, PromptType } from '../../../lib/euchre/definitions/definitions';
 import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
 import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from '../reducers/playerNotificationReducer';
 
@@ -36,7 +36,8 @@ const useEuchreGameState = () => {
   const [euchrePauseState, dispatchPauseState] = useReducer(gamePauseFlowReducer, {
     ...INIT_PAUSE_STATE
   });
-  const [promptValue, setPromptValue] = useState<PromptValue[]>([{ type: PromptType.INTRO }]);
+  const [euchreDebug, setEuchreDebug] = useState<EuchreGameFlow | undefined>(undefined);
+  const [promptValue, setPromptValue] = useState<PromptType[]>([PromptType.INTRO]);
   const [shouldCancelGame, setShouldCancelGame] = useState(false);
   const [playedCard, setPlayedCard] = useState<Card | null>(null);
   const [dealResult, setDealResult] = useState<InitDealResult | null>(null);
@@ -55,6 +56,21 @@ const useEuchreGameState = () => {
     if (gameWait) dispatchPauseState({ type: gameWait });
   };
 
+  const handleAddPromptValue = (value: PromptType) => {
+    setPromptValue((prev) => [...prev, value]);
+  };
+  const handleRemovePromptValue = (value: PromptType) => {
+    setPromptValue((prev) => [...prev.filter((p) => p !== value)]);
+  };
+
+  const handleClearPromptValues = () => {
+    setPromptValue([]);
+  };
+
+  const handleReplacePromptValues = (values: PromptType[]) => {
+    setPromptValue(values);
+  };
+
   const state: EuchreGameState = useMemo(() => {
     return {
       euchreGame: euchreGame,
@@ -62,9 +78,18 @@ const useEuchreGameState = () => {
       euchreGameFlow: gameFlow,
       euchreSettings: euchreSettings,
       euchrePauseState: euchrePauseState,
-      euchreAnimationFlow: gameAnimationFlow
+      euchreAnimationFlow: gameAnimationFlow,
+      euchreDebug: euchreDebug
     };
-  }, [euchreGame, euchrePauseState, euchreReplayGame, euchreSettings, gameAnimationFlow, gameFlow]);
+  }, [
+    euchreDebug,
+    euchreGame,
+    euchrePauseState,
+    euchreReplayGame,
+    euchreSettings,
+    gameAnimationFlow,
+    gameFlow
+  ]);
 
   const stateValues: EuchreGameValues = useMemo(
     () => ({
@@ -73,9 +98,10 @@ const useEuchreGameState = () => {
       euchreGameFlow: gameFlow,
       euchreSettings: euchreSettings,
       euchrePauseState: euchrePauseState,
+      euchreDebug: euchreDebug,
       playerNotification: playerNotification,
       euchreAnimationFlow: gameAnimationFlow,
-      promptValue: promptValue,
+      promptValues: promptValue,
       playedCard: playedCard,
       bidResult: bidResult,
       initDealer: dealResult,
@@ -88,6 +114,7 @@ const useEuchreGameState = () => {
       euchrePauseState,
       euchreReplayGame,
       euchreSettings,
+      euchreDebug,
       gameAnimationFlow,
       gameFlow,
       playedCard,
@@ -97,23 +124,29 @@ const useEuchreGameState = () => {
     ]
   );
 
-  const setters: EuchreGameSetters = useMemo(
-    () => ({
+  const setters: EuchreGameSetters = useMemo(() => {
+    const setters: EuchreGameSetters = {
       setEuchreGame: setEuchreGame,
       setEuchreReplayGame: setEuchreReplayGame,
-      setPromptValue: setPromptValue,
+      setEuchreDebug: setEuchreDebug,
       setPlayedCard: setPlayedCard,
       setBidResult: setBidResult,
       setInitialDealerResult: setDealResult,
       setShouldCancelGame: setShouldCancelGame,
+
+      addPromptValue: handleAddPromptValue,
+      removePromptValue: handleRemovePromptValue,
+      clearPromptValues: handleClearPromptValues,
+      replacePromptValues: handleReplacePromptValues,
+
       dispatchStateChange: dispatchStateChange,
       dispatchPlayerNotification: dispatchPlayerNotification,
       dispatchGameFlow: dispatchGameFlow,
       dispatchGameAnimationFlow: dispatchGameAnimationFlow,
       dispatchPause: () => dispatchPauseState({ type: EuchrePauseActionType.SET_GENERAL })
-    }),
-    []
-  );
+    };
+    return setters;
+  }, []);
 
   const handleSaveSettings = useCallback(
     (settings: EuchreSettings) => {

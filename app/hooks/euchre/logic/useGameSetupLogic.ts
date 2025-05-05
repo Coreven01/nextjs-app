@@ -73,7 +73,7 @@ const useGameSetupLogic = () => {
   /** Create default euchre game with default players and dummy cards.
    *
    */
-  const createDefaultEuchreGame = () => {
+  const createDefaultEuchreGame = useCallback(() => {
     const player1: EuchrePlayer = createPlayer('Player 1', 1, 1, 'bottom');
     const player2: EuchrePlayer = createPlayer('Player 2', 1, 2, 'top');
     const player3: EuchrePlayer = createPlayer('Player 3', 2, 3, 'left');
@@ -82,7 +82,7 @@ const useGameSetupLogic = () => {
     const newGame: EuchreGameInstance = createBaseGame(player1, player2, player3, player4);
 
     return newGame;
-  };
+  }, [createBaseGame]);
 
   /** Create a game ready for initial deal. */
   const createEuchreGame = useCallback(
@@ -108,14 +108,13 @@ const useGameSetupLogic = () => {
   const getGameStateForInitialDeal = (
     gameState: EuchreGameFlowState,
     settings: EuchreSettings,
-    game: EuchreGameInstance
+    gamePlayers: EuchrePlayer[]
   ) => {
     const newGameFlow: EuchreGameFlowState = {
       ...gameState,
       hasGameStarted: true,
-      shouldShowDeckImages: settings.shouldAnimate ? [{ player: game.player1, value: true }] : [],
       shouldShowCardImagesForHand: !settings.shouldAnimate
-        ? game.gamePlayers.map((p) => {
+        ? gamePlayers.map((p) => {
             return { player: p, value: true };
           })
         : [],

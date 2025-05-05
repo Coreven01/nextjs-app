@@ -71,7 +71,7 @@ const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, ha
       EuchreAnimationActionType.SET_NONE,
       EuchrePauseActionType.SET_USER_INPUT
     );
-    setters.setPromptValue([{ type: PromptType.BID }]);
+    setters.addPromptValue(PromptType.BID);
   };
 
   const continueToBeginPassDeal = () => {
@@ -112,11 +112,11 @@ const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, ha
     setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
   };
 
-  const updateStateForNewHand = (game: EuchreGameInstance) => {
-    setters.setPromptValue([]);
+  const updateStateForNewHand = () => {
+    setters.removePromptValue(PromptType.HAND_RESULT);
     setters.dispatchGameFlow({
       type: EuchreFlowActionType.SET_STATE,
-      state: getGameStateForNextHand(state.euchreGameFlow, state.euchreSettings, game)
+      state: getGameStateForNextHand(state.euchreGameFlow, state.euchreSettings, state.euchreGame.gamePlayers)
     });
     setters.dispatchStateChange(
       undefined,
