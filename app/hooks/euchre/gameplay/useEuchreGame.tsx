@@ -1,17 +1,18 @@
 import { useCallback, useMemo, useState } from 'react';
-import { EuchreGameFlow, EuchreFlowActionType } from './reducers/gameFlowReducer';
-import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
-import { GameEventHandlers, useEventLog } from './useEventLog';
+import { EuchreGameFlow, EuchreFlowActionType } from '../reducers/gameFlowReducer';
+import { EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
+import { GameEventHandlers, useEventLog } from '../useEventLog';
 import useEuchreGameInit from './useEuchreGameInit';
 import useEuchreGameInitDeal from './useEuchreGameInitDeal';
 import useEuchreGameShuffle from './useEuchreGameShuffle';
 import useEuchreGameBid from './useEuchreGameBid';
 import useEuchreGameOrder from './useEuchreGameOrder';
 import useEuchreGamePlay from './useEuchreGamePlay';
-import useGameData from './data/useGameData';
-import useGamePlayLogic from './logic/useGamePlayLogic';
+
+import useGameData from '../data/useGameData';
+import useGamePlayLogic from '../logic/useGamePlayLogic';
 import { v4 as uuidv4 } from 'uuid';
-import { EuchrePauseActionType } from './reducers/gamePauseReducer';
+import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 import {
   EuchreAnimationHandlers,
   EuchreError,
@@ -19,10 +20,11 @@ import {
   EuchreGameInstance,
   EuchreSettings,
   ErrorHandlers
-} from '../../lib/euchre/definitions/game-state-definitions';
-import useEuchreGameState from './state/useEuchreGameState';
-import { PromptType } from '../../lib/euchre/definitions/definitions';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import useEuchreGameState from '../state/useEuchreGameState';
+import { PromptType } from '../../../lib/euchre/definitions/definitions';
 
+/** Main euchre game hook that aggregates logic from different states of the game. */
 export default function useEuchreGame() {
   //#region Hooks to store game state *************************************************************************
 
@@ -64,8 +66,8 @@ export default function useEuchreGame() {
   );
 
   const handleAsync = useCallback(
-    (fn: () => Promise<void>, onError: (e: Error, name: string) => void, fnName: string) => {
-      fn().catch((e) => {
+    async (fn: () => Promise<void>, onError: (e: Error, name: string) => void, fnName: string) => {
+      await fn().catch((e) => {
         const err = e as Error;
         onError(err, fnName);
       });

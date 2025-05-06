@@ -3,62 +3,74 @@ import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-defi
 import { GameEventHandlers } from '../useEventLog';
 
 const useGameDeckStateEvents = (state: EuchreGameState, eventHandlers: GameEventHandlers) => {
+  const { euchreGame, euchreSettings } = state;
+  const { addEvent, createEvent } = eventHandlers;
+
   const EVENT_TYPE = '[DECK STATE]';
+  const enableDebugLog = euchreSettings.debugEnableDebugMenu;
 
   const addResetForDealerEvent = useCallback(() => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+    if (!enableDebugLog) return;
+
+    addEvent(
+      createEvent(
         'd',
         undefined,
-        `${EVENT_TYPE} - Begin game deck state reset for hand ID: ` + state.euchreGame.handId
+        `${EVENT_TYPE} - Begin game deck state reset for hand ID: ` + euchreGame.handId
       )
     );
-  }, [eventHandlers, state.euchreGame.handId]);
+  }, [addEvent, createEvent, enableDebugLog, euchreGame.handId]);
 
   const addAnimateForBeginDealForDealerEvent = useCallback(
     (begin: boolean) => {
-      eventHandlers.addEvent(
-        eventHandlers.createEvent(
+      if (!enableDebugLog) return;
+
+      addEvent(
+        createEvent(
           'd',
           undefined,
           `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation for begin deal for dealer.`
         )
       );
     },
-    [eventHandlers]
+    [addEvent, createEvent, enableDebugLog]
   );
 
   const addAnimateForEndDealForDealerEvent = useCallback(
     (begin: boolean) => {
-      eventHandlers.addEvent(
-        eventHandlers.createEvent(
+      if (!enableDebugLog) return;
+
+      addEvent(
+        createEvent(
           'd',
           undefined,
           `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation for end deal for dealer.`
         )
       );
     },
-    [eventHandlers]
+    [addEvent, createEvent, enableDebugLog]
   );
 
-  const addAnimateForBeginDealForRegularPlay = useCallback(
+  const addAnimateForDealForRegularPlayEvent = useCallback(
     (begin: boolean) => {
-      eventHandlers.addEvent(
-        eventHandlers.createEvent(
+      if (!enableDebugLog) return;
+
+      addEvent(
+        createEvent(
           'd',
           undefined,
           `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation for begin deal for dealer.`
         )
       );
     },
-    [eventHandlers]
+    [addEvent, createEvent, enableDebugLog]
   );
 
   return {
     addResetForDealerEvent,
     addAnimateForBeginDealForDealerEvent,
     addAnimateForEndDealForDealerEvent,
-    addAnimateForBeginDealForRegularPlay
+    addAnimateForDealForRegularPlayEvent
   };
 };
 

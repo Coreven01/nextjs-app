@@ -5,7 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 /** Information, Warn, Error, Debug, Verbose */
 export type GameEventType = 'i' | 'w' | 'e' | 'd' | 'v';
-export const SUB_SUIT: string = '[[s]]';
+export const SUB_CARD: string = '[[C]]';
+export const SUB_SUIT: string = '[[S]]';
 
 export interface GameEvent {
   id: string;

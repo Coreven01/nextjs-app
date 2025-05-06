@@ -2,6 +2,7 @@ import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import PromptHeader from './prompt-header';
 import { EuchreError } from '../../../lib/euchre/definitions/game-state-definitions';
+import GameButton from '../game/game-button';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   errorState: EuchreError;
@@ -25,12 +26,9 @@ export default function GameErrorPrompt({ errorState, onAttemptToRecover, classN
             <label>Message: </label>
             {errorState.message}
           </div>
-          <button
-            className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black p-1 w-48 m-auto"
-            onClick={onAttemptToRecover}
-          >
+          <GameButton type="success" onClick={onAttemptToRecover}>
             Attempt To Recover
-          </button>
+          </GameButton>
         </div>
       </div>
     </GamePrompt>

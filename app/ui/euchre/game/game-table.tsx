@@ -5,16 +5,14 @@ import clsx from 'clsx';
 import { RefObject } from 'react';
 import GameFlippedCard from './game-flipped-card';
 import { DEBUG_ENABLED, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import { EuchreGameFlowState } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
-import { EuchreGameInstance } from '../../../lib/euchre/definitions/game-state-definitions';
+import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
 import useGameStateLogic from '../../../hooks/euchre/logic/useGameStateLogic';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  game: EuchreGameInstance;
-  gameFlow: EuchreGameFlowState;
+  state: EuchreGameState;
   playerNotification: PlayerNotificationState;
   playerCenterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   playerOuterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
@@ -23,8 +21,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const GameTable = ({
-  game,
-  gameFlow,
+  state,
   playerNotification,
   playerCenterTableRefs,
   playerOuterTableRefs,
@@ -35,7 +32,7 @@ const GameTable = ({
   const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
   const { getGameStatesForBid } = useGameStateLogic();
 
-  const debugEnabled = DEBUG_ENABLED;
+  const hidePosition = !state.euchreSettings.debugShowPositionElements;
   const renderOrder = [
     playerNotification.topGameInfo,
     playerNotification.leftGameInfo,
@@ -44,6 +41,8 @@ const GameTable = ({
     playerNotification.bottomGameInfo
   ];
 
+  const game = state.euchreGame;
+  const gameFlow = state.euchreGameFlow;
   const gameBidding = game.maker === null && getGameStatesForBid().includes(gameFlow.gameFlow);
 
   const cardState: CardState = {
@@ -74,14 +73,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get('top')}
             id={`game-base-2`}
-            className={clsx(`absolute top-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute top-0`, { 'text-transparent': hidePosition })}
           >
             T-2
           </div>
           <div
             ref={playerCenterTableRefs.get('top')}
             id={`game-base-2-center`}
-            className={clsx(`absolute bottom-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': hidePosition })}
           >
             C-2
           </div>
@@ -94,14 +93,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get('left')}
             id={`game-base-3`}
-            className={clsx(`absolute left-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute left-0`, { 'text-transparent': hidePosition })}
           >
             T-3
           </div>
           <div
             ref={playerCenterTableRefs.get('left')}
             id={`game-base-3-center`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': hidePosition })}
           >
             C-3
           </div>
@@ -120,7 +119,7 @@ const GameTable = ({
           className={clsx(
             `absolute top-1/2 w-full text-center col-start-1 col-span-3 row-start-2 row-span-1`,
             {
-              'text-transparent': debugEnabled
+              'text-transparent': hidePosition
             }
           )}
         >
@@ -132,7 +131,7 @@ const GameTable = ({
           className={clsx(
             `absolute left-1/2 h-full text-center col-start-2 col-span-1 row-start-2 row-span-3`,
             {
-              'text-transparent': debugEnabled
+              'text-transparent': hidePosition
             }
           )}
         >
@@ -145,14 +144,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get('right')}
             id={`game-base-4`}
-            className={clsx(`absolute top-auto right-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute top-auto right-0`, { 'text-transparent': hidePosition })}
           >
             T-4
           </div>
           <div
             ref={playerCenterTableRefs.get('right')}
             id={`game-base-4-center`}
-            className={clsx(`absolute top-auto left-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute top-auto left-0`, { 'text-transparent': hidePosition })}
           >
             C-4
           </div>
@@ -165,14 +164,14 @@ const GameTable = ({
           <div
             ref={playerOuterTableRefs.get('bottom')}
             id={`game-base-1`}
-            className={clsx(`absolute bottom-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute bottom-0`, { 'text-transparent': hidePosition })}
           >
             T-1
           </div>
           <div
             ref={playerCenterTableRefs.get('bottom')}
             id={`game-base-1-center`}
-            className={clsx(`absolute top-0`, { 'text-transparent': debugEnabled })}
+            className={clsx(`absolute top-0`, { 'text-transparent': hidePosition })}
           >
             C-1
           </div>

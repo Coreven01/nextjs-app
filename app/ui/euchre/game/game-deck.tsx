@@ -24,6 +24,7 @@ interface Props {
   width: number;
   height: number;
   handId: string;
+  showPosition: boolean;
   onAnimationComplete?: () => void;
   onFirstRender?: (ready: boolean) => void;
 }
@@ -41,6 +42,7 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       width,
       height,
       handId,
+      showPosition,
       onAnimationComplete,
       onFirstRender
     }: Props,
@@ -59,7 +61,7 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       };
     }, [onFirstRender]);
 
-    console.log('**** [GameDeck] render. handId: ', handId);
+    console.log('*** [GAMEDECK] [RENDER]. handId: ', handId);
 
     return (
       <motion.div
@@ -74,7 +76,7 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         initial={initDeckState}
         animate={controls}
       >
-        <DummyCard responsive width={width} height={height} location={location} />
+        <DummyCard visible={showPosition} responsive width={width} height={height} location={location} />
         {deck &&
           cardStates &&
           deckCardRefs &&

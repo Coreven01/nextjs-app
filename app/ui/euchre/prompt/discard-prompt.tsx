@@ -8,6 +8,7 @@ import CardSelection from './card-selection';
 import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import useCardData from '@/app/hooks/euchre/data/useCardData';
 import PromptHeader from './prompt-header';
+import GameButton from '../game/game-button';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   pickedUpCard: Card;
@@ -77,14 +78,14 @@ export default function DiscardPrompt({
           <div className="p-1 justify-center mt-2">
             <CardSelection onSelectionChanged={handleSelectionChanged} playerHand={playerHand} />
           </div>
-
-          <button
-            onClick={() => handleDiscardSubmit()}
-            className="h-8 col-span-2 w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 lg:text-base text-xs"
+          <GameButton
+            className="w-full col-span-2 mt-1"
+            type="success"
+            onClick={handleDiscardSubmit}
             disabled={!submitEnabled}
           >
             Discard Selected
-          </button>
+          </GameButton>
         </div>
       </div>
     </GamePrompt>

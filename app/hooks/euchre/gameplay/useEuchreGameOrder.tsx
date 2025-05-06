@@ -1,21 +1,21 @@
 import { Card, PromptType } from '@/app/lib/euchre/definitions/definitions';
-import { getPlayerNotificationType, PlayerNotificationAction } from './reducers/playerNotificationReducer';
+import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect } from 'react';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameBidLogic from './logic/useGameBidLogic';
-import useGameData from './data/useGameData';
-import usePlayerData from './data/usePlayerData';
-import useCardData from './data/useCardData';
-import { GameEventHandlers } from './useEventLog';
+import useGameBidLogic from '../logic/useGameBidLogic';
+import useGameData from '../data/useGameData';
+import usePlayerData from '../data/usePlayerData';
+import useCardData from '../data/useCardData';
+import { GameEventHandlers } from '../useEventLog';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
   ErrorHandlers
-} from '../../lib/euchre/definitions/game-state-definitions';
-import useGameOrderState from './phases/useGameOrderState';
-import useGameEventsOrder from './events/useGameEventsOrder';
-import { EuchrePauseType } from './reducers/gamePauseReducer';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import useGameOrderState from '../phases/useGameOrderState';
+import useGameEventsOrder from '../events/useGameEventsOrder';
+import { EuchrePauseType } from '../reducers/gamePauseReducer';
 
 export default function useEuchreGameOrder(
   state: EuchreGameValues,
@@ -34,7 +34,10 @@ export default function useEuchreGameOrder(
     continueToAnimateEndOrderTrump,
     continueToBeginPlayCard
   } = useGameOrderState(state, setters, errorHandlers);
-  const { addTrumpOrderedEvent, addDiscardEvent } = useGameEventsOrder(state, eventHandlers);
+  const { addTrumpOrderedEvent, addDiscardEvent, addDealerPickedUpEvent } = useGameEventsOrder(
+    state,
+    eventHandlers
+  );
   const { orderTrump, determineDiscard } = useGameBidLogic();
   const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
   const { discard, playerEqual } = usePlayerData();
@@ -181,6 +184,7 @@ export default function useEuchreGameOrder(
       pauseForUserDiscardSelection();
     } else {
       if (shouldDiscard) {
+        addDealerPickedUpEvent(newGame.trump);
         newGame.discard = determineDiscard(newGame, newGame.dealer, state.euchreSettings.difficulty);
         newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
 

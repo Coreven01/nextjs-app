@@ -3,13 +3,13 @@ import {
   getPlayerNotificationType,
   PlayerNotificationAction,
   PlayerNotificationActionType
-} from './reducers/playerNotificationReducer';
+} from '../reducers/playerNotificationReducer';
 import { BidResult, PromptType } from '@/app/lib/euchre/definitions/definitions';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameBidLogic from './logic/useGameBidLogic';
-import usePlayerData from './data/usePlayerData';
-import useGameData from './data/useGameData';
+import useGameBidLogic from '../logic/useGameBidLogic';
+import usePlayerData from '../data/usePlayerData';
+import useGameData from '../data/useGameData';
 import { v4 as uuidv4 } from 'uuid';
 import {
   EuchreGameInstance,
@@ -17,11 +17,11 @@ import {
   EuchreGameValues,
   EuchrePlayer,
   ErrorHandlers
-} from '../../lib/euchre/definitions/game-state-definitions';
-import { GameEventHandlers } from './useEventLog';
-import { EuchrePauseActionType, EuchrePauseType } from './reducers/gamePauseReducer';
-import useGameBidState from './phases/useGameBidState';
-import useGameEventsBid from './events/useGameEventsBid';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import { GameEventHandlers } from '../useEventLog';
+import { EuchrePauseActionType, EuchrePauseType } from '../reducers/gamePauseReducer';
+import useGameBidState from '../phases/useGameBidState';
+import useGameEventsBid from '../events/useGameEventsBid';
 
 export default function useEuchreGameBid(
   state: EuchreGameValues,
@@ -48,7 +48,7 @@ export default function useEuchreGameBid(
   const { notificationDelay } = useGameData();
   const {
     addBeginBidForTrumpEvent,
-    addAnimateBeginBidForTrumpEvent,
+    addAnimateBidForTrumpEvent,
     addFinalizeBidForTrumpEvent,
     addBeginPassDealEvent,
     addPassBidEvent,
@@ -230,7 +230,7 @@ export default function useEuchreGameBid(
 
       setters.dispatchPause();
 
-      addAnimateBeginBidForTrumpEvent();
+      addAnimateBidForTrumpEvent(true);
 
       // delay for animation between players when passing bid.
       await notificationDelay(state.euchreSettings);
@@ -243,7 +243,7 @@ export default function useEuchreGameBid(
       'beginAnimationForBidForTrump'
     );
   }, [
-    addAnimateBeginBidForTrumpEvent,
+    addAnimateBidForTrumpEvent,
     continueToEndBidForTrump,
     errorHandlers,
     notificationDelay,
@@ -258,7 +258,7 @@ export default function useEuchreGameBid(
   const endBidForTrump = useCallback(() => {
     if (!shouldEndBidForTrump) return;
 
-    addFinalizeBidForTrumpEvent();
+    addFinalizeBidForTrumpEvent(false);
     updateStateAndContinueToBidForTrump(state.euchreGame, state.euchreGameFlow);
 
     const newGame: EuchreGameInstance = { ...state.euchreGame };

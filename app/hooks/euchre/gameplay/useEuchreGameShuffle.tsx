@@ -1,16 +1,16 @@
 import { useCallback, useEffect } from 'react';
-import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
-import useGameSetupLogic from './logic/useGameSetupLogic';
-import { GameEventHandlers } from './useEventLog';
-import usePlayerData from './data/usePlayerData';
+import { PlayerNotificationActionType } from '../reducers/playerNotificationReducer';
+import useGameSetupLogic from '../logic/useGameSetupLogic';
+import { GameEventHandlers } from '../useEventLog';
+import usePlayerData from '../data/usePlayerData';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
   ErrorHandlers
-} from '../../lib/euchre/definitions/game-state-definitions';
-import useGameShuffleState from './phases/useGameShuffleState';
-import useGameEventsShuffle from './events/useGameEventsShuffle';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import useGameShuffleState from '../phases/useGameShuffleState';
+import useGameEventsShuffle from '../events/useGameEventsShuffle';
 
 const useEuchreGameShuffle = (
   state: EuchreGameValues,
@@ -34,7 +34,7 @@ const useEuchreGameShuffle = (
     continueToBeginBidForTrump
   } = useGameShuffleState(state, setters, errorHandlers);
 
-  //#region Shuffle and Deal for regular playthrough *************************************************************************
+  //#region Handlers
 
   /** Update game state once card animation is complete and begin the bidding game state. */
   const handleBeginDealComplete = () => {
@@ -51,6 +51,9 @@ const useEuchreGameShuffle = (
     setters.setEuchreGame(newGame);
     continueToBeginBidForTrump();
   };
+  //#endregion
+
+  //#region Shuffle and Deal for regular playthrough *************************************************************************
 
   /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
    * or if a player will name suit. After deal logic is run, begin animation for dealing cards to players. */

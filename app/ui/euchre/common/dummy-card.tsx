@@ -11,9 +11,10 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   width: number;
   height: number;
   location: TableLocation;
+  visible: boolean;
   responsive?: boolean;
 }
-const DummyCard = ({ width, height, location, responsive, className, ...rest }: Props) => {
+const DummyCard = ({ width, height, location, responsive, visible, className, ...rest }: Props) => {
   const cssValues: CSSProperties = {};
   const sideLocation = location === 'left' || location === 'right';
 
@@ -31,6 +32,7 @@ const DummyCard = ({ width, height, location, responsive, className, ...rest }: 
     <div
       className={clsx(
         'pointer-events-none',
+        { invisible: !visible },
         sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
         className
       )}

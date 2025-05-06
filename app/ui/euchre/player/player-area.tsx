@@ -32,6 +32,7 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
           height={height}
           responsive={true}
           location={location}
+          visible={state.euchreSettings.debugShowPositionElements}
         ></DummyCard>
       );
     }
@@ -53,7 +54,7 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
       >
         <div className={clsx('relative', info.innerClassName)}>
           {creatDummyCards(player, info.width, info.height, player.location)}
-          <div className={clsx('absolute lg:text-sm text-xs whitespace-nowrap z-30', info.playerInfoClass)}>
+          <div className={clsx('absolute lg:text-sm text-xs whitespace-nowrap z-40', info.playerInfoClass)}>
             {state.euchreGameFlow.hasGameStarted && (
               <PlayerInfo
                 id={`player-info-${player.playerNumber}`}

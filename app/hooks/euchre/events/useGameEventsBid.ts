@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { BidResult } from '../../../lib/euchre/definitions/definitions';
 import { EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
 import usePlayerData from '../data/usePlayerData';
@@ -5,94 +6,116 @@ import { GameEventHandlers } from '../useEventLog';
 
 const useGameEventsBid = (state: EuchreGameValues, eventHandlers: GameEventHandlers) => {
   const { getTeamColor } = usePlayerData();
+  const { euchreGame, euchreSettings } = state;
+  const { addEvent, createEvent } = eventHandlers;
 
-  const addBeginBidForTrumpEvent = () => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+  const enableDebugLog = state.euchreSettings.debugEnableDebugMenu;
+  const EVENT_TYPE = '[BID STATE]';
+
+  const addBeginBidForTrumpEvent = useCallback(() => {
+    addEvent(
+      createEvent(
         'v',
-        state.euchreGame.currentPlayer,
+        euchreGame.currentPlayer,
         'Begin bid For trump.',
         undefined,
-        getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
+        getTeamColor(euchreGame.currentPlayer, euchreSettings)
       )
     );
-  };
+  }, [addEvent, createEvent, euchreGame.currentPlayer, euchreSettings, getTeamColor]);
 
-  const addAnimateBeginBidForTrumpEvent = () => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
-        'v',
-        undefined,
-        'Begin animation for bid for trump.',
-        undefined,
-        getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
-      )
-    );
-  };
+  const addAnimateBidForTrumpEvent = useCallback(
+    (begin: boolean) => {
+      if (!enableDebugLog) return;
 
-  const addFinalizeBidForTrumpEvent = () => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
-        'v',
-        undefined,
-        'Begin finalize bid for trump.',
-        undefined,
-        getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
-      )
-    );
-  };
+      addEvent(
+        createEvent(
+          'd',
+          undefined,
+          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation for bid for trump.`,
+          undefined,
+          getTeamColor(euchreGame.currentPlayer, euchreSettings)
+        )
+      );
+    },
+    [addEvent, createEvent, enableDebugLog, euchreGame.currentPlayer, euchreSettings, getTeamColor]
+  );
 
-  const addBeginPassDealEvent = () => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+  const addFinalizeBidForTrumpEvent = useCallback(
+    (begin: boolean) => {
+      if (!enableDebugLog) return;
+
+      addEvent(
+        createEvent(
+          'd',
+          undefined,
+          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} finalize bid for trump.`,
+          undefined,
+          getTeamColor(euchreGame.currentPlayer, euchreSettings)
+        )
+      );
+    },
+    [addEvent, createEvent, enableDebugLog, euchreGame.currentPlayer, euchreSettings, getTeamColor]
+  );
+
+  const addBeginPassDealEvent = useCallback(() => {
+    addEvent(
+      createEvent(
         'i',
-        state.euchreGame.dealer,
+        euchreGame.dealer,
         'Deal was passed.',
         undefined,
-        getTeamColor(state.euchreGame.dealer, state.euchreSettings)
+        getTeamColor(euchreGame.dealer, euchreSettings)
       )
     );
-  };
+  }, [addEvent, createEvent, euchreGame.dealer, euchreSettings, getTeamColor]);
 
-  const addPassBidEvent = () => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+  const addPassBidEvent = useCallback(() => {
+    addEvent(
+      createEvent(
         'i',
-        state.euchreGame.currentPlayer,
+        euchreGame.currentPlayer,
         'Passed bid.',
         undefined,
-        getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
+        getTeamColor(euchreGame.currentPlayer, euchreSettings)
       )
     );
-  };
+  }, [addEvent, createEvent, euchreGame.currentPlayer, euchreSettings, getTeamColor]);
 
-  const addBidScoreEvent = (bidResult: BidResult) => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+  const addBidScoreEvent = useCallback(
+    (bidResult: BidResult) => {
+      if (!enableDebugLog) return;
+
+      addEvent(
+        createEvent(
+          'd',
+          euchreGame.currentPlayer,
+          `${EVENT_TYPE} - Hand Score for bid for trump: ` + bidResult.handScore,
+          undefined,
+          getTeamColor(euchreGame.currentPlayer, euchreSettings)
+        )
+      );
+    },
+    [addEvent, createEvent, enableDebugLog, euchreGame.currentPlayer, euchreSettings, getTeamColor]
+  );
+
+  const addHandleBidSelectionEvent = useCallback(() => {
+    if (!enableDebugLog) return;
+
+    addEvent(
+      createEvent(
         'd',
-        state.euchreGame.currentPlayer,
-        'Hand Score: ' + bidResult.handScore,
+        euchreGame.currentPlayer,
+        `${EVENT_TYPE} - Handle bid selection.`,
         undefined,
-        getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
+        getTeamColor(euchreGame.currentPlayer, euchreSettings)
       )
     );
-  };
-
-  const addHandleBidSelectionEvent = () => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
-        'v',
-        state.euchreGame.currentPlayer,
-        'Handle bid selection.',
-        undefined,
-        getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
-      )
-    );
-  };
+  }, [addEvent, createEvent, enableDebugLog, euchreGame.currentPlayer, euchreSettings, getTeamColor]);
 
   return {
     addBeginBidForTrumpEvent,
-    addAnimateBeginBidForTrumpEvent,
+    addAnimateBidForTrumpEvent,
     addFinalizeBidForTrumpEvent,
     addBeginPassDealEvent,
     addPassBidEvent,

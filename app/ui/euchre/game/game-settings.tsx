@@ -11,6 +11,7 @@ import { ChangeEvent, useState } from 'react';
 import Switch from '@mui/material/Switch';
 import PromptHeader from '../prompt/prompt-header';
 import { EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
+import GameButton from './game-button';
 
 type Props = {
   settings: EuchreSettings;
@@ -29,7 +30,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
   const gameSpeedValues = [...GAME_SPEED_MAP.entries()];
   const notificationSpeedValues = [...NOTIFICATION_SPEED_MAP.entries()];
   const difficultyValues = [...DIFFICULTY_MAP.entries()];
-  const isDebugMode = true;
+  const isDebugMode = settings.debugEnableDebugMenu;
 
   //#region Handlers
   const handleReturn = () => {
@@ -114,7 +115,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
   //#endregion
 
   return (
-    <div className="bg-stone-800 text-white lg:p-2 p-1">
+    <div className="bg-stone-800 text-white lg:p-2 p-1 lg:min-w-[700px] max-h-[85vh] overflow-auto">
       <PromptHeader>Settings</PromptHeader>
       <div className="flex items-center jusitify-center gap-4 my-2 lg:text-base text-sm">
         <div className="grow">
@@ -122,7 +123,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
             Player Name:{' '}
           </label>
           <input
-            className="text-black max-w-32 text-sm p-1 lg:text-base"
+            className="text-black max-w-32 p-1 lg:text-base text-sm"
             placeholder="Player Name"
             id="playerName"
             type="text"
@@ -209,6 +210,28 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
             onChange={(e) => handleCheckChanged(e)}
           />
         </div>
+        <div>
+          <label htmlFor="debugEnableDebugMenu">Enable Debug Menu: </label>
+          <Switch
+            id="debugEnableDebugMenu"
+            size="small"
+            checked={settings.debugEnableDebugMenu}
+            name="debugEnableDebugMenu"
+            color="success"
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
+        <div>
+          <label htmlFor="shouldAnimateDeal">Animate Deal Cards: </label>
+          <Switch
+            id="shouldAnimateDeal"
+            size="small"
+            checked={settings.shouldAnimateDeal}
+            name="shouldAnimateDeal"
+            color="success"
+            onChange={(e) => handleCheckChanged(e)}
+          />
+        </div>
       </div>
 
       {isDebugMode && (
@@ -254,6 +277,30 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
               size="small"
               checked={settings.debugAllComputerPlayers}
               name="debugAllComputerPlayers"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+          <div>
+            {' '}
+            <label htmlFor="debugShowPositionElements">Debug Show Position Elements: </label>
+            <Switch
+              id="debugShowPositionElements"
+              size="small"
+              checked={settings.debugShowPositionElements}
+              name="debugShowPositionElements"
+              color="success"
+              onChange={(e) => handleCheckChanged(e)}
+            />
+          </div>
+          <div>
+            {' '}
+            <label htmlFor="debugLogDebugEvents">Debug Log Debug Events: </label>
+            <Switch
+              id="debugLogDebugEvents"
+              size="small"
+              checked={settings.debugLogDebugEvents}
+              name="debugLogDebugEvents"
               color="success"
               onChange={(e) => handleCheckChanged(e)}
             />
@@ -334,30 +381,21 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           </select>
         </div>
       </div>
-      <div className="flex justify-center gap-2 lg:text-base text-sm">
-        <button
-          className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black p-1"
-          onClick={handleReturn}
-        >
+      <div className="flex justify-center gap-2">
+        <GameButton type="primary" onClick={handleReturn}>
           Main Menu
-        </button>
-        <button
-          className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black p-1"
-          onClick={handleSetDefaultSettings}
-        >
+        </GameButton>
+        <GameButton type="primary" onClick={handleSetDefaultSettings}>
           Default Settings
-        </button>
+        </GameButton>
       </div>
       {isDebugMode && (
-        <div className="flex justify-center gap-2 lg:text-base text-sm mt-2">
+        <div className="flex justify-center gap-2 lg:text-base text-sm mt-2 bg-stone-700 p-2 border border-white">
           <button className="text-white border border-white lg:p-2 p-1" onClick={handleRunTestGame}>
             Run Test Game
           </button>
           <button className="text-white border border-white lg:p-2 p-1" onClick={handleRunTestGameLoop}>
             Run Test Game Loop
-          </button>
-          <button className="text-white border border-white lg:p-2 p-1" onClick={handleApplyAutoSettings}>
-            Set Auto Settings
           </button>
         </div>
       )}

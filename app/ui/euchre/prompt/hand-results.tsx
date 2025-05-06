@@ -6,6 +6,7 @@ import HandResult from './hand-result';
 import clsx from 'clsx';
 import PromptHeader from './prompt-header';
 import { EuchreHandResult } from '../../../lib/euchre/definitions/definitions';
+import GameButton from '../game/game-button';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -30,19 +31,15 @@ export default function HandResults({
         <PromptHeader>Hand Results</PromptHeader>
         <div className="p-1">
           <HandResult game={game} settings={settings} handResult={handResult}></HandResult>
-          <div className="h-8 flex gap-1 lg:text-base text-xs">
-            <button
-              onClick={onReplayHand}
-              className="border border-white bg-red-950 hover:bg-amber-100 hover:text-black w-full mt-2"
-            >
-              Replay Hand
-            </button>
-            <button
-              onClick={onClose}
-              className="border border-white bg-stone-900 hover:bg-amber-100 hover:text-black w-full mt-2"
-            >
+          <div className="flex gap-1 lg:text-base text-xs">
+            {settings.debugEnableDebugMenu && (
+              <GameButton className="w-full" type="danger" onClick={onReplayHand}>
+                Replay Hand
+              </GameButton>
+            )}
+            <GameButton className="w-full" type="primary" onClick={onClose}>
               Close
-            </button>
+            </GameButton>
           </div>
         </div>
       </div>

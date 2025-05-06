@@ -37,8 +37,11 @@ const GameDebugMenu = ({ className, handlers, onClose }: Props) => {
             <GameButton className="w-full" type="success" onClick={handlers.handleRunTrickNotification}>
               Run Trick Notification
             </GameButton>
+            <GameButton className="w-full" type="success" onClick={handlers.handleRunFullGame}>
+              Run Test Game
+            </GameButton>
           </div>
-          <div className="flex gap-2 items-center justify-center m-1 mt-2 lg:text-base text-xs">
+          <div className="flex gap-2 items-center justify-center m-1 mt-2">
             <GameButton type="danger" onClick={handleClose}>
               Close
             </GameButton>

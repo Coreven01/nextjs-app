@@ -145,6 +145,7 @@ const useEuchreGameState = () => {
       dispatchGameAnimationFlow: dispatchGameAnimationFlow,
       dispatchPause: () => dispatchPauseState({ type: EuchrePauseActionType.SET_GENERAL })
     };
+
     return setters;
   }, []);
 
@@ -152,6 +153,7 @@ const useEuchreGameState = () => {
     (settings: EuchreSettings) => {
       saveSettings(settings);
     },
+
     [saveSettings]
   );
 

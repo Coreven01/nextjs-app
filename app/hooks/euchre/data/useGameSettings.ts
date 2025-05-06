@@ -20,7 +20,7 @@ const useGameSettings = () => {
 
     if (savedSettings) {
       const setting = JSON.parse(savedSettings) as EuchreSettings;
-      setEuchreSettings(setting);
+      setEuchreSettings({ ...INIT_GAME_SETTINGS, ...setting });
     }
   }, []);
 

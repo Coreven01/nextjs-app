@@ -133,7 +133,11 @@ export interface ErrorHandlers {
 
   onError: (e: Error, name: string) => void;
 
-  catchAsync: (func: () => Promise<void>, onError: (e: Error, name: string) => void, fnName: string) => void;
+  catchAsync: (
+    func: () => Promise<void>,
+    onError: (e: Error, name: string) => void,
+    fnName: string
+  ) => Promise<void>;
 }
 
 export interface EuchreGamePlayHandlers {
@@ -153,6 +157,7 @@ export interface EuchreGamePlayHandlers {
 export interface EuchreDebugHandlers {
   handleRunInitGame: () => void;
   handleRunTrickNotification: () => void;
+  handleRunFullGame: () => void;
 }
 
 export interface EuchreAnimationHandlers {
@@ -200,7 +205,7 @@ export interface EuchreError {
 }
 
 export interface EuchreSettings {
-  shouldAnimate: boolean;
+  shouldAnimateDeal: boolean;
   gameSpeed: GameSpeed;
   notificationSpeed: GameSpeed;
   showHandResult: boolean;
@@ -208,14 +213,17 @@ export interface EuchreSettings {
   teamTwoColor: TeamColor;
   enforceFollowSuit: boolean;
   autoFollowSuit: boolean;
+  debugEnableDebugMenu: boolean;
   debugShowPlayersHand: boolean;
   debugShowHandsWhenPassed: boolean;
   debugAlwaysPass: boolean;
   debugAllComputerPlayers: boolean;
-  debugShowDebugEvents: boolean;
+  debugLogDebugEvents: boolean;
+  debugShowPositionElements: boolean;
   difficulty: GameDifficulty;
   viewPlayerInfoDetail: boolean;
   cardColor: CardBackColor;
   stickTheDealer: boolean;
   playerName: string;
+  gamePoints: number;
 }

@@ -92,7 +92,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         // fall into this block once animation is complete to update game state.
         actionsRun.current.push(runAnimationCompleteEffect);
         logConsole(
-          '[handleAnimationComplete] - game-card.tsx for card: ',
+          '*** [GAMECARD] [handleAnimationComplete] - game-card.tsx for card: ',
           card
           // ' id: ',
           // id,
@@ -108,14 +108,14 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
         onAnimationComplete(card);
       } else {
-        console.log('Actions run: ', actionsRun);
+        //console.log('Actions run: ', actionsRun);
       }
     }, [card, cardState.runEffectForState, onAnimationComplete, runAnimationCompleteEffect]);
 
     /** Handle card click event. */
     const handleCardClick = useCallback(() => {
       if (onCardClick) {
-        logConsole('[handleCardClick] - game-card.tsx', ' card index: ', card.index);
+        logConsole('*** [GAMECARD] [handleCardClick] - game-card.tsx', ' card index: ', card.index);
         if (runAnimationCompleteEffect) actionsRun.current.push(runAnimationCompleteEffect);
         // when card is clicked, it activates the animation to play the card.
         // on the animation is complete, the callback handler calls the method that updates,
@@ -123,6 +123,8 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         onCardClick(card.index);
       }
     }, [card.index, onCardClick, runAnimationCompleteEffect]);
+
+    logConsole('*** [GAMECARD] [RENDER] card: ', card);
 
     return (
       <motion.div

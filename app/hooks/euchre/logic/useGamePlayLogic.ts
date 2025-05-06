@@ -715,7 +715,7 @@ const useGamePlayLogic = () => {
     const newGameState: EuchreGameFlowState = {
       ...gameState,
       hasGameStarted: true,
-      shouldShowCardImagesForHand: !settings.shouldAnimate
+      shouldShowCardImagesForHand: !settings.shouldAnimateDeal
         ? gamePlayers.map((p) => {
             return { player: p, value: true };
           })

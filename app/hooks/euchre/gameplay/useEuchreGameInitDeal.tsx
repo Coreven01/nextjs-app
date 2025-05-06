@@ -1,18 +1,18 @@
 import { useCallback, useEffect } from 'react';
-import useGameSetupLogic from './logic/useGameSetupLogic';
+import useGameSetupLogic from '../logic/useGameSetupLogic';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
   ErrorHandlers
-} from '../../lib/euchre/definitions/game-state-definitions';
-import { InitDealResult } from '../../lib/euchre/definitions/logic-definitions';
-import { GameEventHandlers } from './useEventLog';
-import useGameData from './data/useGameData';
-import { getPlayerNotificationType, PlayerNotificationAction } from './reducers/playerNotificationReducer';
-import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
-import useGameInitDealState from './phases/useGameInitDealState';
-import useGameEventsInitDeal from './events/useGameEventsInitDeal';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
+import { GameEventHandlers } from '../useEventLog';
+import useGameData from '../data/useGameData';
+import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
+import GamePlayIndicator from '../../../ui/euchre/game/game-play-indicator';
+import useGameInitDealState from '../phases/useGameInitDealState';
+import useGameEventsInitDeal from '../events/useGameEventsInitDeal';
 
 /**
  * Hook used to initialize game play for dealing cards for intial dealer.
@@ -40,10 +40,21 @@ export default function useEuchreGameInitDeal(
     continueToShuffleCards
   } = useGameInitDealState(state, setters, errorHandlers);
 
+  //#region Handlers
+  const handleBeginDealForDealerComplete = useCallback(() => {
+    continueToEndDealCardsForDealer();
+  }, [continueToEndDealCardsForDealer]);
+
+  const handleEndDealForDealerComplete = useCallback(() => {
+    continueToShuffleCards();
+  }, [continueToShuffleCards]);
+  //#endregion
+
   //#region Deal Cards For Initial Dealer *************************************************************************
 
   /** Deal cards to determine who the initial dealer will be for the game. First jack dealt to a user will become the initial dealer.
    *  After logic is run to determine dealer, animate the cards being dealt if turned on from the settings.
+   *  This state is updated by calling: handleBeginDealForDealerComplete
    */
   const beginDealCardsForDealer = useCallback(() => {
     if (!shouldBeginDealCardsForDealer) return;
@@ -102,7 +113,7 @@ export default function useEuchreGameInitDeal(
   }, [errorHandlers, shouldAnimateBeginDealCardsForDealer]);
 
   /**
-   * Intended to run logic associated with ending dealing for dealer.
+   * Sets the current player and dealer to the player who won during the initial deal.
    */
   const endDealCardsForDealer = useCallback(() => {
     if (!shouldEndDealCardsForDealer) return;
@@ -125,7 +136,9 @@ export default function useEuchreGameInitDeal(
     state.initDealer
   ]);
 
-  /** */
+  /**
+   * Begin effect for end deal card for dealer.
+   */
   useEffect(() => {
     try {
       endDealCardsForDealer();
@@ -135,21 +148,27 @@ export default function useEuchreGameInitDeal(
     }
   }, [endDealCardsForDealer, errorHandlers]);
 
-  /** */
+  /**
+   * Pause and display an indicator who won for initial deal.
+   * This state is updated by calling: handleEndDealForDealerComplete
+   */
   useEffect(() => {
     const endAnimationForInitDeal = async () => {
       if (!shouldAnimateEndDealCardsForDealer) return;
 
-      setters.dispatchPause();
+      if (state.euchreSettings.shouldAnimateDeal) {
+        setters.dispatchPause();
 
-      // show an indicator who will be the next dealer.
-      const newAction: PlayerNotificationAction = {
-        type: getPlayerNotificationType(state.euchreGame.dealer.location),
-        payload: <GamePlayIndicator notificationSpeed={state.euchreSettings.notificationSpeed} />
-      };
+        // show an indicator who will be the next dealer.
+        const newAction: PlayerNotificationAction = {
+          type: getPlayerNotificationType(state.euchreGame.dealer.location),
+          payload: <GamePlayIndicator notificationSpeed={state.euchreSettings.notificationSpeed} />
+        };
 
-      setters.dispatchPlayerNotification(newAction);
-      await notificationDelay(state.euchreSettings);
+        setters.dispatchPlayerNotification(newAction);
+        await notificationDelay(state.euchreSettings);
+      }
+
       pauseForAnimateEndDealCardsForDealer();
     };
 
@@ -164,14 +183,6 @@ export default function useEuchreGameInitDeal(
     state.euchreGame.dealer.playerNumber,
     state.euchreSettings
   ]);
-
-  const handleBeginDealForDealerComplete = useCallback(() => {
-    continueToEndDealCardsForDealer();
-  }, [continueToEndDealCardsForDealer]);
-
-  const handleEndDealForDealerComplete = useCallback(() => {
-    continueToShuffleCards();
-  }, [continueToShuffleCards]);
 
   //#endregion
 

@@ -5,17 +5,21 @@ import {
   EuchrePlayer
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import usePlayerData from '../data/usePlayerData';
-import { GameEventHandlers, SUB_SUIT } from '../useEventLog';
+import { GameEventHandlers, SUB_CARD } from '../useEventLog';
 
 const useGameEventsPlay = (state: EuchreGameValues, eventHandlers: GameEventHandlers) => {
   const { getTeamColor } = usePlayerData();
+  const EVENT_TYPE = '[PLAY STATE]';
+  const enableDebugLog = state.euchreSettings.debugEnableDebugMenu;
 
-  const addBeginPlayCardEvent = () => {
+  const addPlayCardEvent = (begin: boolean) => {
+    if (!enableDebugLog) return;
+
     eventHandlers.addEvent(
       eventHandlers.createEvent(
         'd',
         state.euchreGame.currentPlayer,
-        `Begin play card for regular play.`,
+        `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} play card for regular play.`,
         undefined,
         getTeamColor(state.euchreGame.currentPlayer, state.euchreSettings)
       )
@@ -27,7 +31,7 @@ const useGameEventsPlay = (state: EuchreGameValues, eventHandlers: GameEventHand
       eventHandlers.createEvent(
         'i',
         cardPlayed.player,
-        `Played card: ${SUB_SUIT}`,
+        `Played card: ${SUB_CARD}.`,
         [cardPlayed.card],
         getTeamColor(cardPlayed.player, state.euchreSettings)
       )
@@ -39,7 +43,7 @@ const useGameEventsPlay = (state: EuchreGameValues, eventHandlers: GameEventHand
       eventHandlers.createEvent(
         'i',
         player,
-        `Player reneged with ${SUB_SUIT}.`,
+        `Player reneged with ${SUB_CARD}.`,
         [card],
         getTeamColor(player, state.euchreSettings)
       )
@@ -51,7 +55,7 @@ const useGameEventsPlay = (state: EuchreGameValues, eventHandlers: GameEventHand
       eventHandlers.createEvent(
         'i',
         player,
-        `Won the trick with ${SUB_SUIT}.`,
+        `Won the trick with ${SUB_CARD}.`,
         [card],
         getTeamColor(player, state.euchreSettings)
       )
@@ -74,7 +78,7 @@ const useGameEventsPlay = (state: EuchreGameValues, eventHandlers: GameEventHand
   };
 
   return {
-    addBeginPlayCardEvent,
+    addPlayCardEvent,
     addCardPlayedEvent,
     addPlayerRenegedEvent,
     addTrickWonEvent,

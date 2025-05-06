@@ -1,20 +1,20 @@
-import { EuchreFlowActionType, EuchreGameFlowState, INIT_GAME_FLOW_STATE } from './reducers/gameFlowReducer';
-import { PlayerNotificationActionType } from './reducers/playerNotificationReducer';
-import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
-import useGameSetupLogic from './logic/useGameSetupLogic';
+import { EuchreFlowActionType, EuchreGameFlowState, INIT_GAME_FLOW_STATE } from '../reducers/gameFlowReducer';
+import { PlayerNotificationActionType } from '../reducers/playerNotificationReducer';
+import { EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
+import useGameSetupLogic from '../logic/useGameSetupLogic';
 import { useCallback, useEffect } from 'react';
-import useGameData from './data/useGameData';
+import useGameData from '../data/useGameData';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
   EuchreGameValues,
   ErrorHandlers
-} from '../../lib/euchre/definitions/game-state-definitions';
-import { GameEventHandlers } from './useEventLog';
-import { PromptType } from '../../lib/euchre/definitions/definitions';
-import { EuchrePauseActionType } from './reducers/gamePauseReducer';
-import useGameInitState from './phases/useGameInitState';
-import useGameEventsInit from './events/useGameEventsInit';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import { GameEventHandlers } from '../useEventLog';
+import { PromptType } from '../../../lib/euchre/definitions/definitions';
+import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
+import useGameInitState from '../phases/useGameInitState';
+import useGameEventsInit from '../events/useGameEventsInit';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(
@@ -97,7 +97,14 @@ export default function useEuchreGameInit(
       type: EuchreFlowActionType.SET_STATE,
       state: newGameFlowState
     });
-    setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+    setters.dispatchStateChange(
+      undefined,
+      EuchreAnimationActionType.SET_ANIMATE,
+      EuchrePauseActionType.SET_NONE
+    );
+
+    const debugPrompt = state.promptValues.filter((p) => p === PromptType.DEBUG);
+    setters.replacePromptValues([...debugPrompt]);
     setters.setEuchreGame(newGame);
     setters.setShouldCancelGame(false);
   };

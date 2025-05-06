@@ -1,14 +1,22 @@
 import clsx from 'clsx';
-import { GameEvent, GameEventType, SUB_SUIT } from '../../../hooks/euchre/useEventLog';
+import { GameEvent, GameEventType, SUB_CARD, SUB_SUIT } from '../../../hooks/euchre/useEventLog';
 import PlayerColor from '../player/player-team-color';
-import { Card } from '../../../lib/euchre/definitions/definitions';
+import { Card, Suit } from '../../../lib/euchre/definitions/definitions';
 
 interface Props {
   event: GameEvent;
   showTimeStamp: boolean;
   getCardFullName: (card: Card) => string;
+  getCardClassColorFromSuit: (suit: Suit) => string;
+  getSuitName: (suit: Suit) => string;
 }
-const GameEventLine = ({ event, showTimeStamp, getCardFullName }: Props) => {
+const GameEventLine = ({
+  event,
+  showTimeStamp,
+  getCardFullName,
+  getCardClassColorFromSuit,
+  getSuitName
+}: Props) => {
   return (
     <li className="p-1 border-slate-700 border-b m-1">
       <div className="flex">
@@ -33,6 +41,8 @@ const GameEventLine = ({ event, showTimeStamp, getCardFullName }: Props) => {
             message={event.message}
             cards={event.cards}
             getCardFullName={getCardFullName}
+            getCardClassColorFromSuit={getCardClassColorFromSuit}
+            getSuitName={getSuitName}
           />
         </div>
       </div>
@@ -66,9 +76,18 @@ interface MessageProps {
   message?: string;
   cards?: Card[];
   getCardFullName: (card: Card) => string;
+  getCardClassColorFromSuit: (suit: Suit) => string;
+  getSuitName: (suit: Suit) => string;
 }
-const GameEventMessage = ({ eventId, message, cards, getCardFullName }: MessageProps) => {
-  const messageSegments: string[] = (message ?? '').split(SUB_SUIT);
+const GameEventMessage = ({
+  eventId,
+  message,
+  cards,
+  getCardFullName,
+  getCardClassColorFromSuit,
+  getSuitName
+}: MessageProps) => {
+  const messageSegments: string[] = (message ?? '').split(/\[\[C\]\]|\[\[S\]\]/);
   const messageElements: React.ReactNode[] = [];
 
   let msgCounter = 0;
@@ -80,13 +99,15 @@ const GameEventMessage = ({ eventId, message, cards, getCardFullName }: MessageP
       const card = cards?.at(counter++);
 
       if (card) {
-        const cardName = getCardFullName(card);
+        const cardName =
+          (message ?? '').indexOf(SUB_CARD) >= 0 ? getCardFullName(card) : getSuitName(card.suit) + 's';
+        const cardColorCss = getCardClassColorFromSuit(card.suit);
         messageElements.push(
           <span
-            className="bg-white border border-black rounded-xl text-center text-black p-1"
+            className={clsx('bg-white border border-black rounded-xl text-center p-1', cardColorCss)}
             key={`${eventId}-${msgCounter++}-${counter}`}
           >
-            {cardName}-{card.suit}
+            {cardName} - {card.suit}
           </span>
         );
       }

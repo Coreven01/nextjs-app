@@ -31,6 +31,9 @@ const useCardState = (
   errorHandlers: ErrorHandlers,
   player: EuchrePlayer,
 
+  directCenterHRef: RefObject<HTMLDivElement | null>,
+  directCenterVRef: RefObject<HTMLDivElement | null>,
+
   /** map of player number to the player's card deck area element. */
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
   onTrickComplete?: (card: Card) => void,
@@ -92,9 +95,10 @@ const useCardState = (
     getRandomRotation,
     getSpringsForCardInit,
     getCalculatedWidthOffset,
-    getSpringForTrickTaken,
     getTransitionForCardMoved,
-    getSpringsToMoveToPlayerWithTransition
+    getSpringsToMoveToPlayer,
+    getSpringToMoveToPlayer,
+    getBaseTransitionForCardMoved
   } = useCardTransform();
   const { getDisplayWidth, getDisplayHeight, cardEqual, sortCardsIndices, getCardBackSrc } = useCardData();
   const { playerEqual, availableCardsToPlay } = usePlayerData();
@@ -122,6 +126,18 @@ const useCardState = (
     initAnimatePassDeal.current = false;
     initForSittingOut.current = false;
   };
+
+  /** Get the element that's relative to the player's location that's used as an offset. */
+  const getRelativeCenter = useCallback(
+    (location: TableLocation) => {
+      if (location === 'top' || location === 'bottom') {
+        return directCenterHRef.current;
+      } else {
+        return directCenterVRef.current;
+      }
+    },
+    [directCenterHRef, directCenterVRef]
+  );
 
   const handleDealComplete = useCallback(
     (playerNumber: number) => {
@@ -357,12 +373,13 @@ const useCardState = (
 
         if (!destRef?.current) throw new Error('Invalid destination ref to move cards to dealer');
 
-        const springsToMove = getSpringsToMoveToPlayerWithTransition(
-          state.euchreSettings.gameSpeed,
+        const springsToMove = getSpringsToMoveToPlayer(
           cardRefs,
           destRef.current,
           destinationPlayer.location,
-          cardStates
+          cardStates,
+          true,
+          state.euchreSettings.gameSpeed
         );
 
         for (const cardState of newState) {
@@ -379,13 +396,7 @@ const useCardState = (
         return newState;
       });
     },
-    [
-      cardRefs,
-      cardStates,
-      getSpringsToMoveToPlayerWithTransition,
-      playerDeckRefs,
-      state.euchreSettings.gameSpeed
-    ]
+    [cardRefs, cardStates, getSpringsToMoveToPlayer, playerDeckRefs, state.euchreSettings.gameSpeed]
   );
 
   /**
@@ -398,7 +409,8 @@ const useCardState = (
     const newCardStates: CardState[] = [...cardStates];
     const awaitingPlayer =
       playerEqual(state.euchreGame.currentPlayer, player) &&
-      state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT;
+      state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT &&
+      state.euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_PLAY_CARD;
     const availableCards = getCardsAvailableIfFollowSuit().map((c) => c.index);
 
     for (const cardState of newCardStates) {
@@ -672,16 +684,28 @@ const useCardState = (
       if (!initForSittingOut.current && playerIsSittingOut) {
         initForSittingOut.current = true;
 
-        cardStates.forEach((s) => (s.springValue = { ...DEFAULT_SPRING_VAL }));
-        await gameDelay(state.euchreSettings);
+        const baseTransition = getBaseTransitionForCardMoved(state.euchreSettings.gameSpeed);
         cardStates.forEach(
-          (s) => (s.springValue = { ...getSpringsForCardInit(player), opacity: 0, rotateX: 0, rotateY: 0 })
+          (s) =>
+            (s.springValue = s.springValue
+              ? { ...s.springValue, x: 0, y: 0, rotate: 0, transition: baseTransition }
+              : { ...DEFAULT_SPRING_VAL })
         );
+        await gameDelay(state.euchreSettings);
+        cardStates.forEach((s) => (s.springValue = { ...getSpringsForCardInit(player), opacity: 0 }));
       }
     };
 
     beginSittingOut();
-  }, [cardStates, gameDelay, getSpringsForCardInit, player, playerIsSittingOut, state.euchreSettings]);
+  }, [
+    cardStates,
+    gameDelay,
+    getBaseTransitionForCardMoved,
+    getSpringsForCardInit,
+    player,
+    playerIsSittingOut,
+    state.euchreSettings
+  ]);
 
   /** Animate the cards going to the trick winner's card area after the trick is complete.
    *
@@ -709,8 +733,7 @@ const useCardState = (
         // animate trick being taken by the winner.
 
         const cardIndex = lastCardPlayed.index;
-        const trickWonLocation = currentTrick.taker?.location ?? 0;
-        const trickWonPlayerNumber = currentTrick.taker?.playerNumber ?? 0;
+        const trickWonLocation = currentTrick.taker?.location;
         const newCardState = [...cardStates];
 
         // reset effect state for each card.
@@ -724,14 +747,16 @@ const useCardState = (
           .find((r) => r[0] === trickWonLocation)?.[1]?.current;
         let newSpring: CardSpringTarget;
 
-        if (currentSpring && cardRef && destinationDeckRef) {
-          newSpring = getSpringForTrickTaken(
-            trickWonPlayerNumber,
-            player.playerNumber,
+        if (currentSpring && cardRef && destinationDeckRef && trickWonLocation) {
+          newSpring = getSpringToMoveToPlayer(
             cardRef,
             destinationDeckRef,
-            currentSpring
-          );
+            trickWonLocation,
+            cardState,
+            true,
+            state.euchreSettings.gameSpeed
+          ).springValue;
+
           cardState.springValue = newSpring;
           cardState.runEffectForState = EuchreGameFlow.TRICK_FINISHED;
 
@@ -748,14 +773,14 @@ const useCardState = (
   }, [
     cardRefs,
     cardStates,
-    getSpringForTrickTaken,
+    getSpringToMoveToPlayer,
     handState,
     onTrickComplete,
-    player,
     playerDeckRefs,
     state.euchreAnimationFlow.animationType,
     state.euchreGame.currentTrick,
-    state.euchreGameFlow.gameFlow
+    state.euchreGameFlow.gameFlow,
+    state.euchreSettings.gameSpeed
   ]);
 
   /** Update the player's hand at beginning of the player's turn during regular game play. */

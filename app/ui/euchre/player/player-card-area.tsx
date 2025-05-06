@@ -90,7 +90,7 @@ const PlayerCardArea = ({
   }, [state.euchreGame.handId]);
 
   const handleDealAnimationComplete = (playerNumber: number) => {
-    console.log('[handleInitComplete] - player-card-area.tsx');
+    console.log('*** [PLAYERCARDAREA] [handleInitComplete] - player-card-area.tsx');
     if (playersInitDealFinished.current.values().toArray().length === 4) return;
 
     playersInitDealFinished.current.add(playerNumber);
@@ -101,7 +101,7 @@ const PlayerCardArea = ({
   };
 
   const handlePassDealAnimationComplete = (card: Card) => {
-    console.log('[handlePassDealComplete] - player-card-area.tsx');
+    console.log('*** [PLAYERCARDAREA] [handlePassDealComplete] - player-card-area.tsx');
     if (cardsPassedDeal.current.values().toArray().length === 20) return;
 
     cardsPassedDeal.current.add(`${card.value}${card.suit}`);
@@ -117,7 +117,7 @@ const PlayerCardArea = ({
 
   const handleTrickFinished = useCallback(
     (card: Card) => {
-      console.log('[handleTrickFinished] - player-area.tsx');
+      console.log('*** [PLAYERCARDAREA] [handleTrickFinished] - player-area.tsx');
 
       const trick: EuchreTrick | undefined = state.euchreGame.currentTrick;
       const trickFinished = tricksFinished.current.has(trick.trickId);
@@ -138,7 +138,7 @@ const PlayerCardArea = ({
   );
 
   console.log(
-    '**** [PlayerCardArea] render.',
+    '*** [PLAYERCARDAREA] [RENDER]',
     ' deck visible: ',
     gameDeckVisible,
     ' hand visible: ',
@@ -156,6 +156,7 @@ const PlayerCardArea = ({
         const innerDeckRef = playerInnerDeckRefs.get(player.location);
         const centerTableRef = playerCenterTableRefs.get(player.location);
         const gameCard = playerEqual(player, state.euchreGame.currentPlayer) ? playedCard : null;
+        const hidePosition = { invisible: !state.euchreSettings.debugShowPositionElements };
 
         if (!centerTableRef) throw new Error('Invalid center table ref in player card area.');
 
@@ -163,6 +164,7 @@ const PlayerCardArea = ({
           <div
             className={clsx('relative', info.locationClass)}
             key={`player${player.playerNumber}-game-deck`}
+            id={`player${player.playerNumber}-game-deck`}
           >
             {gameHandVisible && (
               <PlayerHand
@@ -173,6 +175,8 @@ const PlayerCardArea = ({
                 playedCard={gameCard}
                 playerCenterTableRef={centerTableRef}
                 playerDeckRefs={playerDeckRefs}
+                directCenterHRef={directCenterHRef}
+                directCenterVRef={directCenterVRef}
                 onCardPlayed={handleCardPlayed}
                 onTrickComplete={handleTrickFinished}
                 onPassDeal={handlePassDealAnimationComplete}
@@ -182,14 +186,14 @@ const PlayerCardArea = ({
             <div
               ref={deckRef}
               id={`player-deck-${player.playerNumber}`}
-              className={clsx('absolute', getCardClassForPlayerLocation(player.location))}
+              className={clsx('absolute', getCardClassForPlayerLocation(player.location), hidePosition)}
             >
               {`D-${player.playerNumber}`}
             </div>
             <div
               ref={innerDeckRef}
               id={`player-inner-deck-${player.playerNumber}`}
-              className={clsx('absolute', info.playerInnerDeckOffsetClass)}
+              className={clsx('absolute', info.playerInnerDeckOffsetClass, hidePosition)}
             >
               {`I-${player.playerNumber}`}
             </div>
@@ -211,6 +215,7 @@ const PlayerCardArea = ({
           width={gameDeckState.width}
           height={gameDeckState.height}
           handId={gameDeckState.handId}
+          showPosition={state.euchreSettings.debugShowPositionElements}
           onFirstRender={handleRefChange}
         />
       )}

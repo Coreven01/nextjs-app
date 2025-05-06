@@ -10,7 +10,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   onRunDebug: () => void;
 }
 
-const GameIntro = ({ className, onBegin, onSettings, onRunDebug }: DivProps) => {
+const GameIntro = ({ className, onBegin, onSettings, onRunDebug, ...rest }: DivProps) => {
   const titleElement = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,10 +18,10 @@ const GameIntro = ({ className, onBegin, onSettings, onRunDebug }: DivProps) => 
   }, []);
 
   return (
-    <div className={clsx('flex lg:min-w-[30svw] lg:min-h-64 min-h-32', className)}>
+    <div className={clsx('flex lg:min-w-[30svw] lg:min-h-64 min-h-32', className)} {...rest}>
       <div className="flex grow flex-col items-center justify-center">
         <div className="flex grow items-center w-full">
-          <div className="grow flex justify-center bg-neutral-700 border-t border-b border-white p-2 text-center text-5xl">
+          <div className="grow flex justify-center bg-neutral-900 border-t border-b border-white p-2 text-center text-5xl mt-4">
             <motion.div
               ref={titleElement}
               initial={{ opacity: 0 }}
@@ -29,13 +29,13 @@ const GameIntro = ({ className, onBegin, onSettings, onRunDebug }: DivProps) => 
               id="game-title"
               style={{ backgroundSize: '400%' }}
               className={clsx(
-                'relative top-[20px] transition-all duration-[1.25s] ease-in transform text-transparent font-bold bg-clip-text bg-gradient-to-r from-lime-500 via-emerald-300 to-green-700 animate-wave',
+                'relative top-[20px] transition-all duration-[1.25s] ease-in transform text-transparent font-bold bg-clip-text bg-gradient-to-r from-lime-600 via-emerald-400 to-green-600 animate-wave',
                 caveat.className
               )}
             >
               <div
                 className={clsx(
-                  'absolute opacity-40 top-0 font-bold text-black scale-[1.02] translate-x-1',
+                  'absolute opacity-40 top-0 font-bold text-black scale-[1.02] translate-x-1 bold',
                   caveat.className
                 )}
               >
@@ -45,9 +45,9 @@ const GameIntro = ({ className, onBegin, onSettings, onRunDebug }: DivProps) => 
             </motion.div>
           </div>
         </div>
-        <div className="my-2 mx-4 flex gap-2">
-          <GameButton type="primary" onClick={onBegin}>
-            Begin
+        <div className="my-4 mx-4 flex gap-2">
+          <GameButton type="success" onClick={onBegin}>
+            New Game
           </GameButton>
           <GameButton type="danger" onClick={onRunDebug}>
             Debug Game

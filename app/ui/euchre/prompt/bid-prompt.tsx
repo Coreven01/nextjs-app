@@ -14,6 +14,7 @@ import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import useCardData from '@/app/hooks/euchre/data/useCardData';
 import { BidResult, Suit } from '../../../lib/euchre/definitions/definitions';
+import GameButton from '../game/game-button';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   firstRound: boolean;
@@ -167,31 +168,25 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
               'lg:flex-row flex-col lg:col-span-2 lg:col-start-1 lg:row-start-5 lg:row-span-1': true
             })}
           >
-            <button
+            <GameButton
+              className="w-full"
               title={passTitle}
-              onClick={() => handleBidSubmit(true)}
-              className={clsx(
-                'w-full grow px-1 border border-white bg-red-950 max-w-24 lg:max-w-full',
-                {
-                  'hover:bg-amber-100 hover:text-black': !stickTheDealer
-                },
-                {
-                  'disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500':
-                    stickTheDealer
-                }
-              )}
+              type="danger"
               disabled={stickTheDealer}
+              onClick={() => handleBidSubmit(true)}
             >
               Pass
-            </button>
-            <button
+            </GameButton>
+            <GameButton
+              className="w-full"
               title={orderTrumpTitle}
+              type="success"
               onClick={() => handleBidSubmit(false)}
-              className="w-full grow px-1 border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500 max-w-24 lg:max-w-full"
               disabled={!submitEnabled}
             >
+              {' '}
               {firstRound ? (game.dealer === game.currentPlayer ? 'Pick Up' : 'Order Up') : 'Name Suit'}
-            </button>
+            </GameButton>
           </div>
         </div>
         {settings.stickTheDealer && (

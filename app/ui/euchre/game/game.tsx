@@ -6,7 +6,7 @@ import { inter } from '../../fonts';
 import { EuchreGameInstance, EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
 import { PromptType } from '../../../lib/euchre/definitions/definitions';
 import GameSettings from './game-settings';
-import useEuchreGame from '@/app/hooks/euchre/useEuchreGame';
+import useEuchreGame from '@/app/hooks/euchre/gameplay/useEuchreGame';
 import GameScore from './game-score';
 import GameBorder from './game-border';
 import BidPrompt from '../prompt/bid-prompt';
@@ -17,7 +17,7 @@ import GameEvents from './game-events';
 import GameArea from './game-area';
 import GamePrompt from '../prompt/game-prompt';
 import useMenuItems from '@/app/hooks/euchre/useMenuItems';
-import useEuchreGameAuto from '@/app/hooks/euchre/useEuchreGameAuto';
+import useEuchreGameAuto from '@/app/hooks/euchre/gameplay/useEuchreGameAuto';
 import clsx from 'clsx';
 import GameErrorPrompt from '../prompt/game-error-prompt';
 import GameIntro from '../prompt/game-intro';
@@ -161,7 +161,7 @@ export default function EuchreGame() {
   );
 
   const renderIntro = !showSettings && stateValues.promptValues.includes(PromptType.INTRO) && (
-    <GamePrompt innerClass="bg-green-300 bg-opacity-10" id="euchre-game-intro" zIndex={90}>
+    <GamePrompt innerClass="bg-green-300 bg-opacity-10" className="mt-8" id="euchre-game-intro" zIndex={90}>
       <GameIntro
         onRunDebug={handleOpenDebugMenu}
         onBegin={handleStartNewGame}

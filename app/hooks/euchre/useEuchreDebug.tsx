@@ -12,6 +12,9 @@ import useGameSetupLogic from './logic/useGameSetupLogic';
 import { EuchreGameFlow } from './reducers/gameFlowReducer';
 import { PlayerNotificationAction, PlayerNotificationActionType } from './reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
+import useEuchreGameAuto from './gameplay/useEuchreGameAuto';
+import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
+import { EuchrePauseActionType } from './reducers/gamePauseReducer';
 
 const useEuchreDebug = (
   state: EuchreGameValues,
@@ -21,6 +24,7 @@ const useEuchreDebug = (
   errorHandlers: ErrorHandlers
 ) => {
   const { createDefaultEuchreGame } = useGameSetupLogic();
+  const { runFullGame } = useEuchreGameAuto();
 
   const getNotification = useCallback((type: PlayerNotificationActionType, speed: GameSpeed) => {
     const newAction: PlayerNotificationAction = {
@@ -50,6 +54,17 @@ const useEuchreDebug = (
     gameHandlers.handleBeginNewGame();
   }, [gameHandlers, setters]);
 
+  const handleRunFullGame = useCallback(() => {
+    const game = runFullGame(state.euchreSettings, 10);
+    setters.setEuchreDebug(undefined);
+    setters.setEuchreGame(game);
+    setters.dispatchStateChange(
+      EuchreGameFlow.TRICK_FINISHED,
+      EuchreAnimationActionType.SET_ANIMATE,
+      EuchrePauseActionType.SET_NONE
+    );
+  }, [gameHandlers, setters]);
+
   const handleRunTrickNotification = useCallback(async () => {
     console.log('game speed: ', state.euchreSettings.notificationSpeed);
     const types: PlayerNotificationActionType[] = [
@@ -69,7 +84,8 @@ const useEuchreDebug = (
   const debugHandlers: EuchreDebugHandlers = useMemo(
     () => ({
       handleRunInitGame: handleRunInitDeal,
-      handleRunTrickNotification
+      handleRunTrickNotification,
+      handleRunFullGame
     }),
     [handleRunInitDeal, handleRunTrickNotification]
   );

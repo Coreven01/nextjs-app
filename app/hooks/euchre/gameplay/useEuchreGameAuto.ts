@@ -1,20 +1,20 @@
-import { EuchreGameFlowState, gameFlowStateReducer, INIT_GAME_FLOW_STATE } from './reducers/gameFlowReducer';
+import { EuchreGameFlowState, gameFlowStateReducer, INIT_GAME_FLOW_STATE } from '../reducers/gameFlowReducer';
 import { BidResult, Card } from '@/app/lib/euchre/definitions/definitions';
 import { logDebugError } from '@/app/lib/euchre/util';
-import useGameSetupLogic from './logic/useGameSetupLogic';
-import useGameBidLogic from './logic/useGameBidLogic';
-import usePlayerData from './data/usePlayerData';
-import useGameData from './data/useGameData';
-import useGamePlayLogic from './logic/useGamePlayLogic';
+import useGameSetupLogic from '../logic/useGameSetupLogic';
+import useGameBidLogic from '../logic/useGameBidLogic';
+import usePlayerData from '../data/usePlayerData';
+import useGameData from '../data/useGameData';
+import useGamePlayLogic from '../logic/useGamePlayLogic';
 import { useReducer, useState } from 'react';
-import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from './reducers/playerNotificationReducer';
-import { gameAnimationFlowReducer, INIT_GAME_ANIMATION_STATE } from './reducers/gameAnimationFlowReducer';
+import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from '../reducers/playerNotificationReducer';
+import { gameAnimationFlowReducer, INIT_GAME_ANIMATION_STATE } from '../reducers/gameAnimationFlowReducer';
 import {
   EuchreCard,
   EuchreGameInstance,
   EuchreSettings
-} from '../../lib/euchre/definitions/game-state-definitions';
-import { useEventLog } from './useEventLog';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import { useEventLog } from '../useEventLog';
 
 /**  */
 export default function useEuchreGameAuto() {
@@ -135,13 +135,14 @@ export default function useEuchreGameAuto() {
   /** Run through a fully automated game with AI players.
    *
    */
-  const runFullGame = (gameSetting: EuchreSettings): EuchreGameInstance => {
+  const runFullGame = (gameSetting: EuchreSettings, maxPoints?: number): EuchreGameInstance => {
     let newGame: EuchreGameInstance = createGameForInitialDeal(gameSetting, false);
     const gameFlow: EuchreGameFlowState = { ...INIT_GAME_FLOW_STATE };
 
     newGame.player1.human = false;
     gameFlow.hasGameStarted = true;
     let gameOver = false;
+    const points: number = maxPoints ?? 10;
 
     try {
       //#region Begin deal cards for initial dealer
@@ -159,7 +160,7 @@ export default function useEuchreGameAuto() {
 
         newGame = playGameTricks(temp.game, gameSetting, bidResult);
 
-        gameOver = teamPoints(newGame, 1) >= 10 || teamPoints(newGame, 2) >= 10;
+        gameOver = teamPoints(newGame, 1) >= points || teamPoints(newGame, 2) >= points;
         const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
         newGame.dealer = rotation[0];
       }

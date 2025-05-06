@@ -57,7 +57,7 @@ const useDeckState = (
     getRandomStiffness,
     getTransitionForCardMoved,
     getSpringsForDealForDealer,
-    getSpringsToMoveToPlayerWithTransition,
+    getSpringsToMoveToPlayer,
     getSpringMoveElement,
     getElementOffsetForLocation,
     getSpringsForDealForRegularPlay,
@@ -76,7 +76,7 @@ const useDeckState = (
     addResetForDealerEvent,
     addAnimateForBeginDealForDealerEvent,
     addAnimateForEndDealForDealerEvent,
-    addAnimateForBeginDealForRegularPlay
+    addAnimateForDealForRegularPlayEvent
   } = useGameDeckStateEvents(state, eventHandlers);
 
   /** Used to position the deck near the player when dealing and animation to bring the deck into view. */
@@ -119,7 +119,7 @@ const useDeckState = (
   const gameDeckRef = useRef<HTMLDivElement>(null);
   const gameDeckVisible = getGameStatesForDeal().includes(state.euchreGameFlow.gameFlow);
   const gameHandVisible = getGameStatesForPlay().includes(state.euchreGameFlow.gameFlow);
-
+  const dealAnimationEnabled = state.euchreSettings.shouldAnimateDeal;
   /** ************************************************************************************************************************************* */
 
   /**
@@ -298,7 +298,7 @@ const useDeckState = (
   /** Function that's called from an effect to initialize the game deck state for a new deal.
    * Only executes if the game deck has yet to be created, or the hand ID has changed.
    */
-  const initStateForNewDealerEffect = useCallback(async () => {
+  const initStateForNewDealerEffect = useCallback(() => {
     const handChanged = gameDeckState === undefined || gameDeckState.handId !== state.euchreGame.handId;
     const validDeck =
       state.euchreGame.deck.length === 24 && !state.euchreGame.deck.find((c) => c.value === 'P');
@@ -453,12 +453,13 @@ const useDeckState = (
 
         if (!destRef?.current) throw new Error('Invalid destination ref to move cards to dealer');
 
-        const springsToMove = getSpringsToMoveToPlayerWithTransition(
-          state.euchreSettings.gameSpeed,
+        const springsToMove = getSpringsToMoveToPlayer(
           deckCardRefs,
           destRef.current,
           destinationPlayer.location,
-          cardStates
+          cardStates,
+          true,
+          state.euchreSettings.gameSpeed
         );
 
         for (const cardState of newState) {
@@ -475,13 +476,7 @@ const useDeckState = (
         return newState;
       });
     },
-    [
-      cardStates,
-      deckCardRefs,
-      getSpringsToMoveToPlayerWithTransition,
-      playerDeckRefs,
-      state.euchreSettings.gameSpeed
-    ]
+    [cardStates, deckCardRefs, getSpringsToMoveToPlayer, playerDeckRefs, state.euchreSettings.gameSpeed]
   );
 
   /**
@@ -532,16 +527,11 @@ const useDeckState = (
         const card = game.deck.at(cardState.cardIndex);
         const cardIsTrump = cardState.cardIndex === game.trump.index;
         if (spring && card) {
-          const newSrc = cardIsTrump ? getEncodedCardSvg(card, game.dealer.location) : undefined;
-          const cardName = cardIsTrump ? getCardFullName(game.trump) : 'Player Card';
-
           spring.springValue.transition = getTransitionForCardMoved(
             cardState,
             state.euchreSettings.gameSpeed,
             delayBetweenDeal * cardState.cardIndex
           );
-          cardState.src = newSrc;
-          cardState.cardFullName = cardName;
           cardState.runEffectForState = EuchreGameFlow.BEGIN_DEAL_CARDS;
           cardState.springValue = spring.springValue;
           cardState.location = spring.location;
@@ -563,8 +553,6 @@ const useDeckState = (
     directCenterHRef,
     directCenterVRef,
     gameDeckState,
-    getCardFullName,
-    getEncodedCardSvg,
     getPlayerRotation,
     getSpringsForDealForRegularPlay,
     getTransitionForCardMoved,
@@ -629,15 +617,22 @@ const useDeckState = (
 
   /** Initial game deck state for dealer */
   useEffect(() => {
-    const beginInitDealerForNewDealerEffect = async () => {
-      await initStateForNewDealerEffect();
-    };
+    try {
+      initStateForNewDealerEffect();
+    } catch (e) {
+      const error = e as Error;
+      errorHandlers.onError(error, 'resetForNewDealer');
+    }
 
-    errorHandlers.catchAsync(
-      beginInitDealerForNewDealerEffect,
-      errorHandlers.onError,
-      'beginInitDealerForNewDealerEffect'
-    );
+    // const beginInitDealerForNewDealerEffect = () => {
+    //   initStateForNewDealerEffect();
+    // };
+
+    // errorHandlers.catchAsync(
+    //   beginInitDealerForNewDealerEffect,
+    //   errorHandlers.onError,
+    //   'beginInitDealerForNewDealerEffect'
+    // );
   }, [errorHandlers, initStateForNewDealerEffect]);
 
   /** */
@@ -657,19 +652,20 @@ const useDeckState = (
       if (shouldDealCards) {
         initBeginDealForDealerEffect.current = true;
 
-        addAnimateForBeginDealForDealerEvent(true);
+        if (dealAnimationEnabled) {
+          addAnimateForBeginDealForDealerEvent(true);
 
-        await gameDelay(state.euchreSettings);
+          await gameDelay(state.euchreSettings);
+          await errorHandlers.catchAsync(
+            initAnimationForInitialDeal,
+            errorHandlers.onError,
+            'initAnimationForInitialDeal'
+          );
 
-        errorHandlers.catchAsync(
-          initAnimationForInitialDeal,
-          errorHandlers.onError,
-          'initAnimationForInitialDeal'
-        );
-
-        await gameDelay(state.euchreSettings);
-
-        dealCardsForInitialDeal();
+          dealCardsForInitialDeal();
+        } else {
+          setEndInitialDeal(true);
+        }
       }
     };
 
@@ -680,6 +676,7 @@ const useDeckState = (
     );
   }, [
     addAnimateForBeginDealForDealerEvent,
+    dealAnimationEnabled,
     dealCardsForInitialDeal,
     errorHandlers,
     gameDelay,
@@ -698,7 +695,10 @@ const useDeckState = (
       if (endAnimate) {
         endBeginDealForDealerEffect.current = true;
 
-        addAnimateForBeginDealForDealerEvent(false);
+        if (dealAnimationEnabled) {
+          addAnimateForBeginDealForDealerEvent(false);
+        }
+
         animationHandlers.handleBeginDealForDealerComplete();
       }
     };
@@ -708,7 +708,13 @@ const useDeckState = (
       errorHandlers.onError,
       'endAnimationForBeginDealForDealer'
     );
-  }, [addAnimateForBeginDealForDealerEvent, animationHandlers, endInitialDeal, errorHandlers]);
+  }, [
+    addAnimateForBeginDealForDealerEvent,
+    animationHandlers,
+    dealAnimationEnabled,
+    endInitialDeal,
+    errorHandlers
+  ]);
 
   /**
    * After completing animation for initial dealer, animate moving cards to the new dealer.
@@ -719,12 +725,17 @@ const useDeckState = (
 
       if (shouldAnimate) {
         initEndDealForDealerEffect.current = true;
-        addAnimateForEndDealForDealerEvent(true);
 
-        if (!state.initDealer) throw new Error('Invalid deal result for moving cards.');
+        if (dealAnimationEnabled) {
+          addAnimateForEndDealForDealerEvent(true);
 
-        setGameDeckStateForEndDealForDealer();
-        moveCardsToPlayer(state.initDealer.newDealer);
+          if (!state.initDealer) throw new Error('Invalid deal result for moving cards.');
+
+          setGameDeckStateForEndDealForDealer();
+          moveCardsToPlayer(state.initDealer.newDealer);
+        } else {
+          animationHandlers.handleEndDealForDealerComplete();
+        }
       }
     };
 
@@ -735,6 +746,8 @@ const useDeckState = (
     );
   }, [
     addAnimateForEndDealForDealerEvent,
+    animationHandlers,
+    dealAnimationEnabled,
     errorHandlers,
     moveCardsToPlayer,
     setGameDeckStateForEndDealForDealer,
@@ -749,10 +762,15 @@ const useDeckState = (
 
       if (shouldAnimate) {
         initBeginDealForRegularPlayEffect.current = true;
-        addAnimateForBeginDealForRegularPlay(true);
 
-        await initAnimationForInitialDeal();
-        dealCardsForRegularPlay();
+        if (dealAnimationEnabled) {
+          addAnimateForDealForRegularPlayEvent(true);
+
+          await initAnimationForInitialDeal();
+          dealCardsForRegularPlay();
+        } else {
+          setEndRegularDeal(true);
+        }
       }
     };
 
@@ -762,7 +780,8 @@ const useDeckState = (
       'beginAnimationForRegularPlay'
     );
   }, [
-    addAnimateForBeginDealForRegularPlay,
+    addAnimateForDealForRegularPlayEvent,
+    dealAnimationEnabled,
     dealCardsForRegularPlay,
     errorHandlers,
     initAnimationForInitialDeal,
@@ -781,18 +800,22 @@ const useDeckState = (
       if (shouldAnimate) {
         endBeginDealForRegularPlayEffect.current = true;
 
-        addAnimateForBeginDealForRegularPlay(false);
-        moveCardsToPlayersForRegularPlay();
+        if (dealAnimationEnabled) {
+          addAnimateForDealForRegularPlayEvent(false);
+          moveCardsToPlayersForRegularPlay();
 
-        await gameDelay(state.euchreSettings);
+          await gameDelay(state.euchreSettings);
+        }
+        console.log('[DECKSTATE] [endAnimationForRegularPlay]');
         animationHandlers.handleBeginRegularDealComplete();
       }
     };
 
     errorHandlers.catchAsync(endAnimationForRegularPlay, errorHandlers.onError, 'endAnimationForRegularPlay');
   }, [
-    addAnimateForBeginDealForRegularPlay,
+    addAnimateForDealForRegularPlayEvent,
     animationHandlers,
+    dealAnimationEnabled,
     endRegularDeal,
     errorHandlers,
     gameDelay,

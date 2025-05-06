@@ -9,43 +9,53 @@ const useGameCardStateEvents = (
   player: EuchrePlayer
 ) => {
   const { getTeamColor } = usePlayerData();
+  const { euchreSettings, euchreGame } = state;
+  const { addEvent, createEvent } = eventHandlers;
+
   const EVENT_TYPE = '[CARD STATE]';
+  const enableDebugLog = euchreSettings.debugEnableDebugMenu;
 
   const addInitializeHandStateEvent = useCallback(() => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+    if (!enableDebugLog) return;
+
+    addEvent(
+      createEvent(
         'd',
         player,
-        `${EVENT_TYPE} - Initialize hand state for hand ID: ` + state.euchreGame.handId,
+        `${EVENT_TYPE} - Initialize hand state for hand ID: ` + euchreGame.handId,
         undefined,
-        getTeamColor(player, state.euchreSettings)
+        getTeamColor(player, euchreSettings)
       )
     );
-  }, [eventHandlers, getTeamColor, player, state.euchreGame.handId, state.euchreSettings]);
+  }, [addEvent, createEvent, enableDebugLog, euchreGame.handId, euchreSettings, getTeamColor, player]);
 
   const addInitializeCardStateEvent = useCallback(() => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+    if (!enableDebugLog) return;
+
+    addEvent(
+      createEvent(
         'd',
         player,
         `${EVENT_TYPE} - Initialize card state.`,
         undefined,
-        getTeamColor(player, state.euchreSettings)
+        getTeamColor(player, euchreSettings)
       )
     );
-  }, [eventHandlers, getTeamColor, player, state.euchreSettings]);
+  }, [addEvent, createEvent, enableDebugLog, euchreSettings, getTeamColor, player]);
 
   const addInitializeCardRegroupEvent = useCallback(() => {
-    eventHandlers.addEvent(
-      eventHandlers.createEvent(
+    if (!enableDebugLog) return;
+
+    addEvent(
+      createEvent(
         'd',
         player,
         `${EVENT_TYPE} - Initialize regroup player cards.`,
         undefined,
-        getTeamColor(player, state.euchreSettings)
+        getTeamColor(player, euchreSettings)
       )
     );
-  }, [eventHandlers, getTeamColor, player, state.euchreSettings]);
+  }, [addEvent, createEvent, enableDebugLog, euchreSettings, getTeamColor, player]);
 
   return {
     addInitializeHandStateEvent,

@@ -90,8 +90,7 @@ const GameArea = ({
       <div className="col-start-2 row-start-2 col-span-1 row-span-1">
         <GameTable
           id="euchre-game-table"
-          game={state.euchreGame}
-          gameFlow={state.euchreGameFlow}
+          state={state}
           playerNotification={playerNotification}
           playerCenterTableRefs={centerTableRefs}
           playerOuterTableRefs={outerTableRefs}

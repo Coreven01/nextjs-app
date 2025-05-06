@@ -8,6 +8,7 @@ import { scrollElementIntoViewIfNeeded } from '@/app/lib/euchre/util';
 import PromptHeader from './prompt-header';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
 import { EuchreHandResult } from '../../../lib/euchre/definitions/definitions';
+import GameButton from '../game/game-button';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -81,9 +82,9 @@ export default function GameResult({
   if (!handResults) throw new Error('No game results were found');
 
   return (
-    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800 top-4 h-full', className)}>
+    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800 h-full mx-6', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[95vw] grid-rows-[1fr,1fr,220px,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[620px]">
+        <div className="grid grid-cols-[85vw] grid-rows-[1fr,auto,auto,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[620px] max-h-[88vh]">
           <div className="flex">
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
               <ChevronLeftIcon />
@@ -111,25 +112,16 @@ export default function GameResult({
             ></HandResult>
           )}
 
-          <div className="flex gap-1 lg:text-base text-xs h-8">
-            <button
-              onClick={onClose}
-              className="w-full border border-white bg-red-950 hover:bg-amber-100 hover:text-black"
-            >
+          <div className="flex gap-1 h-8">
+            <GameButton className="w-full" type="danger" onClick={onClose}>
               Main Menu
-            </button>
-            <button
-              onClick={onReplayGame}
-              className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
-            >
+            </GameButton>
+            <GameButton className="w-full" type="warn" onClick={onReplayGame}>
               Replay Game
-            </button>
-            <button
-              onClick={onNewGame}
-              className="w-full border border-white bg-green-950 hover:bg-amber-100 hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed disabled:text-gray-500"
-            >
+            </GameButton>
+            <GameButton className="w-full" type="success" onClick={onNewGame}>
               New Game
-            </button>
+            </GameButton>
           </div>
         </div>
       </div>
@@ -147,7 +139,7 @@ function HandResultNavigation({ menuRef, selection, gameResults, onButtonClick }
   return (
     <ul
       ref={menuRef}
-      className="flex gap-2 overflow-x-scroll w-full lg:text-sm text-xs mb-2"
+      className="flex gap-2 overflow-x-scroll w-full lg:text-sm text-xs h-4 mb-2"
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
     >
       <li

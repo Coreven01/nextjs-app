@@ -47,7 +47,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
         players={[...game.gamePlayers]}
         selection={selectedHighlight}
         onSelectionChanged={handleSelectionChanged}
-        className="lg:text-base text-sm"
+        className="lg:text-base text-sm mb-1"
       />
       {playerReneged && (
         <GameWarning className="mb-1 border border-red-900">Hand ended due to player renege</GameWarning>
@@ -146,10 +146,7 @@ const HandHighlightNavigation = ({ selection, players, className, onSelectionCha
 
   return (
     <ul
-      className={clsx(
-        'flex justify-center gap-2 overflow-x-scroll w-full lg:text-sm text-xs mb-2',
-        className
-      )}
+      className={clsx('flex justify-center gap-2 overflow-x-scroll w-full lg:text-sm text-xs h-4', className)}
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
     >
       {selectionArray.map((r, i) => {

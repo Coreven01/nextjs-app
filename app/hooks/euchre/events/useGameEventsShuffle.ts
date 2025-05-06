@@ -1,9 +1,11 @@
 import { EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
 import usePlayerData from '../data/usePlayerData';
-import { GameEventHandlers, SUB_SUIT } from '../useEventLog';
+import { GameEventHandlers, SUB_CARD } from '../useEventLog';
 
 const useGameEventsShuffle = (state: EuchreGameValues, eventHandlers: GameEventHandlers) => {
   const { getTeamColor } = usePlayerData();
+  const EVENT_TYPE = '[SHUFFLE STATE]';
+  const enableDebugLog = state.euchreSettings.debugEnableDebugMenu;
 
   const addBeginShuffleEvent = () => {
     eventHandlers.addEvent(
@@ -22,7 +24,7 @@ const useGameEventsShuffle = (state: EuchreGameValues, eventHandlers: GameEventH
       eventHandlers.createEvent(
         'i',
         state.euchreGame.dealer,
-        `Flipped up ${SUB_SUIT} for bidding.`,
+        `Flipped up ${SUB_CARD} for bidding.`,
         [state.euchreGame.trump],
         getTeamColor(state.euchreGame.dealer, state.euchreSettings)
       )

@@ -8,6 +8,7 @@ import Switch from '@mui/material/Switch';
 import { ChangeEvent, useState } from 'react';
 import GameEventLine from './game-event-line';
 import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
+import GameButton from './game-button';
 
 interface Props {
   className?: string;
@@ -23,7 +24,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   const [showVerboseEvents, setShowVerboseEvents] = useState(false);
   const [showInformationEvents, setShowInformationEvents] = useState(true);
   const [showTimeStamp, setShowTimeStamp] = useState(false);
-  const { getCardFullName } = useCardSvgData();
+  const { getCardFullName, getCardClassColorFromSuit, getSuitName } = useCardSvgData();
 
   const getFilteredEvents = (): GameEvent[] => {
     const eventTypes: GameEventType[] = [];
@@ -66,9 +67,9 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       nodeRef={draggableRef}
     >
       <div ref={draggableRef} className="flex" style={{ zIndex: 1000 }}>
-        <GameBorder className="relative" innerClass=" lg:w-[550px] w-[500px] bg-stone-900">
+        <GameBorder className="relative" innerClass=" lg:w-[600px] w-[550px] bg-stone-800">
           <PromptHeader className="cursor-move ">Events</PromptHeader>
-          <div className="flex mx-1 justify-center gap-2 lg:text-sm">
+          <div className="flex mx-1 justify-center gap-2 text-sm">
             <div>
               <label htmlFor="showInformationEvents">Information: </label>
               <Switch
@@ -129,18 +130,20 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
                     event={e}
                     showTimeStamp={showTimeStamp}
                     getCardFullName={getCardFullName}
+                    getCardClassColorFromSuit={getCardClassColorFromSuit}
+                    getSuitName={getSuitName}
                   />
                 );
               })}
             </ul>
           </div>
-          <div className="h-8 flex gap-2 items-center justify-center m-1 mt-2 lg:text-base text-xs">
-            <button className="text-white border border-white grow" onClick={handleClear}>
+          <div className="flex gap-2 items-center justify-center m-1 mt-2 lg:text-base text-xs">
+            <GameButton onClick={handleClear} className="w-full" type="danger">
               Clear
-            </button>
-            <button className="text-white border border-white grow" onClick={handleClose}>
+            </GameButton>
+            <GameButton onClick={handleClose} className="w-full" type="primary">
               Close
-            </button>
+            </GameButton>
           </div>
         </GameBorder>
       </div>

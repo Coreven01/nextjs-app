@@ -1,18 +1,18 @@
 import { Card, PromptType, TableLocation } from '@/app/lib/euchre/definitions/definitions';
-import { EuchreFlowActionType } from './reducers/gameFlowReducer';
+import { EuchreFlowActionType } from '../reducers/gameFlowReducer';
 import {
   getPlayerNotificationType,
   PlayerNotificationAction,
   PlayerNotificationActionType
-} from './reducers/playerNotificationReducer';
+} from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect, useRef } from 'react';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameData from './data/useGameData';
-import usePlayerData from './data/usePlayerData';
-import useGameSetupLogic from './logic/useGameSetupLogic';
-import useGamePlayLogic from './logic/useGamePlayLogic';
+import useGameData from '../data/useGameData';
+import usePlayerData from '../data/usePlayerData';
+import useGameSetupLogic from '../logic/useGameSetupLogic';
+import useGamePlayLogic from '../logic/useGamePlayLogic';
 import { v4 as uuidv4 } from 'uuid';
-import { GameEventHandlers } from './useEventLog';
+import { GameEventHandlers } from '../useEventLog';
 import {
   EuchreCard,
   EuchreGameInstance,
@@ -20,11 +20,11 @@ import {
   EuchreGameValues,
   EuchreTrick,
   ErrorHandlers
-} from '../../lib/euchre/definitions/game-state-definitions';
-import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
-import useGameEventsPlay from './events/useGameEventsPlay';
-import useGamePlayState from './phases/useGamePlayState';
-import { EuchrePauseType } from './reducers/gamePauseReducer';
+} from '../../../lib/euchre/definitions/game-state-definitions';
+import GamePlayIndicator from '../../../ui/euchre/game/game-play-indicator';
+import useGameEventsPlay from '../events/useGameEventsPlay';
+import useGamePlayState from '../phases/useGamePlayState';
+import { EuchrePauseType } from '../reducers/gamePauseReducer';
 
 export default function useEuchreGamePlay(
   state: EuchreGameValues,
@@ -48,13 +48,8 @@ export default function useEuchreGamePlay(
     gameDelay,
     incrementSpeed
   } = useGameData();
-  const {
-    addBeginPlayCardEvent,
-    addCardPlayedEvent,
-    addPlayerRenegedEvent,
-    addTrickWonEvent,
-    addHandWonEvent
-  } = useGameEventsPlay(state, eventHandlers);
+  const { addPlayCardEvent, addCardPlayedEvent, addPlayerRenegedEvent, addTrickWonEvent, addHandWonEvent } =
+    useGameEventsPlay(state, eventHandlers);
   const {
     shouldBeginPlayCard,
     shouldAnimateBeginPlayCard,
@@ -98,7 +93,7 @@ export default function useEuchreGamePlay(
    *
    */
   const handleCloseHandResults = useCallback(() => {
-    const gameOver = isGameOver(state.euchreGame);
+    const gameOver = isGameOver(state.euchreGame, state.euchreSettings.gamePoints);
 
     if (gameOver) {
       setters.dispatchPause();
@@ -146,7 +141,7 @@ export default function useEuchreGamePlay(
 
     const newGame: EuchreGameInstance = { ...state.euchreGame };
 
-    addBeginPlayCardEvent();
+    addPlayCardEvent(true);
 
     if (isTrickFinished(newGame) && !isHandFinished(newGame)) {
       console.log('[createTrick] - called for begin play card when trick finished or hand finished');
@@ -183,7 +178,7 @@ export default function useEuchreGamePlay(
       pauseForPlayCard(false);
     }
   }, [
-    addBeginPlayCardEvent,
+    addPlayCardEvent,
     availableCardsToPlay,
     createTrick,
     determineCardToPlay,

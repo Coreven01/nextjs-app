@@ -19,6 +19,8 @@ type Props = {
   playedCard: Card | null;
   playerCenterTableRef: RefObject<HTMLDivElement | null> | undefined;
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  directCenterHRef: RefObject<HTMLDivElement | null>;
+  directCenterVRef: RefObject<HTMLDivElement | null>;
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onPassDeal: (card: Card) => void;
@@ -33,6 +35,8 @@ const PlayerHand = ({
   playedCard,
   playerCenterTableRef,
   playerDeckRefs,
+  directCenterHRef,
+  directCenterVRef,
   onCardPlayed,
   onTrickComplete,
   onPassDeal,
@@ -53,6 +57,8 @@ const PlayerHand = ({
     eventHandlers,
     errorHandlers,
     player,
+    directCenterHRef,
+    directCenterVRef,
     playerDeckRefs,
     onTrickComplete,
     onPassDeal,
@@ -96,14 +102,7 @@ const PlayerHand = ({
     }
   };
 
-  console.log(
-    '******* [PlayerHand] - render cards: ',
-    initCardStateCreated,
-    ' hand state: ',
-    handState,
-    ' current hand: ',
-    playerCurrentHand
-  );
+  console.log('*** [PLAYERHAND] [RENDER] player hand: ', playerCurrentHand);
 
   return (
     <>

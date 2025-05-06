@@ -70,9 +70,9 @@ const useGameData = () => {
     return playerReneged || allPlayersPlayed;
   };
 
-  /** Returns true if a team reaches 10 points or more. */
-  const isGameOver = (game: EuchreGameInstance): boolean => {
-    return teamPoints(game, 1) >= 10 || teamPoints(game, 2) >= 10;
+  /** Returns true if a team reaches the passed points value or more. */
+  const isGameOver = (game: EuchreGameInstance, maxPoint: number): boolean => {
+    return teamPoints(game, 1) >= maxPoint || teamPoints(game, 2) >= maxPoint;
   };
 
   /** Total points for the given team for the current game. */
@@ -83,15 +83,15 @@ const useGameData = () => {
       .reduce((acc, curr) => acc + curr, 0);
   };
 
-  const resetForNewGame = (game: EuchreGameInstance): EuchreGameInstance => {
-    const newGame: EuchreGameInstance = resetForNewDeal(game);
+  // const resetForNewGame = (game: EuchreGameInstance): EuchreGameInstance => {
+  //   const newGame: EuchreGameInstance = resetForNewDeal(game);
 
-    newGame.handResults = [];
-    newGame.dealer = newGame.player1;
-    newGame.dealPassedCount = 0;
+  //   newGame.handResults = [];
+  //   newGame.dealer = newGame.player1;
+  //   newGame.dealPassedCount = 0;
 
-    return newGame;
-  };
+  //   return newGame;
+  // };
 
   /** Reset game state for the current game for a new hand to be dealt. Sets a new hand ID. */
   const resetForNewDeal = (game: EuchreGameInstance): EuchreGameInstance => {
@@ -570,7 +570,7 @@ const useGameData = () => {
   /** Returns the next speed value based on the offset. */
   const incrementSpeed = useCallback((gameSpeed: GameSpeed, offset: number): GameSpeed => {
     if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
-      const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + offset) ?? 150;
+      const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + offset) ?? 250;
 
       if (retval < gameSpeed) return gameSpeed;
       else return retval;
