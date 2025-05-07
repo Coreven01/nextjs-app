@@ -82,9 +82,9 @@ export default function GameResult({
   if (!handResults) throw new Error('No game results were found');
 
   return (
-    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800 h-full mx-6', className)}>
+    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800 h-full w-full lg:mt-0 mt-4', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[85vw] grid-rows-[1fr,auto,auto,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[620px] max-h-[88vh]">
+        <div className="grid grid-cols-[85vw] grid-rows-[1fr,auto,auto,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[600px] max-h-[88vh] justify-center">
           <div className="flex">
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
               <ChevronLeftIcon />
@@ -139,7 +139,7 @@ function HandResultNavigation({ menuRef, selection, gameResults, onButtonClick }
   return (
     <ul
       ref={menuRef}
-      className="flex gap-2 overflow-x-scroll w-full lg:text-sm text-xs h-4 mb-2"
+      className="flex gap-2 overflow-x-scroll w-full lg:text-sm text-xs h-4 mb-2 mx-auto"
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
     >
       <li

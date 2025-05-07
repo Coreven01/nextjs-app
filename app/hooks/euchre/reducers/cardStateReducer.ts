@@ -1,4 +1,4 @@
-import { GameSpeed, TableLocation } from '../../../lib/euchre/definitions/definitions';
+import { TableLocation } from '../../../lib/euchre/definitions/definitions';
 import { EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
 import { CardSpringTarget } from '../data/useCardTransform';
 import { EuchreGameFlow } from './gameFlowReducer';
@@ -8,10 +8,7 @@ export interface PlayerHandState {
   width: number;
   height: number;
   location: TableLocation;
-  shouldEnableShadow: boolean;
-  gameSpeedMs: GameSpeed;
   shouldShowCardValue?: boolean;
-  shouldShowCardImage?: boolean;
   player?: EuchrePlayer;
   responsive?: boolean;
 

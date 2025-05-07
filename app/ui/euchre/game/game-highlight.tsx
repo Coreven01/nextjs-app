@@ -16,7 +16,7 @@ const GameHighlight = ({
   ...rest
 }: DivProps) => {
   return (
-    <div {...rest} className={clsx('relative', className)}>
+    <div className={clsx('relative', className)} {...rest}>
       {enableHighlight && (
         <div
           className={clsx(

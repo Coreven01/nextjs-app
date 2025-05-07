@@ -55,7 +55,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
       showHandResult: false,
       stickTheDealer: true,
       debugAllComputerPlayers: true,
-      gameSpeed: 600
+      gameSpeed: 800
     });
   };
 

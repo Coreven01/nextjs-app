@@ -1,5 +1,4 @@
 import { Card, PromptType, TableLocation } from '@/app/lib/euchre/definitions/definitions';
-import { EuchreFlowActionType } from '../reducers/gameFlowReducer';
 import {
   getPlayerNotificationType,
   PlayerNotificationAction,
@@ -50,6 +49,7 @@ export default function useEuchreGamePlay(
   } = useGameData();
   const { addPlayCardEvent, addCardPlayedEvent, addPlayerRenegedEvent, addTrickWonEvent, addHandWonEvent } =
     useGameEventsPlay(state, eventHandlers);
+
   const {
     shouldBeginPlayCard,
     shouldAnimateBeginPlayCard,
@@ -71,7 +71,7 @@ export default function useEuchreGamePlay(
     pauseForPrompt,
     resetForNewHand
   } = useGamePlayState(state, setters, errorHandlers);
-
+  const { euchreGame, euchreSettings, euchrePauseState, playedCard } = state;
   /**
    * Show an indicator in the player's area to show which card won.
    */
@@ -82,24 +82,24 @@ export default function useEuchreGamePlay(
         payload: undefined
       };
 
-      newAction.payload = <GamePlayIndicator notificationSpeed={state.euchreSettings.notificationSpeed} />;
+      newAction.payload = <GamePlayIndicator notificationSpeed={euchreSettings.notificationSpeed} />;
 
       return newAction;
     },
-    [state.euchreSettings.notificationSpeed]
+    [euchreSettings.notificationSpeed]
   );
 
   /**
    *
    */
   const handleCloseHandResults = useCallback(() => {
-    const gameOver = isGameOver(state.euchreGame, state.euchreSettings.gamePoints);
+    const gameOver = isGameOver(euchreGame, euchreSettings.gamePoints);
 
     if (gameOver) {
       setters.dispatchPause();
       setters.addPromptValue(PromptType.GAME_RESULT);
     } else {
-      const newGame: EuchreGameInstance = { ...state.euchreGame };
+      const newGame: EuchreGameInstance = { ...euchreGame };
       const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
       newGame.dealer = rotation[0];
       newGame.currentRound += 1;
@@ -107,15 +107,15 @@ export default function useEuchreGamePlay(
       setters.setEuchreGame(newGame);
       resetForNewHand();
     }
-  }, [getPlayerRotation, isGameOver, resetForNewHand, setters, state.euchreGame]);
+  }, [isGameOver, euchreGame, euchreSettings.gamePoints, setters, getPlayerRotation, resetForNewHand]);
 
   /**
-   *
+   * Update state with card played from either user selection or auto played by AI.
    */
   const handleCardPlayed = (cardPlayed: Card) => {
     if (
-      state.euchrePauseState.pauseType === EuchrePauseType.AI_INPUT ||
-      state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT
+      euchrePauseState.pauseType === EuchrePauseType.AI_INPUT ||
+      euchrePauseState.pauseType === EuchrePauseType.USER_INPUT
     ) {
       setters.setPlayedCard(cardPlayed);
       continueToAnimateBeginPlayCard();
@@ -139,7 +139,7 @@ export default function useEuchreGamePlay(
   const beginPlayCard = useCallback(() => {
     if (!shouldBeginPlayCard) return;
 
-    const newGame: EuchreGameInstance = { ...state.euchreGame };
+    const newGame: EuchreGameInstance = { ...euchreGame };
 
     addPlayCardEvent(true);
 
@@ -156,7 +156,7 @@ export default function useEuchreGamePlay(
     let awaitForPlayerInput = newGame.currentPlayer.human;
     const shouldAutoPlay =
       awaitForPlayerInput &&
-      state.euchreSettings.autoFollowSuit &&
+      euchreSettings.autoFollowSuit &&
       getCardsAvailableToPlay(
         newGame.trump,
         newGame.currentTrick.cardsPlayed.at(0)?.card ?? null,
@@ -171,7 +171,7 @@ export default function useEuchreGamePlay(
     setters.setEuchreGame(newGame);
 
     if (!awaitForPlayerInput) {
-      const selectedCard: Card = { ...determineCardToPlay(newGame, state.euchreSettings.difficulty) };
+      const selectedCard: Card = { ...determineCardToPlay(newGame, euchreSettings.difficulty) };
       setters.setPlayedCard(selectedCard);
       pauseForPlayCard(true);
     } else {
@@ -182,15 +182,15 @@ export default function useEuchreGamePlay(
     availableCardsToPlay,
     createTrick,
     determineCardToPlay,
+    euchreSettings.autoFollowSuit,
+    euchreSettings.difficulty,
     getCardsAvailableToPlay,
     isHandFinished,
     isTrickFinished,
     pauseForPlayCard,
     setters,
     shouldBeginPlayCard,
-    state.euchreGame,
-    state.euchreSettings.autoFollowSuit,
-    state.euchreSettings.difficulty
+    euchreGame
   ]);
 
   /** Play card for AI player, or prompt if player is human. */
@@ -228,28 +228,29 @@ export default function useEuchreGamePlay(
   const endPlayCard = useCallback(() => {
     if (!shouldEndPlayCard) return;
 
-    const newGame: EuchreGameInstance = { ...state.euchreGame };
-    if (!state.playedCard) throw Error('Played card not found for end play card.');
+    const newGame: EuchreGameInstance = { ...euchreGame };
+    if (!playedCard) throw Error('Played card not found for end play card.');
 
     const cardPlayed: EuchreCard = {
       player: newGame.currentPlayer,
-      card: state.playedCard
+      card: playedCard
     };
 
-    newGame.currentPlayer.playedCards.push(state.playedCard);
+    newGame.currentPlayer.playedCards.push(playedCard);
     addCardPlayedEvent(cardPlayed);
     newGame.currentTrick.cardsPlayed.push(cardPlayed);
 
     setters.setEuchreGame(newGame);
     setters.setPlayedCard(null);
+
     continueToAnimateBeginPlayCardResult();
   }, [
     addCardPlayedEvent,
     continueToAnimateBeginPlayCardResult,
+    euchreGame,
     setters,
     shouldEndPlayCard,
-    state.euchreGame,
-    state.playedCard
+    playedCard
   ]);
 
   /**
@@ -288,7 +289,7 @@ export default function useEuchreGamePlay(
   const endPlayCardResult = useCallback(() => {
     if (!shouldEndPlayCardResult) return;
 
-    let newGame: EuchreGameInstance = { ...state.euchreGame };
+    let newGame: EuchreGameInstance = { ...euchreGame };
 
     const sittingOut = playerSittingOut(newGame);
     const playerRotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer, sittingOut);
@@ -298,14 +299,15 @@ export default function useEuchreGamePlay(
 
     setters.setEuchreGame(newGame);
     setters.dispatchPause();
+
     continueToAnimateEndPlayCardResult();
   }, [
     continueToAnimateEndPlayCardResult,
+    euchreGame,
     getPlayerRotation,
     playerSittingOut,
     setters,
     shouldEndPlayCardResult,
-    state.euchreGame,
     updateIfHandOver,
     updateIfTrickOver
   ]);
@@ -331,13 +333,13 @@ export default function useEuchreGamePlay(
 
       setters.dispatchPause();
 
-      if (isTrickFinished(state.euchreGame)) {
+      if (isTrickFinished(euchreGame)) {
         await animateEndResultTrickFinished();
       } else {
         //short delay between players playing cards if the next player is AI.
-        // if (!state.euchreGame.currentPlayer.human) {
-        //   await gameDelay(state.euchreSettings);
-        // }
+        if (!euchreGame.currentPlayer.human) {
+          //await gameDelay(euchreSettings);
+        }
 
         continueToBeginPlayCard();
       }
@@ -345,7 +347,7 @@ export default function useEuchreGamePlay(
 
     const animateEndResultTrickFinished = async () => {
       // enter this block if all cards have been played for the current trick, or player reneged.
-      const currentTrick: EuchreTrick = state.euchreGame.currentTrick;
+      const currentTrick: EuchreTrick = euchreGame.currentTrick;
 
       if (!currentTrick.taker)
         throw new Error('Invalid state for handling play card result. Winning trick not found.');
@@ -369,20 +371,20 @@ export default function useEuchreGamePlay(
           payload: (
             <PlayerNotification
               key={uuidv4()}
-              dealer={state.euchreGame.dealer}
-              player={state.euchreGame.currentPlayer}
-              settings={state.euchreSettings}
+              dealer={euchreGame.dealer}
+              player={euchreGame.currentPlayer}
+              settings={euchreSettings}
               info={'renege'}
               loner={false}
               namedSuit={null}
-              delayMs={incrementSpeed(state.euchreSettings.notificationSpeed, 1)}
+              delayMs={incrementSpeed(euchreSettings.notificationSpeed, 1)}
             />
           )
         };
 
         setters.dispatchPlayerNotification(notification);
       }
-      await notificationDelay(state.euchreSettings, playedReneged ? 1 : undefined);
+      await notificationDelay(euchreSettings, playedReneged ? 1 : undefined);
       continueToTrickFinished();
     };
 
@@ -397,15 +399,14 @@ export default function useEuchreGamePlay(
     continueToBeginPlayCard,
     continueToTrickFinished,
     errorHandlers,
-    gameDelay,
+    euchreGame,
+    euchreSettings,
     getPlayerNotificationCheck,
     incrementSpeed,
     isTrickFinished,
     notificationDelay,
     setters,
-    shouldAnimateEndPlayCardResult,
-    state.euchreGame,
-    state.euchreSettings
+    shouldAnimateEndPlayCardResult
   ]);
 
   /**
@@ -415,20 +416,20 @@ export default function useEuchreGamePlay(
     const animateTrickFinished = async () => {
       if (!shouldAnimateBeginTrickFinished) return;
 
-      if (isHandFinished(state.euchreGame)) {
+      if (isHandFinished(euchreGame)) {
         setters.dispatchPause();
 
-        const handResult = state.euchreGame.handResults.at(-1);
+        const handResult = euchreGame.handResults.at(-1);
         if (!handResult) throw new Error('Game result not found for trick finished.');
 
         addHandWonEvent(handResult);
 
-        await notificationDelay(state.euchreSettings);
+        await gameDelay(euchreSettings);
 
         setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
         pauseForPrompt();
 
-        if (state.euchreSettings.showHandResult) {
+        if (euchreSettings.showHandResult) {
           setters.addPromptValue(PromptType.HAND_RESULT);
         } else {
           handleCloseHandResults();
@@ -443,14 +444,14 @@ export default function useEuchreGamePlay(
     addHandWonEvent,
     continueToBeginPlayCard,
     errorHandlers,
+    euchreGame,
+    euchreSettings,
     handleCloseHandResults,
     isHandFinished,
-    notificationDelay,
+    gameDelay,
     pauseForPrompt,
     setters,
-    shouldAnimateBeginTrickFinished,
-    state.euchreGame,
-    state.euchreSettings
+    shouldAnimateBeginTrickFinished
   ]);
 
   //#endregion

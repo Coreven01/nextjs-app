@@ -1033,7 +1033,7 @@ const useCardTransform = () => {
     newSpring.rotate = Math.random() * 720 - 360;
 
     if (useTransition) {
-      const speed = gameSpeed ?? 1000;
+      const speed = gameSpeed ?? 1200;
       const duration = speed / 1000;
       const delayBetweenDeal = duration / 5;
 

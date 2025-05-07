@@ -33,24 +33,25 @@ const useEuchreGameShuffle = (
     pauseForAnimateEndDealCards,
     continueToBeginBidForTrump
   } = useGameShuffleState(state, setters, errorHandlers);
+  const { euchreGame, euchreSettings, euchreReplayGame, shouldCancel } = state;
 
   //#region Handlers
 
   /** Update game state once card animation is complete and begin the bidding game state. */
-  const handleBeginDealComplete = () => {
+  const handleBeginDealComplete = useCallback(() => {
     addTrumpCardFlippedEvent();
     continueToEndDealCards();
-  };
+  }, [addTrumpCardFlippedEvent, continueToEndDealCards]);
 
   /** */
-  const handleEndDealComplete = () => {
-    const newGame: EuchreGameInstance = { ...state.euchreGame };
+  const handleEndDealComplete = useCallback(() => {
+    const newGame: EuchreGameInstance = { ...euchreGame };
     const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
     newGame.currentPlayer = rotation[0];
 
     setters.setEuchreGame(newGame);
     continueToBeginBidForTrump();
-  };
+  }, [continueToBeginBidForTrump, euchreGame, getPlayerRotation, setters]);
   //#endregion
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
@@ -62,12 +63,7 @@ const useEuchreGameShuffle = (
 
     addBeginShuffleEvent();
 
-    const shuffleResult = shuffleAndDealHand(
-      state.euchreGame,
-      state.euchreSettings,
-      state.euchreReplayGame,
-      state.shouldCancel
-    );
+    const shuffleResult = shuffleAndDealHand(euchreGame, euchreSettings, euchreReplayGame, shouldCancel);
 
     const newGame = shuffleResult.game;
 
@@ -81,10 +77,10 @@ const useEuchreGameShuffle = (
     setters,
     shouldShuffleCards,
     shuffleAndDealHand,
-    state.euchreGame,
-    state.euchreReplayGame,
-    state.euchreSettings,
-    state.shouldCancel
+    euchreGame,
+    euchreReplayGame,
+    euchreSettings,
+    shouldCancel
   ]);
 
   /**
@@ -108,7 +104,7 @@ const useEuchreGameShuffle = (
       // which gets executed by an effect in useCardState after the animation is complete for dealing cards.
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       pauseForAnimateBeginDealCards();
     };
 
@@ -143,7 +139,7 @@ const useEuchreGameShuffle = (
       // which gets executed by an effect in useCardState after the animation is complete for dealing cards.
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       pauseForAnimateEndDealCards();
     };
 

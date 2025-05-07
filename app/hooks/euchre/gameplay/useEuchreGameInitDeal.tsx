@@ -48,6 +48,7 @@ export default function useEuchreGameInitDeal(
   const handleEndDealForDealerComplete = useCallback(() => {
     continueToShuffleCards();
   }, [continueToShuffleCards]);
+  const { euchreGame, euchreSettings, euchreGameFlow, euchreReplayGame, initDealer } = state;
   //#endregion
 
   //#region Deal Cards For Initial Dealer *************************************************************************
@@ -62,9 +63,9 @@ export default function useEuchreGameInitDeal(
     addInitialDealEvent();
 
     const dealResult: InitDealResult | null = dealCardsForDealer(
-      state.euchreGame,
-      state.euchreGameFlow,
-      state.euchreReplayGame
+      euchreGame,
+      euchreGameFlow,
+      euchreReplayGame
     );
 
     if (!dealResult?.newDealer) throw Error('Unable to determine dealer for initial dealer.');
@@ -77,9 +78,9 @@ export default function useEuchreGameInitDeal(
     pauseForAnimateBeginDealCardsForDealer,
     setters,
     shouldBeginDealCardsForDealer,
-    state.euchreGame,
-    state.euchreGameFlow,
-    state.euchreReplayGame
+    euchreGame,
+    euchreGameFlow,
+    euchreReplayGame
   ]);
 
   /** Effect to begin deal cards to determine initial dealer
@@ -117,11 +118,11 @@ export default function useEuchreGameInitDeal(
    */
   const endDealCardsForDealer = useCallback(() => {
     if (!shouldEndDealCardsForDealer) return;
-    if (!state.initDealer) throw new Error('Invalid deal state for end deal for dealer.');
+    if (!initDealer) throw new Error('Invalid deal state for end deal for dealer.');
 
-    const newGame: EuchreGameInstance = { ...state.euchreGame };
-    newGame.currentPlayer = state.initDealer.newDealer;
-    newGame.dealer = state.initDealer.newDealer;
+    const newGame: EuchreGameInstance = { ...euchreGame };
+    newGame.currentPlayer = initDealer.newDealer;
+    newGame.dealer = initDealer.newDealer;
 
     addInitialDealerSetEvent(newGame.dealer);
 
@@ -132,8 +133,8 @@ export default function useEuchreGameInitDeal(
     continueToAnimateEndDealCardsForDealer,
     setters,
     shouldEndDealCardsForDealer,
-    state.euchreGame,
-    state.initDealer
+    euchreGame,
+    initDealer
   ]);
 
   /**
@@ -156,17 +157,17 @@ export default function useEuchreGameInitDeal(
     const endAnimationForInitDeal = async () => {
       if (!shouldAnimateEndDealCardsForDealer) return;
 
-      if (state.euchreSettings.shouldAnimateDeal) {
+      if (euchreSettings.shouldAnimateDeal) {
         setters.dispatchPause();
 
         // show an indicator who will be the next dealer.
         const newAction: PlayerNotificationAction = {
-          type: getPlayerNotificationType(state.euchreGame.dealer.location),
-          payload: <GamePlayIndicator notificationSpeed={state.euchreSettings.notificationSpeed} />
+          type: getPlayerNotificationType(euchreGame.dealer.location),
+          payload: <GamePlayIndicator notificationSpeed={euchreSettings.notificationSpeed} />
         };
 
         setters.dispatchPlayerNotification(newAction);
-        await notificationDelay(state.euchreSettings);
+        await notificationDelay(euchreSettings);
       }
 
       pauseForAnimateEndDealCardsForDealer();
@@ -179,9 +180,9 @@ export default function useEuchreGameInitDeal(
     pauseForAnimateEndDealCardsForDealer,
     setters,
     shouldAnimateEndDealCardsForDealer,
-    state.euchreGame.dealer.location,
-    state.euchreGame.dealer.playerNumber,
-    state.euchreSettings
+    euchreGame.dealer.location,
+    euchreGame.dealer.playerNumber,
+    euchreSettings
   ]);
 
   //#endregion

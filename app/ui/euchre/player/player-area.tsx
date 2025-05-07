@@ -1,6 +1,6 @@
 import React from 'react';
 import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
-import { EuchreGameValues, EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
+import { EuchreGameState, EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
 import DummyCard from '../common/dummy-card';
 import GameGrid from '../game/game-grid';
 import useCardData from '../../../hooks/euchre/data/useCardData';
@@ -9,7 +9,7 @@ import clsx from 'clsx';
 import { TableLocation } from '../../../lib/euchre/definitions/definitions';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  state: EuchreGameValues;
+  state: EuchreGameState;
   className: string;
 }
 
@@ -56,12 +56,7 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
           {creatDummyCards(player, info.width, info.height, player.location)}
           <div className={clsx('absolute lg:text-sm text-xs whitespace-nowrap z-40', info.playerInfoClass)}>
             {state.euchreGameFlow.hasGameStarted && (
-              <PlayerInfo
-                id={`player-info-${player.playerNumber}`}
-                game={state.euchreGame}
-                player={player}
-                settings={state.euchreSettings}
-              />
+              <PlayerInfo id={`player-info-${player.playerNumber}`} state={state} player={player} />
             )}
           </div>
         </div>

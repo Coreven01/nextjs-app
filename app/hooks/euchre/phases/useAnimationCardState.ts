@@ -19,8 +19,17 @@ const useAnimationCardState = (state: EuchreGameState) => {
       euchreAnimationFlow.animationType === EuchreAnimateType.NONE &&
       euchrePauseState.pauseType === EuchrePauseType.ANIMATE,
     shouldReorderHand:
-      state.euchreGameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP &&
-      state.euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE
+      euchreGameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP &&
+      euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE,
+    shouldAnimateTrickFinished:
+      euchreGameFlow.gameFlow === EuchreGameFlow.TRICK_FINISHED &&
+      euchreAnimationFlow.animationType === EuchreAnimateType.NONE,
+    shouldRunEndUpdate:
+      euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_PLAY_CARD &&
+      euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE,
+    shoudUpdateCardStateForTurn:
+      euchrePauseState.pauseType === EuchrePauseType.USER_INPUT &&
+      euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_PLAY_CARD
   };
 };
 

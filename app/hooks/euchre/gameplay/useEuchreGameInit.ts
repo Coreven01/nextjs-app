@@ -32,6 +32,7 @@ export default function useEuchreGameInit(
   const { createGameForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } =
     useGameSetupLogic();
   const { notificationDelay } = useGameData();
+  const { euchreSettings, euchreGameFlow, promptValues } = state;
 
   /** Show an introduction to the game when the board loads. */
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function useEuchreGameInit(
 
       setters.dispatchPause();
       addIntroEvent();
-      await notificationDelay(state.euchreSettings, 1);
+      await notificationDelay(euchreSettings);
 
       continueToBeginDealCardsForDealer();
     };
@@ -53,7 +54,7 @@ export default function useEuchreGameInit(
     notificationDelay,
     setters,
     shouldBeginIntro,
-    state.euchreSettings
+    euchreSettings
   ]);
 
   /**
@@ -71,13 +72,14 @@ export default function useEuchreGameInit(
       setters.dispatchStateChange(
         undefined,
         EuchreAnimationActionType.SET_NONE,
-        EuchrePauseActionType.SET_NONE
+        EuchrePauseActionType.SET_GENERAL
       );
 
-      setters.addPromptValue(PromptType.INTRO);
+      setters.replacePromptValues([PromptType.INTRO]);
       setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
       setters.setBidResult(null);
       setters.setPlayedCard(null);
+      setters.setInitialDealerResult(null);
     },
     [setters]
   );
@@ -86,10 +88,10 @@ export default function useEuchreGameInit(
    *
    */
   const createGame = () => {
-    const newGame: EuchreGameInstance = createGameForInitialDeal(state.euchreSettings, false);
+    const newGame: EuchreGameInstance = createGameForInitialDeal(euchreSettings, false);
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
-      state.euchreGameFlow,
-      state.euchreSettings,
+      euchreGameFlow,
+      euchreSettings,
       newGame.gamePlayers
     );
 
@@ -103,7 +105,7 @@ export default function useEuchreGameInit(
       EuchrePauseActionType.SET_NONE
     );
 
-    const debugPrompt = state.promptValues.filter((p) => p === PromptType.DEBUG);
+    const debugPrompt = promptValues.filter((p) => p === PromptType.DEBUG);
     setters.replacePromptValues([...debugPrompt]);
     setters.setEuchreGame(newGame);
     setters.setShouldCancelGame(false);

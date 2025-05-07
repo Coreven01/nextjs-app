@@ -42,6 +42,7 @@ export default function useEuchreGameOrder(
   const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
   const { discard, playerEqual } = usePlayerData();
   const { indexCards } = useCardData();
+  const { euchreGame, euchreSettings, euchrePauseState, bidResult } = state;
 
   //#region Order Trump *************************************************************************
 
@@ -50,9 +51,9 @@ export default function useEuchreGameOrder(
    */
   const handleDiscardSubmit = useCallback(
     (card: Card) => {
-      const newGame = state.euchreGame ? { ...state.euchreGame } : null;
+      const newGame = { ...euchreGame };
 
-      if (newGame?.trump && state.euchrePauseState.pauseType === EuchrePauseType.USER_INPUT) {
+      if (newGame?.trump && euchrePauseState.pauseType === EuchrePauseType.USER_INPUT) {
         newGame.dealer.hand = discard(newGame.dealer, card, newGame.trump);
         newGame.dealer.hand = indexCards(newGame.dealer.hand);
         newGame.discard = card;
@@ -70,8 +71,8 @@ export default function useEuchreGameOrder(
       discard,
       indexCards,
       setters,
-      state.euchreGame,
-      state.euchrePauseState.pauseType
+      euchreGame,
+      euchrePauseState.pauseType
     ]
   );
 
@@ -80,11 +81,11 @@ export default function useEuchreGameOrder(
   const beginOrderTrump = useCallback(() => {
     if (!shouldBeginOrderTrump) return;
 
-    if (!state.bidResult) throw new Error('Bid result not found.');
-    const newGame: EuchreGameInstance = orderTrump(state.euchreGame, state.bidResult);
+    if (!bidResult) throw new Error('Bid result not found.');
+    const newGame: EuchreGameInstance = orderTrump(euchreGame, bidResult);
     if (!newGame.maker) throw Error('Maker not found - Order Trump.');
 
-    addTrumpOrderedEvent(newGame.maker, state.bidResult);
+    addTrumpOrderedEvent(newGame.maker, bidResult);
     continueToAnimateBeginOrderTrump();
     setters.setEuchreGame(newGame);
   }, [
@@ -93,8 +94,8 @@ export default function useEuchreGameOrder(
     orderTrump,
     setters,
     shouldBeginOrderTrump,
-    state.bidResult,
-    state.euchreGame
+    bidResult,
+    euchreGame
   ]);
 
   /**
@@ -117,29 +118,28 @@ export default function useEuchreGameOrder(
       if (!shouldAnimateBeginOrderTrump) return;
 
       setters.dispatchPause();
-      const game: EuchreGameInstance = state.euchreGame;
 
-      if (!state.bidResult) throw new Error('Bid result not found');
-      if (!game.maker) throw Error('Maker not found - Order Trump.');
+      if (!bidResult) throw new Error('Bid result not found');
+      if (!euchreGame.maker) throw Error('Maker not found - Order Trump.');
 
-      const orderType = state.bidResult.calledSuit ? 'named' : 'order';
+      const orderType = bidResult.calledSuit ? 'named' : 'order';
       const notification: PlayerNotificationAction = {
-        type: getPlayerNotificationType(game.maker.location),
+        type: getPlayerNotificationType(euchreGame.maker.location),
         payload: (
           <PlayerNotification
-            dealer={game.dealer}
-            player={game.maker}
-            settings={state.euchreSettings}
+            dealer={euchreGame.dealer}
+            player={euchreGame.maker}
+            settings={euchreSettings}
             info={orderType}
-            loner={state.bidResult.loner}
-            namedSuit={state.bidResult.calledSuit}
-            delayMs={incrementSpeed(state.euchreSettings.notificationSpeed, 1)}
+            loner={bidResult.loner}
+            namedSuit={bidResult.calledSuit}
+            delayMs={incrementSpeed(euchreSettings.notificationSpeed, 1)}
           />
         )
       };
 
       setters.dispatchPlayerNotification(notification);
-      await notificationDelay(state.euchreSettings, 1);
+      await notificationDelay(euchreSettings, 1);
 
       continueToEndOrderTrump();
     };
@@ -157,9 +157,9 @@ export default function useEuchreGameOrder(
     notificationDelay,
     setters,
     shouldAnimateBeginOrderTrump,
-    state.bidResult,
-    state.euchreGame,
-    state.euchreSettings
+    bidResult,
+    euchreGame,
+    euchreSettings
   ]);
 
   /**
@@ -168,11 +168,11 @@ export default function useEuchreGameOrder(
   const endOrderTrump = useCallback(() => {
     if (!shouldEndOrderTrump) return;
 
-    const newGame: EuchreGameInstance = { ...state.euchreGame };
+    const newGame: EuchreGameInstance = { ...euchreGame };
 
-    if (!state.bidResult) throw new Error('Bid result not found');
+    if (!bidResult) throw new Error('Bid result not found');
 
-    let shouldDiscard = state.bidResult.calledSuit === null;
+    let shouldDiscard = bidResult.calledSuit === null;
     const sittingOut = playerSittingOut(newGame);
 
     if (shouldDiscard && sittingOut && playerEqual(newGame.dealer, sittingOut)) {
@@ -185,7 +185,7 @@ export default function useEuchreGameOrder(
     } else {
       if (shouldDiscard) {
         addDealerPickedUpEvent(newGame.trump);
-        newGame.discard = determineDiscard(newGame, newGame.dealer, state.euchreSettings.difficulty);
+        newGame.discard = determineDiscard(newGame, newGame.dealer, euchreSettings.difficulty);
         newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
 
         addDiscardEvent(newGame.discard);
@@ -195,18 +195,19 @@ export default function useEuchreGameOrder(
       setters.setEuchreGame(newGame);
     }
   }, [
+    addDealerPickedUpEvent,
     addDiscardEvent,
+    bidResult,
     continueToAnimateEndOrderTrump,
     determineDiscard,
     discard,
+    euchreGame,
+    euchreSettings.difficulty,
     pauseForUserDiscardSelection,
     playerEqual,
     playerSittingOut,
     setters,
-    shouldEndOrderTrump,
-    state.bidResult,
-    state.euchreGame,
-    state.euchreSettings.difficulty
+    shouldEndOrderTrump
   ]);
 
   /**
@@ -231,7 +232,7 @@ export default function useEuchreGameOrder(
       setters.dispatchPause();
 
       // update player's hand in an effect in useCardState with the new card if player had to discard.
-      await notificationDelay(state.euchreSettings);
+      await notificationDelay(euchreSettings);
 
       continueToBeginPlayCard();
     };
@@ -248,7 +249,7 @@ export default function useEuchreGameOrder(
     notificationDelay,
     setters,
     shouldAnimateEndOrderTrump,
-    state.euchreSettings
+    euchreSettings
   ]);
 
   //#endregion

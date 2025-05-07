@@ -7,7 +7,7 @@ import {
   EuchreGameValues
 } from '../../lib/euchre/definitions/game-state-definitions';
 import { GameEventHandlers } from './useEventLog';
-import { GameSpeed, PromptType, TableLocation } from '../../lib/euchre/definitions/definitions';
+import { GameSpeed, PromptType } from '../../lib/euchre/definitions/definitions';
 import useGameSetupLogic from './logic/useGameSetupLogic';
 import { EuchreGameFlow } from './reducers/gameFlowReducer';
 import { PlayerNotificationAction, PlayerNotificationActionType } from './reducers/playerNotificationReducer';
@@ -63,7 +63,7 @@ const useEuchreDebug = (
       EuchreAnimationActionType.SET_ANIMATE,
       EuchrePauseActionType.SET_NONE
     );
-  }, [gameHandlers, setters]);
+  }, [runFullGame, setters, state.euchreSettings]);
 
   const handleRunTrickNotification = useCallback(async () => {
     console.log('game speed: ', state.euchreSettings.notificationSpeed);
@@ -76,7 +76,7 @@ const useEuchreDebug = (
     ];
 
     for (let t = 0; t < types.length; t++) {
-      setters.dispatchPlayerNotification(getNotification(types[t], 1000));
+      setters.dispatchPlayerNotification(getNotification(types[t], 1200));
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
   }, [getNotification, setters, state.euchreSettings.notificationSpeed]);
@@ -87,7 +87,7 @@ const useEuchreDebug = (
       handleRunTrickNotification,
       handleRunFullGame
     }),
-    [handleRunInitDeal, handleRunTrickNotification]
+    [handleRunFullGame, handleRunInitDeal, handleRunTrickNotification]
   );
 
   return { handleStartGameForDebug, handleCloseDebugGame, debugHandlers };

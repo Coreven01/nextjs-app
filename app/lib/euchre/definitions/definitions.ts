@@ -32,15 +32,15 @@ export const TEAM_COLOR_MAP: Map<TeamColor, string> = new Map([
 ]);
 
 export const GAME_SPEED_MAP = new Map<string, GameSpeed>([
-  ['Fast', 400],
-  ['Moderate', 600],
-  ['Slow', 1000],
+  ['Fast', 500],
+  ['Moderate', 800],
+  ['Slow', 1200],
   ['Very Slow', 2000]
 ]);
 
 export const NOTIFICATION_SPEED_MAP = new Map<string, GameSpeed>([
-  ['Fast', 600],
-  ['Moderate', 1000],
+  ['Fast', 800],
+  ['Moderate', 1200],
   ['Slow', 2000]
 ]);
 
@@ -62,8 +62,8 @@ export enum PromptType {
 
 export const RESPONSE_CARD_CENTER = 'lg:h-[125px] md:h-[115px] sm:h-[95px] h-[75px]';
 export const RESPONSE_CARD_SIDE = 'lg:w-[125px] md:w-[115px] sm:w-[95px] w-[75px]';
-export const MINIMUM_NOTIFICATION_SPEED = 1000;
-export const AVAILABLE_GAME_SPEED: GameSpeed[] = [250, 400, 600, 1000, 2000, 3000, 4000, 5000];
+export const MINIMUM_NOTIFICATION_SPEED = 800;
+export const AVAILABLE_GAME_SPEED: GameSpeed[] = [350, 500, 800, 1200, 2000, 3000, 4000, 5000];
 export const AVAILABLE_SUITS: Suit[] = ['♠', '♥', '♦', '♣'];
 export const SPADE: string = '♠';
 export const HEART: string = '♥';
@@ -71,7 +71,7 @@ export const DIAMOND: string = '♦';
 export const CLUB: string = '♣';
 export const LEFT_BOWER_VALUE = 250;
 export type ResultHighlight = 'player1' | 'player2' | 'player3' | 'player4' | 'winner' | 'trump';
-export type GameSpeed = 250 | 400 | 600 | 1000 | 2000 | 3000 | 4000 | 5000;
+export type GameSpeed = 350 | 500 | 800 | 1200 | 2000 | 3000 | 4000 | 5000;
 export type Suit = '♠' | '♥' | '♦' | '♣';
 export type CardValue =
   | '2'
@@ -93,7 +93,7 @@ export type CardColor = 'R' | 'B';
 
 /** Initial game settings. */
 export const DEFAULT_GAME_SETTINGS = {
-  gameSpeed: 600 as GameSpeed,
+  gameSpeed: 1200 as GameSpeed,
   showHandResult: true,
   enforceFollowSuit: false,
   autoFollowSuit: false,

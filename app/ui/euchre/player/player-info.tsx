@@ -1,27 +1,29 @@
-import {
-  EuchreGameInstance,
-  EuchrePlayer,
-  EuchreSettings
-} from '@/app/lib/euchre/definitions/game-state-definitions';
+import { EuchreGameState, EuchrePlayer } from '@/app/lib/euchre/definitions/game-state-definitions';
 import GameHighlight from '../game/game-highlight';
 import PlayerColor from './player-team-color';
 import GameBorderBare from '../game/game-border-bare';
 import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
+import GameTurnIndicator from '../game/game-turn-indicator';
+import useGameStateLogic from '../../../hooks/euchre/logic/useGameStateLogic';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
-  game: EuchreGameInstance;
-  settings: EuchreSettings;
+  state: EuchreGameState;
 }
 
-const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
+const PlayerInfo = ({ player, state, ...rest }: Props) => {
+  const { euchreGame, euchreSettings, euchreGameFlow } = state;
   const { playerEqual, getTeamColor } = usePlayerData();
+  const { getGameStatesForPlay } = useGameStateLogic();
 
-  const isDealer = playerEqual(player, game.dealer);
-  const isMaker = game.maker && playerEqual(player, game.maker);
-  const isSittingOut = game.loner && game.maker?.team === player.team && game.maker !== player;
-  const suit = game.trump?.suit;
-  const tricksCount = game.currentTricks.filter((t) => t.taker === player).length;
+  const isDealer = playerEqual(player, euchreGame.dealer);
+  const isMaker = euchreGame.maker && playerEqual(player, euchreGame.maker);
+  const showTurnIndicator =
+    playerEqual(player, euchreGame.currentPlayer) && getGameStatesForPlay().includes(euchreGameFlow.gameFlow);
+  const isSittingOut =
+    euchreGame.loner && euchreGame.maker?.team === player.team && euchreGame.maker !== player;
+  const suit = euchreGame.trump?.suit;
+  const tricksCount = euchreGame.currentTricks.filter((t) => t.taker === player).length;
 
   let infoToRender: React.ReactNode[] = [];
   const shortHandInfo: React.ReactNode[] = [];
@@ -29,7 +31,7 @@ const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
   let counter = 0;
 
   if (isSittingOut) {
-    if (settings.viewPlayerInfoDetail) {
+    if (euchreSettings.viewPlayerInfoDetail) {
       infoToRender.push(
         <div key={counter++} className={infoClass}>
           Sitting Out
@@ -42,12 +44,12 @@ const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
         </span>
       );
     }
-  } else if (settings.viewPlayerInfoDetail) {
+  } else if (euchreSettings.viewPlayerInfoDetail) {
     infoToRender.push(<div key={counter++}>Tricks {tricksCount} / 5</div>);
   }
 
   if (isDealer) {
-    if (settings.viewPlayerInfoDetail) {
+    if (euchreSettings.viewPlayerInfoDetail) {
       infoToRender.push(
         <div key={counter++} className={infoClass}>
           Dealer
@@ -63,7 +65,7 @@ const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
   }
 
   if (isMaker && suit) {
-    if (settings.viewPlayerInfoDetail) {
+    if (euchreSettings.viewPlayerInfoDetail) {
       infoToRender.push(
         <div key={counter++} className={infoClass}>
           Maker ({suit})
@@ -78,7 +80,7 @@ const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
     }
   }
 
-  if (settings.viewPlayerInfoDetail) {
+  if (euchreSettings.viewPlayerInfoDetail) {
     const playerName = (
       <div key={counter++} className="inline">
         {player.name}
@@ -105,16 +107,15 @@ const PlayerInfo = ({ player, game, settings, ...rest }: Props) => {
   return (
     <GameHighlight
       enableHighlight={true}
-      enablePulse={game.currentPlayer === player ? true : false}
-      highlightColorCss={
-        game.currentPlayer === player ? 'shadow-xl shadow-amber-400' : 'shadow-md shadow-black'
-      }
+      enablePulse={showTurnIndicator ? true : false}
+      highlightColorCss={showTurnIndicator ? 'shadow-xl shadow-amber-400' : 'shadow-md shadow-black'}
     >
       <GameBorderBare {...rest} className="">
-        <PlayerColor teamColor={getTeamColor(player, settings)}>
+        <PlayerColor teamColor={getTeamColor(player, euchreSettings)}>
           <div className="bg-white dark:bg-stone-800 p-1">{infoToRender}</div>
         </PlayerColor>
       </GameBorderBare>
+      {showTurnIndicator && <GameTurnIndicator location={player.location} />}
     </GameHighlight>
   );
 };

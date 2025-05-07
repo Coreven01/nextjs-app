@@ -78,11 +78,11 @@ const useGamePlayState = (state: EuchreGameValues, setters: EuchreGameSetters, h
     handlers.onCancel
   );
 
-  const pauseForPlayCard = (computerPlayer: boolean) => {
+  const pauseForPlayCard = (autoPlayCard: boolean) => {
     setters.dispatchStateChange(
       EuchreGameFlow.BEGIN_PLAY_CARD,
       EuchreAnimationActionType.SET_NONE,
-      computerPlayer ? EuchrePauseActionType.SET_AI_INPUT : EuchrePauseActionType.SET_USER_INPUT
+      autoPlayCard ? EuchrePauseActionType.SET_AI_INPUT : EuchrePauseActionType.SET_USER_INPUT
     );
   };
 
