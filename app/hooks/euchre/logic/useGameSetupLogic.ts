@@ -113,12 +113,9 @@ const useGameSetupLogic = () => {
     const newGameFlow: EuchreGameFlowState = {
       ...gameState,
       hasGameStarted: true,
-      shouldShowCardImagesForHand: !settings.shouldAnimateDeal
-        ? gamePlayers.map((p) => {
-            return { player: p, value: true };
-          })
-        : [],
-      shouldShowCardValuesForHand: [],
+      shouldShowCardValuesForHand: gamePlayers.map((p) => {
+        return { player: p, value: p.human || settings.debugShowPlayersHand };
+      }),
       hasFirstBiddingPassed: false,
       hasSecondBiddingPassed: false,
       gameFlow: EuchreGameFlow.BEGIN_INTRO

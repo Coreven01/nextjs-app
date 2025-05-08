@@ -22,14 +22,14 @@ const useGameDeckStateEvents = (state: EuchreGameState, eventHandlers: GameEvent
   }, [addEvent, createEvent, enableDebugLog, euchreGame.handId]);
 
   const addAnimateForBeginDealForDealerEvent = useCallback(
-    (begin: boolean) => {
+    (begin: boolean, skipped: boolean) => {
       if (!enableDebugLog) return;
 
       addEvent(
         createEvent(
           'd',
           undefined,
-          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation for begin deal for dealer.`
+          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation${skipped ? ' SKIPPED ' : ' '}for begin deal for dealer.`
         )
       );
     },
@@ -37,14 +37,14 @@ const useGameDeckStateEvents = (state: EuchreGameState, eventHandlers: GameEvent
   );
 
   const addAnimateForEndDealForDealerEvent = useCallback(
-    (begin: boolean) => {
+    (begin: boolean, skipped: boolean) => {
       if (!enableDebugLog) return;
 
       addEvent(
         createEvent(
           'd',
           undefined,
-          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation for end deal for dealer.`
+          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation${skipped ? ' SKIPPED ' : ' '}for end deal for dealer.`
         )
       );
     },
@@ -52,14 +52,14 @@ const useGameDeckStateEvents = (state: EuchreGameState, eventHandlers: GameEvent
   );
 
   const addAnimateForDealForRegularPlayEvent = useCallback(
-    (begin: boolean) => {
+    (begin: boolean, skipped: boolean) => {
       if (!enableDebugLog) return;
 
       addEvent(
         createEvent(
           'd',
           undefined,
-          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation for begin deal for dealer.`
+          `${EVENT_TYPE} - ${begin ? 'Begin' : 'End'} animation${skipped ? ' SKIPPED ' : ' '}for begin deal for dealer.`
         )
       );
     },

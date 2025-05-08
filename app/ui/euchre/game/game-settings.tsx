@@ -49,15 +49,15 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
     onRunFullGameLoop();
   };
 
-  const handleApplyAutoSettings = () => {
-    onApplySettings({
-      ...settings,
-      showHandResult: false,
-      stickTheDealer: true,
-      debugAllComputerPlayers: true,
-      gameSpeed: 800
-    });
-  };
+  // const handleApplyAutoSettings = () => {
+  //   onApplySettings({
+  //     ...settings,
+  //     showHandResult: false,
+  //     stickTheDealer: true,
+  //     debugAllComputerPlayers: true,
+  //     gameSpeed: 800
+  //   });
+  // };
 
   const handleTeamColorChange = (teamNumber: number, value: TeamColor) => {
     let tempTeamOne = teamOneColor;

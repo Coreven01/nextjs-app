@@ -7,6 +7,18 @@ const useGameEventsShuffle = (state: EuchreGameValues, eventHandlers: GameEventH
   const EVENT_TYPE = '[SHUFFLE STATE]';
   const enableDebugLog = state.euchreSettings.debugEnableDebugMenu;
 
+  const addSkipDealAnimationEvent = () => {
+    eventHandlers.addEvent(
+      eventHandlers.createEvent(
+        'v',
+        state.euchreGame.dealer,
+        'Begin shuffle and deal for regular play.',
+        undefined,
+        getTeamColor(state.euchreGame.dealer, state.euchreSettings)
+      )
+    );
+  };
+
   const addBeginShuffleEvent = () => {
     eventHandlers.addEvent(
       eventHandlers.createEvent(
@@ -31,7 +43,7 @@ const useGameEventsShuffle = (state: EuchreGameValues, eventHandlers: GameEventH
     );
   };
 
-  return { addBeginShuffleEvent, addTrumpCardFlippedEvent };
+  return { addSkipDealAnimationEvent, addBeginShuffleEvent, addTrumpCardFlippedEvent };
 };
 
 export default useGameEventsShuffle;

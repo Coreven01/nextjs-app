@@ -15,7 +15,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 const GameTurnIndicator = ({ location, ...rest }: DivProps) => {
   let locationCss = '';
   let icon: React.ReactNode;
-  const iconCss = 'h-5 w-5 text-red-200';
+  const iconCss = 'lg:h-5 lg:w-5 h-4 w-4 text-amber-400';
   switch (location) {
     case 'bottom':
       locationCss = '-top-10 left-2';

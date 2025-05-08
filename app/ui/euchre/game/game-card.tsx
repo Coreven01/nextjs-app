@@ -113,7 +113,7 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     }, [card.index, onCardClick, runAnimationCompleteEffect]);
     //#endregion
 
-    logConsole('*** [GAMECARD] [RENDER] card: ', card);
+    logConsole('*** [GAMECARD] [RENDER] card: ', cardState.cardFullName, ' card: ', card);
 
     return (
       <motion.div

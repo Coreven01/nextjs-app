@@ -18,6 +18,14 @@ const useGameShuffleState = (
   const { isGameStateValidToContinue } = useGameStateLogic();
   const { getGameStateForNextHand } = useGamePlayLogic();
 
+  const shouldBeginSkipAnimation = isGameStateValidToContinue(
+    state,
+    EuchreGameFlow.BEGIN_SKIP_ANIMATION,
+    EuchreAnimateType.NONE,
+    state.shouldCancel,
+    handlers.onCancel
+  );
+
   const shouldShuffleCards = isGameStateValidToContinue(
     state,
     EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
@@ -107,6 +115,7 @@ const useGameShuffleState = (
   };
 
   return {
+    shouldBeginSkipAnimation,
     shouldShuffleCards,
     shouldAnimateBeginDealCards,
     shouldEndDealCards,

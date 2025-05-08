@@ -47,6 +47,14 @@ const useGameInitDealState = (
     handlers.onCancel
   );
 
+  const continueToSkipInitDealAnimation = () => {
+    setters.dispatchStateChange(
+      EuchreGameFlow.BEGIN_SKIP_ANIMATION,
+      EuchreAnimationActionType.SET_NONE,
+      EuchrePauseActionType.SET_NONE
+    );
+  };
+
   const pauseForAnimateBeginDealCardsForDealer = () => {
     setters.dispatchStateChange(
       EuchreGameFlow.BEGIN_DEAL_FOR_DEALER,
@@ -92,6 +100,7 @@ const useGameInitDealState = (
     shouldAnimateBeginDealCardsForDealer,
     shouldEndDealCardsForDealer,
     shouldAnimateEndDealCardsForDealer,
+    continueToSkipInitDealAnimation,
     pauseForAnimateBeginDealCardsForDealer,
     continueToEndDealCardsForDealer,
     continueToAnimateEndDealCardsForDealer,

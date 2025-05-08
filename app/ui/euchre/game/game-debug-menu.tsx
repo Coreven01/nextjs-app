@@ -34,6 +34,9 @@ const GameDebugMenu = ({ className, handlers, onClose }: Props) => {
             <GameButton className="w-full" type="success" onClick={handlers.handleRunInitGame}>
               Run Init Game
             </GameButton>
+            <GameButton className="w-full" type="success" onClick={handlers.handleRunInitGame}>
+              Run Init and Shuffle
+            </GameButton>
             <GameButton className="w-full" type="success" onClick={handlers.handleRunTrickNotification}>
               Run Trick Notification
             </GameButton>

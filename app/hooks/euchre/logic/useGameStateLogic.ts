@@ -78,7 +78,28 @@ const useGameStateLogic = () => {
     ];
   }, []);
 
-  return { isGameStateValidToContinue, getGameStatesForDeal, getGameStatesForPlay, getGameStatesForBid };
+  /** Game states where the player's hand should be rendered. */
+  const getGameStatesForShowingPlayerTurn = useCallback(() => {
+    return [
+      EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
+      EuchreGameFlow.END_BID_FOR_TRUMP,
+      EuchreGameFlow.BEGIN_PASS_DEAL,
+      EuchreGameFlow.END_PASS_DEAL,
+      EuchreGameFlow.BEGIN_ORDER_TRUMP,
+      EuchreGameFlow.END_ORDER_TRUMP,
+      EuchreGameFlow.BEGIN_PLAY_CARD,
+      EuchreGameFlow.END_PLAY_CARD,
+      EuchreGameFlow.BEGIN_PLAY_CARD_RESULT
+    ];
+  }, []);
+
+  return {
+    isGameStateValidToContinue,
+    getGameStatesForDeal,
+    getGameStatesForPlay,
+    getGameStatesForBid,
+    getGameStatesForShowingPlayerTurn
+  };
 };
 
 export default useGameStateLogic;

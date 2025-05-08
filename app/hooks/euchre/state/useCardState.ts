@@ -69,7 +69,7 @@ const useCardState = (
   //#region Values used to prevent the same effect from triggering more than once.
 
   /** If the value is false, then the effect should be executed. Set to true to prevent from being executed again. */
-  const [initForNewHandEffect, setInitForNewHandEffect] = useState(false);
+  const initForNewHandEffect = useRef(false);
   const [initCardStateCreated, setInitCardStateCreated] = useState(false);
   const [initForCardsRegroup, setInitForCardsRegroup] = useState(false);
   const initForCardsReorder = useRef(false);
@@ -93,7 +93,8 @@ const useCardState = (
 
   const { getDisplayWidth, getDisplayHeight, cardEqual, sortCardsIndices, getCardBackSrc } = useCardData();
   const { playerEqual, availableCardsToPlay } = usePlayerData();
-  const { getCardsAvailableToPlay, isHandFinished, playerSittingOut, gameDelay } = useGameData();
+  const { getCardsAvailableToPlay, isHandFinished, playerSittingOut, gameDelay, notificationDelay } =
+    useGameData();
   const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
 
   const { euchreGame, euchreGameFlow, euchreSettings, euchrePauseState } = state;
@@ -119,9 +120,10 @@ const useCardState = (
   const resetForNewHand = () => {
     setHandState(undefined);
     setCardStates([]);
-    setInitForNewHandEffect(false);
+
     setInitCardStateCreated(false);
     setInitForCardsRegroup(false);
+    initForNewHandEffect.current = false;
     initForCardsReorder.current = false;
     initAnimatePassDeal.current = false;
     initForSittingOut.current = false;
@@ -161,7 +163,7 @@ const useCardState = (
     [onPassDeal]
   );
 
-  /** Create and set the initial hand state for the player's hand. */
+  /** Create and set the initial hand state for the player's hand for regular play. */
   const setInitialPlayerHandState = useCallback(() => {
     const location = player.location;
     const width: number = getDisplayWidth(location);
@@ -180,6 +182,7 @@ const useCardState = (
       responsive: true
     };
 
+    console.log('[CARD STATE] CREATED HAND STATE: ', handState);
     setHandState(handState);
   }, [
     euchreGame.handId,
@@ -519,20 +522,23 @@ const useCardState = (
 
   //#region  UseEffect hooks
 
+  /** Resets hand state after being intialized for a different hand ID. */
   useEffect(() => {
     const shouldRecreateHandState = handState !== undefined && handState.handId !== euchreGame.handId;
 
     if (shouldRecreateHandState) {
+      console.log('[CARD STATE] - shouldRecreateHandState - resetForNewHand', ' player: ', player.name);
       resetForNewHand();
     }
-  }, [handState, euchreGame.handId]);
+  }, [handState, euchreGame.handId, player.name]);
 
   /** Set initial hand state after cards have been dealt. */
   useEffect(() => {
-    const createHandState = shouldCreateHandState && !initForNewHandEffect;
+    const createHandState = shouldCreateHandState && !initForNewHandEffect.current;
 
     if (createHandState) {
-      setInitForNewHandEffect(true);
+      initForNewHandEffect.current = true;
+      console.log('[CARD STATE] - createHandState - setInitialPlayerHandState', ' player: ', player.name);
       addInitializeHandStateEvent();
       setInitialPlayerHandState();
     }
@@ -553,6 +559,8 @@ const useCardState = (
     if (createCardState) {
       setInitCardStateCreated(true);
       addInitializeCardStateEvent();
+
+      console.log('[CARD STATE] - createCardState - setInitialPlayerHandState', ' player: ', player.name);
       initializeSortOrder();
       setInitialCardStates();
     }
@@ -561,6 +569,7 @@ const useCardState = (
     handState,
     initCardStateCreated,
     initializeSortOrder,
+    player.name,
     setInitialCardStates,
     shouldCreateCardState
   ]);
@@ -577,14 +586,21 @@ const useCardState = (
         addInitializeCardRegroupEvent();
 
         const cardRef = cardRefs.values().find((c) => c?.current)?.current;
-        if (!cardRef) throw new Error('Invalid card ref when setting initial animation.');
+        if (!cardRef) {
+          throw new Error('Invalid card ref when setting initial animation.');
+        }
 
         const delay = (euchreSettings.gameSpeed * player.team) / 2;
         await new Promise((resolve) => setTimeout(resolve, delay));
+
+        console.log('[CARD STATE] - beginRegroupCard', ' player: ', player.name);
+
         regroupCards(false, cardRef);
+
         await beginFlipCards();
+        await notificationDelay(euchreSettings);
+
         handleDealComplete(player.playerNumber);
-        await gameDelay(euchreSettings);
       }
     };
 
@@ -601,15 +617,17 @@ const useCardState = (
     addInitializeCardRegroupEvent,
     animateFlipPlayerHand,
     cardRefs,
+    euchreSettings,
     gameDelay,
     handState?.shouldShowCardValue,
     handleDealComplete,
     initCardStateCreated,
     initForCardsRegroup,
+    notificationDelay,
+    player.name,
     player.playerNumber,
     player.team,
-    regroupCards,
-    euchreSettings
+    regroupCards
   ]);
 
   /** If deal is passed then send cards to next player. */
@@ -618,10 +636,19 @@ const useCardState = (
 
     if (animatePassDeal) {
       initAnimatePassDeal.current = true;
+
+      console.log('[CARD STATE] - animatePassDeal', ' player: ', player.name);
+
       setHandStateForPassDeal();
       moveCardsToPlayer(euchreGame.dealer);
     }
-  }, [moveCardsToPlayer, setHandStateForPassDeal, shouldAnimateBeginPassDeal, euchreGame.dealer]);
+  }, [
+    moveCardsToPlayer,
+    setHandStateForPassDeal,
+    shouldAnimateBeginPassDeal,
+    euchreGame.dealer,
+    player.name
+  ]);
 
   /** Re-order player's hand once trump has been set. */
   useEffect(() => {
@@ -634,6 +661,8 @@ const useCardState = (
       if (!cardRef) throw new Error('Invalid card ref when reorder hand after trump named.');
 
       if (handState?.shouldShowCardValue && !playerIsSittingOut) {
+        console.log('[CARD STATE] - reorderHand', ' player: ', player.name);
+
         initializeSortOrder();
         regroupCards(true, cardRef);
         updateCardStateForTurn();
@@ -648,6 +677,8 @@ const useCardState = (
     const beginSittingOut = async () => {
       if (!initForSittingOut.current && playerIsSittingOut) {
         initForSittingOut.current = true;
+
+        console.log('[CARD STATE] - beginSittingOut', ' player: ', player.name);
 
         const baseTransition = getBaseTransitionForCardMoved(euchreSettings.gameSpeed);
         cardStates.forEach(
@@ -687,7 +718,7 @@ const useCardState = (
       trickAnimationHandled.current.push(currentTrick.trickId);
       const lastCardPlayed: Card | undefined = cardPlayedForTrickRef.current.get(currentTrick.trickId);
 
-      logConsole('[useEffect] - useCardState.ts - onTrickComplete handler run for card: ');
+      console.log('[CARD STATE] - animateTrickFinished', ' player: ', player.name);
 
       if (lastCardPlayed && handState && currentTrick.playerRenege) {
         // if player renged, then don't animate taking the trick, and just call the event handler as if the animation was complete.
@@ -742,6 +773,7 @@ const useCardState = (
     getSpringToMoveToPlayer,
     handState,
     onTrickComplete,
+    player.name,
     playerDeckRefs,
     shouldAnimateTrickFinished
   ]);
@@ -756,7 +788,11 @@ const useCardState = (
       cardRefs;
 
     if (shouldRunBeginUpdate) {
-      logConsole("[useEffect] - useCardState.ts - beginning hand update player's hand - Player: ");
+      console.log(
+        '[CARD STATE] - shouldRunBeginUpdate - setInitialPlayerHandState',
+        ' player: ',
+        player.name
+      );
       cardsRegroupedPlayerTurn.current.push(euchreGame.currentTrick.trickId);
       const cardRef = cardRefs.get(0);
 
@@ -785,7 +821,7 @@ const useCardState = (
       cardRefs;
 
     if (runEndUpdate) {
-      logConsole('[useEffect] - [runEndUpdate] useCardState.ts');
+      console.log('[CARD STATE] - runEndUpdate - updateCardStateForTurn', ' player: ', player.name);
       cardsRegroupedPlayerTurnEnd.current.push(euchreGame.currentTrick.trickId);
       const cardRef = cardRefs.get(0);
 

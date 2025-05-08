@@ -570,10 +570,14 @@ const useGameData = () => {
   /** Returns the next speed value based on the offset. */
   const incrementSpeed = useCallback((gameSpeed: GameSpeed, offset: number): GameSpeed => {
     if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
-      const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + offset) ?? 350;
+      const retval =
+        AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) + offset) ?? AVAILABLE_GAME_SPEED[0];
 
-      if (retval < gameSpeed) return gameSpeed;
-      else return retval;
+      if (retval < gameSpeed) {
+        return gameSpeed;
+      } else {
+        return retval;
+      }
     }
 
     return gameSpeed;
@@ -581,7 +585,9 @@ const useGameData = () => {
 
   const decrementSpeed = (gameSpeed: GameSpeed, offset: number): GameSpeed => {
     if (AVAILABLE_GAME_SPEED.includes(gameSpeed)) {
-      const retval = AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) - offset) ?? 4000;
+      const retval =
+        AVAILABLE_GAME_SPEED.at(AVAILABLE_GAME_SPEED.indexOf(gameSpeed) - offset) ??
+        AVAILABLE_GAME_SPEED[AVAILABLE_GAME_SPEED.length - 1];
 
       if (retval > gameSpeed) return gameSpeed;
       else return retval;

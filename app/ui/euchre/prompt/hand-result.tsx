@@ -42,7 +42,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
   };
 
   return (
-    <div className={clsx('flex flex-col gap-1 overflow-auto', className)} {...rest}>
+    <div className={clsx('flex flex-col gap-1', className)} {...rest}>
       <HandHighlightNavigation
         players={[...game.gamePlayers]}
         selection={selectedHighlight}
@@ -52,7 +52,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
       {playerReneged && (
         <GameWarning className="mb-1 border border-red-900">Hand ended due to player renege</GameWarning>
       )}
-      <div className="flex gap-1">
+      <div className="flex gap-1 overflow-auto">
         <div className="lg:min-w-48">
           <div className="mb-1">
             <PlayerColor
@@ -146,7 +146,10 @@ const HandHighlightNavigation = ({ selection, players, className, onSelectionCha
 
   return (
     <ul
-      className={clsx('flex justify-center gap-2 overflow-x-scroll w-full lg:text-sm text-xs h-4', className)}
+      className={clsx(
+        'flex justify-center gap-2 overflow-x-scroll w-full lg:text-sm text-xs min-h-[16px]',
+        className
+      )}
       style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
     >
       {selectionArray.map((r, i) => {

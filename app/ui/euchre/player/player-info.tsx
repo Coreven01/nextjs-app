@@ -14,12 +14,13 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 const PlayerInfo = ({ player, state, ...rest }: Props) => {
   const { euchreGame, euchreSettings, euchreGameFlow } = state;
   const { playerEqual, getTeamColor } = usePlayerData();
-  const { getGameStatesForPlay } = useGameStateLogic();
+  const { getGameStatesForShowingPlayerTurn } = useGameStateLogic();
 
   const isDealer = playerEqual(player, euchreGame.dealer);
   const isMaker = euchreGame.maker && playerEqual(player, euchreGame.maker);
   const showTurnIndicator =
-    playerEqual(player, euchreGame.currentPlayer) && getGameStatesForPlay().includes(euchreGameFlow.gameFlow);
+    playerEqual(player, euchreGame.currentPlayer) &&
+    getGameStatesForShowingPlayerTurn().includes(euchreGameFlow.gameFlow);
   const isSittingOut =
     euchreGame.loner && euchreGame.maker?.team === player.team && euchreGame.maker !== player;
   const suit = euchreGame.trump?.suit;

@@ -156,6 +156,7 @@ export interface EuchreGamePlayHandlers {
 
 export interface EuchreDebugHandlers {
   handleRunInitGame: () => void;
+  handleRunInitAndShuffleGame: () => void;
   handleRunTrickNotification: () => void;
   handleRunFullGame: () => void;
 }

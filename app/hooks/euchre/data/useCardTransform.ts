@@ -76,24 +76,24 @@ export interface CardSpringProps extends CardPosition {
 const useCardTransform = () => {
   //#region Randomize values used for card animation.
   const getRandomRotation = useCallback(() => {
-    const min = 170;
-    const max = 190;
+    const min = 160;
+    const max = 200;
     const range = max - min;
 
     return Math.floor(Math.random() * range + min);
   }, []);
 
   const getRandomStiffness = useCallback(() => {
-    const min = 290;
-    const max = 310;
+    const min = 280;
+    const max = 320;
     const range = max - min;
 
     return Math.floor(Math.random() * range + min);
   }, []);
 
   const getRandomDamping = useCallback(() => {
-    const min = 14;
-    const max = 20;
+    const min = 13;
+    const max = 21;
     const range = max - min;
 
     return Math.floor(Math.random() * range + min);
@@ -556,7 +556,7 @@ const useCardTransform = () => {
 
     return {
       ...currentSpring,
-      x: tableRect.right - cardOriginalPosition.right + cardWidth / 3,
+      x: tableRect.right - cardOriginalPosition.right + cardWidth / 2,
       y: tableCenter - cardOriginalPosition.centerY
     };
   };
@@ -573,7 +573,7 @@ const useCardTransform = () => {
 
     return {
       ...currentSpring,
-      x: -(cardOriginalPosition.left - tableRect.left) - cardWidth / 3,
+      x: -(cardOriginalPosition.left - tableRect.left) - cardWidth / 2,
       y: tableCenter - cardOriginalPosition.centerY
     };
   };

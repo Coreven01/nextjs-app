@@ -13,6 +13,7 @@ export enum EuchreGameFlow {
   END_INIT_DEAL,
   BEGIN_DEAL_FOR_DEALER,
   END_DEAL_FOR_DEALER,
+  BEGIN_SKIP_ANIMATION,
   BEGIN_SHUFFLE_CARDS,
   END_SHUFFLE_CARDS,
   BEGIN_DEAL_CARDS,
@@ -40,9 +41,6 @@ export interface EuchreGameFlowState {
   hasFirstBiddingPassed: boolean;
   hasSecondBiddingPassed: boolean;
 
-  /** Should show the images for cards for the player. This does not show the value of the cards, but the back of the card. */
-  shouldShowCardImagesForHand: PlayerDisplayValue[];
-
   /** Should show the cards face up card values for a player. */
   shouldShowCardValuesForHand: PlayerDisplayValue[];
   gameFlow: EuchreGameFlow;
@@ -56,7 +54,6 @@ export interface GameFlowAction {
 
 export const INIT_GAME_FLOW_STATE: EuchreGameFlowState = {
   hasGameStarted: false,
-  shouldShowCardImagesForHand: [],
   shouldShowCardValuesForHand: [],
   hasSecondBiddingPassed: false,
   hasFirstBiddingPassed: false,

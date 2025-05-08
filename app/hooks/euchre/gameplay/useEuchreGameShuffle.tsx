@@ -18,10 +18,14 @@ const useEuchreGameShuffle = (
   eventHandlers: GameEventHandlers,
   errorHandlers: ErrorHandlers
 ) => {
-  const { addBeginShuffleEvent, addTrumpCardFlippedEvent } = useGameEventsShuffle(state, eventHandlers);
-  const { shuffleAndDealHand } = useGameSetupLogic();
+  const { addSkipDealAnimationEvent, addBeginShuffleEvent, addTrumpCardFlippedEvent } = useGameEventsShuffle(
+    state,
+    eventHandlers
+  );
+  const { shuffleAndDealHand, dealCardsForDealer } = useGameSetupLogic();
   const { getPlayerRotation } = usePlayerData();
   const {
+    shouldBeginSkipAnimation,
     shouldShuffleCards,
     shouldAnimateBeginDealCards,
     shouldEndDealCards,
@@ -33,7 +37,7 @@ const useEuchreGameShuffle = (
     pauseForAnimateEndDealCards,
     continueToBeginBidForTrump
   } = useGameShuffleState(state, setters, errorHandlers);
-  const { euchreGame, euchreSettings, euchreReplayGame, shouldCancel } = state;
+  const { euchreGame, euchreGameFlow, euchreSettings, euchreReplayGame, shouldCancel } = state;
 
   //#region Handlers
 
@@ -58,6 +62,52 @@ const useEuchreGameShuffle = (
 
   /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
    * or if a player will name suit. After deal logic is run, begin animation for dealing cards to players. */
+  const beginSkipDealAnimation = useCallback(() => {
+    if (!shouldBeginSkipAnimation) return;
+
+    addSkipDealAnimationEvent();
+    //throw new Error('todo: create initial deal and regular deal function');
+
+    let newGame = { ...euchreGame };
+    const dealResult = dealCardsForDealer(newGame, euchreGameFlow, null);
+
+    if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
+
+    newGame.dealer = dealResult.newDealer;
+    newGame.currentPlayer = dealResult.newDealer;
+
+    const shuffleResult = shuffleAndDealHand(newGame, euchreSettings, null, false);
+
+    newGame = shuffleResult.game;
+    setters.setEuchreGame(newGame);
+
+    continueToAnimateEndDealCards();
+  }, [
+    addSkipDealAnimationEvent,
+    continueToAnimateEndDealCards,
+    dealCardsForDealer,
+    euchreGame,
+    euchreGameFlow,
+    euchreSettings,
+    setters,
+    shouldBeginSkipAnimation,
+    shuffleAndDealHand
+  ]);
+
+  /**
+   *
+   */
+  useEffect(() => {
+    try {
+      beginSkipDealAnimation();
+    } catch (e) {
+      const error = e as Error;
+      errorHandlers.onError(error, 'beginSkipDealAnimation');
+    }
+  }, [beginSkipDealAnimation, errorHandlers]);
+
+  /** Shuffle and deal cards for regular game play. Starts the bidding process to determine if the dealer should pick up the flipped card
+   * or if a player will name suit. After deal logic is run, begin animation for dealing cards to players. */
   const beginShuffleAndDealHand = useCallback(() => {
     if (!shouldShuffleCards) return;
 
@@ -70,17 +120,23 @@ const useEuchreGameShuffle = (
     setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
 
     setters.setEuchreGame(newGame);
-    continueToAnimateDealCards(newGame);
+
+    if (!euchreSettings.shouldAnimateDeal) {
+      continueToAnimateEndDealCards();
+    } else {
+      continueToAnimateDealCards(newGame);
+    }
   }, [
     addBeginShuffleEvent,
     continueToAnimateDealCards,
-    setters,
-    shouldShuffleCards,
-    shuffleAndDealHand,
+    continueToAnimateEndDealCards,
     euchreGame,
     euchreReplayGame,
     euchreSettings,
-    shouldCancel
+    setters,
+    shouldCancel,
+    shouldShuffleCards,
+    shuffleAndDealHand
   ]);
 
   /**

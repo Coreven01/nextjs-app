@@ -67,7 +67,16 @@ const GameArea = ({
 
   /** Elements associated with the player's outer side. Used when dealing cards to a player. */
   const outerTableRefs = useTableRefs();
-  console.log('[GameArea] render: ', state.euchreGame.gameId);
+  console.log(
+    '[GAMEAREA] gameID: ',
+    state.euchreGame.gameId,
+    ' state: ',
+    state.euchreGameFlow.gameFlow,
+    ' ',
+    state.euchreAnimationFlow.animationType,
+    ' ',
+    state.euchrePauseState.pauseType
+  );
   return (
     <div
       className={clsx(

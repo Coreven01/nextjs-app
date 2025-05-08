@@ -102,7 +102,7 @@ const PlayerHand = ({
     }
   };
 
-  console.log('*** [PLAYERHAND] [RENDER] player hand: ', playerCurrentHand);
+  console.log('*** [PLAYERHAND] [RENDER] player: ', player.name, ' player hand: ', playerCurrentHand);
 
   return (
     <>

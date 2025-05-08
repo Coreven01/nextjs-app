@@ -25,12 +25,12 @@ import useGameEventsPlay from '../events/useGameEventsPlay';
 import useGamePlayState from '../phases/useGamePlayState';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
 
-export default function useEuchreGamePlay(
+const useEuchreGamePlay = (
   state: EuchreGameValues,
   setters: EuchreGameSetters,
   eventHandlers: GameEventHandlers,
   errorHandlers: ErrorHandlers
-) {
+) => {
   const playerAutoPlayed = useRef(false);
   const { createTrick } = useGameSetupLogic();
   const { getPlayerRotation, availableCardsToPlay } = usePlayerData();
@@ -82,7 +82,9 @@ export default function useEuchreGamePlay(
         payload: undefined
       };
 
-      newAction.payload = <GamePlayIndicator notificationSpeed={euchreSettings.notificationSpeed} />;
+      newAction.payload = (
+        <GamePlayIndicator location={location} notificationSpeed={euchreSettings.notificationSpeed} />
+      );
 
       return newAction;
     },
@@ -457,4 +459,6 @@ export default function useEuchreGamePlay(
   //#endregion
 
   return { handleCardPlayed, handleCloseHandResults, handleTrickFinished };
-}
+};
+
+export default useEuchreGamePlay;

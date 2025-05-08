@@ -33,6 +33,7 @@ export default function useEuchreGameInitDeal(
     shouldAnimateBeginDealCardsForDealer,
     shouldEndDealCardsForDealer,
     shouldAnimateEndDealCardsForDealer,
+    continueToSkipInitDealAnimation,
     pauseForAnimateBeginDealCardsForDealer,
     continueToEndDealCardsForDealer,
     continueToAnimateEndDealCardsForDealer,
@@ -62,25 +63,31 @@ export default function useEuchreGameInitDeal(
 
     addInitialDealEvent();
 
-    const dealResult: InitDealResult | null = dealCardsForDealer(
-      euchreGame,
-      euchreGameFlow,
-      euchreReplayGame
-    );
+    if (euchreSettings.shouldAnimateDeal) {
+      const dealResult: InitDealResult | null = dealCardsForDealer(
+        euchreGame,
+        euchreGameFlow,
+        euchreReplayGame
+      );
 
-    if (!dealResult?.newDealer) throw Error('Unable to determine dealer for initial dealer.');
+      if (!dealResult?.newDealer) throw Error('Unable to determine dealer for initial dealer.');
 
-    setters.setInitialDealerResult(dealResult);
-    pauseForAnimateBeginDealCardsForDealer();
+      setters.setInitialDealerResult(dealResult);
+      pauseForAnimateBeginDealCardsForDealer();
+    } else {
+      continueToSkipInitDealAnimation();
+    }
   }, [
-    addInitialDealEvent,
-    dealCardsForDealer,
-    pauseForAnimateBeginDealCardsForDealer,
-    setters,
     shouldBeginDealCardsForDealer,
+    addInitialDealEvent,
+    euchreSettings.shouldAnimateDeal,
+    dealCardsForDealer,
     euchreGame,
     euchreGameFlow,
-    euchreReplayGame
+    euchreReplayGame,
+    setters,
+    pauseForAnimateBeginDealCardsForDealer,
+    continueToSkipInitDealAnimation
   ]);
 
   /** Effect to begin deal cards to determine initial dealer
@@ -163,7 +170,12 @@ export default function useEuchreGameInitDeal(
         // show an indicator who will be the next dealer.
         const newAction: PlayerNotificationAction = {
           type: getPlayerNotificationType(euchreGame.dealer.location),
-          payload: <GamePlayIndicator notificationSpeed={euchreSettings.notificationSpeed} />
+          payload: (
+            <GamePlayIndicator
+              location={euchreGame.dealer.location}
+              notificationSpeed={euchreSettings.notificationSpeed}
+            />
+          )
         };
 
         setters.dispatchPlayerNotification(newAction);
