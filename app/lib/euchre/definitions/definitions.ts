@@ -60,8 +60,8 @@ export enum PromptType {
   DEBUG
 }
 
-export const RESPONSE_CARD_CENTER = 'lg:h-[125px] md:h-[115px] sm:h-[95px] h-[75px]';
-export const RESPONSE_CARD_SIDE = 'lg:w-[125px] md:w-[115px] sm:w-[95px] w-[75px]';
+export const RESPONSE_CARD_CENTER = 'lg:h-[125px] md:h-[115px] sm:h-[95px] h-[85px]';
+export const RESPONSE_CARD_SIDE = 'lg:w-[125px] md:w-[115px] sm:w-[95px] w-[85px]';
 export const MINIMUM_NOTIFICATION_SPEED: GameSpeed = 700;
 export const AVAILABLE_GAME_SPEED: GameSpeed[] = [300, 400, 700, 1200, 2000, 3000, 4000, 5000];
 export const AVAILABLE_SUITS: Suit[] = ['♠', '♥', '♦', '♣'];

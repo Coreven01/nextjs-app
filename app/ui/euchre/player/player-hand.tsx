@@ -65,8 +65,10 @@ const PlayerHand = ({
     onCardPlayed,
     onDealComplete
   );
+  /** Map of trick ID to the associated card (index) that was played for that trick.*/
   const cardIndicesPlayed = useRef<Map<string, number>>(new Map<string, number>());
   const { getCardClassForPlayerLocation } = useCardData();
+  const isCardClickHandled = useRef(false);
 
   /** Animate the card being played. Once animation for the card is complete, the state should be updated that the player
    * played a card.
@@ -74,7 +76,7 @@ const PlayerHand = ({
   useEffect(() => {
     if (playedCard && !cardIndicesPlayed.current.has(state.euchreGame.currentTrick.trickId)) {
       cardIndicesPlayed.current.set(state.euchreGame.currentTrick.trickId, playedCard.index);
-      console.log('[useEffect] [handlePlayCardAnimation], played card: ', playedCard);
+      console.log('[useEffect] [handlePlayCardAnimation], auto played card: ', playedCard);
 
       const tableRef = playerCenterTableRef?.current;
 
@@ -90,19 +92,36 @@ const PlayerHand = ({
   const location = player.location;
 
   const handleCardClick = (cardIndex: number) => {
-    console.log('[handleCardClick] - player-hand.tsx - player: ', player.name);
-    if (!cardIndicesPlayed.current.has(state.euchreGame.currentTrick.trickId)) {
+    console.log(
+      '[handleCardClick] - player-hand.tsx - player: ',
+      player.name,
+      ' trick ids played: ',
+      cardIndicesPlayed.current
+    );
+
+    if (
+      !isCardClickHandled.current &&
+      !cardIndicesPlayed.current.has(state.euchreGame.currentTrick.trickId)
+    ) {
+      isCardClickHandled.current = true;
       cardIndicesPlayed.current.set(state.euchreGame.currentTrick.trickId, cardIndex);
 
+      const delay = state.euchreSettings.gameSpeed;
       const tableRef = playerCenterTableRef?.current;
 
-      if (!tableRef) throw new Error('Table ref reference not found for player hand - handle card click.');
+      if (!tableRef) throw new Error('[handleCardClick] -Table ref reference not found for player hand.');
+
+      // release lock that the next card should be handled.
+      setTimeout(() => {
+        isCardClickHandled.current = false;
+      }, delay);
 
       handlePlayCardAnimation(cardIndex, tableRef);
     }
   };
 
-  console.log('*** [PLAYERHAND] [RENDER] player: ', player.name, ' player hand: ', playerCurrentHand);
+  if (player.human)
+    console.log('*** [PLAYERHAND] [RENDER] player: ', player.name, ' player hand: ', playerCurrentHand);
 
   return (
     <>
@@ -114,8 +133,8 @@ const PlayerHand = ({
           const cardState = cardStates.find((s) => s.cardIndex === card.index);
           const cardRef = cardRefs.get(card.index);
 
-          if (!cardState) throw new Error('Invalid card state - render player hand');
-          if (!cardRef) throw new Error('Invalid card ref - render player hand');
+          if (!cardState) throw new Error('[PLAYERHAND] [RENDER] -Invalid card state.');
+          if (!cardRef) throw new Error('[PLAYERHAND] [RENDER] - Invalid card ref.');
 
           return (
             <GameCard

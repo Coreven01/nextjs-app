@@ -19,7 +19,6 @@ import {
   EuchrePlayer
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useCardRefs from '../useCardRefs';
-import { EuchrePauseType } from '../reducers/gamePauseReducer';
 import { GameEventHandlers } from '../useEventLog';
 import useGameCardStateEvents from '../events/useGameCardStateEvents';
 import useAnimationCardState from '../phases/useAnimationCardState';
@@ -97,7 +96,7 @@ const useCardState = (
     useGameData();
   const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
 
-  const { euchreGame, euchreGameFlow, euchreSettings, euchrePauseState } = state;
+  const { euchreGame, euchreGameFlow, euchreSettings } = state;
   const sittingOutPlayer = playerSittingOut(euchreGame);
   const playerIsSittingOut = sittingOutPlayer && playerEqual(player, sittingOutPlayer);
   const { addInitializeHandStateEvent, addInitializeCardStateEvent, addInitializeCardRegroupEvent } =
@@ -108,7 +107,7 @@ const useCardState = (
     shouldAnimateBeginPassDeal,
     shouldReorderHand,
     shouldAnimateTrickFinished,
-    shouldRunEndUpdate,
+    shoudUpdateCardStateForTurnEnd,
     shoudUpdateCardStateForTurn
   } = useAnimationCardState(state);
   //#endregion
@@ -146,7 +145,7 @@ const useCardState = (
       if (onDealComplete) {
         onDealComplete(playerNumber);
       } else {
-        throw new Error('Invalid event handler for deal complete.');
+        throw new Error('[CARD STATE] - Invalid event handler for deal complete.');
       }
     },
     [onDealComplete]
@@ -157,7 +156,7 @@ const useCardState = (
       if (onPassDeal) {
         onPassDeal(card);
       } else {
-        throw new Error('Invalid event handler for pass deal complete.');
+        throw new Error('[CARD STATE] - Invalid event handler for pass deal complete.');
       }
     },
     [onPassDeal]
@@ -182,7 +181,7 @@ const useCardState = (
       responsive: true
     };
 
-    console.log('[CARD STATE] CREATED HAND STATE: ', handState);
+    logConsole('[CARD STATE] - created hand state: ', handState);
     setHandState(handState);
   }, [
     euchreGame.handId,
@@ -203,7 +202,7 @@ const useCardState = (
         cardIndex: card.index,
         src: cardBackSvgSrc,
         cardFullName: `Player ${player.playerNumber} Card`,
-        initSpringValue: getSpringsForCardInit(player),
+        initSpringValue: getSpringsForCardInit(player.location),
         xDamping: getRandomDamping(),
         xStiffness: getRandomStiffness(),
         yDamping: getRandomDamping(),
@@ -241,7 +240,8 @@ const useCardState = (
 
       for (const indexPosition of orderedIndices) {
         const state = cardStates.find((s) => s.cardIndex === indexPosition.cardIndex);
-        if (!state) throw new Error('Card state not found when getting available cards/state.');
+        if (!state)
+          throw new Error('[CARD STATE] - Card state not found when getting available cards/state.');
 
         currentProps.push({
           ordinalIndex: indexPosition.ordinalIndex,
@@ -333,7 +333,8 @@ const useCardState = (
       for (const cardState of newCardStates) {
         const tempVal = newProps.find((p) => p.cardIndex === cardState.cardIndex)?.springValue;
 
-        if (!tempVal) throw new Error('Logic error in regroup cards. New card state not found.');
+        if (!tempVal)
+          throw new Error('[CARD STATE] - Logic error in regroup cards. New card state not found.');
         cardState.springValue = tempVal;
       }
 
@@ -358,7 +359,8 @@ const useCardState = (
         const newState = [...prev];
         const destRef = playerDeckRefs.get(destinationPlayer.location);
 
-        if (!destRef?.current) throw new Error('Invalid destination ref to move cards to dealer');
+        if (!destRef?.current)
+          throw new Error('[CARD STATE] - Invalid destination ref to move cards to dealer');
 
         const springsToMove = getSpringsToMoveToPlayer(
           cardRefs,
@@ -390,48 +392,41 @@ const useCardState = (
    * At the beginning of a player's turn, update the card state to enable/disable cards and overlay
    * depending on settings.
    */
-  const updateCardStateForTurn = useCallback(() => {
-    if (!handState) throw new Error('Hand state not found - [updateCardStateForTurn]');
+  const updateCardStateForTurn = useCallback(
+    (awaitingPlayerInput: boolean) => {
+      if (!handState) throw new Error('[CARD STATE] - Hand state not found.');
 
-    const newCardStates: CardState[] = [...cardStates];
-    const awaitingPlayer = playerEqual(euchreGame.currentPlayer, player) && shoudUpdateCardStateForTurn;
-    const availableCards = getCardsAvailableIfFollowSuit().map((c) => c.index);
+      const newCardStates: CardState[] = [...cardStates];
+      const availableCards = getCardsAvailableIfFollowSuit().map((c) => c.index);
 
-    for (const cardState of newCardStates) {
-      const isAvailable: boolean = availableCards.includes(cardState.cardIndex);
-      const cardEnabled = awaitingPlayer && isAvailable;
-      const addOverlay = awaitingPlayer ? awaitingPlayer && !isAvailable : false;
+      for (const cardState of newCardStates) {
+        const isAvailable: boolean = availableCards.includes(cardState.cardIndex);
+        const cardEnabled = awaitingPlayerInput && isAvailable;
+        const addOverlay = awaitingPlayerInput ? awaitingPlayerInput && !isAvailable : false;
 
-      if (handState.shouldShowCardValue) {
-        cardState.enabled = cardEnabled;
-        cardState.cardFullName = getCardFullName(player.hand[cardState.cardIndex]);
-        cardState.src = getEncodedCardSvg(player.hand[cardState.cardIndex], handState.location, addOverlay);
+        if (handState.shouldShowCardValue) {
+          cardState.enabled = cardEnabled;
+          cardState.cardFullName = getCardFullName(player.hand[cardState.cardIndex]);
+          cardState.src = getEncodedCardSvg(player.hand[cardState.cardIndex], handState.location, addOverlay);
+        }
       }
-    }
 
-    setCardStates(newCardStates);
-  }, [
-    cardStates,
-    euchreGame.currentPlayer,
-    getCardFullName,
-    getCardsAvailableIfFollowSuit,
-    getEncodedCardSvg,
-    handState,
-    player,
-    playerEqual,
-    shoudUpdateCardStateForTurn
-  ]);
+      setCardStates(newCardStates);
+    },
+    [cardStates, getCardFullName, getCardsAvailableIfFollowSuit, getEncodedCardSvg, handState, player.hand]
+  );
 
   /** Sets the animation for the card to be played. On the callback when the animation is finished is when the state is updated with
    * the card that was played.
    */
   const handlePlayCardAnimation = (cardIndex: number, playerTableRef: HTMLDivElement) => {
-    logConsole('[handlePlayCardAnimation] - useCardState.ts');
+    logConsole('[CARD STATE] [handlePlayCardAnimation] - useCardState.ts');
     const currentState = cardStates.find((c) => c.cardIndex === cardIndex);
     const cardRef = cardRefs.get(cardIndex);
 
-    if (!currentState || !cardRef?.current) throw new Error('Invalid card state - [handlePlayCardAnimation]');
-    if (!handState) throw new Error('Invalid hand state - [handlePlayCardAnimation]');
+    if (!currentState || !cardRef?.current)
+      throw new Error('[CARD STATE] [handlePlayCardAnimation] - Invalid card state');
+    if (!handState) throw new Error('[CARD STATE] [handlePlayCardAnimation] - Invalid hand state');
 
     playCard(cardIndex, cardRef.current, playerTableRef, currentState.rotation ?? 0);
   };
@@ -443,7 +438,7 @@ const useCardState = (
     tableRef: HTMLDivElement | undefined,
     rotation: number
   ) => {
-    logConsole('[CARD STATE] [playCard] - useCardState.ts ');
+    logConsole('[CARD STATE] [playCard] - card index: ', cardIndex);
 
     const newCardStates: CardState[] = [...cardStates];
     const card = player.hand[cardIndex];
@@ -464,7 +459,7 @@ const useCardState = (
     for (const val of newSprungValues) {
       const cardState = newCardStates.find((c) => c.cardIndex === val.cardIndex);
 
-      if (!cardState) throw new Error('Invalid card state');
+      if (!cardState) throw new Error('[CARD STATE] - Invalid card state');
 
       cardState.springValue = val.springValue;
 
@@ -516,6 +511,69 @@ const useCardState = (
     setCardStates(newCardStates);
   }, [cardStates, getCardFullName, getEncodedCardSvg, player.hand, player.location]);
 
+  /** */
+  const animateTakeTrick = useCallback(() => {
+    if (!onTrickComplete) throw new Error('[CARD STATE] - Invalid handler');
+
+    const currentTrick = euchreGame.currentTrick;
+    trickAnimationHandled.current.push(currentTrick.trickId);
+    const lastCardPlayed: Card | undefined = cardPlayedForTrickRef.current.get(currentTrick.trickId);
+
+    logConsole('[CARD STATE] [animateTrickFinished]', ' player: ', player.name);
+
+    if (lastCardPlayed && handState && currentTrick.playerRenege) {
+      // if player reneged, then don't animate taking the trick, and just call the event handler as if the animation was complete.
+      onAnimationComplete.current = undefined;
+      onTrickComplete(lastCardPlayed);
+    } else if (lastCardPlayed && handState && !currentTrick.playerRenege) {
+      // animate trick being taken by the winner.
+      const cardIndex = lastCardPlayed.index;
+      const trickWonLocation = currentTrick.taker?.location;
+      const newCardState = [...cardStates];
+
+      // reset effect state for each card.
+      newCardState.forEach((s) => (s.runEffectForState = undefined));
+      const cardState = newCardState.find((c) => c.cardIndex === cardIndex);
+      const currentSpring = cardState?.springValue;
+      const cardRef = cardRefs.entries().find((r) => r[0] === cardIndex)?.[1]?.current;
+      const destinationDeckRef = playerDeckRefs
+        .entries()
+        .find((r) => r[0] === trickWonLocation)?.[1]?.current;
+      let newSpring: CardSpringTarget;
+
+      if (currentSpring && cardRef && destinationDeckRef && trickWonLocation) {
+        newSpring = getSpringToMoveToPlayer(
+          cardRef,
+          destinationDeckRef,
+          trickWonLocation,
+          cardState,
+          true,
+          euchreSettings.gameSpeed
+        ).springValue;
+
+        cardState.springValue = newSpring;
+        cardState.runEffectForState = EuchreGameFlow.TRICK_FINISHED;
+
+        setHandState({
+          ...handState,
+          stateEffect: EuchreGameFlow.TRICK_FINISHED
+        });
+
+        onAnimationComplete.current = onTrickComplete;
+        setCardStates(newCardState);
+      }
+    }
+  }, [
+    cardRefs,
+    cardStates,
+    euchreGame.currentTrick,
+    euchreSettings.gameSpeed,
+    getSpringToMoveToPlayer,
+    handState,
+    onTrickComplete,
+    player.name,
+    playerDeckRefs
+  ]);
   //#endregion
 
   /** ************************************************************************************************************************************* */
@@ -527,7 +585,7 @@ const useCardState = (
     const shouldRecreateHandState = handState !== undefined && handState.handId !== euchreGame.handId;
 
     if (shouldRecreateHandState) {
-      console.log('[CARD STATE] - shouldRecreateHandState - resetForNewHand', ' player: ', player.name);
+      logConsole('[CARD STATE] - shouldRecreateHandState - resetForNewHand', ' player: ', player.name);
       resetForNewHand();
     }
   }, [handState, euchreGame.handId, player.name]);
@@ -538,7 +596,7 @@ const useCardState = (
 
     if (createHandState) {
       initForNewHandEffect.current = true;
-      console.log('[CARD STATE] - createHandState - setInitialPlayerHandState', ' player: ', player.name);
+      logConsole('[CARD STATE] - createHandState - setInitialPlayerHandState', ' player: ', player.name);
       addInitializeHandStateEvent();
       setInitialPlayerHandState();
     }
@@ -560,7 +618,7 @@ const useCardState = (
       setInitCardStateCreated(true);
       addInitializeCardStateEvent();
 
-      console.log('[CARD STATE] - createCardState - setInitialPlayerHandState', ' player: ', player.name);
+      logConsole('[CARD STATE] - createCardState - setInitialPlayerHandState', ' player: ', player.name);
       initializeSortOrder();
       setInitialCardStates();
     }
@@ -587,13 +645,13 @@ const useCardState = (
 
         const cardRef = cardRefs.values().find((c) => c?.current)?.current;
         if (!cardRef) {
-          throw new Error('Invalid card ref when setting initial animation.');
+          throw new Error('[CARD STATE] - Invalid card ref when setting initial animation.');
         }
 
         const delay = (euchreSettings.gameSpeed * player.team) / 2;
         await new Promise((resolve) => setTimeout(resolve, delay));
 
-        console.log('[CARD STATE] - beginRegroupCard', ' player: ', player.name);
+        logConsole('[CARD STATE] - beginRegroupCard', ' player: ', player.name);
 
         regroupCards(false, cardRef);
 
@@ -612,11 +670,12 @@ const useCardState = (
       }
     };
 
-    beginRegroupCards();
+    errorHandlers.catchAsync(beginRegroupCards, errorHandlers.onError, 'beginRegroupCards');
   }, [
     addInitializeCardRegroupEvent,
     animateFlipPlayerHand,
     cardRefs,
+    errorHandlers,
     euchreSettings,
     gameDelay,
     handState?.shouldShowCardValue,
@@ -637,7 +696,7 @@ const useCardState = (
     if (animatePassDeal) {
       initAnimatePassDeal.current = true;
 
-      console.log('[CARD STATE] - animatePassDeal', ' player: ', player.name);
+      logConsole('[CARD STATE] - animatePassDeal', ' player: ', player.name);
 
       setHandStateForPassDeal();
       moveCardsToPlayer(euchreGame.dealer);
@@ -658,14 +717,14 @@ const useCardState = (
       initForCardsReorder.current = true;
 
       const cardRef = cardRefs.values().find((c) => c?.current)?.current;
-      if (!cardRef) throw new Error('Invalid card ref when reorder hand after trump named.');
+      if (!cardRef) throw new Error('[CARD STATE] - Invalid card ref when reorder hand after trump named.');
 
       if (handState?.shouldShowCardValue && !playerIsSittingOut) {
-        console.log('[CARD STATE] - reorderHand', ' player: ', player.name);
+        logConsole('[CARD STATE] - reorderHand', ' player: ', player.name);
 
         initializeSortOrder();
         regroupCards(true, cardRef);
-        updateCardStateForTurn();
+        updateCardStateForTurn(false);
       }
     }
   });
@@ -678,7 +737,7 @@ const useCardState = (
       if (!initForSittingOut.current && playerIsSittingOut) {
         initForSittingOut.current = true;
 
-        console.log('[CARD STATE] - beginSittingOut', ' player: ', player.name);
+        logConsole('[CARD STATE] - beginSittingOut', ' player: ', player.name);
 
         const baseTransition = getBaseTransitionForCardMoved(euchreSettings.gameSpeed);
         cardStates.forEach(
@@ -688,19 +747,23 @@ const useCardState = (
               : { ...DEFAULT_SPRING_VAL })
         );
         await gameDelay(euchreSettings);
-        cardStates.forEach((s) => (s.springValue = { ...getSpringsForCardInit(player), opacity: 0 }));
+        cardStates.forEach(
+          (s) => (s.springValue = { ...getSpringsForCardInit(player.location), opacity: 0 })
+        );
       }
     };
 
-    beginSittingOut();
+    errorHandlers.catchAsync(beginSittingOut, errorHandlers.onError, 'beginSittingOut');
   }, [
     cardStates,
+    errorHandlers,
+    euchreSettings,
     gameDelay,
     getBaseTransitionForCardMoved,
     getSpringsForCardInit,
-    player,
-    playerIsSittingOut,
-    euchreSettings
+    player.location,
+    player.name,
+    playerIsSittingOut
   ]);
 
   /** Animate the cards going to the trick winner's card area after the trick is complete.
@@ -715,117 +778,53 @@ const useCardState = (
       shouldAnimateTrickFinished;
 
     if (animateTrickFinished) {
-      trickAnimationHandled.current.push(currentTrick.trickId);
-      const lastCardPlayed: Card | undefined = cardPlayedForTrickRef.current.get(currentTrick.trickId);
-
-      console.log('[CARD STATE] - animateTrickFinished', ' player: ', player.name);
-
-      if (lastCardPlayed && handState && currentTrick.playerRenege) {
-        // if player renged, then don't animate taking the trick, and just call the event handler as if the animation was complete.
-        onAnimationComplete.current = undefined;
-        onTrickComplete(lastCardPlayed);
-      } else if (lastCardPlayed && handState && !currentTrick.playerRenege) {
-        // animate trick being taken by the winner.
-
-        const cardIndex = lastCardPlayed.index;
-        const trickWonLocation = currentTrick.taker?.location;
-        const newCardState = [...cardStates];
-
-        // reset effect state for each card.
-        newCardState.forEach((s) => (s.runEffectForState = undefined));
-
-        const cardState = newCardState.find((c) => c.cardIndex === cardIndex);
-        const currentSpring = cardState?.springValue;
-        const cardRef = cardRefs.entries().find((r) => r[0] === cardIndex)?.[1]?.current;
-        const destinationDeckRef = playerDeckRefs
-          .entries()
-          .find((r) => r[0] === trickWonLocation)?.[1]?.current;
-        let newSpring: CardSpringTarget;
-
-        if (currentSpring && cardRef && destinationDeckRef && trickWonLocation) {
-          newSpring = getSpringToMoveToPlayer(
-            cardRef,
-            destinationDeckRef,
-            trickWonLocation,
-            cardState,
-            true,
-            euchreSettings.gameSpeed
-          ).springValue;
-
-          cardState.springValue = newSpring;
-          cardState.runEffectForState = EuchreGameFlow.TRICK_FINISHED;
-
-          setHandState({
-            ...handState,
-            stateEffect: EuchreGameFlow.TRICK_FINISHED
-          });
-
-          onAnimationComplete.current = (card: Card) => onTrickComplete(card);
-          setCardStates(newCardState);
-        }
-      }
+      animateTakeTrick();
     }
-  }, [
-    cardRefs,
-    cardStates,
-    euchreGame.currentTrick,
-    euchreSettings.gameSpeed,
-    getSpringToMoveToPlayer,
-    handState,
-    onTrickComplete,
-    player.name,
-    playerDeckRefs,
-    shouldAnimateTrickFinished
-  ]);
+  }, [animateTakeTrick, euchreGame.currentTrick, onTrickComplete, shouldAnimateTrickFinished]);
 
   /** Update the player's hand at beginning of the player's turn during regular game play. */
   useEffect(() => {
-    const shouldRunBeginUpdate =
+    const runBeginUpdateCardState =
+      player.human &&
       !cardsRegroupedPlayerTurn.current.includes(euchreGame.currentTrick.trickId) &&
-      euchrePauseState.pauseType === EuchrePauseType.USER_INPUT &&
+      shoudUpdateCardStateForTurn &&
       playerEqual(player, euchreGame.currentPlayer) &&
       handState &&
       cardRefs;
 
-    if (shouldRunBeginUpdate) {
-      console.log(
-        '[CARD STATE] - shouldRunBeginUpdate - setInitialPlayerHandState',
-        ' player: ',
-        player.name
-      );
+    if (runBeginUpdateCardState) {
+      logConsole('[CARD STATE] - shouldRunBeginUpdate - updateCardStateForTurn', ' player: ', player.name);
       cardsRegroupedPlayerTurn.current.push(euchreGame.currentTrick.trickId);
-      const cardRef = cardRefs.get(0);
 
-      if (cardRef) updateCardStateForTurn();
+      updateCardStateForTurn(true);
     }
   }, [
     cardRefs,
+    euchreGame.currentPlayer,
+    euchreGame.currentTrick.trickId,
     handState,
     player,
     playerEqual,
-    euchreGame.currentPlayer,
-    euchreGame.currentTrick.trickId,
-    euchrePauseState.pauseType,
+    shoudUpdateCardStateForTurn,
     updateCardStateForTurn
   ]);
 
   /** Update the player's hand at end of the player's turn during regular game play.
-   *
    */
   useEffect(() => {
-    const runEndUpdate =
+    const runEndUpdateCardState =
+      player.human &&
       !cardsRegroupedPlayerTurnEnd.current.includes(euchreGame.currentTrick.trickId) &&
-      shouldRunEndUpdate &&
+      shoudUpdateCardStateForTurnEnd &&
       playerEqual(player, euchreGame.currentPlayer) &&
       handState &&
       cardRefs;
 
-    if (runEndUpdate) {
-      console.log('[CARD STATE] - runEndUpdate - updateCardStateForTurn', ' player: ', player.name);
+    if (runEndUpdateCardState) {
+      logConsole('[CARD STATE] - runEndUpdateCardState - updateCardStateForTurn', ' player: ', player.name);
       cardsRegroupedPlayerTurnEnd.current.push(euchreGame.currentTrick.trickId);
-      const cardRef = cardRefs.get(0);
 
-      if (cardRef) updateCardStateForTurn();
+      updateCardStateForTurn(false);
     }
   }, [
     cardRefs,
@@ -834,7 +833,7 @@ const useCardState = (
     handState,
     player,
     playerEqual,
-    shouldRunEndUpdate,
+    shoudUpdateCardStateForTurnEnd,
     updateCardStateForTurn
   ]);
 

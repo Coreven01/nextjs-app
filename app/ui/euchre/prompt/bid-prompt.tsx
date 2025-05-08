@@ -169,7 +169,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
             })}
           >
             <GameButton
-              className="w-full"
+              className="w-full grow"
               title={passTitle}
               type="danger"
               disabled={stickTheDealer}
@@ -178,7 +178,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
               Pass
             </GameButton>
             <GameButton
-              className="w-full"
+              className="w-full grow"
               title={orderTrumpTitle}
               type="success"
               onClick={() => handleBidSubmit(false)}

@@ -40,7 +40,7 @@ export default function useEuchreGameOrder(
   );
   const { orderTrump, determineDiscard } = useGameBidLogic();
   const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
-  const { discard, playerEqual } = usePlayerData();
+  const { discard, playerEqual, getPlayerRotation } = usePlayerData();
   const { indexCards } = useCardData();
   const { euchreGame, euchreSettings, euchrePauseState, bidResult } = state;
 
@@ -54,6 +54,10 @@ export default function useEuchreGameOrder(
       const newGame = { ...euchreGame };
 
       if (newGame?.trump && euchrePauseState.pauseType === EuchrePauseType.USER_INPUT) {
+        const sittingOut = playerSittingOut(newGame);
+        const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, sittingOut);
+
+        newGame.currentPlayer = rotation[0];
         newGame.dealer.hand = discard(newGame.dealer, card, newGame.trump);
         newGame.dealer.hand = indexCards(newGame.dealer.hand);
         newGame.discard = card;
@@ -66,13 +70,15 @@ export default function useEuchreGameOrder(
       }
     },
     [
-      addDiscardEvent,
-      continueToAnimateEndOrderTrump,
+      euchreGame,
+      euchrePauseState.pauseType,
+      playerSittingOut,
+      getPlayerRotation,
       discard,
       indexCards,
-      setters,
-      euchreGame,
-      euchrePauseState.pauseType
+      addDiscardEvent,
+      continueToAnimateEndOrderTrump,
+      setters
     ]
   );
 
@@ -83,6 +89,7 @@ export default function useEuchreGameOrder(
 
     if (!bidResult) throw new Error('Bid result not found.');
     const newGame: EuchreGameInstance = orderTrump(euchreGame, bidResult);
+
     if (!newGame.maker) throw Error('Maker not found - Order Trump.');
 
     addTrumpOrderedEvent(newGame.maker, bidResult);
@@ -183,8 +190,13 @@ export default function useEuchreGameOrder(
       setters.addPromptValue(PromptType.DISCARD);
       pauseForUserDiscardSelection();
     } else {
+      const sittingOut = playerSittingOut(newGame);
+      const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, sittingOut);
+
+      newGame.currentPlayer = rotation[0];
+
       if (shouldDiscard) {
-        addDealerPickedUpEvent(newGame.trump);
+        addDealerPickedUpEvent();
         newGame.discard = determineDiscard(newGame, newGame.dealer, euchreSettings.difficulty);
         newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
 
@@ -203,6 +215,7 @@ export default function useEuchreGameOrder(
     discard,
     euchreGame,
     euchreSettings.difficulty,
+    getPlayerRotation,
     pauseForUserDiscardSelection,
     playerEqual,
     playerSittingOut,

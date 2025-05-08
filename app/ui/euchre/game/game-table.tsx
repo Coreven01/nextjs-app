@@ -4,12 +4,13 @@ import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
 import { RefObject } from 'react';
 import GameFlippedCard from './game-flipped-card';
-import { DEBUG_ENABLED, TableLocation } from '../../../lib/euchre/definitions/definitions';
+import { TableLocation } from '../../../lib/euchre/definitions/definitions';
 import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
 import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
 import useGameStateLogic from '../../../hooks/euchre/logic/useGameStateLogic';
+import GameTrumpIndicator from './game-trump-indicator';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameState;
@@ -44,6 +45,7 @@ const GameTable = ({
   const game = state.euchreGame;
   const gameFlow = state.euchreGameFlow;
   const gameBidding = game.maker === null && getGameStatesForBid().includes(gameFlow.gameFlow);
+  const gamePlay = game.maker !== null;
 
   const cardState: CardState = {
     src: getEncodedCardSvg(game.trump, 'top'),
@@ -111,6 +113,12 @@ const GameTable = ({
           className="col-span-1 col-start-2 row-start-2 relative flex justify-center items-center"
         >
           <GameFlippedCard cardState={cardState} card={game.trump} key={game.handId} visible={gameBidding} />
+          {gamePlay && (
+            <GameTrumpIndicator
+              notificationSpeed={state.euchreSettings.notificationSpeed}
+              trumpSuit={state.euchreGame.trump.suit}
+            />
+          )}
           {renderOrder[2]}
         </div>
         <div

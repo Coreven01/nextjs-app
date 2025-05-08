@@ -12,8 +12,8 @@ import {
 import { GameBidLogic } from '../../../lib/euchre/definitions/logic-definitions';
 
 const useGameBidLogic = () => {
-  const { teamPoints, getRandomScoreForDifficulty, playerSittingOut } = useGameData();
-  const { playerEqual, availableCardsToPlay, getPlayerRotation } = usePlayerData();
+  const { teamPoints, getRandomScoreForDifficulty } = useGameData();
+  const { playerEqual, availableCardsToPlay } = usePlayerData();
   const { getCardValue, cardIsLeftBower, cardIsRightBower, getSuitCount, cardEqual, indexCards } =
     useCardData();
   const { createTrick } = useGameSetupLogic();
@@ -353,10 +353,7 @@ const useGameBidLogic = () => {
 
     newGame.maker = newGame.currentPlayer;
     newGame.loner = result.loner;
-    const sittingOut = playerSittingOut(newGame);
-    const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer, sittingOut);
     newGame.currentTrick = createTrick(newGame.currentRound);
-    newGame.currentPlayer = rotation[0];
 
     if (result.calledSuit) {
       newGame.turnedDown = newGame.trump;

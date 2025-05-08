@@ -128,7 +128,7 @@ const GameMenu = ({
         )}
         style={{ zIndex: 100 }}
       >
-        <div className="p-2 text-white">
+        <div className="lg:p-2 p-1 text-white lg:text-base text-sm">
           <label htmlFor="isFullScreen">Toggle Fullscreen</label>
           <Switch
             id="isFullScreen"
@@ -140,7 +140,7 @@ const GameMenu = ({
           />
         </div>
         {enableToggleEvents && (
-          <div className="p-2 text-white">
+          <div className="lg:p-2 p-1 text-white lg:text-base text-sm">
             <label htmlFor="showEvents">Toggle Events</label>
             <Switch
               id="showEvents"
@@ -153,7 +153,7 @@ const GameMenu = ({
           </div>
         )}
         {enableToggleSettings && (
-          <div className="p-2 text-white">
+          <div className="lg:p-2 p-1 text-white lg:text-base text-sm">
             <label htmlFor="showSettings">Toggle Settings</label>
             <Switch
               id="showSettings"
@@ -165,7 +165,7 @@ const GameMenu = ({
             />
           </div>
         )}
-        <div className="p-2 text-white">
+        <div className="lg:p-2 p-1 text-white lg:text-base text-sm">
           <label htmlFor="showScore">Toggle Score</label>
           <Switch
             id="showScore"
@@ -176,7 +176,7 @@ const GameMenu = ({
             onChange={(e) => onScoreToggle(e.target.checked)}
           />
         </div>
-        <div className="p-2 text-white">
+        <div className="lg:p-2 p-1 text-white lg:text-base text-sm">
           <button onClick={handleCancel}>Cancel Game</button>
         </div>
       </div>

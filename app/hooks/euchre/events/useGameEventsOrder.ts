@@ -20,7 +20,7 @@ const useGameEventsOrder = (state: EuchreGameValues, eventHandlers: GameEventHan
     );
   };
 
-  const addDealerPickedUpEvent = (card: Card) => {
+  const addDealerPickedUpEvent = () => {
     eventHandlers.addEvent(
       eventHandlers.createEvent(
         'i',

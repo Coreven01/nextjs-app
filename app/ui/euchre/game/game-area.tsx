@@ -80,7 +80,7 @@ const GameArea = ({
   return (
     <div
       className={clsx(
-        `h-full grid grid-flow-col grid-rows-[minmax(50px,auto)_minmax(50px,1fr)_minmax(50px,75px)] grid-cols-[minmax(50px,auto)_minmax(60%,80%)_minmax(50px,auto)] lg:grid-rows-[120px,1fr,120px] lg:grid-cols-[120px_minmax(60%,600px)_120px]`,
+        `h-full grid grid-flow-col grid-rows-[minmax(40px,auto)_minmax(50px,1fr)_minmax(50px,65px)] grid-cols-[minmax(50px,auto)_minmax(60%,80%)_minmax(50px,auto)] lg:grid-rows-[120px,1fr,120px] lg:grid-cols-[120px_minmax(60%,600px)_120px]`,
         className
       )}
       {...rest}

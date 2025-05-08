@@ -4,8 +4,8 @@ import {
   RESPONSE_CARD_SIDE,
   TableLocation
 } from '@/app/lib/euchre/definitions/definitions';
-import React, { CSSProperties, forwardRef, PropsWithoutRef, useCallback, useRef, useState } from 'react';
-import { motion, TargetAndTransition } from 'framer-motion';
+import React, { CSSProperties, forwardRef, PropsWithoutRef, useCallback, useRef } from 'react';
+import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
@@ -50,22 +50,11 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     ref
   ) => {
     const { getCardBackSrc, getCardShadowSrc } = useCardData();
-    const [clicked, setClicked] = useState(false);
 
     /** Used to prevent the same animation event handler from running more than once for a particular action. */
     const actionsRun = useRef<EuchreGameFlow[]>([]);
     const sideLocation = location === 'left' || location === 'right';
-    const hoverEffect: TargetAndTransition | undefined =
-      onCardClick !== undefined && !clicked
-        ? {
-            scale: [null, 1.1, 1.2],
-            transition: {
-              duration: 0.5,
-              times: [0, 0.6, 1],
-              ease: ['easeInOut', 'easeOut']
-            }
-          }
-        : undefined;
+    const useHoverEffect: boolean = onCardClick !== undefined && cardState.enabled;
 
     const cardBackSrc = getCardBackSrc(location);
     const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
@@ -84,6 +73,8 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
      * specific type of effect wasn't already handled.
      */
     const handleAnimationComplete = useCallback(() => {
+      logConsole('*** [GAMECARD] [handleAnimationComplete] - game-card.tsx for card: ', card);
+
       const shouldRunEffect =
         runAnimationCompleteEffect &&
         onAnimationComplete &&
@@ -93,17 +84,21 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       if (shouldRunEffect) {
         // fall into this block once animation is complete to update game state (onAnimationComplete).
         actionsRun.current.push(runAnimationCompleteEffect);
-        logConsole('*** [GAMECARD] [handleAnimationComplete] - game-card.tsx for card: ', card);
-
         onAnimationComplete(card);
       }
     }, [card, cardState.runEffectForState, onAnimationComplete, runAnimationCompleteEffect]);
 
     /** Handle card click event. */
     const handleCardClick = useCallback(() => {
+      logConsole(
+        '*** [GAMECARD] [handleCardClick] - game-card.tsx',
+        ' card index: ',
+        card.index,
+        ' actions run: ',
+        actionsRun
+      );
+
       if (onCardClick) {
-        logConsole('*** [GAMECARD] [handleCardClick] - game-card.tsx', ' card index: ', card.index);
-        setClicked(true);
         if (runAnimationCompleteEffect) actionsRun.current.push(runAnimationCompleteEffect);
         // when card is clicked, it activates the animation to play the card.
         // on the animation is complete, the callback handler calls the method that updates,
@@ -113,7 +108,21 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     }, [card.index, onCardClick, runAnimationCompleteEffect]);
     //#endregion
 
-    logConsole('*** [GAMECARD] [RENDER] card: ', cardState.cardFullName, ' card: ', card);
+    if (cardState.enabled)
+      logConsole(
+        '*** [GAMECARD] [RENDER] card: ',
+        cardState.cardFullName,
+        ' card: ',
+        card,
+        ' state: ',
+        cardState,
+        ' runanimationeffect: ',
+        runAnimationCompleteEffect,
+        ' onAnimationComplete: ',
+        onAnimationComplete,
+        ' onClick:',
+        onCardClick
+      );
 
     return (
       <motion.div
@@ -144,10 +153,9 @@ const GameCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         <Image
           className={clsx(
             'absolute top-0 left-0 pointer-events-auto',
-            { 'cursor-not-allowed': hoverEffect === undefined },
+            { 'cursor-not-allowed': !useHoverEffect },
             {
-              'cursor-pointer hover:scale-110 hover:-translate-y-2 transition duration-300':
-                hoverEffect !== undefined
+              'cursor-pointer hover:scale-110 hover:-translate-y-2 transition duration-300': useHoverEffect
             }
           )}
           quality={100}

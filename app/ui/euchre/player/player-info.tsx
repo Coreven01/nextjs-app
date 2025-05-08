@@ -69,7 +69,7 @@ const PlayerInfo = ({ player, state, ...rest }: Props) => {
     if (euchreSettings.viewPlayerInfoDetail) {
       infoToRender.push(
         <div key={counter++} className={infoClass}>
-          Maker ({suit})
+          Maker
         </div>
       );
     } else {

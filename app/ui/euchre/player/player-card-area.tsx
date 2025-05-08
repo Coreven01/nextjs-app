@@ -131,7 +131,7 @@ const PlayerCardArea = ({
 
       if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
         tricksFinished.current.add(trick.trickId);
-        animationHandlers.handleTrickFinished(); //  onTrickComplete();
+        animationHandlers.handleTrickFinished();
       }
     },
     [animationHandlers, cardCountDuringPlay, state.euchreGame.currentTrick]
@@ -224,21 +224,3 @@ const PlayerCardArea = ({
 };
 
 export default PlayerCardArea;
-
-{
-  /* <PlayerGameDeck
-                id={''}
-                playerTableRef={undefined}
-                playerDeckRefs={playerDeckRefs}
-                player={info.player}
-                state={state}
-                cardStates={cardStates}
-                onDealComplete={() => null}
-                onCardPlayed={animationHandlers.handleCardPlayed}
-                onTrickComplete={() => null}
-                onPassDeal={() => null}
-                playedCard={
-                  playedCard && playerEqual(state.euchreGame.currentPlayer, info.player) ? playedCard : null
-                }
-              /> */
-}

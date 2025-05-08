@@ -24,6 +24,7 @@ import useGameStateLogic from '../logic/useGameStateLogic';
 import useAnimationDeckState from '../phases/useAnimationDeckState';
 import { GameEventHandlers } from '../useEventLog';
 import useGameDeckStateEvents from '../events/useGameDeckStateEvents';
+import { logConsole } from '../../../lib/euchre/util';
 
 export interface GameDeckState {
   deck: Card[];
@@ -126,19 +127,7 @@ const useDeckState = (
 
   /** ************************************************************************************************************************************* */
 
-  /**
-   * Reset game state for a new game.
-   */
-  // const resetStateFull = () => {
-  //   setGameDeckState(undefined);
-  //   setCardStates([]);
-  //   setEndInitialDeal(false);
-  //   resetStateDeal();
-  //   initBeginDealForDealerEffect.current = false;
-  //   endBeginDealForDealerEffect.current = false;
-  //   initEndDealForDealerEffect.current = false;
-  // };
-
+  /** Reset state for new deal. */
   const resetStateDeal = () => {
     cardsDealtCount.current = 0;
     initBeginDealForRegularPlayEffect.current = false;
@@ -147,7 +136,7 @@ const useDeckState = (
   };
 
   const handleRefChange = useCallback((ready: boolean) => {
-    console.log('********** REF CHANGE: ', ready);
+    logConsole('********** REF CHANGE: ', ready);
     setRefsReady(ready);
   }, []);
 
@@ -197,7 +186,7 @@ const useDeckState = (
 
   /** */
   const handleBeginDealForRegularPlayComplete = useCallback(() => {
-    console.log('[handleBeginDealForRegularPlayComplete] card count: ', cardsDealtCount.current);
+    logConsole('[DECK STATE] [handleBeginDealForRegularPlayComplete] card count: ', cardsDealtCount.current);
     if (cardsDealtCount.current === 20) {
       setEndRegularDeal(true);
       cardsDealtCount.current = 0;
@@ -325,14 +314,14 @@ const useDeckState = (
    * to prepare them for being dealt.
    */
   const initAnimationForInitialDeal = useCallback(async () => {
-    if (!gameDeckState) throw new Error('Invalid game deck state for initializing deal.');
+    if (!gameDeckState) throw new Error('[DECK STATE ] - Invalid game deck state for initializing deal.');
 
     const destRef = playerDeckRefs.get(gameDeckState.location);
     const directCenterRef = getRelativeCenter(gameDeckState.location);
 
-    if (!destRef?.current) throw new Error('Invalid destination ref for initializing deal.');
-    if (!gameDeckRef.current) throw new Error('Invalid game deck ref for initializing deal.');
-    if (!directCenterRef) throw new Error('Invalid direct center ref for initializing deal.');
+    if (!destRef?.current) throw new Error('[DECK STATE ] - Invalid destination ref for initializing deal.');
+    if (!gameDeckRef.current) throw new Error('[DECK STATE ] - Invalid game deck ref for initializing deal.');
+    if (!directCenterRef) throw new Error('[DECK STATE ] - Invalid direct center ref for initializing deal.');
 
     const duration = euchreSettings.gameSpeed / 1000;
     const srcRect = getElementOriginalPosition(gameDeckRef.current);
@@ -377,7 +366,7 @@ const useDeckState = (
    * Create the animation values for the cards being dealt for initial deal.
    * */
   const dealCardsForInitialDeal = useCallback(() => {
-    if (!gameDeckState) throw new Error('Invalid deck state for dealing cards.');
+    if (!gameDeckState) throw new Error('[DECK STATE ] - Invalid deck state for dealing cards.');
 
     const rotation: EuchrePlayer[] = getPlayerRotation(euchreGame.gamePlayers, euchreGame.dealer);
     const duration: number = euchreSettings.gameSpeed / 1000;
@@ -385,11 +374,11 @@ const useDeckState = (
     const directCenterH = directCenterHRef.current;
     const directCenterV = directCenterVRef.current;
 
-    if (!directCenterH) throw new Error('Invalid direct center ref for initializing deal.');
-    if (!directCenterV) throw new Error('Invalid direct center ref for initializing deal.');
+    if (!directCenterH) throw new Error('[DECK STATE ] - Invalid direct center ref for initializing deal.');
+    if (!directCenterV) throw new Error('[DECK STATE ] - Invalid direct center ref for initializing deal.');
 
     setCardStates((prev) => {
-      if (!initDealer) throw new Error('Invalid deal result for dealing cards.');
+      if (!initDealer) throw new Error('[DECK STATE ] - Invalid deal result for dealing cards.');
 
       const newState = [...prev];
 
@@ -454,7 +443,8 @@ const useDeckState = (
         const newState = [...prev];
         const destRef = playerDeckRefs.get(destinationPlayer.location);
 
-        if (!destRef?.current) throw new Error('Invalid destination ref to move cards to dealer');
+        if (!destRef?.current)
+          throw new Error('[DECK STATE ] - Invalid destination ref to move cards to dealer');
 
         const springsToMove = getSpringsToMoveToPlayer(
           deckCardRefs,
@@ -486,7 +476,7 @@ const useDeckState = (
    * Update the game deck state to handle animation complete for game flow end deal for dealer.
    */
   const setGameDeckStateForEndDealForDealer = useCallback(() => {
-    if (!gameDeckState) throw new Error('Invalid deck state for moving cards.');
+    if (!gameDeckState) throw new Error('[DECK STATE ] - Invalid deck state for moving cards.');
 
     setGameDeckState({
       ...gameDeckState,
@@ -499,7 +489,8 @@ const useDeckState = (
    *
    */
   const dealCardsForRegularPlay = useCallback(() => {
-    if (!gameDeckState) throw new Error('Invalid deck state for dealing cards for regular play.');
+    if (!gameDeckState)
+      throw new Error('[DECK STATE ] - Invalid deck state for dealing cards for regular play.');
 
     const rotation: EuchrePlayer[] = getPlayerRotation(euchreGame.gamePlayers, euchreGame.dealer);
     const duration: number = euchreSettings.gameSpeed / 1000;
@@ -507,8 +498,10 @@ const useDeckState = (
     const directCenterH = directCenterHRef.current;
     const directCenterV = directCenterVRef.current;
 
-    if (!directCenterH) throw new Error('Invalid direct center ref for dealing cards for regular play.');
-    if (!directCenterV) throw new Error('Invalid direct center ref for dealing cards for regular play.');
+    if (!directCenterH)
+      throw new Error('[DECK STATE ] - Invalid direct center ref for dealing cards for regular play.');
+    if (!directCenterV)
+      throw new Error('[DECK STATE ] - Invalid direct center ref for dealing cards for regular play.');
 
     setCardStates((prev) => {
       const newState = [...prev];
@@ -715,7 +708,7 @@ const useDeckState = (
 
         addAnimateForEndDealForDealerEvent(true, !dealAnimationEnabled);
 
-        if (!initDealer) throw new Error('Invalid deal result for moving cards.');
+        if (!initDealer) throw new Error('[DECK STATE ] - Invalid deal result for moving cards.');
 
         setGameDeckStateForEndDealForDealer();
         moveCardsToPlayer(initDealer.newDealer);
@@ -787,7 +780,7 @@ const useDeckState = (
         moveCardsToPlayersForRegularPlay();
         await gameDelay(euchreSettings);
 
-        console.log('[DECKSTATE] [endAnimationForRegularPlay]');
+        logConsole('[DECK STATE] [endAnimationForRegularPlay]');
         animationHandlers.handleBeginRegularDealComplete();
       }
     };

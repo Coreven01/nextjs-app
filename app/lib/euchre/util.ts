@@ -5,7 +5,7 @@ const ENABLE_LOGGING = true;
 /** Log error to console. */
 const logConsole = (
   message: object | string | null | undefined,
-  ...params: (object | string | number | null | undefined)[]
+  ...params: (object | string | number | boolean | null | undefined)[]
 ) => {
   if (!ENABLE_LOGGING) return;
 

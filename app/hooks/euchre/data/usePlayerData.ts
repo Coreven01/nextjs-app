@@ -93,7 +93,7 @@ const usePlayerData = () => {
     const playerLayoutForGrid = [
       {
         location: 'bottom',
-        locationClass: 'row-start-3 col-start-1 col-span-3 row-span-1 lg:top-0 md:top-4 sm:top-6 top-8',
+        locationClass: 'row-start-3 col-start-1 col-span-3 row-span-1 lg:top-0 md:top-4 sm:top-4 top-4',
         innerClassName: 'flex items-end h-full justify-center',
         playerInfoClass: 'lg:relative lg:right-4 lg:bottom-8 lg:min-w-32 right-28 bottom-8',
         playerInnerDeckOffsetClass: 'left-1/2 top-0',
@@ -103,9 +103,9 @@ const usePlayerData = () => {
       {
         location: 'top',
         locationClass:
-          'row-start-1 col-start-1 col-span-3 row-span-1 lg:top-0 lg:left-0 md:-top-6 sm:-top-8 -top-10 left-16',
+          'row-start-1 col-start-1 col-span-3 row-span-1 lg:top-0 lg:left-0 md:-top-6 sm:-top-12 -top-10 left-16',
         innerClassName: 'flex h-full items-start justify-center',
-        playerInfoClass: 'lg:relative lg:right-4 lg:top-2 lg:min-w-32 right-36 top-8',
+        playerInfoClass: 'lg:relative lg:right-4 lg:top-2 lg:min-w-32 right-36 sm:top-12 top-10',
         playerInnerDeckOffsetClass: 'left-1/2 bottom-0',
         width: getDisplayWidth('top'),
         height: getDisplayHeight('top')
@@ -115,7 +115,7 @@ const usePlayerData = () => {
         locationClass:
           'row-start-1 col-start-1 row-span-3 col-span-1 lg:left-0 md:-left-6 sm:-left-8 -left-10',
         innerClassName: ' flex flex-col items-start w-full lg:top-[20%] md:top-[5%] top-0',
-        playerInfoClass: 'lg:-bottom-16 lg:left-2 lg:min-w-32 -bottom-4 left-8',
+        playerInfoClass: 'lg:-bottom-16 lg:left-2 lg:min-w-32 -bottom-4 sm:left-8 left-10',
         playerInnerDeckOffsetClass: 'top-1/2 right-0',
         width: getDisplayWidth('left'),
         height: getDisplayHeight('left')
@@ -125,7 +125,7 @@ const usePlayerData = () => {
         locationClass:
           'row-start-1 col-start-3 row-span-3 row-span-1 lg:right-0 md:-right-6 sm:-right-8 -right-10',
         innerClassName: 'flex flex-col items-end w-full lg:top-[20%] md:top-[5%] top-0',
-        playerInfoClass: 'lg:-bottom-16 lg:right-2 lg:min-w-32 -bottom-4 right-8',
+        playerInfoClass: 'lg:-bottom-16 lg:right-2 lg:min-w-32 -bottom-4 sm:right-8 right-10',
         playerInnerDeckOffsetClass: 'top-1/2 left-0',
         width: getDisplayWidth('right'),
         height: getDisplayHeight('right')
