@@ -11,6 +11,7 @@ import clsx from 'clsx';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import { AnimationControls, motion, TargetAndTransition } from 'framer-motion';
 import DummyCard from '../common/dummy-card';
+import { logConsole } from '../../../lib/euchre/util/util';
 
 interface Props {
   location: TableLocation;
@@ -61,7 +62,7 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       };
     }, [onFirstRender]);
 
-    console.log('*** [GAMEDECK] [RENDER]. handId: ', handId);
+    logConsole('*** [GAMEDECK] [RENDER]. handId: ', handId);
 
     return (
       <motion.div
@@ -85,6 +86,7 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
             const cardRef = deckCardRefs.get(card.index);
             return (
               <GameCard
+                renderKey={cardState.renderKey}
                 id={`game-deck-card-${card.index}`}
                 key={`${card.index}`}
                 ref={cardRef}

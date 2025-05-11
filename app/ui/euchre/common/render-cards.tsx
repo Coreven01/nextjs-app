@@ -1,20 +1,15 @@
 import { Card, CardBackColor, CardValue, Suit } from '@/app/lib/euchre/definitions/definitions';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
-import useCardData from '@/app/hooks/euchre/data/useCardData';
-import useGameSetupLogic from '@/app/hooks/euchre/logic/useGameSetupLogic';
+import { getCardFullName, getEncodedCardSvg } from '../../../lib/euchre/util/cardSvgDataUtil';
+import { getDisplayHeight, getDisplayWidth } from '../../../lib/euchre/util/cardDataUtil';
 
 interface Props {
   color: CardBackColor;
   size: string;
   rotate: boolean;
 }
-export default function RenderCards({ color, size, rotate }: Props) {
-  const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
-  const { getDisplayHeight, getDisplayWidth } = useCardData();
-  const { createPlayer } = useGameSetupLogic();
-
+export default function RenderCards({ rotate }: Props) {
   const cardValues: CardValue[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
   const suits: Suit[] = ['♠', '♥', '♦', '♣'];
   const tempCard: Card = { suit: '♠', value: '2', index: 0 };
@@ -24,7 +19,9 @@ export default function RenderCards({ color, size, rotate }: Props) {
       <div className={clsx('flex justify-center mb-2 gap-2')}>
         <GameCard
           id="back-card-1"
+          renderKey="1"
           cardState={{
+            renderKey: '1',
             src: '/card-back.svg',
             cardFullName: getCardFullName(tempCard),
             cardIndex: 1,
@@ -37,7 +34,9 @@ export default function RenderCards({ color, size, rotate }: Props) {
         ></GameCard>
         <GameCard
           id="back-card-2"
+          renderKey="1"
           cardState={{
+            renderKey: '1',
             src: '/card-back-side.svg',
             cardFullName: getCardFullName(tempCard),
             cardIndex: 0,
@@ -68,12 +67,14 @@ export default function RenderCards({ color, size, rotate }: Props) {
                 <div key={`${s}${c}`}>
                   <GameCard
                     className={clsx({ 'rotate-90': rotate })}
+                    renderKey="1"
                     id={`${s}${c}`}
                     cardState={{
                       src: getEncodedCardSvg(card, 'top'),
                       cardFullName: getCardFullName(tempCard),
                       cardIndex: 0,
-                      enabled: false
+                      enabled: false,
+                      renderKey: '1'
                     }}
                     card={tempCard}
                     width={w}
@@ -106,10 +107,12 @@ export default function RenderCards({ color, size, rotate }: Props) {
                   className={clsx({ '-rotate-90': rotate })}
                   key={`${s}${c}`}
                   id={`${s}${c}`}
+                  renderKey="1"
                   cardState={{
                     src: getEncodedCardSvg(card, 'left'),
                     cardFullName: getCardFullName(tempCard),
                     cardIndex: 0,
+                    renderKey: '1',
                     enabled: false
                   }}
                   card={tempCard}

@@ -7,9 +7,6 @@ import {
 import { BidResult, PromptType } from '@/app/lib/euchre/definitions/definitions';
 import UserInfo from '@/app/ui/euchre/player/user-info';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameBidLogic from '../logic/useGameBidLogic';
-import usePlayerData from '../data/usePlayerData';
-import useGameData from '../data/useGameData';
 import { v4 as uuidv4 } from 'uuid';
 import {
   EuchreGameInstance,
@@ -21,7 +18,18 @@ import {
 import { GameEventHandlers } from '../useEventLog';
 import { EuchrePauseActionType, EuchrePauseType } from '../reducers/gamePauseReducer';
 import useGameBidState from '../phases/useGameBidState';
-import useGameEventsBid from '../events/useGameEventsBid';
+import { determineBid } from '../../../lib/euchre/util/gameBidLogicUtil';
+import { notificationDelay } from '../../../lib/euchre/util/gameDataUtil';
+import { getPlayerRotation } from '../../../lib/euchre/util/playerDataUtil';
+import {
+  addAnimateBidForTrumpEvent,
+  addBeginBidForTrumpEvent,
+  addBeginPassDealEvent,
+  addBidScoreEvent,
+  addFinalizeBidForTrumpEvent,
+  addHandleBidSelectionEvent,
+  addPassBidEvent
+} from '../../../lib/euchre/util/gameBidEventsUtil';
 
 export default function useEuchreGameBid(
   state: EuchreGameValues,
@@ -44,18 +52,6 @@ export default function useEuchreGameBid(
     continueToShuffleCards
   } = useGameBidState(state, setters, errorHandlers);
 
-  const { determineBid } = useGameBidLogic();
-  const { getPlayerRotation } = usePlayerData();
-  const { notificationDelay } = useGameData();
-  const {
-    addBeginBidForTrumpEvent,
-    addAnimateBidForTrumpEvent,
-    addFinalizeBidForTrumpEvent,
-    addBeginPassDealEvent,
-    addPassBidEvent,
-    addBidScoreEvent,
-    addHandleBidSelectionEvent
-  } = useGameEventsBid(state, eventHandlers);
   const { euchreGame, euchreSettings, euchreGameFlow, euchrePauseState } = state;
 
   /**
@@ -89,9 +85,9 @@ export default function useEuchreGameBid(
     (bidResult: BidResult) => {
       const currentPlayer: EuchrePlayer = euchreGame.currentPlayer;
 
-      addPassBidEvent();
+      addPassBidEvent(state, eventHandlers);
       if (!currentPlayer.human) {
-        addBidScoreEvent(bidResult);
+        addBidScoreEvent(bidResult, state, eventHandlers);
       }
 
       const notification: PlayerNotificationAction = {
@@ -113,12 +109,12 @@ export default function useEuchreGameBid(
       continueToAnimateBeginBidForTrump();
     },
     [
-      addBidScoreEvent,
-      addPassBidEvent,
       continueToAnimateBeginBidForTrump,
-      setters,
       euchreGame.currentPlayer,
-      euchreSettings
+      euchreSettings,
+      eventHandlers,
+      setters,
+      state
     ]
   );
 
@@ -136,7 +132,7 @@ export default function useEuchreGameBid(
   const handlePlayerSelectionForBid = useCallback(
     (result: BidResult) => {
       const currentPlayer = euchreGame.currentPlayer;
-      addHandleBidSelectionEvent();
+      addHandleBidSelectionEvent(state, eventHandlers);
 
       setters.setBidResult(result);
       if (result.orderTrump && (!euchreSettings.debugAlwaysPass || currentPlayer.human)) {
@@ -146,12 +142,13 @@ export default function useEuchreGameBid(
       }
     },
     [
-      addHandleBidSelectionEvent,
+      euchreGame.currentPlayer,
+      euchreSettings.debugAlwaysPass,
+      eventHandlers,
       handlePassForBid,
       handlePlayerOrderTrumpFromBid,
       setters,
-      euchreGame.currentPlayer,
-      euchreSettings.debugAlwaysPass
+      state
     ]
   );
 
@@ -179,7 +176,7 @@ export default function useEuchreGameBid(
   const beginBidForTrump = useCallback(() => {
     if (!shouldBeginBidForTrump) return;
 
-    addBeginBidForTrumpEvent();
+    addBeginBidForTrumpEvent(state, eventHandlers);
 
     if (euchreGameFlow.hasSecondBiddingPassed) {
       // all users have passed. pass the deal to the next user and begin to re-deal.
@@ -200,16 +197,16 @@ export default function useEuchreGameBid(
       handlePlayerSelectionForBid(bidChoice);
     }
   }, [
-    addBeginBidForTrumpEvent,
     continueToBeginPassDeal,
-    determineBid,
-    handlePlayerSelectionForBid,
-    pauseForBidForTrump,
-    shouldBeginBidForTrump,
     euchreGame,
     euchreGameFlow.hasFirstBiddingPassed,
     euchreGameFlow.hasSecondBiddingPassed,
-    euchreSettings
+    euchreSettings,
+    eventHandlers,
+    handlePlayerSelectionForBid,
+    pauseForBidForTrump,
+    shouldBeginBidForTrump,
+    state
   ]);
 
   /** Begin bid for trump game flow.
@@ -231,7 +228,7 @@ export default function useEuchreGameBid(
 
       setters.dispatchPause();
 
-      addAnimateBidForTrumpEvent(true);
+      addAnimateBidForTrumpEvent(true, state, eventHandlers);
 
       // delay for animation between players when passing bid.
       await notificationDelay(euchreSettings);
@@ -244,13 +241,13 @@ export default function useEuchreGameBid(
       'beginAnimationForBidForTrump'
     );
   }, [
-    addAnimateBidForTrumpEvent,
     continueToEndBidForTrump,
     errorHandlers,
-    notificationDelay,
+    euchreSettings,
+    eventHandlers,
     setters,
     shouldAnimateBeginBidForTrump,
-    euchreSettings
+    state
   ]);
 
   /** Modify the game state depending on if the user named trump or passed based on player bid choice.
@@ -259,7 +256,7 @@ export default function useEuchreGameBid(
   const endBidForTrump = useCallback(() => {
     if (!shouldEndBidForTrump) return;
 
-    addFinalizeBidForTrumpEvent(false);
+    addFinalizeBidForTrumpEvent(false, state, eventHandlers);
     updateStateAndContinueToBidForTrump(euchreGame, euchreGameFlow);
 
     const newGame: EuchreGameInstance = { ...euchreGame };
@@ -268,12 +265,12 @@ export default function useEuchreGameBid(
 
     setters.setEuchreGame(newGame);
   }, [
-    addFinalizeBidForTrumpEvent,
-    getPlayerRotation,
-    setters,
-    shouldEndBidForTrump,
     euchreGame,
     euchreGameFlow,
+    eventHandlers,
+    setters,
+    shouldEndBidForTrump,
+    state,
     updateStateAndContinueToBidForTrump
   ]);
 
@@ -301,7 +298,7 @@ export default function useEuchreGameBid(
 
     setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
 
-    addBeginPassDealEvent();
+    addBeginPassDealEvent(state, eventHandlers);
 
     const newGame: EuchreGameInstance = { ...euchreGame };
     const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
@@ -316,15 +313,14 @@ export default function useEuchreGameBid(
     pauseForPassDeal();
     setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
   }, [
-    addBeginPassDealEvent,
+    euchreGame,
+    euchreSettings,
+    eventHandlers,
     getPlayerNotificationForAllPassed,
-    getPlayerRotation,
-    notificationDelay,
     pauseForPassDeal,
     setters,
     shouldBeginPassDeal,
-    euchreGame,
-    euchreSettings
+    state
   ]);
 
   useEffect(() => {

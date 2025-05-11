@@ -2,10 +2,6 @@ import { Card, PromptType } from '@/app/lib/euchre/definitions/definitions';
 import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect } from 'react';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameBidLogic from '../logic/useGameBidLogic';
-import useGameData from '../data/useGameData';
-import usePlayerData from '../data/usePlayerData';
-import useCardData from '../data/useCardData';
 import { GameEventHandlers } from '../useEventLog';
 import {
   EuchreGameInstance,
@@ -14,8 +10,16 @@ import {
   ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useGameOrderState from '../phases/useGameOrderState';
-import useGameEventsOrder from '../events/useGameEventsOrder';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
+import { incrementSpeed, notificationDelay, playerSittingOut } from '../../../lib/euchre/util/gameDataUtil';
+import { discard, getPlayerRotation, playerEqual } from '../../../lib/euchre/util/playerDataUtil';
+import { indexCards } from '../../../lib/euchre/util/cardDataUtil';
+import { determineDiscard, orderTrump } from '../../../lib/euchre/util/gameBidLogicUtil';
+import {
+  addDealerPickedUpEvent,
+  addDiscardEvent,
+  addTrumpOrderedEvent
+} from '../../../lib/euchre/util/gameOrderEventsUtil';
 
 export default function useEuchreGameOrder(
   state: EuchreGameValues,
@@ -34,14 +38,6 @@ export default function useEuchreGameOrder(
     continueToAnimateEndOrderTrump,
     continueToBeginPlayCard
   } = useGameOrderState(state, setters, errorHandlers);
-  const { addTrumpOrderedEvent, addDiscardEvent, addDealerPickedUpEvent } = useGameEventsOrder(
-    state,
-    eventHandlers
-  );
-  const { orderTrump, determineDiscard } = useGameBidLogic();
-  const { incrementSpeed, playerSittingOut, notificationDelay } = useGameData();
-  const { discard, playerEqual, getPlayerRotation } = usePlayerData();
-  const { indexCards } = useCardData();
   const { euchreGame, euchreSettings, euchrePauseState, bidResult } = state;
 
   //#region Order Trump *************************************************************************
@@ -62,24 +58,14 @@ export default function useEuchreGameOrder(
         newGame.dealer.hand = indexCards(newGame.dealer.hand);
         newGame.discard = card;
 
-        addDiscardEvent(newGame.discard);
+        addDiscardEvent(newGame.discard, state, eventHandlers);
         continueToAnimateEndOrderTrump();
 
         setters.removePromptValue(PromptType.DISCARD);
         setters.setEuchreGame(newGame);
       }
     },
-    [
-      euchreGame,
-      euchrePauseState.pauseType,
-      playerSittingOut,
-      getPlayerRotation,
-      discard,
-      indexCards,
-      addDiscardEvent,
-      continueToAnimateEndOrderTrump,
-      setters
-    ]
+    [continueToAnimateEndOrderTrump, euchreGame, euchrePauseState.pauseType, eventHandlers, setters, state]
   );
 
   /** Player has ordered trump either by naming suit or telling the dealer to pick up the flipped card.
@@ -92,17 +78,17 @@ export default function useEuchreGameOrder(
 
     if (!newGame.maker) throw Error('Maker not found - Order Trump.');
 
-    addTrumpOrderedEvent(newGame.maker, bidResult);
+    addTrumpOrderedEvent(newGame.maker, bidResult, state, eventHandlers);
     continueToAnimateBeginOrderTrump();
     setters.setEuchreGame(newGame);
   }, [
-    addTrumpOrderedEvent,
+    bidResult,
     continueToAnimateBeginOrderTrump,
-    orderTrump,
+    euchreGame,
+    eventHandlers,
     setters,
     shouldBeginOrderTrump,
-    bidResult,
-    euchreGame
+    state
   ]);
 
   /**
@@ -158,15 +144,14 @@ export default function useEuchreGameOrder(
       errorHandlers.onError(error, 'beginAnimationOrderTrump');
     }
   }, [
+    bidResult,
     continueToEndOrderTrump,
     errorHandlers,
-    incrementSpeed,
-    notificationDelay,
+    euchreGame.dealer,
+    euchreGame.maker,
+    euchreSettings,
     setters,
-    shouldAnimateBeginOrderTrump,
-    bidResult,
-    euchreGame,
-    euchreSettings
+    shouldAnimateBeginOrderTrump
   ]);
 
   /**
@@ -196,31 +181,26 @@ export default function useEuchreGameOrder(
       newGame.currentPlayer = rotation[0];
 
       if (shouldDiscard) {
-        addDealerPickedUpEvent();
+        addDealerPickedUpEvent(state, eventHandlers);
         newGame.discard = determineDiscard(newGame, newGame.dealer, euchreSettings.difficulty);
         newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
 
-        addDiscardEvent(newGame.discard);
+        addDiscardEvent(newGame.discard, state, eventHandlers);
       }
 
       continueToAnimateEndOrderTrump();
       setters.setEuchreGame(newGame);
     }
   }, [
-    addDealerPickedUpEvent,
-    addDiscardEvent,
     bidResult,
     continueToAnimateEndOrderTrump,
-    determineDiscard,
-    discard,
     euchreGame,
     euchreSettings.difficulty,
-    getPlayerRotation,
+    eventHandlers,
     pauseForUserDiscardSelection,
-    playerEqual,
-    playerSittingOut,
     setters,
-    shouldEndOrderTrump
+    shouldEndOrderTrump,
+    state
   ]);
 
   /**
@@ -256,14 +236,7 @@ export default function useEuchreGameOrder(
       const error = e as Error;
       errorHandlers.onError(error, 'endAnimationOrderTrump');
     }
-  }, [
-    continueToBeginPlayCard,
-    errorHandlers,
-    notificationDelay,
-    setters,
-    shouldAnimateEndOrderTrump,
-    euchreSettings
-  ]);
+  }, [continueToBeginPlayCard, errorHandlers, euchreSettings, setters, shouldAnimateEndOrderTrump]);
 
   //#endregion
 

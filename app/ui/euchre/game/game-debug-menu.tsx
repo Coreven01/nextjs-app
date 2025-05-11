@@ -31,16 +31,16 @@ const GameDebugMenu = ({ className, handlers, onClose }: Props) => {
         <GameBorder className="relative" innerClass=" lg:w-[300px] w-[200px] bg-stone-900">
           <PromptHeader className="cursor-move ">Debug Menu</PromptHeader>
           <div className="flex flex-col gap-2 min-h-32 items-start p-1">
-            <GameButton className="w-full" type="success" onClick={handlers.handleRunInitGame}>
+            <GameButton className="w-full" type="success" onClick={handlers.onRunInitGame}>
               Run Init Game
             </GameButton>
-            <GameButton className="w-full" type="success" onClick={handlers.handleRunInitGame}>
+            <GameButton className="w-full" type="success" onClick={handlers.onRunInitGame}>
               Run Init and Shuffle
             </GameButton>
-            <GameButton className="w-full" type="success" onClick={handlers.handleRunTrickNotification}>
+            <GameButton className="w-full" type="success" onClick={handlers.onRunTrickNotification}>
               Run Trick Notification
             </GameButton>
-            <GameButton className="w-full" type="success" onClick={handlers.handleRunFullGame}>
+            <GameButton className="w-full" type="success" onClick={handlers.onRunFullGame}>
               Run Test Game
             </GameButton>
           </div>

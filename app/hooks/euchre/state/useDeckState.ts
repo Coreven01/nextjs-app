@@ -7,24 +7,42 @@ import {
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { CardState } from '../reducers/cardStateReducer';
-import useGameData from '../data/useGameData';
-import useCardTransform, {
-  CardSpringProps,
-  CardSpringTarget,
-  DEFAULT_SPRING_VAL
-} from '../data/useCardTransform';
-import useCardSvgData from '../data/useCardSvgData';
-import usePlayerData from '../data/usePlayerData';
 import useCardRefs from '../useCardRefs';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
 import useTableRef from '../useTableRefs';
 import { useAnimation } from 'framer-motion';
-import useCardData from '../data/useCardData';
-import useGameStateLogic from '../logic/useGameStateLogic';
 import useAnimationDeckState from '../phases/useAnimationDeckState';
 import { GameEventHandlers } from '../useEventLog';
-import useGameDeckStateEvents from '../events/useGameDeckStateEvents';
-import { logConsole } from '../../../lib/euchre/util';
+import { GAME_STATES_FOR_DEAL, GAME_STATES_FOR_PLAY } from '../../../lib/euchre/util/gameStateLogicUtil';
+import { logConsole } from '../../../lib/euchre/util/util';
+import { getCardFullName, getEncodedCardSvg } from '../../../lib/euchre/util/cardSvgDataUtil';
+import {
+  getDestinationOffset,
+  getElementOffsetForLocation,
+  getElementOriginalPosition,
+  getRandomDamping,
+  getRandomStiffness,
+  getSpringMoveElement,
+  getSpringsForDealForDealer,
+  getSpringsForDealForRegularPlay,
+  getSpringsToMoveToPlayer,
+  getTransitionForCardMoved
+} from '../../../lib/euchre/util/cardTransformUtil';
+import { getDisplayHeight, getDisplayWidth } from '../../../lib/euchre/util/cardDataUtil';
+import {
+  addAnimateForBeginDealForDealerEvent,
+  addAnimateForDealForRegularPlayEvent,
+  addAnimateForEndDealForDealerEvent,
+  addResetForDealerEvent
+} from '../../../lib/euchre/util/deckStateEventsUtil';
+import { getPlayerRotation } from '../../../lib/euchre/util/playerDataUtil';
+import { gameDelay } from '../../../lib/euchre/util/gameDataUtil';
+import {
+  CardSpringProps,
+  CardSpringTarget,
+  DEFAULT_SPRING_VAL
+} from '../../../lib/euchre/definitions/transform-definitions';
+import { v4 as uuidv4 } from 'uuid';
 
 export interface GameDeckState {
   deck: Card[];
@@ -53,33 +71,11 @@ const useDeckState = (
   directCenterVRef: RefObject<HTMLDivElement | null>,
   animationHandlers: EuchreAnimationHandlers
 ) => {
-  const {
-    getRandomDamping,
-    getRandomStiffness,
-    getTransitionForCardMoved,
-    getSpringsForDealForDealer,
-    getSpringsToMoveToPlayer,
-    getSpringMoveElement,
-    getElementOffsetForLocation,
-    getSpringsForDealForRegularPlay,
-    getElementOriginalPosition,
-    getDestinationOffset
-  } = useCardTransform();
-  const { getPlayerRotation } = usePlayerData();
-  const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
-  const { gameDelay } = useGameData();
-  const { getDisplayWidth, getDisplayHeight } = useCardData();
-  const { getGameStatesForDeal, getGameStatesForPlay } = useGameStateLogic();
   const { shouldBeginDealForDealer, shouldEndDealForDealer, shouldBeginDealCards } =
     useAnimationDeckState(state);
-
-  const {
-    addResetForDealerEvent,
-    addAnimateForBeginDealForDealerEvent,
-    addAnimateForEndDealForDealerEvent,
-    addAnimateForDealForRegularPlayEvent
-  } = useGameDeckStateEvents(state, eventHandlers);
   const { euchreGame, euchreSettings, euchreGameFlow, initDealer } = state;
+
+  const [renderKey, setRenderKey] = useState<string>('');
 
   /** Used to position the deck near the player when dealing and animation to bring the deck into view. */
   const deckAnimationControls = useAnimation();
@@ -121,9 +117,9 @@ const useDeckState = (
 
   /** Reference to the element containing the deck of cards to be dealt. */
   const gameDeckRef = useRef<HTMLDivElement>(null);
-  const gameDeckVisible = dealAnimationEnabled && getGameStatesForDeal().includes(euchreGameFlow.gameFlow);
+  const gameDeckVisible = dealAnimationEnabled && GAME_STATES_FOR_DEAL.includes(euchreGameFlow.gameFlow);
   const gameHandVisible =
-    euchreGameFlow.hasGameStarted && getGameStatesForPlay().includes(euchreGameFlow.gameFlow);
+    euchreGameFlow.hasGameStarted && GAME_STATES_FOR_PLAY.includes(euchreGameFlow.gameFlow);
 
   /** ************************************************************************************************************************************* */
 
@@ -178,7 +174,7 @@ const useDeckState = (
   const handleEndDealForDealerComplete = useCallback(() => {
     if (cardsDealtCount.current === 23) {
       cardsDealtCount.current = 0;
-      animationHandlers.handleEndDealForDealerComplete();
+      animationHandlers.onEndDealForDealerComplete();
     } else {
       cardsDealtCount.current += 1;
     }
@@ -212,6 +208,7 @@ const useDeckState = (
 
       for (const card of euchreGame.deck) {
         const cardState: CardState = {
+          renderKey: uuidv4(),
           cardIndex: card.index,
           src: includeCardValue ? getEncodedCardSvg(card, location) : undefined,
           cardFullName: includeCardValue ? getCardFullName(card) : 'Player Card',
@@ -234,7 +231,7 @@ const useDeckState = (
 
       return newCardStates;
     },
-    [getCardFullName, getEncodedCardSvg, getRandomDamping, getRandomStiffness, euchreGame.deck]
+    [euchreGame.deck]
   );
 
   /**
@@ -272,16 +269,19 @@ const useDeckState = (
 
       resetStateDeal();
       setGameDeckState(newGameDeckState);
+      setRenderKey(uuidv4());
       setCardStates(createCardStatesFromGameDeck(location, includeCardValue));
     },
     [
       createCardStatesFromGameDeck,
       deckAnimationControls,
       deckCardRefs,
-      gameDeckState,
-      getDisplayHeight,
-      getDisplayWidth,
-      euchreGame
+      euchreGame.dealer.location,
+      euchreGame.dealer.playerNumber,
+      euchreGame.deck,
+      euchreGame.gameId,
+      euchreGame.handId,
+      gameDeckState
     ]
   );
 
@@ -295,19 +295,20 @@ const useDeckState = (
     const validDeck = euchreGame.deck.length === 24 && !euchreGame.deck.find((c) => c.value === 'P');
 
     if (!initForNewDealerEffect && handChanged && validDeck && euchreGameFlow.hasGameStarted) {
-      addResetForDealerEvent();
+      addResetForDealerEvent(state, eventHandlers);
       initDeckStateForNewDealer(false);
       setInitForNewDealerEffect(true);
     }
   }, [
-    addResetForDealerEvent,
     dealAnimationEnabled,
     euchreGame.deck,
     euchreGame.handId,
     euchreGameFlow.hasGameStarted,
+    eventHandlers,
     gameDeckState,
     initDeckStateForNewDealer,
-    initForNewDealerEffect
+    initForNewDealerEffect,
+    state
   ]);
 
   /** Move cards from its absolute postion to the dealer card area. Then animate the cards into a visible area
@@ -349,18 +350,10 @@ const useDeckState = (
       transition: { opacity: { duration: duration }, x: { duration: duration }, y: { duration: duration } }
     };
 
+    setRenderKey(uuidv4());
     await deckAnimationControls.start(initMoveToDealer);
     await deckAnimationControls.start(moveIntoView);
-  }, [
-    deckAnimationControls,
-    gameDeckState,
-    getElementOffsetForLocation,
-    getElementOriginalPosition,
-    getRelativeCenter,
-    getSpringMoveElement,
-    playerDeckRefs,
-    euchreSettings.gameSpeed
-  ]);
+  }, [deckAnimationControls, euchreSettings.gameSpeed, gameDeckState, getRelativeCenter, playerDeckRefs]);
 
   /**
    * Create the animation values for the cards being dealt for initial deal.
@@ -406,6 +399,7 @@ const useDeckState = (
           cardState.springValue = updatedSpring.springValue;
           cardState.src = getEncodedCardSvg(card, cardState.location);
           cardState.cardFullName = getCardFullName(card);
+          cardState.renderKey = uuidv4();
         }
       }
 
@@ -421,17 +415,14 @@ const useDeckState = (
     deckCardRefs,
     directCenterHRef,
     directCenterVRef,
-    gameDeckState,
-    getCardFullName,
-    getEncodedCardSvg,
-    getPlayerRotation,
-    getSpringsForDealForDealer,
-    getTransitionForCardMoved,
-    handleBeginDealForDealerComplete,
-    outerTableRefs,
-    euchreGame,
+    euchreGame.dealer,
+    euchreGame.deck,
+    euchreGame.gamePlayers,
     euchreSettings.gameSpeed,
-    initDealer
+    gameDeckState,
+    handleBeginDealForDealerComplete,
+    initDealer,
+    outerTableRefs
   ]);
 
   /** Animate cards going to a player side of the game board after cards have been dealt.
@@ -463,13 +454,14 @@ const useDeckState = (
             cardState.springValue = spring.springValue;
           }
 
+          cardState.renderKey = uuidv4();
           cardState.location = destinationPlayer.location;
         }
 
         return newState;
       });
     },
-    [cardStates, deckCardRefs, getSpringsToMoveToPlayer, playerDeckRefs, euchreSettings.gameSpeed]
+    [cardStates, deckCardRefs, euchreSettings.gameSpeed, playerDeckRefs]
   );
 
   /**
@@ -530,6 +522,7 @@ const useDeckState = (
           cardState.runEffectForState = EuchreGameFlow.BEGIN_DEAL_CARDS;
           cardState.springValue = spring.springValue;
           cardState.location = spring.location;
+          cardState.renderKey = uuidv4();
         } else if (!cardIsTrump) {
           cardState.location = euchreGame.dealer.location;
         }
@@ -547,14 +540,15 @@ const useDeckState = (
     deckCardRefs,
     directCenterHRef,
     directCenterVRef,
+    euchreGame.cardDealCount,
+    euchreGame.dealer,
+    euchreGame.deck,
+    euchreGame.gamePlayers,
+    euchreGame.trump,
+    euchreSettings.gameSpeed,
     gameDeckState,
-    getPlayerRotation,
-    getSpringsForDealForRegularPlay,
-    getTransitionForCardMoved,
     handleBeginDealForRegularPlayComplete,
-    outerTableRefs,
-    euchreGame,
-    euchreSettings.gameSpeed
+    outerTableRefs
   ]);
 
   /** After cards have been dealt to the player's table area, move cards to outside the bound of the game area, as if the
@@ -582,20 +576,14 @@ const useDeckState = (
 
             spring.transition = getTransitionForCardMoved(cardState, euchreSettings.gameSpeed);
             cardState.springValue = spring;
+            cardState.renderKey = uuidv4();
           }
         }
       }
 
       return newState;
     });
-  }, [
-    deckCardRefs,
-    getDestinationOffset,
-    getSpringMoveElement,
-    getTransitionForCardMoved,
-    playerDeckRefs,
-    euchreSettings.gameSpeed
-  ]);
+  }, [deckCardRefs, euchreSettings.gameSpeed, playerDeckRefs]);
 
   /** ************************************************************************************************************************************* */
 
@@ -639,7 +627,7 @@ const useDeckState = (
       if (shouldDealCards) {
         initBeginDealForDealerEffect.current = true;
 
-        addAnimateForBeginDealForDealerEvent(true, !dealAnimationEnabled);
+        addAnimateForBeginDealForDealerEvent(true, !dealAnimationEnabled, state, eventHandlers);
 
         await gameDelay(euchreSettings);
         await initAnimationForInitialDeal();
@@ -654,16 +642,16 @@ const useDeckState = (
       'beginAnimationForBeginDealForDealer'
     );
   }, [
-    addAnimateForBeginDealForDealerEvent,
     dealAnimationEnabled,
     dealCardsForInitialDeal,
     errorHandlers,
     euchreSettings,
-    gameDelay,
+    eventHandlers,
     initAnimationForInitialDeal,
     initForNewDealerEffect,
     refsReady,
-    shouldBeginDealForDealer
+    shouldBeginDealForDealer,
+    state
   ]);
 
   /** Pause game after dealing to finish animation. After the delay, move cards to the new dealer.*/
@@ -676,8 +664,8 @@ const useDeckState = (
       if (endAnimate) {
         endBeginDealForDealerEffect.current = true;
 
-        addAnimateForBeginDealForDealerEvent(false, !dealAnimationEnabled);
-        animationHandlers.handleBeginDealForDealerComplete();
+        addAnimateForBeginDealForDealerEvent(false, !dealAnimationEnabled, state, eventHandlers);
+        animationHandlers.onBeginDealForDealerComplete();
       }
     };
 
@@ -686,13 +674,7 @@ const useDeckState = (
       errorHandlers.onError,
       'endAnimationForBeginDealForDealer'
     );
-  }, [
-    addAnimateForBeginDealForDealerEvent,
-    animationHandlers,
-    dealAnimationEnabled,
-    endInitialDeal,
-    errorHandlers
-  ]);
+  }, [animationHandlers, dealAnimationEnabled, endInitialDeal, errorHandlers, eventHandlers, state]);
 
   /**
    * After completing animation for initial dealer, animate moving cards to the new dealer.
@@ -706,9 +688,9 @@ const useDeckState = (
       if (shouldAnimate) {
         initEndDealForDealerEffect.current = true;
 
-        addAnimateForEndDealForDealerEvent(true, !dealAnimationEnabled);
+        addAnimateForEndDealForDealerEvent(true, !dealAnimationEnabled, state, eventHandlers);
 
-        if (!initDealer) throw new Error('[DECK STATE ] - Invalid deal result for moving cards.');
+        if (!initDealer) throw new Error('[DECK STATE] - Invalid deal result for moving cards.');
 
         setGameDeckStateForEndDealForDealer();
         moveCardsToPlayer(initDealer.newDealer);
@@ -721,13 +703,14 @@ const useDeckState = (
       'beginAnimationForEndDealForDealer'
     );
   }, [
-    addAnimateForEndDealForDealerEvent,
     dealAnimationEnabled,
     errorHandlers,
+    eventHandlers,
     initDealer,
     moveCardsToPlayer,
     setGameDeckStateForEndDealForDealer,
-    shouldEndDealForDealer
+    shouldEndDealForDealer,
+    state
   ]);
 
   /** Animate dealing cards for regular play. This should be run at the beginning of each hand during regular play. */
@@ -740,7 +723,7 @@ const useDeckState = (
       if (shouldAnimate) {
         initBeginDealForRegularPlayEffect.current = true;
 
-        addAnimateForDealForRegularPlayEvent(true, !dealAnimationEnabled);
+        addAnimateForDealForRegularPlayEvent(true, !dealAnimationEnabled, state, eventHandlers);
 
         await initAnimationForInitialDeal();
         dealCardsForRegularPlay();
@@ -753,12 +736,13 @@ const useDeckState = (
       'beginAnimationForRegularPlay'
     );
   }, [
-    addAnimateForDealForRegularPlayEvent,
     dealAnimationEnabled,
     dealCardsForRegularPlay,
     errorHandlers,
+    eventHandlers,
     initAnimationForInitialDeal,
-    shouldBeginDealCards
+    shouldBeginDealCards,
+    state
   ]);
 
   /** After cards have been dealt for regular play, animate moving cards to player's hand area. After animation is complete,
@@ -775,27 +759,27 @@ const useDeckState = (
       if (shouldAnimate) {
         endBeginDealForRegularPlayEffect.current = true;
 
-        addAnimateForDealForRegularPlayEvent(false, !dealAnimationEnabled);
+        addAnimateForDealForRegularPlayEvent(false, !dealAnimationEnabled, state, eventHandlers);
 
         moveCardsToPlayersForRegularPlay();
         await gameDelay(euchreSettings);
 
         logConsole('[DECK STATE] [endAnimationForRegularPlay]');
-        animationHandlers.handleBeginRegularDealComplete();
+        animationHandlers.onBeginRegularDealComplete();
       }
     };
 
     errorHandlers.catchAsync(endAnimationForRegularPlay, errorHandlers.onError, 'endAnimationForRegularPlay');
   }, [
-    addAnimateForDealForRegularPlayEvent,
     animationHandlers,
     dealAnimationEnabled,
     endRegularDeal,
     errorHandlers,
     euchreSettings,
-    gameDelay,
+    eventHandlers,
     moveCardsToPlayersForRegularPlay,
-    shouldBeginDealCards
+    shouldBeginDealCards,
+    state
   ]);
 
   //#endregion
@@ -810,7 +794,8 @@ const useDeckState = (
     playerDeckRefs,
     deckCardRefs,
     gameDeckState,
-    cardStates
+    cardStates,
+    renderKey
   };
 };
 

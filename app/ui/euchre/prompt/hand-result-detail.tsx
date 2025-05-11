@@ -1,9 +1,9 @@
-import useCardData from '@/app/hooks/euchre/data/useCardData';
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
-import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import { EuchreCard, EuchrePlayer, EuchreTrick } from '@/app/lib/euchre/definitions/game-state-definitions';
 import clsx from 'clsx';
-import { EuchreHandResult, ResultHighlight, Suit } from '../../../lib/euchre/definitions/definitions';
+import { EuchreHandResult, ResultHighlight } from '../../../lib/euchre/definitions/definitions';
+import { playerEqual } from '../../../lib/euchre/util/playerDataUtil';
+import { cardIsLeftBower } from '../../../lib/euchre/util/cardDataUtil';
+import { getCardClassColorFromSuit, getCardFullName } from '../../../lib/euchre/util/cardSvgDataUtil';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   trick: EuchreTrick;
@@ -22,10 +22,6 @@ const HandResultDetail = ({
   className,
   ...rest
 }: Props) => {
-  const { playerEqual } = usePlayerData();
-  const { cardIsLeftBower } = useCardData();
-  const { getCardFullName, getCardClassColorFromSuit } = useCardSvgData();
-
   return (
     <>
       {trick.cardsPlayed.map((c) => {
@@ -69,7 +65,7 @@ const HandResultDetail = ({
             key={`${c.player.playerNumber}-${c.card.value}-${c.card.suit}`}
             {...rest}
           >
-            <CardDetail card={c} getCardClassColorFromSuit={getCardClassColorFromSuit} />
+            <CardDetail card={c} />
           </div>
         );
       })}
@@ -79,10 +75,9 @@ const HandResultDetail = ({
 
 interface DetailProps {
   card: EuchreCard;
-  getCardClassColorFromSuit: (suit: Suit) => string;
 }
 
-const CardDetail = ({ card, getCardClassColorFromSuit }: DetailProps) => {
+const CardDetail = ({ card }: DetailProps) => {
   return (
     <>
       <div>

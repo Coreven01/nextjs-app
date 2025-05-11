@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import EphemeralModal from '../common/ephemeral-modal';
 import { GameSpeed, Suit } from '../../../lib/euchre/definitions/definitions';
-import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
+import { getCardClassColorFromSuit } from '../../../lib/euchre/util/cardSvgDataUtil';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   notificationSpeed: GameSpeed;
@@ -9,7 +9,6 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const GameTrumpIndicator = ({ notificationSpeed, trumpSuit, className }: Props) => {
-  const { getCardClassColorFromSuit } = useCardSvgData();
   return (
     <EphemeralModal
       className={clsx(`w-fit h-fit absolute z-10 left-1/3 top-1/4 lg:top-1/3`, className)}

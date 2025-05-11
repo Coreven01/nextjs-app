@@ -13,6 +13,7 @@ import useTableRefs from '../../../hooks/euchre/useTableRefs';
 import PlayerCardArea from '../player/player-card-area';
 import { useRef } from 'react';
 import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
+import { logConsole } from '../../../lib/euchre/util/util';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameValues;
@@ -67,7 +68,7 @@ const GameArea = ({
 
   /** Elements associated with the player's outer side. Used when dealing cards to a player. */
   const outerTableRefs = useTableRefs();
-  console.log(
+  logConsole(
     '[GAMEAREA] gameID: ',
     state.euchreGame.gameId,
     ' state: ',
@@ -98,7 +99,7 @@ const GameArea = ({
       />
       <div className="col-start-2 row-start-2 col-span-1 row-span-1">
         <GameTable
-          id="euchre-game-table"
+          id="game-table"
           state={state}
           playerNotification={playerNotification}
           playerCenterTableRefs={centerTableRefs}
@@ -108,12 +109,12 @@ const GameArea = ({
         />
       </div>
       <PlayerArea
-        id="euchre-player-area"
+        id="player-area"
         state={state}
         className="col-start-1 row-start-1 col-span-3 row-span-3 overflow-hidden"
       />
       <PlayerCardArea
-        id="euchre-player-card-area"
+        id="player-card-area"
         key={state.euchreGame.gameId}
         state={state}
         eventHandlers={eventHandlers}

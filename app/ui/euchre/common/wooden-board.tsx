@@ -1,6 +1,6 @@
-import { createRange } from '@/app/lib/euchre/util';
 import Image from 'next/image';
 import { useMemo } from 'react';
+import { createRange } from '../../../lib/euchre/util/util';
 
 const height = 25;
 const width = 275;

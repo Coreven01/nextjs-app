@@ -3,10 +3,9 @@
 import { motion, TargetAndTransition } from 'framer-motion';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
-import useCardSvgData from '../../hooks/euchre/data/useCardSvgData';
+import { getEncodedCardSvg } from '../../lib/euchre/util/cardSvgDataUtil';
 
 const TestPage = () => {
-  const { getEncodedCardSvg } = useCardSvgData();
   const destRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [animateVal, setAnimateVal] = useState<TargetAndTransition>();

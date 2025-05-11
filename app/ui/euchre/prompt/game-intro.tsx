@@ -5,12 +5,13 @@ import { motion } from 'framer-motion';
 import GameButton from '../game/game-button';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
+  enableDebug: boolean;
   onBegin: () => void;
   onSettings: () => void;
   onRunDebug: () => void;
 }
 
-const GameIntro = ({ className, onBegin, onSettings, onRunDebug, ...rest }: DivProps) => {
+const GameIntro = ({ className, enableDebug, onBegin, onSettings, onRunDebug, ...rest }: DivProps) => {
   const titleElement = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,9 +50,11 @@ const GameIntro = ({ className, onBegin, onSettings, onRunDebug, ...rest }: DivP
           <GameButton type="success" onClick={onBegin}>
             New Game
           </GameButton>
-          <GameButton type="danger" onClick={onRunDebug}>
-            Debug Game
-          </GameButton>
+          {enableDebug && (
+            <GameButton type="danger" onClick={onRunDebug}>
+              Debug Game
+            </GameButton>
+          )}
           <GameButton type="primary" onClick={onSettings}>
             Settings
           </GameButton>

@@ -8,9 +8,6 @@ import useEuchreGameShuffle from './useEuchreGameShuffle';
 import useEuchreGameBid from './useEuchreGameBid';
 import useEuchreGameOrder from './useEuchreGameOrder';
 import useEuchreGamePlay from './useEuchreGamePlay';
-
-import useGameData from '../data/useGameData';
-import useGamePlayLogic from '../logic/useGamePlayLogic';
 import { v4 as uuidv4 } from 'uuid';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 import {
@@ -23,6 +20,8 @@ import {
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useEuchreGameState from '../state/useEuchreGameState';
 import { PromptType } from '../../../lib/euchre/definitions/definitions';
+import { reverseLastHandPlayed } from '../../../lib/euchre/util/gameDataUtil';
+import { getGameStateForNextHand } from '../../../lib/euchre/util/gamePlayLogicUtil';
 
 /** Main euchre game hook that aggregates logic from different states of the game. */
 export default function useEuchreGame() {
@@ -31,8 +30,6 @@ export default function useEuchreGame() {
   const { state, stateValues, setters, handleSaveSettings } = useEuchreGameState();
   const { events, addEvent, clearEvents, createEvent } = useEventLog();
   const [errorState, setErrorState] = useState<EuchreError | null>(null);
-  const { reverseLastHandPlayed } = useGameData();
-  const { getGameStateForNextHand } = useGamePlayLogic();
 
   const handleCancelGame = useCallback(() => {
     if (stateValues.shouldCancel) return;
@@ -65,6 +62,13 @@ export default function useEuchreGame() {
     [addEvent, clearEvents, createEvent]
   );
 
+  const handleAttemptToRecover = useCallback(() => {
+    if (errorState) {
+      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_NONE);
+      setErrorState(null);
+    }
+  }, [errorState, setters]);
+
   const handleAsync = useCallback(
     async (fn: () => Promise<void>, onError: (e: Error, name: string) => void, fnName: string) => {
       await fn().catch((e) => {
@@ -79,13 +83,14 @@ export default function useEuchreGame() {
     () => ({
       onCancel: handleCancelGame,
       onError: handleError,
+      onResetError: handleAttemptToRecover,
       catchAsync: handleAsync
     }),
-    [handleAsync, handleCancelGame, handleError]
+    [handleAsync, handleAttemptToRecover, handleCancelGame, handleError]
   );
 
   //#region Game play hooks
-  const { reset, handleBeginGame, cancelAndReset } = useEuchreGameInit(
+  const { reset, handleBeginGame, cancelAndReset, createGameForReplay } = useEuchreGameInit(
     stateValues,
     setters,
     eventHandlers,
@@ -150,50 +155,40 @@ export default function useEuchreGame() {
       state.euchreSettings,
       newGame.gamePlayers
     );
-    newGameFlow.gameFlow = EuchreGameFlow.BEGIN_DEAL_CARDS;
+    newGameFlow.gameFlow = state.euchreSettings.shouldAnimateDeal
+      ? EuchreGameFlow.BEGIN_DEAL_CARDS
+      : EuchreGameFlow.END_DEAL_CARDS;
     setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
-    setters.dispatchGameAnimationFlow({ type: EuchreAnimationActionType.SET_ANIMATE });
+    setters.dispatchStateChange(
+      undefined,
+      EuchreAnimationActionType.SET_ANIMATE,
+      EuchrePauseActionType.SET_NONE
+    );
     setters.setEuchreGame(newGame);
-  }, [
-    getGameStateForNextHand,
-    reverseLastHandPlayed,
-    setters,
-    state.euchreGame,
-    state.euchreGameFlow,
-    state.euchreSettings
-  ]);
+  }, [setters, state.euchreGame, state.euchreGameFlow, state.euchreSettings]);
 
   const handleReplayGame = useCallback(
     (gameToReplay: EuchreGameInstance) => {
       setters.setEuchreReplayGame(gameToReplay);
-      handleBeginGame();
+      createGameForReplay();
     },
-    [handleBeginGame, setters]
+    [createGameForReplay, setters]
   );
-
-  const handleAttemptToRecover = useCallback(() => {
-    if (errorState) {
-      setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_NONE);
-      setErrorState(null);
-    }
-  }, [errorState, setters]);
 
   const gameHandlers: EuchreGamePlayHandlers = useMemo(
     () => ({
-      reset,
-      handleBeginNewGame,
-      handleBidSubmit,
-      handleSettingsChange,
-      handleCancelGame,
-      handleDiscardSubmit,
-      handleCloseHandResults,
-      handleReplayHand,
-      handleCancelAndReset,
-      handleReplayGame,
-      handleAttemptToRecover
+      reset: reset,
+      onBeginNewGame: handleBeginNewGame,
+      onBidSubmit: handleBidSubmit,
+      onSettingsChange: handleSettingsChange,
+      onCancelGame: handleCancelGame,
+      onDiscardSubmit: handleDiscardSubmit,
+      onCloseHandResults: handleCloseHandResults,
+      onReplayGame: handleReplayGame,
+      onCancelAndReset: handleCancelAndReset,
+      onReplayHand: handleReplayHand
     }),
     [
-      handleAttemptToRecover,
       handleBeginNewGame,
       handleBidSubmit,
       handleCancelAndReset,
@@ -209,13 +204,13 @@ export default function useEuchreGame() {
 
   const animationHandlers: EuchreAnimationHandlers = useMemo(
     () => ({
-      handleBeginRegularDealComplete,
-      handleEndRegularDealComplete,
-      handleTrickFinished,
-      handleBeginDealForDealerComplete,
-      handleEndDealForDealerComplete,
-      handleCardPlayed,
-      handlePassDealComplete
+      onBeginRegularDealComplete: handleBeginRegularDealComplete,
+      onEndRegularDealComplete: handleEndRegularDealComplete,
+      onTrickFinished: handleTrickFinished,
+      onBeginDealForDealerComplete: handleBeginDealForDealerComplete,
+      onEndDealForDealerComplete: handleEndDealForDealerComplete,
+      onCardPlayed: handleCardPlayed,
+      onPassDealComplete: handlePassDealComplete
     }),
     [
       handleBeginDealForDealerComplete,

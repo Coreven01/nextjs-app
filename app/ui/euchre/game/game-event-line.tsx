@@ -1,22 +1,18 @@
 import clsx from 'clsx';
-import { GameEvent, GameEventType, SUB_CARD, SUB_SUIT } from '../../../hooks/euchre/useEventLog';
+import { GameEvent, GameEventType, SUB_CARD } from '../../../hooks/euchre/useEventLog';
 import PlayerColor from '../player/player-team-color';
-import { Card, Suit } from '../../../lib/euchre/definitions/definitions';
+import { Card } from '../../../lib/euchre/definitions/definitions';
+import {
+  getCardClassColorFromSuit,
+  getCardFullName,
+  getSuitName
+} from '../../../lib/euchre/util/cardSvgDataUtil';
 
 interface Props {
   event: GameEvent;
   showTimeStamp: boolean;
-  getCardFullName: (card: Card) => string;
-  getCardClassColorFromSuit: (suit: Suit) => string;
-  getSuitName: (suit: Suit) => string;
 }
-const GameEventLine = ({
-  event,
-  showTimeStamp,
-  getCardFullName,
-  getCardClassColorFromSuit,
-  getSuitName
-}: Props) => {
+const GameEventLine = ({ event, showTimeStamp }: Props) => {
   return (
     <li className="p-1 border-slate-700 border-b m-1">
       <div className="flex">
@@ -36,14 +32,7 @@ const GameEventLine = ({
               {event.player}
             </span>
           )}
-          <GameEventMessage
-            eventId={event.id}
-            message={event.message}
-            cards={event.cards}
-            getCardFullName={getCardFullName}
-            getCardClassColorFromSuit={getCardClassColorFromSuit}
-            getSuitName={getSuitName}
-          />
+          <GameEventMessage eventId={event.id} message={event.message} cards={event.cards} />
         </div>
       </div>
     </li>
@@ -75,18 +64,8 @@ interface MessageProps {
   eventId: string;
   message?: string;
   cards?: Card[];
-  getCardFullName: (card: Card) => string;
-  getCardClassColorFromSuit: (suit: Suit) => string;
-  getSuitName: (suit: Suit) => string;
 }
-const GameEventMessage = ({
-  eventId,
-  message,
-  cards,
-  getCardFullName,
-  getCardClassColorFromSuit,
-  getSuitName
-}: MessageProps) => {
+const GameEventMessage = ({ eventId, message, cards }: MessageProps) => {
   const messageSegments: string[] = (message ?? '').split(/\[\[C\]\]|\[\[S\]\]/);
   const messageElements: React.ReactNode[] = [];
 

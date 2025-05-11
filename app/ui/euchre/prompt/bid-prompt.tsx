@@ -10,11 +10,11 @@ import CardSelection from './card-selection';
 import Switch from '@mui/material/Switch';
 import PromptHeader from './prompt-header';
 import GameWarning from '../game/game-warning';
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
-import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
-import useCardData from '@/app/hooks/euchre/data/useCardData';
 import { BidResult, Suit } from '../../../lib/euchre/definitions/definitions';
 import GameButton from '../game/game-button';
+import { getCardFullName, getEncodedCardSvg, getSuitName } from '../../../lib/euchre/util/cardSvgDataUtil';
+import { getTeamColor, playerEqual } from '../../../lib/euchre/util/playerDataUtil';
+import { getDisplayHeight, getDisplayWidth } from '../../../lib/euchre/util/cardDataUtil';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   firstRound: boolean;
@@ -24,10 +24,6 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest }: DivProps) => {
-  const { getCardFullName, getEncodedCardSvg, getSuitName } = useCardSvgData();
-  const { playerEqual, getTeamColor } = usePlayerData();
-  const { getDisplayHeight, getDisplayWidth } = useCardData();
-
   const [bidSelection, setBidSelection] = useState<string | null>(null);
   const [lonerSelection, setLonerSelection] = useState<boolean>(false);
   const submitEnabled = firstRound || bidSelection !== null;
@@ -42,7 +38,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
 
   let dealerTitle: string = '';
 
-  if (game.dealer === game.currentPlayer && firstRound) {
+  if (playerEqual(game.dealer, game.currentPlayer) && firstRound) {
     dealerTitle = `You will pick up the ${cardName}`;
   } else if (game.dealer.team === game.currentPlayer.team && firstRound) {
     dealerTitle = `Your partner will pick up the ${cardName}`;
@@ -50,6 +46,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
     dealerTitle = `The opposing team will pick up the ${cardName}`;
   }
 
+  //#region  Handlers
   const handleBidSubmit = (playerPassed: boolean) => {
     const result: BidResult = {
       orderTrump: false,
@@ -80,6 +77,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
   const handleSuitSelectionChange = (value: string) => {
     setBidSelection(value);
   };
+  //#endregion
 
   return (
     <GamePrompt {...rest} zIndex={50} className={clsx('bg-white dark:bg-stone-800', className)}>
@@ -103,7 +101,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
             <div title={dealerTitle} className="text-center cursor-default">
               <PlayerColor teamColor={getTeamColor(game.dealer, settings)}>
                 <div className="bg-white dark:bg-stone-800 h-full flex items-center justify-center lg:text-base text-xs">
-                  Dealer: {game.dealer === game.currentPlayer ? 'You' : game.dealer.name}
+                  Dealer: {playerEqual(game.dealer, game.currentPlayer) ? 'You' : game.dealer.name}
                 </div>
               </PlayerColor>
             </div>
@@ -185,7 +183,11 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
               disabled={!submitEnabled}
             >
               {' '}
-              {firstRound ? (game.dealer === game.currentPlayer ? 'Pick Up' : 'Order Up') : 'Name Suit'}
+              {firstRound
+                ? playerEqual(game.dealer, game.currentPlayer)
+                  ? 'Pick Up'
+                  : 'Order Up'
+                : 'Name Suit'}
             </GameButton>
           </div>
         </div>
@@ -200,7 +202,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
 };
 
 interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  trumpSuit: Suit | undefined;
+  trumpSuit: Suit;
   firstRound: boolean;
   onSelectionChange: (value: string) => void;
   getSuitName: (suit: Suit) => string;

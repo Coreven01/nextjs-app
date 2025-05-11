@@ -1,34 +1,33 @@
 import { EuchreGameFlowState, INIT_GAME_FLOW_STATE } from '../reducers/gameFlowReducer';
 import { BidResult, Card } from '@/app/lib/euchre/definitions/definitions';
-import { logDebugError } from '@/app/lib/euchre/util';
-import useGameSetupLogic from '../logic/useGameSetupLogic';
-import useGameBidLogic from '../logic/useGameBidLogic';
-import usePlayerData from '../data/usePlayerData';
-import useGameData from '../data/useGameData';
-import useGamePlayLogic from '../logic/useGamePlayLogic';
 import {
   EuchreCard,
   EuchreGameInstance,
   EuchreSettings
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { useEventLog } from '../useEventLog';
+import {
+  createGameForInitialDeal,
+  dealCardsForDealer,
+  shuffleAndDealHand
+} from '../../../lib/euchre/util/gameSetupLogicUtil';
+import { determineBid, determineDiscard, orderTrump } from '../../../lib/euchre/util/gameBidLogicUtil';
+import { discard, getPlayerRotation, playerEqual } from '../../../lib/euchre/util/playerDataUtil';
+import { determineCardToPlay } from '../../../lib/euchre/util/gamePlayLogicUtil';
+import {
+  createTrick,
+  isHandFinished,
+  isTrickFinished,
+  playerSittingOut,
+  teamPoints,
+  updateIfHandOver,
+  updateIfTrickOver
+} from '../../../lib/euchre/util/gameDataUtil';
+import { logError } from '../../../lib/euchre/util/util';
 
 /**  */
 export default function useEuchreGameAuto() {
   const { createEvent } = useEventLog();
-  const { createGameForInitialDeal, dealCardsForDealer, shuffleAndDealHand, createTrick } =
-    useGameSetupLogic();
-  const { determineBid, determineDiscard, orderTrump } = useGameBidLogic();
-  const { getPlayerRotation, discard, playerEqual } = usePlayerData();
-  const { determineCardToPlay } = useGamePlayLogic();
-  const {
-    teamPoints,
-    isHandFinished,
-    isTrickFinished,
-    updateIfHandOver,
-    updateIfTrickOver,
-    playerSittingOut
-  } = useGameData();
 
   const dealAndBid = (
     game: EuchreGameInstance,
@@ -130,7 +129,7 @@ export default function useEuchreGameAuto() {
 
     try {
       //#region Begin deal cards for initial dealer
-      const dealResult = dealCardsForDealer(newGame, gameFlow, null);
+      const dealResult = dealCardsForDealer(newGame, gameFlow);
 
       if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
 
@@ -150,7 +149,7 @@ export default function useEuchreGameAuto() {
       }
     } catch (e) {
       const error = e as Error;
-      logDebugError(createEvent('e', undefined, `${error ? error.message + '\n' + error.stack : e}`));
+      logError(createEvent('e', undefined, `${error ? error.message + '\n' + error.stack : e}`));
     }
     //#endregion
 
@@ -160,12 +159,14 @@ export default function useEuchreGameAuto() {
   /** Run a full game for the given loop count. Used to debug logic for selecting cards to play.
    *
    */
-  const runFullGameLoop = (loopCount: number, gameSetting: EuchreSettings): EuchreGameInstance | null => {
-    let game: EuchreGameInstance | null = null;
+  const runFullGameLoop = (loopCount: number, gameSetting: EuchreSettings): EuchreGameInstance => {
+    let game: EuchreGameInstance | undefined = undefined;
 
     for (let i = 0; i < loopCount; i++) {
       game = runFullGame(gameSetting);
     }
+
+    if (!game) throw new Error();
 
     return game;
   };

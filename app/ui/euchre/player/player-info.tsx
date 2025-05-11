@@ -2,9 +2,9 @@ import { EuchreGameState, EuchrePlayer } from '@/app/lib/euchre/definitions/game
 import GameHighlight from '../game/game-highlight';
 import PlayerColor from './player-team-color';
 import GameBorderBare from '../game/game-border-bare';
-import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
 import GameTurnIndicator from '../game/game-turn-indicator';
-import useGameStateLogic from '../../../hooks/euchre/logic/useGameStateLogic';
+import { getTeamColor, playerEqual } from '../../../lib/euchre/util/playerDataUtil';
+import { GAME_STATES_FOR_PLAYER_TURN } from '../../../lib/euchre/util/gameStateLogicUtil';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   player: EuchrePlayer;
@@ -13,18 +13,15 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
 const PlayerInfo = ({ player, state, ...rest }: Props) => {
   const { euchreGame, euchreSettings, euchreGameFlow } = state;
-  const { playerEqual, getTeamColor } = usePlayerData();
-  const { getGameStatesForShowingPlayerTurn } = useGameStateLogic();
-
   const isDealer = playerEqual(player, euchreGame.dealer);
   const isMaker = euchreGame.maker && playerEqual(player, euchreGame.maker);
   const showTurnIndicator =
     playerEqual(player, euchreGame.currentPlayer) &&
-    getGameStatesForShowingPlayerTurn().includes(euchreGameFlow.gameFlow);
+    GAME_STATES_FOR_PLAYER_TURN.includes(euchreGameFlow.gameFlow);
   const isSittingOut =
     euchreGame.loner && euchreGame.maker?.team === player.team && euchreGame.maker !== player;
   const suit = euchreGame.trump?.suit;
-  const tricksCount = euchreGame.currentTricks.filter((t) => t.taker === player).length;
+  const tricksCount = euchreGame.currentTricks.filter((t) => t.taker && playerEqual(t.taker, player)).length;
 
   let infoToRender: React.ReactNode[] = [];
   const shortHandInfo: React.ReactNode[] = [];
@@ -111,12 +108,12 @@ const PlayerInfo = ({ player, state, ...rest }: Props) => {
       enablePulse={showTurnIndicator ? true : false}
       highlightColorCss={showTurnIndicator ? 'shadow-xl shadow-amber-400' : 'shadow-md shadow-black'}
     >
-      <GameBorderBare {...rest} className="">
+      <GameBorderBare className="" {...rest}>
         <PlayerColor teamColor={getTeamColor(player, euchreSettings)}>
           <div className="bg-white dark:bg-stone-800 p-1">{infoToRender}</div>
         </PlayerColor>
       </GameBorderBare>
-      {showTurnIndicator && <GameTurnIndicator location={player.location} />}
+      {showTurnIndicator && <GameTurnIndicator location={player.location} title={`${player.name} Turn`} />}
     </GameHighlight>
   );
 };

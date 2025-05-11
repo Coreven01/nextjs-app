@@ -49,13 +49,13 @@ export function useEventLog() {
     setEvents([]);
   }, []);
 
-  function createEvent(
+  const createEvent = (
     type: GameEventType,
     player?: EuchrePlayer,
     message?: string,
     cards?: Card[],
     teamColor?: TeamColor
-  ): GameEvent {
+  ): GameEvent => {
     return {
       id: uuidv4(),
       time: new Date().toLocaleTimeString(),
@@ -66,7 +66,7 @@ export function useEventLog() {
       teamColor: teamColor,
       cards: cards
     };
-  }
+  };
 
   return { events, addEvent, clearEvents, createEvent };
 }

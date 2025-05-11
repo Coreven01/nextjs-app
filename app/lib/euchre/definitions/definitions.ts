@@ -154,3 +154,21 @@ export interface Card {
   readonly value: CardValue;
   index: number;
 }
+
+export interface EuchreTeamOverview {
+  score: number;
+  lonerCount: number;
+  euchredCount: number;
+  tricksWonCount: number;
+}
+
+export interface EuchrePlayerOverview {
+  trumpOrderedCount: number;
+  tricksWonCount: number;
+  acesLeadCount: number;
+  lonerCount: number;
+  fourSuitedCount: number;
+  threeSuitedCount: number;
+  twoSuitedCount: number;
+  singleSuitedCount: number;
+}

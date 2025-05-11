@@ -4,11 +4,11 @@ import { RefObject, useEffect, useRef, useState } from 'react';
 import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import GameOverview from '../game/game-overview';
-import { scrollElementIntoViewIfNeeded } from '@/app/lib/euchre/util';
 import PromptHeader from './prompt-header';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
 import { EuchreHandResult } from '../../../lib/euchre/definitions/definitions';
 import GameButton from '../game/game-button';
+import { scrollElementIntoViewIfNeeded } from '../../../lib/euchre/util/util';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -102,7 +102,7 @@ export default function GameResult({
           />
 
           {showOverview ? (
-            <GameOverview game={game} gameSettings={settings} gameResults={handResults} />
+            <GameOverview game={game} gameSettings={settings} />
           ) : (
             <HandResult
               className="mx-auto"
@@ -116,9 +116,11 @@ export default function GameResult({
             <GameButton className="w-full" type="danger" onClick={onClose}>
               Main Menu
             </GameButton>
-            <GameButton className="w-full" type="warn" onClick={onReplayGame}>
-              Replay Game
-            </GameButton>
+            {settings.debugEnableDebugMenu && (
+              <GameButton className="w-full" type="warn" onClick={onReplayGame}>
+                Replay Game
+              </GameButton>
+            )}
             <GameButton className="w-full" type="success" onClick={onNewGame}>
               New Game
             </GameButton>

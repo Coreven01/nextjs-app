@@ -6,10 +6,6 @@ import {
 } from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect, useRef } from 'react';
 import PlayerNotification from '@/app/ui/euchre/player/player-notification';
-import useGameData from '../data/useGameData';
-import usePlayerData from '../data/usePlayerData';
-import useGameSetupLogic from '../logic/useGameSetupLogic';
-import useGamePlayLogic from '../logic/useGamePlayLogic';
 import { v4 as uuidv4 } from 'uuid';
 import { GameEventHandlers } from '../useEventLog';
 import {
@@ -21,9 +17,30 @@ import {
   ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import GamePlayIndicator from '../../../ui/euchre/game/game-play-indicator';
-import useGameEventsPlay from '../events/useGameEventsPlay';
 import useGamePlayState from '../phases/useGamePlayState';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
+import {
+  createTrick,
+  gameDelay,
+  getCardsAvailableToPlay,
+  incrementSpeed,
+  isGameOver,
+  isHandFinished,
+  isTrickFinished,
+  notificationDelay,
+  playerSittingOut,
+  updateIfHandOver,
+  updateIfTrickOver
+} from '../../../lib/euchre/util/gameDataUtil';
+import { availableCardsToPlay, getPlayerRotation } from '../../../lib/euchre/util/playerDataUtil';
+import {
+  addCardPlayedEvent,
+  addHandWonEvent,
+  addPlayCardEvent,
+  addPlayerRenegedEvent,
+  addTrickWonEvent
+} from '../../../lib/euchre/util/gamePlayEventsUtil';
+import { determineCardToPlay } from '../../../lib/euchre/util/gamePlayLogicUtil';
 
 const useEuchreGamePlay = (
   state: EuchreGameValues,
@@ -32,24 +49,6 @@ const useEuchreGamePlay = (
   errorHandlers: ErrorHandlers
 ) => {
   const playerAutoPlayed = useRef(false);
-  const { createTrick } = useGameSetupLogic();
-  const { getPlayerRotation, availableCardsToPlay } = usePlayerData();
-  const { determineCardToPlay } = useGamePlayLogic();
-  const {
-    isHandFinished,
-    isTrickFinished,
-    updateIfHandOver,
-    updateIfTrickOver,
-    playerSittingOut,
-    getCardsAvailableToPlay,
-    isGameOver,
-    notificationDelay,
-    gameDelay,
-    incrementSpeed
-  } = useGameData();
-  const { addPlayCardEvent, addCardPlayedEvent, addPlayerRenegedEvent, addTrickWonEvent, addHandWonEvent } =
-    useGameEventsPlay(state, eventHandlers);
-
   const {
     shouldBeginPlayCard,
     shouldAnimateBeginPlayCard,
@@ -109,7 +108,7 @@ const useEuchreGamePlay = (
       setters.setEuchreGame(newGame);
       resetForNewHand();
     }
-  }, [isGameOver, euchreGame, euchreSettings.gamePoints, setters, getPlayerRotation, resetForNewHand]);
+  }, [euchreGame, euchreSettings.gamePoints, resetForNewHand, setters]);
 
   /**
    * Update state with card played from either user selection or auto played by AI.
@@ -143,10 +142,9 @@ const useEuchreGamePlay = (
 
     const newGame: EuchreGameInstance = { ...euchreGame };
 
-    addPlayCardEvent(true);
+    addPlayCardEvent(true, state, eventHandlers);
 
     if (isTrickFinished(newGame) && !isHandFinished(newGame)) {
-      console.log('[createTrick] - called for begin play card when trick finished or hand finished');
       newGame.currentTrick = createTrick(newGame.currentRound);
     }
 
@@ -180,19 +178,14 @@ const useEuchreGamePlay = (
       pauseForPlayCard(false);
     }
   }, [
-    addPlayCardEvent,
-    availableCardsToPlay,
-    createTrick,
-    determineCardToPlay,
+    euchreGame,
     euchreSettings.autoFollowSuit,
     euchreSettings.difficulty,
-    getCardsAvailableToPlay,
-    isHandFinished,
-    isTrickFinished,
+    eventHandlers,
     pauseForPlayCard,
     setters,
     shouldBeginPlayCard,
-    euchreGame
+    state
   ]);
 
   /** Play card for AI player, or prompt if player is human. */
@@ -239,7 +232,7 @@ const useEuchreGamePlay = (
     };
 
     newGame.currentPlayer.playedCards.push(playedCard);
-    addCardPlayedEvent(cardPlayed);
+    addCardPlayedEvent(cardPlayed, state, eventHandlers);
     newGame.currentTrick.cardsPlayed.push(cardPlayed);
 
     setters.setEuchreGame(newGame);
@@ -247,12 +240,13 @@ const useEuchreGamePlay = (
 
     continueToAnimateBeginPlayCardResult();
   }, [
-    addCardPlayedEvent,
     continueToAnimateBeginPlayCardResult,
     euchreGame,
+    eventHandlers,
+    playedCard,
     setters,
     shouldEndPlayCard,
-    playedCard
+    state
   ]);
 
   /**
@@ -303,16 +297,7 @@ const useEuchreGamePlay = (
     setters.dispatchPause();
 
     continueToAnimateEndPlayCardResult();
-  }, [
-    continueToAnimateEndPlayCardResult,
-    euchreGame,
-    getPlayerRotation,
-    playerSittingOut,
-    setters,
-    shouldEndPlayCardResult,
-    updateIfHandOver,
-    updateIfTrickOver
-  ]);
+  }, [continueToAnimateEndPlayCardResult, euchreGame, setters, shouldEndPlayCardResult]);
 
   /**
    *
@@ -359,13 +344,13 @@ const useEuchreGamePlay = (
         const wonCard = currentTrick.cardsPlayed.find((c) => c.player === currentTrick.taker);
         setters.dispatchPlayerNotification(getPlayerNotificationCheck(currentTrick.taker.location));
         if (wonCard) {
-          addTrickWonEvent(currentTrick.taker, wonCard.card);
+          addTrickWonEvent(currentTrick.taker, wonCard.card, state, eventHandlers);
         }
       } else if (currentTrick.playerRenege) {
         const renegeCard = currentTrick.cardsPlayed.find((c) => c.player === currentTrick.playerRenege);
 
         if (renegeCard) {
-          addPlayerRenegedEvent(currentTrick.playerRenege, renegeCard.card);
+          addPlayerRenegedEvent(currentTrick.playerRenege, renegeCard.card, state, eventHandlers);
         }
 
         const notification: PlayerNotificationAction = {
@@ -396,19 +381,16 @@ const useEuchreGamePlay = (
       'animateEndResultOfCardPlayed'
     );
   }, [
-    addPlayerRenegedEvent,
-    addTrickWonEvent,
     continueToBeginPlayCard,
     continueToTrickFinished,
     errorHandlers,
     euchreGame,
     euchreSettings,
+    eventHandlers,
     getPlayerNotificationCheck,
-    incrementSpeed,
-    isTrickFinished,
-    notificationDelay,
     setters,
-    shouldAnimateEndPlayCardResult
+    shouldAnimateEndPlayCardResult,
+    state
   ]);
 
   /**
@@ -424,7 +406,7 @@ const useEuchreGamePlay = (
         const handResult = euchreGame.handResults.at(-1);
         if (!handResult) throw new Error('Game result not found for trick finished.');
 
-        addHandWonEvent(handResult);
+        addHandWonEvent(handResult, state, eventHandlers);
 
         await gameDelay(euchreSettings);
 
@@ -443,17 +425,16 @@ const useEuchreGamePlay = (
 
     errorHandlers.catchAsync(animateTrickFinished, errorHandlers.onError, 'animateTrickFinished');
   }, [
-    addHandWonEvent,
     continueToBeginPlayCard,
     errorHandlers,
     euchreGame,
     euchreSettings,
+    eventHandlers,
     handleCloseHandResults,
-    isHandFinished,
-    gameDelay,
     pauseForPrompt,
     setters,
-    shouldAnimateBeginTrickFinished
+    shouldAnimateBeginTrickFinished,
+    state
   ]);
 
   //#endregion

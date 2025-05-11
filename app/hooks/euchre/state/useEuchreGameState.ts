@@ -6,7 +6,6 @@ import {
   EuchreGameValues,
   EuchreSettings
 } from '../../../lib/euchre/definitions/game-state-definitions';
-import useGameSetupLogic from '../logic/useGameSetupLogic';
 import useGameSettings from '../data/useGameSettings';
 import {
   EuchreFlowActionType,
@@ -23,9 +22,9 @@ import { EuchrePauseActionType, gamePauseFlowReducer, INIT_PAUSE_STATE } from '.
 import { BidResult, Card, PromptType } from '../../../lib/euchre/definitions/definitions';
 import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
 import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from '../reducers/playerNotificationReducer';
+import { createDefaultEuchreGame } from '../../../lib/euchre/util/gameSetupLogicUtil';
 
 const useEuchreGameState = () => {
-  const { createDefaultEuchreGame } = useGameSetupLogic();
   const [euchreGame, setEuchreGame] = useState<EuchreGameInstance>(createDefaultEuchreGame());
   const { euchreSettings, saveSettings } = useGameSettings();
   const [euchreReplayGame, setEuchreReplayGame] = useState<EuchreGameInstance | null>(null);
@@ -59,6 +58,7 @@ const useEuchreGameState = () => {
   const handleAddPromptValue = (value: PromptType) => {
     setPromptValue((prev) => [...prev, value]);
   };
+
   const handleRemovePromptValue = (value: PromptType) => {
     setPromptValue((prev) => [...prev.filter((p) => p !== value)]);
   };

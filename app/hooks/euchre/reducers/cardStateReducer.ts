@@ -1,6 +1,6 @@
 import { TableLocation } from '../../../lib/euchre/definitions/definitions';
 import { EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
-import { CardSpringTarget } from '../data/useCardTransform';
+import { CardSpringTarget } from '../../../lib/euchre/definitions/transform-definitions';
 import { EuchreGameFlow } from './gameFlowReducer';
 
 export interface PlayerHandState {
@@ -17,6 +17,7 @@ export interface PlayerHandState {
 }
 
 export interface CardState {
+  renderKey: string;
   cardIndex: number;
   src?: string;
   cardFullName: string;

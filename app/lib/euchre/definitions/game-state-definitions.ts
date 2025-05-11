@@ -47,6 +47,7 @@ export interface EuchreGameInstance {
   handResults: EuchreHandResult[];
   gamePlayers: EuchrePlayer[];
   dealPassedCount: number;
+  originalDealDeck: Card[];
 
   currentRound: number;
   currentTrick: EuchreTrick;
@@ -133,6 +134,7 @@ export interface ErrorHandlers {
 
   onError: (e: Error, name: string) => void;
 
+  onResetError: () => void;
   catchAsync: (
     func: () => Promise<void>,
     onError: (e: Error, name: string) => void,
@@ -142,33 +144,34 @@ export interface ErrorHandlers {
 
 export interface EuchreGamePlayHandlers {
   reset: (resetForBeginGame: boolean) => void;
-  handleBeginNewGame: () => void;
-  handleBidSubmit: (result: BidResult) => void;
-  handleSettingsChange: (setting: EuchreSettings) => void;
-  handleCancelGame: () => void;
-  handleDiscardSubmit: (card: Card) => void;
-  handleCloseHandResults: () => void;
-  handleReplayHand: () => void;
-  handleCancelAndReset: () => void;
-  handleReplayGame: (replayGame: EuchreGameInstance) => void;
-  handleAttemptToRecover: () => void;
+  onBeginNewGame: () => void;
+  onBidSubmit: (result: BidResult) => void;
+  onSettingsChange: (setting: EuchreSettings) => void;
+  onCancelGame: () => void;
+  onDiscardSubmit: (card: Card) => void;
+  onCloseHandResults: () => void;
+  onReplayHand: () => void;
+  onCancelAndReset: () => void;
+  onReplayGame: (replayGame: EuchreGameInstance) => void;
 }
 
 export interface EuchreDebugHandlers {
-  handleRunInitGame: () => void;
-  handleRunInitAndShuffleGame: () => void;
-  handleRunTrickNotification: () => void;
-  handleRunFullGame: () => void;
+  onRunInitGame: () => void;
+  onRunInitAndShuffleGame: () => void;
+  onRunTrickNotification: () => void;
+  onRunFullGame: () => void;
+  onRunFullGameLoop: () => void;
+  onClearDebugGame: () => void;
 }
 
 export interface EuchreAnimationHandlers {
-  handleBeginRegularDealComplete: () => void;
-  handleEndRegularDealComplete: () => void;
-  handleBeginDealForDealerComplete: () => void;
-  handleEndDealForDealerComplete: () => void;
-  handleTrickFinished: () => void;
-  handleCardPlayed: (cardPlayed: Card) => void;
-  handlePassDealComplete: () => void;
+  onBeginRegularDealComplete: () => void;
+  onEndRegularDealComplete: () => void;
+  onBeginDealForDealerComplete: () => void;
+  onEndDealForDealerComplete: () => void;
+  onTrickFinished: () => void;
+  onCardPlayed: (cardPlayed: Card) => void;
+  onPassDealComplete: () => void;
 }
 
 export interface EuchreGameSetters {

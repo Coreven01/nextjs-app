@@ -1,6 +1,6 @@
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import { Suit } from '@/app/lib/euchre/definitions/definitions';
 import clsx from 'clsx';
+import { getCardClassColorFromSuit } from '../../../lib/euchre/util/cardSvgDataUtil';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -23,8 +23,6 @@ const PromptSelection = ({
   onSelectionChanged,
   ...rest
 }: Props) => {
-  const { getCardClassColorFromSuit } = useCardSvgData();
-
   return (
     <div key={suit} className={clsx('flex relative items-center justify-center', className)} {...rest}>
       <div

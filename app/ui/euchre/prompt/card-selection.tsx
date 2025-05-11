@@ -1,7 +1,7 @@
 import { Card } from '@/app/lib/euchre/definitions/definitions';
 import PromptSelection from './prompt-selection';
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
-import useCardData from '../../../hooks/euchre/data/useCardData';
+import { sortCardsIndices } from '../../../lib/euchre/util/cardDataUtil';
+import { getCardFullName } from '../../../lib/euchre/util/cardSvgDataUtil';
 
 interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   playerHand: Card[];
@@ -9,8 +9,6 @@ interface SelectionProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const CardSelection = ({ playerHand, onSelectionChanged, ...rest }: SelectionProps) => {
-  const { getCardFullName } = useCardSvgData();
-  const { sortCardsIndices } = useCardData();
   const orderedCards = sortCardsIndices(playerHand, null);
 
   return (

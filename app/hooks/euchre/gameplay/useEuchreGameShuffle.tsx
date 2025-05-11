@@ -1,8 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { PlayerNotificationActionType } from '../reducers/playerNotificationReducer';
-import useGameSetupLogic from '../logic/useGameSetupLogic';
 import { GameEventHandlers } from '../useEventLog';
-import usePlayerData from '../data/usePlayerData';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
@@ -10,7 +8,13 @@ import {
   ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useGameShuffleState from '../phases/useGameShuffleState';
-import useGameEventsShuffle from '../events/useGameEventsShuffle';
+import {
+  addBeginShuffleEvent,
+  addSkipDealAnimationEvent,
+  addTrumpCardFlippedEvent
+} from '../../../lib/euchre/util/gameShuffleEventsUtil';
+import { getPlayerRotation } from '../../../lib/euchre/util/playerDataUtil';
+import { dealCardsForDealer, shuffleAndDealHand } from '../../../lib/euchre/util/gameSetupLogicUtil';
 
 const useEuchreGameShuffle = (
   state: EuchreGameValues,
@@ -18,12 +22,6 @@ const useEuchreGameShuffle = (
   eventHandlers: GameEventHandlers,
   errorHandlers: ErrorHandlers
 ) => {
-  const { addSkipDealAnimationEvent, addBeginShuffleEvent, addTrumpCardFlippedEvent } = useGameEventsShuffle(
-    state,
-    eventHandlers
-  );
-  const { shuffleAndDealHand, dealCardsForDealer } = useGameSetupLogic();
-  const { getPlayerRotation } = usePlayerData();
   const {
     shouldBeginSkipAnimation,
     shouldShuffleCards,
@@ -43,9 +41,9 @@ const useEuchreGameShuffle = (
 
   /** Update game state once card animation is complete and begin the bidding game state. */
   const handleBeginDealComplete = useCallback(() => {
-    addTrumpCardFlippedEvent();
+    addTrumpCardFlippedEvent(state, eventHandlers);
     continueToEndDealCards();
-  }, [addTrumpCardFlippedEvent, continueToEndDealCards]);
+  }, [continueToEndDealCards, eventHandlers, state]);
 
   /** */
   const handleEndDealComplete = useCallback(() => {
@@ -55,7 +53,7 @@ const useEuchreGameShuffle = (
 
     setters.setEuchreGame(newGame);
     continueToBeginBidForTrump();
-  }, [continueToBeginBidForTrump, euchreGame, getPlayerRotation, setters]);
+  }, [continueToBeginBidForTrump, euchreGame, setters]);
   //#endregion
 
   //#region Shuffle and Deal for regular playthrough *************************************************************************
@@ -65,33 +63,33 @@ const useEuchreGameShuffle = (
   const beginSkipDealAnimation = useCallback(() => {
     if (!shouldBeginSkipAnimation) return;
 
-    addSkipDealAnimationEvent();
-    //throw new Error('todo: create initial deal and regular deal function');
+    addSkipDealAnimationEvent(state, eventHandlers);
 
     let newGame = { ...euchreGame };
-    const dealResult = dealCardsForDealer(newGame, euchreGameFlow, null);
+    const dealResult = dealCardsForDealer(newGame, euchreGameFlow);
 
     if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
 
     newGame.dealer = dealResult.newDealer;
     newGame.currentPlayer = dealResult.newDealer;
 
-    const shuffleResult = shuffleAndDealHand(newGame, euchreSettings, null, false);
+    const shuffleResult = shuffleAndDealHand(newGame, euchreSettings, euchreReplayGame, shouldCancel);
 
     newGame = shuffleResult.game;
     setters.setEuchreGame(newGame);
 
     continueToAnimateEndDealCards();
   }, [
-    addSkipDealAnimationEvent,
     continueToAnimateEndDealCards,
-    dealCardsForDealer,
     euchreGame,
     euchreGameFlow,
+    euchreReplayGame,
     euchreSettings,
+    eventHandlers,
     setters,
     shouldBeginSkipAnimation,
-    shuffleAndDealHand
+    shouldCancel,
+    state
   ]);
 
   /**
@@ -111,14 +109,12 @@ const useEuchreGameShuffle = (
   const beginShuffleAndDealHand = useCallback(() => {
     if (!shouldShuffleCards) return;
 
-    addBeginShuffleEvent();
+    addBeginShuffleEvent(state, eventHandlers);
 
     const shuffleResult = shuffleAndDealHand(euchreGame, euchreSettings, euchreReplayGame, shouldCancel);
-
     const newGame = shuffleResult.game;
 
     setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
-
     setters.setEuchreGame(newGame);
 
     if (!euchreSettings.shouldAnimateDeal) {
@@ -127,16 +123,16 @@ const useEuchreGameShuffle = (
       continueToAnimateDealCards(newGame);
     }
   }, [
-    addBeginShuffleEvent,
     continueToAnimateDealCards,
     continueToAnimateEndDealCards,
     euchreGame,
     euchreReplayGame,
     euchreSettings,
+    eventHandlers,
     setters,
     shouldCancel,
     shouldShuffleCards,
-    shuffleAndDealHand
+    state
   ]);
 
   /**

@@ -8,19 +8,23 @@ import {
   EuchrePlayer
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import useCardData from '../../../hooks/euchre/data/useCardData';
 import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
+import { getCardClassForPlayerLocation } from '../../../lib/euchre/util/cardDataUtil';
+import { logConsole, logError } from '../../../lib/euchre/util/util';
 
 type Props = {
   state: EuchreGameState;
   eventHandlers: GameEventHandlers;
   errorHandlers: ErrorHandlers;
   player: EuchrePlayer;
+
+  /** Card to played without user interaction. Used for auto play. */
   playedCard: Card | null;
   playerCenterTableRef: RefObject<HTMLDivElement | null> | undefined;
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   directCenterHRef: RefObject<HTMLDivElement | null>;
   directCenterVRef: RefObject<HTMLDivElement | null>;
+
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onPassDeal: (card: Card) => void;
@@ -43,7 +47,7 @@ const PlayerHand = ({
   onDealComplete
 }: Props) => {
   //#region Hooks
-  // used to keep the card visible after it's been played for the current trick.
+
   const {
     initCardStateCreated,
     cardRefs,
@@ -67,7 +71,7 @@ const PlayerHand = ({
   );
   /** Map of trick ID to the associated card (index) that was played for that trick.*/
   const cardIndicesPlayed = useRef<Map<string, number>>(new Map<string, number>());
-  const { getCardClassForPlayerLocation } = useCardData();
+  /** Used to prevent clicking cards in rapid succession */
   const isCardClickHandled = useRef(false);
 
   /** Animate the card being played. Once animation for the card is complete, the state should be updated that the player
@@ -76,13 +80,17 @@ const PlayerHand = ({
   useEffect(() => {
     if (playedCard && !cardIndicesPlayed.current.has(state.euchreGame.currentTrick.trickId)) {
       cardIndicesPlayed.current.set(state.euchreGame.currentTrick.trickId, playedCard.index);
-      console.log('[useEffect] [handlePlayCardAnimation], auto played card: ', playedCard);
+      logConsole('[PLAYERHAND] [useEffect] [handlePlayCardAnimation], auto played card: ', playedCard);
 
       const tableRef = playerCenterTableRef?.current;
 
-      if (!tableRef) throw new Error('Table ref reference not found for player hand - play card animation.');
-
-      handlePlayCardAnimation(playedCard.index, tableRef);
+      if (!tableRef)
+        logError(
+          '[PLAYERHAND] [useEffect] [handlePlayCardAnimation] - Invalid table ref. Card animation was not handled.'
+        );
+      else {
+        handlePlayCardAnimation(playedCard.index, tableRef);
+      }
     }
   }, [handlePlayCardAnimation, playedCard, playerCenterTableRef, state.euchreGame.currentTrick.trickId]);
   //#endregion
@@ -92,8 +100,8 @@ const PlayerHand = ({
   const location = player.location;
 
   const handleCardClick = (cardIndex: number) => {
-    console.log(
-      '[handleCardClick] - player-hand.tsx - player: ',
+    logConsole(
+      '[PLAYERHAND] [handleCardClick] - player: ',
       player.name,
       ' trick ids played: ',
       cardIndicesPlayed.current
@@ -109,9 +117,14 @@ const PlayerHand = ({
       const delay = state.euchreSettings.gameSpeed;
       const tableRef = playerCenterTableRef?.current;
 
-      if (!tableRef) throw new Error('[handleCardClick] -Table ref reference not found for player hand.');
+      if (!tableRef) {
+        logError(
+          '[PLAYERHAND] [useEffect] [handleCardClick] - Invalid table ref. Card animation was not handled.'
+        );
+        return;
+      }
 
-      // release lock that the next card should be handled.
+      // release lock so the next card can be handled.
       setTimeout(() => {
         isCardClickHandled.current = false;
       }, delay);
@@ -121,7 +134,7 @@ const PlayerHand = ({
   };
 
   if (player.human)
-    console.log('*** [PLAYERHAND] [RENDER] player: ', player.name, ' player hand: ', playerCurrentHand);
+    logConsole('*** [PLAYERHAND] [RENDER] player: ', player.name, ' player hand: ', playerCurrentHand);
 
   return (
     <>
@@ -133,11 +146,9 @@ const PlayerHand = ({
           const cardState = cardStates.find((s) => s.cardIndex === card.index);
           const cardRef = cardRefs.get(card.index);
 
-          if (!cardState) throw new Error('[PLAYERHAND] [RENDER] -Invalid card state.');
-          if (!cardRef) throw new Error('[PLAYERHAND] [RENDER] - Invalid card ref.');
-
-          return (
+          return cardState && cardRef ? (
             <GameCard
+              renderKey={cardState.renderKey}
               key={keyval}
               className={clsx('absolute', getCardClassForPlayerLocation(player.location))}
               location={location}
@@ -151,6 +162,8 @@ const PlayerHand = ({
               onCardClick={cardState.enabled ? handleCardClick : undefined}
               onAnimationComplete={onAnimationComplete.current}
             />
+          ) : (
+            <div>Invalid card state or card ref.</div>
           );
         })}
     </>

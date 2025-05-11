@@ -1,5 +1,4 @@
 import { useCallback, useEffect } from 'react';
-import useGameSetupLogic from '../logic/useGameSetupLogic';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
@@ -8,11 +7,12 @@ import {
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
 import { GameEventHandlers } from '../useEventLog';
-import useGameData from '../data/useGameData';
 import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../../ui/euchre/game/game-play-indicator';
 import useGameInitDealState from '../phases/useGameInitDealState';
-import useGameEventsInitDeal from '../events/useGameEventsInitDeal';
+import { addInitialDealerSetEvent, addInitialDealEvent } from '../../../lib/euchre/util/gameInitDealEvents';
+import { dealCardsForDealer } from '../../../lib/euchre/util/gameSetupLogicUtil';
+import { notificationDelay } from '../../../lib/euchre/util/gameDataUtil';
 
 /**
  * Hook used to initialize game play for dealing cards for intial dealer.
@@ -25,9 +25,6 @@ export default function useEuchreGameInitDeal(
   eventHandlers: GameEventHandlers,
   errorHandlers: ErrorHandlers
 ) {
-  const { dealCardsForDealer } = useGameSetupLogic();
-  const { notificationDelay } = useGameData();
-  const { addInitialDealEvent, addInitialDealerSetEvent } = useGameEventsInitDeal(state, eventHandlers);
   const {
     shouldBeginDealCardsForDealer,
     shouldAnimateBeginDealCardsForDealer,
@@ -49,7 +46,7 @@ export default function useEuchreGameInitDeal(
   const handleEndDealForDealerComplete = useCallback(() => {
     continueToShuffleCards();
   }, [continueToShuffleCards]);
-  const { euchreGame, euchreSettings, euchreGameFlow, euchreReplayGame, initDealer } = state;
+  const { euchreGame, euchreSettings, euchreGameFlow, initDealer } = state;
   //#endregion
 
   //#region Deal Cards For Initial Dealer *************************************************************************
@@ -61,16 +58,12 @@ export default function useEuchreGameInitDeal(
   const beginDealCardsForDealer = useCallback(() => {
     if (!shouldBeginDealCardsForDealer) return;
 
-    addInitialDealEvent();
+    addInitialDealEvent(state, eventHandlers);
 
     if (euchreSettings.shouldAnimateDeal) {
-      const dealResult: InitDealResult | null = dealCardsForDealer(
-        euchreGame,
-        euchreGameFlow,
-        euchreReplayGame
-      );
+      const dealResult: InitDealResult | null = dealCardsForDealer(euchreGame, euchreGameFlow);
 
-      if (!dealResult?.newDealer) throw Error('Unable to determine dealer for initial dealer.');
+      if (!dealResult?.newDealer) throw Error('[INIT DEAL] - Unable to determine dealer for initial dealer.');
 
       setters.setInitialDealerResult(dealResult);
       pauseForAnimateBeginDealCardsForDealer();
@@ -78,16 +71,15 @@ export default function useEuchreGameInitDeal(
       continueToSkipInitDealAnimation();
     }
   }, [
-    shouldBeginDealCardsForDealer,
-    addInitialDealEvent,
-    euchreSettings.shouldAnimateDeal,
-    dealCardsForDealer,
+    continueToSkipInitDealAnimation,
     euchreGame,
     euchreGameFlow,
-    euchreReplayGame,
-    setters,
+    euchreSettings.shouldAnimateDeal,
+    eventHandlers,
     pauseForAnimateBeginDealCardsForDealer,
-    continueToSkipInitDealAnimation
+    setters,
+    shouldBeginDealCardsForDealer,
+    state
   ]);
 
   /** Effect to begin deal cards to determine initial dealer
@@ -125,23 +117,24 @@ export default function useEuchreGameInitDeal(
    */
   const endDealCardsForDealer = useCallback(() => {
     if (!shouldEndDealCardsForDealer) return;
-    if (!initDealer) throw new Error('Invalid deal state for end deal for dealer.');
+    if (!initDealer) throw new Error('[INIT DEAL] - Invalid deal state for end deal for dealer.');
 
     const newGame: EuchreGameInstance = { ...euchreGame };
     newGame.currentPlayer = initDealer.newDealer;
     newGame.dealer = initDealer.newDealer;
 
-    addInitialDealerSetEvent(newGame.dealer);
+    addInitialDealerSetEvent(newGame.dealer, state, eventHandlers);
 
     setters.setEuchreGame(newGame);
     continueToAnimateEndDealCardsForDealer();
   }, [
-    addInitialDealerSetEvent,
     continueToAnimateEndDealCardsForDealer,
+    euchreGame,
+    eventHandlers,
+    initDealer,
     setters,
     shouldEndDealCardsForDealer,
-    euchreGame,
-    initDealer
+    state
   ]);
 
   /**
@@ -188,13 +181,11 @@ export default function useEuchreGameInitDeal(
     errorHandlers.catchAsync(endAnimationForInitDeal, errorHandlers.onError, 'endAnimationForInitDeal');
   }, [
     errorHandlers,
-    notificationDelay,
+    euchreGame.dealer.location,
+    euchreSettings,
     pauseForAnimateEndDealCardsForDealer,
     setters,
-    shouldAnimateEndDealCardsForDealer,
-    euchreGame.dealer.location,
-    euchreGame.dealer.playerNumber,
-    euchreSettings
+    shouldAnimateEndDealCardsForDealer
   ]);
 
   //#endregion

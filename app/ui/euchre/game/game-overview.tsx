@@ -1,40 +1,20 @@
-import { DIFFICULTY_MAP, EuchreHandResult } from '@/app/lib/euchre/definitions/definitions';
+import { DIFFICULTY_MAP } from '@/app/lib/euchre/definitions/definitions';
 import PromptHeader from '../prompt/prompt-header';
 import PlayerColor from '../player/player-team-color';
-import useGameData from '@/app/hooks/euchre/data/useGameData';
-import usePlayerData from '@/app/hooks/euchre/data/usePlayerData';
-import useCardData from '@/app/hooks/euchre/data/useCardData';
 import { EuchreGameInstance, EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
+import { getPlayerOverviewStats, getTeamOverviewStats } from '../../../lib/euchre/util/gameDataUtil';
+import { getTeamColor } from '../../../lib/euchre/util/playerDataUtil';
 
 interface Props {
   game: EuchreGameInstance;
   gameSettings: EuchreSettings;
-  gameResults: EuchreHandResult[];
 }
 
-const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
-  const { teamPoints } = useGameData();
-  const { getTeamColor } = usePlayerData();
+const GameOverview = ({ game, gameSettings }: Props) => {
+  const team1Stats = getTeamOverviewStats(game, 1);
+  const team2Stats = getTeamOverviewStats(game, 2);
 
-  const teamOneScore = Math.min(teamPoints(game, 1), 10);
-  const teamTwoScore = Math.min(teamPoints(game, 2), 10);
-  const teamOneLoners = gameResults.filter(
-    (r) => r.maker.team === 1 && r.loner && r.teamWon === 1 && r.points === 4
-  ).length;
-  const teamTwoLoners = gameResults.filter(
-    (r) => r.maker.team === 2 && r.loner && r.teamWon === 2 && r.points === 4
-  ).length;
-  const teamOneEuchred = gameResults.filter((r) => r.maker.team === 1 && r.teamWon === 2).length;
-  const teamTwoEuchred = gameResults.filter((r) => r.maker.team === 2 && r.teamWon === 1).length;
-  const teamOneTotalTricks = gameResults
-    .map((r) => r.tricks)
-    .flat()
-    .filter((t) => t.taker?.team === 1).length;
-  const teamTwoTotalTricks = gameResults
-    .map((r) => r.tricks)
-    .flat()
-    .filter((t) => t.taker?.team === 2).length;
-  const rounds = gameResults.length;
+  const rounds = game.handResults.length;
   const difficultyName = DIFFICULTY_MAP.entries().find((v) => v[1] === gameSettings.difficulty)?.[0];
 
   return (
@@ -66,10 +46,10 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
                 </PlayerColor>
                 <div>Team One</div>
               </td>
-              <td>{teamOneScore}</td>
-              <td>{teamOneLoners}</td>
-              <td>{teamOneEuchred}</td>
-              <td>{teamOneTotalTricks}</td>
+              <td>{team1Stats.score}</td>
+              <td>{team1Stats.lonerCount}</td>
+              <td>{team1Stats.euchredCount}</td>
+              <td>{team1Stats.tricksWonCount}</td>
             </tr>
             <tr>
               <td className="flex items-center gap-1">
@@ -81,21 +61,21 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
                 </PlayerColor>
                 <div>Team Two</div>
               </td>
-              <td>{teamTwoScore}</td>
-              <td>{teamTwoLoners}</td>
-              <td>{teamTwoEuchred}</td>
-              <td>{teamTwoTotalTricks}</td>
+              <td>{team2Stats.score}</td>
+              <td>{team2Stats.lonerCount}</td>
+              <td>{team2Stats.euchredCount}</td>
+              <td>{team2Stats.tricksWonCount}</td>
             </tr>
           </tbody>
         </table>
       </div>
       <div>
         <PromptHeader>Team One</PromptHeader>
-        <TeamPlayerStats game={game} gameResults={gameResults} teamNumber={1} />
+        <TeamPlayerStats game={game} teamNumber={1} />
       </div>
       <div>
         <PromptHeader>Team Two</PromptHeader>
-        <TeamPlayerStats game={game} gameResults={gameResults} teamNumber={2} />
+        <TeamPlayerStats game={game} teamNumber={2} />
       </div>
       <div></div>
     </div>
@@ -104,13 +84,10 @@ const GameOverview = ({ game, gameSettings, gameResults }: Props) => {
 
 interface TeamPlayerProps {
   game: EuchreGameInstance;
-  gameResults: EuchreHandResult[];
   teamNumber: 1 | 2;
 }
 
-const TeamPlayerStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => {
-  const { getSuitCount } = useCardData();
-  const { playerEqual } = usePlayerData();
+const TeamPlayerStats = ({ game, teamNumber }: TeamPlayerProps) => {
   const teamPlayers = game.gamePlayers.filter((p) => p.team === teamNumber);
 
   return (
@@ -129,48 +106,18 @@ const TeamPlayerStats = ({ game, gameResults, teamNumber }: TeamPlayerProps) => 
       </thead>
       <tbody>
         {teamPlayers.map((player) => {
-          const trumpOrdered = gameResults.filter((r) => playerEqual(r.maker, player)).length;
-          const tricksWon = gameResults
-            .map((r) => r.tricks)
-            .flat()
-            .filter((t) => t.taker !== null && playerEqual(t.taker, player)).length;
-          const acesLead = gameResults
-            .map((r) => r.tricks)
-            .flat()
-            .map((t) => t.cardsPlayed[0])
-            .filter((c) => playerEqual(c.player, player) && c.card.value === 'A').length;
-          const lonerCount = gameResults.filter((r) => playerEqual(r.maker, player) && r.loner).length;
-
-          const gameHandsForPlayer = gameResults.map((r) => {
-            return {
-              trump: r.trump,
-              cards: r.tricks
-                .map((t) => t.cardsPlayed)
-                .flat()
-                .filter((c) => playerEqual(c.player, player))
-            };
-          });
-
-          const suitsForPlayerHands = gameHandsForPlayer.map((h) =>
-            getSuitCount(
-              h.cards.map((c) => c.card),
-              h.trump
-            )
-          );
-          const fourSuited = suitsForPlayerHands.filter((h) => h.length === 4).length;
-          const threeSuited = suitsForPlayerHands.filter((h) => h.length === 3).length;
-          const twoSuited = suitsForPlayerHands.filter((h) => h.length === 2).length;
+          const playerStats = getPlayerOverviewStats(game, player);
 
           return (
             <tr className="text-center" key={player.playerNumber}>
               <td>{player.name}</td>
-              <td>{trumpOrdered}</td>
-              <td>{tricksWon}</td>
-              <td>{fourSuited}</td>
-              <td>{threeSuited}</td>
-              <td>{twoSuited}</td>
-              <td>{acesLead}</td>
-              <td>{lonerCount}</td>
+              <td>{playerStats.trumpOrderedCount}</td>
+              <td>{playerStats.tricksWonCount}</td>
+              <td>{playerStats.fourSuitedCount}</td>
+              <td>{playerStats.threeSuitedCount}</td>
+              <td>{playerStats.twoSuitedCount}</td>
+              <td>{playerStats.acesLeadCount}</td>
+              <td>{playerStats.lonerCount}</td>
             </tr>
           );
         })}

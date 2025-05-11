@@ -17,13 +17,11 @@ type Props = {
   settings: EuchreSettings;
   onReturn: () => void;
   onApplySettings: (settings: EuchreSettings) => void;
-  onRunFullGame: () => void;
-  onRunFullGameLoop: () => void;
 };
 
-const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRunFullGameLoop }: Props) => {
-  const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings.teamOneColor ?? 'blue');
-  const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings.teamTwoColor ?? 'red');
+const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
+  const [teamOneColor, setTeamOneColor] = useState<TeamColor>(settings.teamOneColor);
+  const [teamTwoColor, setTeamTwoColor] = useState<TeamColor>(settings.teamTwoColor);
   const [playerName, setPlayerName] = useState(settings.playerName);
 
   const teamColors = [...TEAM_COLOR_MAP.keys()];
@@ -40,24 +38,6 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
   const handleSetDefaultSettings = () => {
     onApplySettings({ ...settings, ...DEFAULT_GAME_SETTINGS });
   };
-
-  const handleRunTestGame = () => {
-    onRunFullGame();
-  };
-
-  const handleRunTestGameLoop = () => {
-    onRunFullGameLoop();
-  };
-
-  // const handleApplyAutoSettings = () => {
-  //   onApplySettings({
-  //     ...settings,
-  //     showHandResult: false,
-  //     stickTheDealer: true,
-  //     debugAllComputerPlayers: true,
-  //     gameSpeed: 800
-  //   });
-  // };
 
   const handleTeamColorChange = (teamNumber: number, value: TeamColor) => {
     let tempTeamOne = teamOneColor;
@@ -389,16 +369,6 @@ const GameSettings = ({ settings, onReturn, onApplySettings, onRunFullGame, onRu
           Default Settings
         </GameButton>
       </div>
-      {isDebugMode && (
-        <div className="flex justify-center gap-2 lg:text-base text-sm mt-2 bg-stone-700 p-2 border border-white">
-          <button className="text-white border border-white lg:p-2 p-1" onClick={handleRunTestGame}>
-            Run Test Game
-          </button>
-          <button className="text-white border border-white lg:p-2 p-1" onClick={handleRunTestGameLoop}>
-            Run Test Game Loop
-          </button>
-        </div>
-      )}
     </div>
   );
 };

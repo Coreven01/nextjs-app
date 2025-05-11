@@ -26,7 +26,7 @@ export default function GameErrorPrompt({ errorState, onAttemptToRecover, classN
             <label>Message: </label>
             {errorState.message}
           </div>
-          <GameButton type="success" onClick={onAttemptToRecover}>
+          <GameButton type="warn" onClick={onAttemptToRecover}>
             Attempt To Recover
           </GameButton>
         </div>

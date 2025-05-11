@@ -2,10 +2,10 @@ import Draggable, { DraggableEvent } from 'react-draggable';
 import { RefObject, useRef } from 'react';
 import PlayerColor from '../player/player-team-color';
 import GameBorderBare from './game-border-bare';
-import useGameData from '@/app/hooks/euchre/data/useGameData';
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
-import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
 import { EuchreGameInstance, EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
+import { teamPoints } from '../../../lib/euchre/util/gameDataUtil';
+import { getTeamColor } from '../../../lib/euchre/util/playerDataUtil';
+import { getSuitName } from '../../../lib/euchre/util/cardSvgDataUtil';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -14,10 +14,6 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const GameScore = ({ className, game, settings, showScore, ...rest }: DivProps) => {
-  const { teamPoints } = useGameData();
-  const { getSuitName } = useCardSvgData();
-  const { getTeamColor } = usePlayerData();
-
   const teamOnePoints = teamPoints(game, 1);
   const teamTwoPoints = teamPoints(game, 2);
   const draggableRef: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;

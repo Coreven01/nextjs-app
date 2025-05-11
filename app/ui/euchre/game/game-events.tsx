@@ -5,9 +5,8 @@ import GameBorder from './game-border';
 import { GameEvent, GameEventType } from '@/app/hooks/euchre/useEventLog';
 import PromptHeader from '../prompt/prompt-header';
 import Switch from '@mui/material/Switch';
-import { ChangeEvent, useState } from 'react';
+import { useState } from 'react';
 import GameEventLine from './game-event-line';
-import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 import GameButton from './game-button';
 
 interface Props {
@@ -20,11 +19,11 @@ interface Props {
 const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   const draggableRef: RefObject<HTMLDivElement> = useRef(null) as unknown as React.RefObject<HTMLDivElement>;
   const divRef = useRef<HTMLDivElement>(null);
+
   const [showDebugEvents, setShowDebugEvents] = useState(false);
   const [showVerboseEvents, setShowVerboseEvents] = useState(false);
   const [showInformationEvents, setShowInformationEvents] = useState(true);
   const [showTimeStamp, setShowTimeStamp] = useState(false);
-  const { getCardFullName, getCardClassColorFromSuit, getSuitName } = useCardSvgData();
 
   const getFilteredEvents = (): GameEvent[] => {
     const eventTypes: GameEventType[] = [];
@@ -43,6 +42,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
     }
   }, [events]);
 
+  //#region Handlers
   const handleClear = () => {
     onClear();
   };
@@ -51,17 +51,16 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
     onClose();
   };
 
-  //const handleDrag = (e: DraggableEvent, data: object) => {};
-  const handleToggleDebug = (e: ChangeEvent<HTMLInputElement>) => setShowDebugEvents(e.target.checked);
-  const handleToggleInfomation = (e: ChangeEvent<HTMLInputElement>) =>
-    setShowInformationEvents(e.target.checked);
-  const handleToggleVerbose = (e: ChangeEvent<HTMLInputElement>) => setShowVerboseEvents(e.target.checked);
-  const handleToggleTimeStamp = (e: ChangeEvent<HTMLInputElement>) => setShowTimeStamp(e.target.checked);
+  const handleToggleDebug = (value: boolean) => setShowDebugEvents(value);
+  const handleToggleInfomation = (value: boolean) => setShowInformationEvents(value);
+  const handleToggleVerbose = (value: boolean) => setShowVerboseEvents(value);
+  const handleToggleTimeStamp = (value: boolean) => setShowTimeStamp(value);
+  //#endregion
 
   return (
     <Draggable
       grid={[15, 15]}
-      defaultPosition={{ x: 25, y: 25 }}
+      defaultPosition={{ x: 5, y: 5 }}
       defaultClassName={clsx('absolute', className)}
       handle="h2"
       nodeRef={draggableRef}
@@ -69,71 +68,23 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       <div ref={draggableRef} className="flex" style={{ zIndex: 1000 }}>
         <GameBorder className="relative" innerClass=" lg:w-[600px] w-[550px] bg-stone-800">
           <PromptHeader className="cursor-move ">Events</PromptHeader>
-          <div className="flex mx-1 justify-center gap-2 text-sm">
-            <div>
-              <label htmlFor="showInformationEvents">Information: </label>
-              <Switch
-                id="showInformationEvents"
-                size="small"
-                checked={showInformationEvents}
-                name="showInformationEvents"
-                color="success"
-                onChange={(e) => handleToggleInfomation(e)}
-              />
-              {' | '}
-            </div>
-            <div>
-              <label htmlFor="showVerboseEvents">Verbose: </label>
-              <Switch
-                id="showVerboseEvents"
-                size="small"
-                checked={showVerboseEvents}
-                name="showVerboseEvents"
-                color="success"
-                onChange={(e) => handleToggleVerbose(e)}
-              />
-              {' | '}
-            </div>
-            <div>
-              <label htmlFor="showDebugEvents">Debug: </label>
-              <Switch
-                id="showDebugEvents"
-                size="small"
-                checked={showDebugEvents}
-                name="showDebugEvents"
-                color="success"
-                onChange={(e) => handleToggleDebug(e)}
-              />
-              {' | '}
-            </div>
-            <div>
-              <label htmlFor="showTimeStamp">Show Timestamp: </label>
-              <Switch
-                id="showTimeStamp"
-                size="small"
-                checked={showTimeStamp}
-                name="showTimeStamp"
-                color="success"
-                onChange={(e) => handleToggleTimeStamp(e)}
-              />
-            </div>
-          </div>
+          <GameEventOptions
+            showDebugEvents={showDebugEvents}
+            showVerboseEvents={showVerboseEvents}
+            showInformationEvents={showInformationEvents}
+            showTimeStamp={showTimeStamp}
+            onToggleInformation={handleToggleInfomation}
+            onToggleDebug={handleToggleDebug}
+            onToggleVerbose={handleToggleVerbose}
+            onToggleTimestamp={handleToggleTimeStamp}
+          />
           <div
             ref={divRef}
             className="border border-white m-1 overflow-y-auto lg:text-sm text-xs h-[200px] lg:h-[400px]"
           >
             <ul>
               {filteredEvents.map((e) => {
-                return (
-                  <GameEventLine
-                    key={e.id}
-                    event={e}
-                    showTimeStamp={showTimeStamp}
-                    getCardFullName={getCardFullName}
-                    getCardClassColorFromSuit={getCardClassColorFromSuit}
-                    getSuitName={getSuitName}
-                  />
-                );
+                return <GameEventLine key={e.id} event={e} showTimeStamp={showTimeStamp} />;
               })}
             </ul>
           </div>
@@ -151,4 +102,76 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
   );
 };
 
+interface OptionProps {
+  showDebugEvents: boolean;
+  showVerboseEvents: boolean;
+  showInformationEvents: boolean;
+  showTimeStamp: boolean;
+  onToggleInformation: (value: boolean) => void;
+  onToggleDebug: (value: boolean) => void;
+  onToggleVerbose: (value: boolean) => void;
+  onToggleTimestamp: (value: boolean) => void;
+}
+const GameEventOptions = ({
+  showDebugEvents,
+  showVerboseEvents,
+  showInformationEvents,
+  showTimeStamp,
+  onToggleInformation,
+  onToggleDebug,
+  onToggleVerbose,
+  onToggleTimestamp
+}: OptionProps) => {
+  return (
+    <div className="flex mx-1 justify-center gap-2 text-sm">
+      <div>
+        <label htmlFor="showInformationEvents">Information: </label>
+        <Switch
+          id="showInformationEvents"
+          size="small"
+          checked={showInformationEvents}
+          name="showInformationEvents"
+          color="success"
+          onChange={(e) => onToggleInformation(e.target.checked)}
+        />
+        {' | '}
+      </div>
+      <div>
+        <label htmlFor="showVerboseEvents">Verbose: </label>
+        <Switch
+          id="showVerboseEvents"
+          size="small"
+          checked={showVerboseEvents}
+          name="showVerboseEvents"
+          color="success"
+          onChange={(e) => onToggleVerbose(e.target.checked)}
+        />
+        {' | '}
+      </div>
+      <div>
+        <label htmlFor="showDebugEvents">Debug: </label>
+        <Switch
+          id="showDebugEvents"
+          size="small"
+          checked={showDebugEvents}
+          name="showDebugEvents"
+          color="success"
+          onChange={(e) => onToggleDebug(e.target.checked)}
+        />
+        {' | '}
+      </div>
+      <div>
+        <label htmlFor="showTimeStamp">Show Timestamp: </label>
+        <Switch
+          id="showTimeStamp"
+          size="small"
+          checked={showTimeStamp}
+          name="showTimeStamp"
+          color="success"
+          onChange={(e) => onToggleTimestamp(e.target.checked)}
+        />
+      </div>
+    </div>
+  );
+};
 export default GameEvents;

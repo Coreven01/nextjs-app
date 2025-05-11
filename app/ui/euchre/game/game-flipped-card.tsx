@@ -1,10 +1,10 @@
 import clsx from 'clsx';
-import useCardData from '../../../hooks/euchre/data/useCardData';
 import GameBorder from './game-border';
 import GameCard from './game-card';
 import { Card } from '../../../lib/euchre/definitions/definitions';
 import { motion, TargetAndTransition } from 'framer-motion';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
+import { getDisplayHeight, getDisplayWidth } from '../../../lib/euchre/util/cardDataUtil';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   card: Card;
@@ -13,8 +13,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 const GameFlippedCard = ({ card, cardState, visible }: Props) => {
-  const { getDisplayHeight, getDisplayWidth } = useCardData();
-  const initVal: TargetAndTransition = { opacity: 0, scale: 0.75 };
+  const initVal: TargetAndTransition = { opacity: 0, scale: 0.65 };
   const animateVal: TargetAndTransition = visible ? { opacity: 1, scale: 1 } : initVal;
 
   return (
@@ -26,6 +25,7 @@ const GameFlippedCard = ({ card, cardState, visible }: Props) => {
       <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
         <div className="lg:p-2 p-1 bg-green-950 flex items-center justify-center">
           <GameCard
+            renderKey={cardState.renderKey}
             cardState={cardState}
             card={card}
             responsive={true}

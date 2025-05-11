@@ -60,11 +60,11 @@ const GameBorder = ({ children, className, innerClass, size = 'medium', ...rest 
 
   return (
     <div
-      {...rest}
       className={clsx(
         'grid grid-rows-[minmax(8px,max-content)_auto_minmax(8px,max-content)] grid-cols-[minmax(8px,max-content)_1fr_minmax(8px,max-content)] relative',
         className
       )}
+      {...rest}
     >
       {cornerImg}
       <div className="relative">

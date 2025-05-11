@@ -5,10 +5,10 @@ import GamePrompt from './game-prompt';
 import clsx from 'clsx';
 import GameBorder from '../game/game-border';
 import CardSelection from './card-selection';
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
-import useCardData from '@/app/hooks/euchre/data/useCardData';
 import PromptHeader from './prompt-header';
 import GameButton from '../game/game-button';
+import { getCardFullName, getEncodedCardSvg } from '../../../lib/euchre/util/cardSvgDataUtil';
+import { getDisplayHeight, getDisplayWidth } from '../../../lib/euchre/util/cardDataUtil';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   pickedUpCard: Card;
@@ -23,8 +23,6 @@ export default function DiscardPrompt({
   className,
   ...rest
 }: DivProps) {
-  const { getCardFullName, getEncodedCardSvg } = useCardSvgData();
-  const { getDisplayHeight, getDisplayWidth } = useCardData();
   const [discardSelection, setDiscardSelection] = useState<string | null>(null);
   const submitEnabled = discardSelection !== null;
 

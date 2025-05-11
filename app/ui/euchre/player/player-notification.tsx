@@ -4,6 +4,7 @@ import EphemeralModal from '../common/ephemeral-modal';
 import UserInfo from './user-info';
 import clsx from 'clsx';
 import { GameSpeed, Suit } from '../../../lib/euchre/definitions/definitions';
+import { playerEqual } from '../../../lib/euchre/util/playerDataUtil';
 
 interface Props {
   dealer: EuchrePlayer;
@@ -59,7 +60,7 @@ const PlayerNotification = ({
       icon = xIcon;
       break;
     case 'order':
-      messageDetail = dealer === player ? 'Picking Up' : 'Pick it up';
+      messageDetail = playerEqual(dealer, player) ? 'Picking Up' : 'Pick it up';
       icon = circleIcon;
       break;
     case 'named':

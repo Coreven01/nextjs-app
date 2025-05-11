@@ -3,14 +3,12 @@ import {
   EuchreGameValues,
   ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
-import useGameStateLogic from '../logic/useGameStateLogic';
+import { isGameStateValidToContinue } from '../../../lib/euchre/util/gameStateLogicUtil';
 import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 
 const useGameOrderState = (state: EuchreGameValues, setters: EuchreGameSetters, handlers: ErrorHandlers) => {
-  const { isGameStateValidToContinue } = useGameStateLogic();
-
   const shouldBeginOrderTrump = isGameStateValidToContinue(
     state,
     EuchreGameFlow.BEGIN_ORDER_TRUMP,

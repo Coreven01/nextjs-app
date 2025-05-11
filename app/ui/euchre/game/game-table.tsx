@@ -2,15 +2,16 @@ import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotif
 import GameBorder from './game-border';
 import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
-import { RefObject } from 'react';
+import { RefObject, useMemo } from 'react';
 import GameFlippedCard from './game-flipped-card';
 import { TableLocation } from '../../../lib/euchre/definitions/definitions';
-import useCardSvgData from '../../../hooks/euchre/data/useCardSvgData';
 import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
-import { DEFAULT_SPRING_VAL } from '../../../hooks/euchre/data/useCardTransform';
 import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
-import useGameStateLogic from '../../../hooks/euchre/logic/useGameStateLogic';
 import GameTrumpIndicator from './game-trump-indicator';
+import { getCardFullName, getEncodedCardSvg } from '../../../lib/euchre/util/cardSvgDataUtil';
+import { GAME_STATES_FOR_BID } from '../../../lib/euchre/util/gameStateLogicUtil';
+import { DEFAULT_SPRING_VAL } from '../../../lib/euchre/definitions/transform-definitions';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameState;
@@ -30,9 +31,7 @@ const GameTable = ({
   directCenterVRef,
   ...rest
 }: Props) => {
-  const { getEncodedCardSvg, getCardFullName } = useCardSvgData();
-  const { getGameStatesForBid } = useGameStateLogic();
-
+  const { euchreGame: game, euchreGameFlow: gameFlow } = { ...state };
   const hidePosition = !state.euchreSettings.debugShowPositionElements;
   const renderOrder = [
     playerNotification.topGameInfo,
@@ -42,33 +41,35 @@ const GameTable = ({
     playerNotification.bottomGameInfo
   ];
 
-  const game = state.euchreGame;
-  const gameFlow = state.euchreGameFlow;
-  const gameBidding = game.maker === null && getGameStatesForBid().includes(gameFlow.gameFlow);
+  const gameBidding = game.maker === null && GAME_STATES_FOR_BID.includes(gameFlow.gameFlow);
   const gamePlay = game.maker !== null;
 
-  const cardState: CardState = {
-    src: getEncodedCardSvg(game.trump, 'top'),
-    cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
-    cardIndex: 0,
-    initSpringValue: {
-      ...DEFAULT_SPRING_VAL,
-      opacity: 1,
-      rotateY: 180,
-      transition: { rotateY: { duration: 0 } }
-    },
-    springValue:
-      gameBidding && !gameFlow.hasFirstBiddingPassed
-        ? { ...DEFAULT_SPRING_VAL, rotateY: 0, transition: { rotateY: { duration: 0.75 } } }
-        : { ...DEFAULT_SPRING_VAL, rotateY: 180, transition: { rotateY: { duration: 0.75 } } },
-    enabled: false
-  };
+  const cardState: CardState = useMemo(
+    () => ({
+      src: getEncodedCardSvg(game.trump, 'top'),
+      cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
+      cardIndex: 0,
+      initSpringValue: {
+        ...DEFAULT_SPRING_VAL,
+        opacity: 1,
+        rotateY: 180,
+        transition: { rotateY: { duration: 0 } }
+      },
+      springValue:
+        gameBidding && !gameFlow.hasFirstBiddingPassed
+          ? { ...DEFAULT_SPRING_VAL, rotateY: 0, transition: { rotateY: { duration: 0.75 } } }
+          : { ...DEFAULT_SPRING_VAL, rotateY: 180, transition: { rotateY: { duration: 0.75 } } },
+      enabled: false,
+      renderKey: uuidv4()
+    }),
+    [game.trump, gameBidding, gameFlow.hasFirstBiddingPassed]
+  );
 
   return (
     <GameBorder innerClass="bg-yellow-800 relative" className="h-full shadow-md shadow-black">
       <WoodenBoard className="absolute h-full w-full top-0 left-0 overflow-hidden" rows={25} />
       <div
-        className="h-full grid grid-flow-col grid-rows-[minmax(25px,1fr)_50px_minmax(25px,1fr)] grid-cols-[33%,33%,33%] lg:grid-rows-[150px,150px,150px] lg:grid-cols-[1fr,175px,1fr] gap-1 text-black"
+        className="h-full grid grid-flow-col grid-rows-[minmax(25px,1fr)_50px_minmax(25px,1fr)] grid-cols-[33%,33%,33%] lg:grid-rows-[150px,150px,150px] lg:grid-cols-[1fr,175px,1fr] gap-1 text-white"
         {...rest}
       >
         <div id="player2-region" className="col-span-1 col-start-2 relative flex justify-center items-center">
@@ -116,7 +117,7 @@ const GameTable = ({
           {gamePlay && (
             <GameTrumpIndicator
               notificationSpeed={state.euchreSettings.notificationSpeed}
-              trumpSuit={state.euchreGame.trump.suit}
+              trumpSuit={game.trump.suit}
             />
           )}
           {renderOrder[2]}

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, PropsWithoutRef, useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import Switch from '@mui/material/Switch';
 
@@ -96,7 +96,7 @@ const GameMenu = ({
     setShowMenu(!showMenu);
   };
 
-  const handleCancel = () => {
+  const handleCancelGame = () => {
     setShowMenu(false);
     onCancelAndReset();
   };
@@ -117,9 +117,61 @@ const GameMenu = ({
           />
         </div>
       </div>
+      <GameMenuContent
+        showMenu={showMenu}
+        showEvents={showEvents}
+        showSettings={showSettings}
+        showScore={showScore}
+        enableToggleEvents={enableToggleEvents}
+        isFullScreen={isFullScreen}
+        enableToggleSettings={enableToggleSettings}
+        onFullScreenToggle={onFullScreenToggle}
+        onEventsToggle={onEventsToggle}
+        onSettingsToggle={onSettingsToggle}
+        onScoreToggle={onScoreToggle}
+        onCancelGame={handleCancelGame}
+      />
+    </>
+  );
+};
+
+interface ContentProps {
+  showMenu: boolean;
+  showEvents: boolean;
+  showSettings: boolean;
+  showScore: boolean;
+  enableToggleEvents: boolean;
+  isFullScreen: boolean;
+  enableToggleSettings: boolean;
+  onFullScreenToggle: (value: boolean) => void;
+  onEventsToggle: (value: boolean) => void;
+  onSettingsToggle: (value: boolean) => void;
+  onScoreToggle: (value: boolean) => void;
+  onCancelGame: () => void;
+}
+
+const GameMenuContent = forwardRef<HTMLDivElement, PropsWithoutRef<ContentProps>>(
+  (
+    {
+      showMenu,
+      showEvents,
+      showSettings,
+      showScore,
+      enableToggleEvents,
+      isFullScreen,
+      enableToggleSettings,
+      onFullScreenToggle,
+      onEventsToggle,
+      onSettingsToggle,
+      onScoreToggle,
+      onCancelGame
+    }: ContentProps,
+    ref
+  ) => {
+    return (
       <div
         id="game-menu"
-        ref={menuRef}
+        ref={ref}
         className={clsx(
           'flex flex-col absolute min-w-32 bg-stone-800 lg:bg-opacity-90 left-3 top-12 transition ease-in-out duration-300',
           {
@@ -177,11 +229,13 @@ const GameMenu = ({
           />
         </div>
         <div className="lg:p-2 p-1 text-white lg:text-base text-sm">
-          <button onClick={handleCancel}>Cancel Game</button>
+          <button onClick={onCancelGame}>Cancel Game</button>
         </div>
       </div>
-    </>
-  );
-};
+    );
+  }
+);
+
+GameMenuContent.displayName = 'GameMenuContent';
 
 export default GameMenu;

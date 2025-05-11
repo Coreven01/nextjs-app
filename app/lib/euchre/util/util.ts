@@ -1,4 +1,6 @@
-import { GameEvent } from '@/app/hooks/euchre/useEventLog';
+import { GameEvent, GameEventHandlers, GameEventType } from '@/app/hooks/euchre/useEventLog';
+import { EuchrePlayer } from '../definitions/game-state-definitions';
+import { Card, TeamColor } from '../definitions/definitions';
 
 const ENABLE_LOGGING = true;
 
@@ -13,9 +15,9 @@ const logConsole = (
 };
 
 /** Log error to console. */
-function logDebugError(
+function logError(
   message: object | string | null | undefined,
-  ...params: (object | string | null | undefined)[]
+  ...params: (object | string | number | boolean | null | undefined)[]
 ) {
   if (!ENABLE_LOGGING) return;
 
@@ -58,4 +60,25 @@ function scrollElementIntoViewIfNeeded(element: HTMLElement, container: HTMLElem
   }
 }
 
-export { scrollElementIntoViewIfNeeded, isElementFullyVisible, createRange, logDebugError, logConsole };
+const createAndAddEvent = (
+  evenHandlers: GameEventHandlers,
+  enableDebugLog: boolean,
+  type: GameEventType,
+  player?: EuchrePlayer,
+  message?: string,
+  cards?: Card[],
+  teamColor?: TeamColor
+) => {
+  if (!enableDebugLog && type === 'd') return;
+
+  evenHandlers.addEvent(evenHandlers.createEvent(type, player, message, cards, teamColor));
+};
+
+export {
+  scrollElementIntoViewIfNeeded,
+  isElementFullyVisible,
+  createRange,
+  logError,
+  logConsole,
+  createAndAddEvent
+};

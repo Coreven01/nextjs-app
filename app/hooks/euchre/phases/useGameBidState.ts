@@ -5,18 +5,14 @@ import {
   EuchreGameValues,
   ErrorHandlers
 } from '../../../lib/euchre/definitions/game-state-definitions';
-import usePlayerData from '../data/usePlayerData';
-import useGamePlayLogic from '../logic/useGamePlayLogic';
-import useGameStateLogic from '../logic/useGameStateLogic';
+import { getGameStateForNextHand } from '../../../lib/euchre/util/gamePlayLogicUtil';
+import { isGameStateValidToContinue } from '../../../lib/euchre/util/gameStateLogicUtil';
+import { playerEqual } from '../../../lib/euchre/util/playerDataUtil';
 import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from '../reducers/gameFlowReducer';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 
 const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, handlers: ErrorHandlers) => {
-  const { isGameStateValidToContinue } = useGameStateLogic();
-  const { getGameStateForNextHand } = useGamePlayLogic();
-  const { playerEqual } = usePlayerData();
-
   const shouldBeginBidForTrump = isGameStateValidToContinue(
     state,
     EuchreGameFlow.BEGIN_BID_FOR_TRUMP,

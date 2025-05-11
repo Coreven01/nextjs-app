@@ -3,14 +3,14 @@ import { useState } from 'react';
 import PlayerColor from '../player/player-team-color';
 import clsx from 'clsx';
 import HandResultDetail from './hand-result-detail';
-import useCardSvgData from '@/app/hooks/euchre/data/useCardSvgData';
 import GameWarning from '../game/game-warning';
-import usePlayerData from '../../../hooks/euchre/data/usePlayerData';
 import {
   EuchreGameInstance,
   EuchrePlayer,
   EuchreSettings
 } from '../../../lib/euchre/definitions/game-state-definitions';
+import { getTeamColor } from '../../../lib/euchre/util/playerDataUtil';
+import { getCardClassColorFromSuit, getSuitName } from '../../../lib/euchre/util/cardSvgDataUtil';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   game: EuchreGameInstance;
@@ -19,9 +19,6 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 }
 
 export default function HandResult({ game, settings, handResult, className, ...rest }: Props) {
-  const { getCardClassColorFromSuit, getSuitName } = useCardSvgData();
-  const { getTeamColor } = usePlayerData();
-
   const [selectedHighlight, setSelectedHighlight] = useState<ResultHighlight>('winner');
 
   if (!handResult) throw new Error('No hand result was found');
@@ -44,7 +41,7 @@ export default function HandResult({ game, settings, handResult, className, ...r
   return (
     <div className={clsx('flex flex-col gap-1', className)} {...rest}>
       <HandHighlightNavigation
-        players={[...game.gamePlayers]}
+        players={game.gamePlayers}
         selection={selectedHighlight}
         onSelectionChanged={handleSelectionChanged}
         className="lg:text-base text-sm mb-1"

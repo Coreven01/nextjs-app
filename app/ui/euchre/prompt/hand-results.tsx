@@ -1,5 +1,3 @@
-'use client';
-
 import { EuchreGameInstance, EuchreSettings } from '@/app/lib/euchre/definitions/game-state-definitions';
 import GamePrompt from './game-prompt';
 import HandResult from './hand-result';

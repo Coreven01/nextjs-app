@@ -1,9 +1,12 @@
-import { EuchreFlowActionType, EuchreGameFlowState, INIT_GAME_FLOW_STATE } from '../reducers/gameFlowReducer';
+import {
+  EuchreFlowActionType,
+  EuchreGameFlow,
+  EuchreGameFlowState,
+  INIT_GAME_FLOW_STATE
+} from '../reducers/gameFlowReducer';
 import { PlayerNotificationActionType } from '../reducers/playerNotificationReducer';
 import { EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
-import useGameSetupLogic from '../logic/useGameSetupLogic';
 import { useCallback, useEffect } from 'react';
-import useGameData from '../data/useGameData';
 import {
   EuchreGameInstance,
   EuchreGameSetters,
@@ -14,7 +17,14 @@ import { GameEventHandlers } from '../useEventLog';
 import { PromptType } from '../../../lib/euchre/definitions/definitions';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 import useGameInitState from '../phases/useGameInitState';
-import useGameEventsInit from '../events/useGameEventsInit';
+import { notificationDelay } from '../../../lib/euchre/util/gameDataUtil';
+import {
+  createDefaultEuchreGame,
+  createEuchreGame,
+  createGameForInitialDeal,
+  getGameStateForInitialDeal
+} from '../../../lib/euchre/util/gameSetupLogicUtil';
+import { addIntroEvent } from '../../../lib/euchre/util/gameInitEventsUtil';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(
@@ -23,15 +33,12 @@ export default function useEuchreGameInit(
   eventHandlers: GameEventHandlers,
   errorHandlers: ErrorHandlers
 ) {
-  const { addIntroEvent } = useGameEventsInit(state, eventHandlers);
   const { shouldBeginIntro, continueToBeginDealCardsForDealer } = useGameInitState(
     state,
     setters,
     errorHandlers
   );
-  const { createGameForInitialDeal, getGameStateForInitialDeal, createDefaultEuchreGame } =
-    useGameSetupLogic();
-  const { notificationDelay } = useGameData();
+
   const { euchreSettings, euchreGameFlow, promptValues } = state;
 
   /** Show an introduction to the game when the board loads. */
@@ -40,7 +47,7 @@ export default function useEuchreGameInit(
       if (!shouldBeginIntro) return;
 
       setters.dispatchPause();
-      addIntroEvent();
+      addIntroEvent(state, eventHandlers);
       await notificationDelay(euchreSettings);
 
       continueToBeginDealCardsForDealer();
@@ -48,13 +55,13 @@ export default function useEuchreGameInit(
 
     errorHandlers.catchAsync(animateIntro, errorHandlers.onError, 'animateIntro');
   }, [
-    addIntroEvent,
     continueToBeginDealCardsForDealer,
     errorHandlers,
-    notificationDelay,
+    euchreSettings,
+    eventHandlers,
     setters,
     shouldBeginIntro,
-    euchreSettings
+    state
   ]);
 
   /**
@@ -111,17 +118,44 @@ export default function useEuchreGameInit(
     setters.setShouldCancelGame(false);
   };
 
+  const createGameForReplay = () => {
+    const debugPrompt = promptValues.filter((p) => p === PromptType.DEBUG);
+    const newGame: EuchreGameInstance = createEuchreGame(euchreSettings);
+    const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
+      euchreGameFlow,
+      euchreSettings,
+      newGame.gamePlayers
+    );
+
+    newGameFlowState.gameFlow = EuchreGameFlow.BEGIN_DEAL_FOR_DEALER;
+
+    setters.dispatchGameFlow({
+      type: EuchreFlowActionType.SET_STATE,
+      state: newGameFlowState
+    });
+
+    setters.dispatchStateChange(
+      undefined,
+      EuchreAnimationActionType.SET_NONE,
+      EuchrePauseActionType.SET_NONE
+    );
+
+    setters.replacePromptValues([...debugPrompt]);
+    setters.setEuchreGame(newGame);
+    setters.setShouldCancelGame(false);
+  };
+
   /** Cancel the current state and set the current game to null. */
   const cancelAndReset = useCallback(() => {
     setters.setShouldCancelGame(true);
     reset(true);
     setters.setEuchreGame(createDefaultEuchreGame());
-  }, [createDefaultEuchreGame, reset, setters]);
+  }, [reset, setters]);
 
   /** */
   const handleBeginGame = () => {
     createGame();
   };
 
-  return { reset, handleBeginGame, cancelAndReset, createDefaultEuchreGame };
+  return { reset, handleBeginGame, cancelAndReset, createDefaultEuchreGame, createGameForReplay };
 }
