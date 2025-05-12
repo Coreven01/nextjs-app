@@ -11,6 +11,7 @@ import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions
 import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 import { getCardClassForPlayerLocation } from '../../../lib/euchre/util/cardDataUtil';
 import { logConsole, logError } from '../../../lib/euchre/util/util';
+import { incrementSpeed } from '../../../lib/euchre/util/gameDataUtil';
 
 type Props = {
   state: EuchreGameState;
@@ -55,7 +56,8 @@ const PlayerHand = ({
     cardStates,
     onAnimationComplete,
     getCardsToDisplay,
-    handlePlayCardAnimation
+    handlePlayCardAnimation,
+    updateCardStateForTurn
   } = useCardState(
     state,
     eventHandlers,
@@ -114,8 +116,10 @@ const PlayerHand = ({
       isCardClickHandled.current = true;
       cardIndicesPlayed.current.set(state.euchreGame.currentTrick.trickId, cardIndex);
 
-      const delay = state.euchreSettings.gameSpeed;
+      const delay = incrementSpeed(state.euchreSettings.gameSpeed, 1);
       const tableRef = playerCenterTableRef?.current;
+
+      updateCardStateForTurn(false);
 
       if (!tableRef) {
         logError(

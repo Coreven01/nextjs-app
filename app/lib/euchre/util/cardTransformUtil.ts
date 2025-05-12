@@ -188,8 +188,8 @@ const getElementOffsetForLocation = (
 const getSpringsForDealForDealer = (
   outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
   cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
-  relativeHRef: HTMLDivElement,
-  relativeVRef: HTMLDivElement,
+  relativeHRef: HTMLElement,
+  relativeVRef: HTMLElement,
   rotation: EuchrePlayer[],
   cards: Card[],
   dealResult: InitDealResult
@@ -280,8 +280,8 @@ const getSpringForDeal = (
 const getSpringsForDealForRegularPlay = (
   outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
   cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
-  relativeHRef: HTMLDivElement,
-  relativeVRef: HTMLDivElement,
+  relativeHRef: HTMLElement,
+  relativeVRef: HTMLElement,
   playerRotation: EuchrePlayer[],
   cardDealCount: number[],
   cards: Card[],

@@ -119,8 +119,11 @@ export default function useEuchreGameInit(
   };
 
   const createGameForReplay = () => {
+    if (!state.euchreReplayGame) throw new Error('Replay game not found.');
+
     const debugPrompt = promptValues.filter((p) => p === PromptType.DEBUG);
     const newGame: EuchreGameInstance = createEuchreGame(euchreSettings);
+    newGame.deck = state.euchreReplayGame.originalDealDeck;
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
       euchreGameFlow,
       euchreSettings,

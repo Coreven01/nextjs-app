@@ -30,7 +30,6 @@ export default function useEuchreGameInitDeal(
     shouldAnimateBeginDealCardsForDealer,
     shouldEndDealCardsForDealer,
     shouldAnimateEndDealCardsForDealer,
-    continueToSkipInitDealAnimation,
     pauseForAnimateBeginDealCardsForDealer,
     continueToEndDealCardsForDealer,
     continueToAnimateEndDealCardsForDealer,
@@ -68,10 +67,11 @@ export default function useEuchreGameInitDeal(
       setters.setInitialDealerResult(dealResult);
       pauseForAnimateBeginDealCardsForDealer();
     } else {
-      continueToSkipInitDealAnimation();
+      continueToShuffleCards();
+      //continueToSkipInitDealAnimation();
     }
   }, [
-    continueToSkipInitDealAnimation,
+    continueToShuffleCards,
     euchreGame,
     euchreGameFlow,
     euchreSettings.shouldAnimateDeal,

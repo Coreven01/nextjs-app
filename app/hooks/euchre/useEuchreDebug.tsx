@@ -41,6 +41,7 @@ const useEuchreDebug = (
     []
   );
 
+  /** */
   const fullStateReset = useCallback(() => {
     setFullGameInstance(null);
     setters.setBidResult(null);
@@ -57,12 +58,14 @@ const useEuchreDebug = (
     setters.setShouldCancelGame(false);
   }, [setters]);
 
+  /** */
   const handleStartGameForDebug = useCallback(() => {
     fullStateReset();
     setters.setEuchreGame(createDefaultEuchreGame());
     setters.replacePromptValues([PromptType.DEBUG]);
   }, [fullStateReset, setters]);
 
+  /** */
   const handleCloseDebugGame = useCallback(() => {
     fullStateReset();
     errorHandlers.onCancel();
@@ -72,18 +75,21 @@ const useEuchreDebug = (
     errorHandlers.onCancel();
   }, [errorHandlers, fullStateReset, setters]);
 
+  /** */
   const handleRunInitDeal = useCallback(() => {
     fullStateReset();
     setters.setEuchreDebug(EuchreGameFlow.BEGIN_DEAL_CARDS);
     gameHandlers.onBeginNewGame();
   }, [fullStateReset, gameHandlers, setters]);
 
+  /** */
   const handleRunInitAndShuffleGame = useCallback(() => {
     fullStateReset();
-    setters.setEuchreDebug(EuchreGameFlow.END_DEAL_CARDS);
+    setters.setEuchreDebug(EuchreGameFlow.BEGIN_BID_FOR_TRUMP);
     gameHandlers.onBeginNewGame();
   }, [fullStateReset, gameHandlers, setters]);
 
+  /** */
   const handleRunFullGame = useCallback(() => {
     fullStateReset();
     const game = runFullGame(state.euchreSettings, 10);
@@ -96,6 +102,7 @@ const useEuchreDebug = (
     );
   }, [fullStateReset, runFullGame, setters, state.euchreSettings]);
 
+  /** */
   const handleRunFullGameLoop = useCallback(() => {
     fullStateReset();
     setFullGameInstance(runFullGameLoop(10, state.euchreSettings));
@@ -105,6 +112,7 @@ const useEuchreDebug = (
     fullStateReset();
   }, [fullStateReset]);
 
+  /** */
   const handleRunTrickNotification = useCallback(async () => {
     console.log('game speed: ', state.euchreSettings.notificationSpeed);
     const types: PlayerNotificationActionType[] = [

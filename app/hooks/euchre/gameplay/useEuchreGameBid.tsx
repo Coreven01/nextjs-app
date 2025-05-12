@@ -49,7 +49,8 @@ export default function useEuchreGameBid(
     updateStateAndContinueToBidForTrump,
     pauseForPassDeal,
     continueToBeginOrderTrump,
-    continueToShuffleCards
+    continueToShuffleCards,
+    updateStateForNewHand
   } = useGameBidState(state, setters, errorHandlers);
 
   const { euchreGame, euchreSettings, euchreGameFlow, euchrePauseState } = state;
@@ -310,7 +311,9 @@ export default function useEuchreGameBid(
     await notificationDelay(euchreSettings, 1);
 
     setters.setEuchreGame(newGame);
+
     pauseForPassDeal();
+    updateStateForNewHand();
     setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
   }, [
     euchreGame,
@@ -320,7 +323,8 @@ export default function useEuchreGameBid(
     pauseForPassDeal,
     setters,
     shouldBeginPassDeal,
-    state
+    state,
+    updateStateForNewHand
   ]);
 
   useEffect(() => {

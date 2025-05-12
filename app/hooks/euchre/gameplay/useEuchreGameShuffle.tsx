@@ -97,7 +97,7 @@ const useEuchreGameShuffle = (
    */
   useEffect(() => {
     try {
-      beginSkipDealAnimation();
+      //beginSkipDealAnimation();
     } catch (e) {
       const error = e as Error;
       errorHandlers.onError(error, 'beginSkipDealAnimation');

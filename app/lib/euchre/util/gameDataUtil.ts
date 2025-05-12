@@ -462,7 +462,7 @@ const reverseLastHandPlayed = (game: EuchreGameInstance): EuchreGameInstance => 
     newGame.dealer.hand = [...newGame.dealer.hand.filter((c) => !cardEqual(c, tempTrump)), discard];
   }
 
-  newGame.deck = [...newGame.originalDealDeck];
+  newGame.deck = [...player1Hand, ...player2Hand, ...player3Hand, ...player4Hand, ...currentKitty];
   newGame.currentRound = lastHandResult.roundNumber;
   for (const player of newGame.gamePlayers) player.hand = indexCards(player.hand);
 

@@ -43,21 +43,20 @@ const GameMenu = ({
   }, []);
 
   useEffect(() => {
-    const goToFullScreen = async () => {
+    const goToFullScreen = () => {
       const nav = document.getElementById('site-top-nav');
       const navMenu = document.getElementById('nav-menu');
       const bodyElement = document.body;
 
-      try {
-        if (isFullScreen && !document.fullscreenElement) {
-          //await document.documentElement.requestFullscreen();
-          //await document.body.requestFullscreen();
-        } else if (!isFullScreen && document.fullscreenElement) {
-          //await document.exitFullscreen();
-        }
-      } catch (e) {
-        console.error(e);
-      }
+      // try {
+      //   if (isFullScreen && !document.fullscreenElement) {
+
+      //   } else if (!isFullScreen && document.fullscreenElement) {
+
+      //   }
+      // } catch (e) {
+      //   console.error(e);
+      // }
 
       if (nav) {
         nav.style.zIndex = isFullScreen ? '10' : '500';
@@ -79,11 +78,10 @@ const GameMenu = ({
         eventAdded.current = false;
       }
 
-      return async () => {
+      return () => {
         if (nav) nav.style.zIndex = '500';
         if (navMenu) navMenu.style.zIndex = '600';
         if (bodyElement) bodyElement.style.overflow = '';
-        //if (isFullScreen && document.fullscreenElement) await document.exitFullscreen();
         document.removeEventListener('click', exitMenu);
         eventAdded.current = false;
       };
@@ -118,6 +116,7 @@ const GameMenu = ({
         </div>
       </div>
       <GameMenuContent
+        ref={menuRef}
         showMenu={showMenu}
         showEvents={showEvents}
         showSettings={showSettings}

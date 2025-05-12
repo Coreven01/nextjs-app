@@ -14,7 +14,8 @@ const useAnimationDeckState = (state: EuchreGameState) => {
     shouldBeginDealForDealer:
       euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_DEAL_FOR_DEALER && isAnimatePhase,
     shouldEndDealForDealer: euchreGameFlow.gameFlow === EuchreGameFlow.END_DEAL_FOR_DEALER && isAnimatePhase,
-    shouldBeginDealCards: euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_DEAL_CARDS && isAnimatePhase
+    shouldBeginDealCards: euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_DEAL_CARDS && isAnimatePhase,
+    shouldResetDealState: euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_BID_FOR_TRUMP
   };
 };
 

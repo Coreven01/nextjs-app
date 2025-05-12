@@ -16,11 +16,16 @@ export interface PlayerHandState {
   stateEffect?: EuchreGameFlow;
 }
 
-export interface CardState {
+export interface CardBaseState {
   renderKey: string;
   cardIndex: number;
   src?: string;
   cardFullName: string;
+  location?: TableLocation;
+  enabled: boolean;
+}
+
+export interface CardAnimationState {
   initSpringValue?: CardSpringTarget;
   springValue?: CardSpringTarget;
   xDamping?: number;
@@ -29,9 +34,9 @@ export interface CardState {
   yStiffness?: number;
   rotation?: number;
   runEffectForState?: EuchreGameFlow;
-  location?: TableLocation;
-  enabled: boolean;
 }
+
+export interface CardState extends CardBaseState, CardAnimationState {}
 
 export interface PlayCardStateActionAction {
   type: PlayCardStateActionType;
