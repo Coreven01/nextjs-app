@@ -143,7 +143,7 @@ const PlayerHand = ({
   return (
     <>
       {gameCards}
-      {initCardStateCreated &&
+      {/* {initCardStateCreated &&
         handState &&
         playerCurrentHand.map((card) => {
           const keyval = `${player.playerNumber}-${card.index}`;
@@ -169,7 +169,7 @@ const PlayerHand = ({
           ) : (
             <div>Invalid card state or card ref.</div>
           );
-        })}
+        })} */}
     </>
   );
 };

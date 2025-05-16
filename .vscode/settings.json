@@ -1,7 +1,8 @@
 {
   "emmet.excludeLanguages": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
 
-  "editor.suggestSelection": "recentlyUsedByPrefix",
+  "editor.acceptSuggestionOnEnter": "off",
+  "editor.suggestSelection": "first",
   "editor.suggest.localityBonus": true,
   "editor.suggest.showWords": false,
 
@@ -22,6 +23,7 @@
   "editor.formatOnPaste": false,
   "editor.formatOnSave": true,
   "editor.formatOnSaveMode": "file",
+  "editor.tabCompletion": "on",
 
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"

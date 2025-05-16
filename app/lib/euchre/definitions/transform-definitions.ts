@@ -10,17 +10,16 @@ export const DEFAULT_SPRING_VAL: CardSpringTarget = {
   rotateY: 0,
   rotateX: 0,
   zIndex: INIT_Z_INDEX,
-  transformStyle: 'preserve-3d',
-  transition: { duration: 0 }
+  transformStyle: 'preserve-3d'
 };
 
 export interface CardSpringTarget extends TargetAndTransition {
   x: number;
   y: number;
-  rotate?: number | number[];
+  rotate?: number;
   opacity?: number;
-  rotateY?: number | number[];
-  rotateX?: number | number[];
+  rotateY?: number;
+  rotateX?: number;
   zIndex?: number;
 }
 
@@ -35,5 +34,5 @@ export interface CardPosition {
 }
 
 export interface CardSpringProps extends CardPosition {
-  springValue: CardSpringTarget;
+  animateValues: CardSpringTarget[];
 }

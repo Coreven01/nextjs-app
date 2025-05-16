@@ -1,4 +1,4 @@
-import { Transition } from 'framer-motion';
+import { animateValue, Transition } from 'framer-motion';
 import {
   CardSpringProps,
   CardSpringTarget,
@@ -7,9 +7,13 @@ import {
 } from '../definitions/transform-definitions';
 import { Card, GameSpeed, TableLocation } from '../definitions/definitions';
 import { RefObject } from 'react';
-import { EuchrePlayer } from '../definitions/game-state-definitions';
+import {
+  CardAnimationControls,
+  CardAnimationState,
+  CardBaseState,
+  EuchrePlayer
+} from '../definitions/game-state-definitions';
 import { InitDealResult } from '../definitions/logic-definitions';
-import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 
 const CARD_HEIGHT_OFFSET = 10;
 const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.
@@ -19,7 +23,7 @@ const INIT_OPACITY = 0.5;
 const GAME_PLAY_VARIATION = 10;
 
 const ROTATION_OFFSET = 6;
-const DEFAULT_TRANSITION_VAL: Transition = { rotateY: { duration: 0 }, rotateX: { duration: 0 } };
+//const DEFAULT_TRANSITION_VAL: Transition = { rotateY: { duration: 0 }, rotateX: { duration: 0 } };
 
 interface CardOffsetValues {
   widthOffsetStart: number;
@@ -114,11 +118,10 @@ const getSpringMoveElement = (
 
   if (useOffsets && relativeRef) {
     const relativeRect: ElementRect = getElementOriginalPosition(relativeRef);
-    offsets = getElementOffsetForLocation(sourceRect, destRect, relativeRect, direction ?? 'in');
+    offsets = getElementOffset(sourceRect, destRect, relativeRect, direction ?? 'in');
   }
 
   return {
-    ...DEFAULT_SPRING_VAL,
     x:
       destRect.centerX -
       sourceRect.centerX +
@@ -132,12 +135,15 @@ const getSpringMoveElement = (
   };
 };
 
-/** Moves an element an offset closer/further from the relative element. */
-const getElementOffsetForLocation = (
+/** Moves an element an offset closer/further from the relative element. If offset distance
+ * is not provided, then
+ */
+const getElementOffset = (
   sourceRect: ElementRect,
   destRect: ElementRect,
   relativeRect: ElementRect,
-  direction: 'in' | 'out'
+  direction: 'in' | 'out',
+  distance?: number
 ): CardSpringTarget => {
   const longSide: number = Math.max(sourceRect.width, sourceRect.height);
   let destLocation: TableLocation;
@@ -151,21 +157,31 @@ const getElementOffsetForLocation = (
     destLocation = 'bottom';
   }
 
+  const offsetDistance = distance ?? longSide / 2;
+
+  return getOffsetValuesForLocation(destLocation, offsetDistance, direction);
+};
+
+const getOffsetValuesForLocation = (
+  destinationLocation: TableLocation,
+  offsetDistance: number,
+  direction: 'in' | 'out'
+) => {
   let xOffset: number = 0;
   let yOffset: number = 0;
 
-  switch (destLocation) {
+  switch (destinationLocation) {
     case 'top':
-      yOffset = longSide / 2;
+      yOffset = offsetDistance;
       break;
     case 'bottom':
-      yOffset = -longSide / 2;
+      yOffset = -offsetDistance;
       break;
     case 'left':
-      xOffset = longSide / 2;
+      xOffset = offsetDistance;
       break;
     case 'right':
-      xOffset = -longSide / 2;
+      xOffset = -offsetDistance;
       break;
   }
 
@@ -179,7 +195,6 @@ const getElementOffsetForLocation = (
     y: yOffset
   };
 };
-
 //#region Spring for deal
 
 /**
@@ -227,7 +242,7 @@ const getSpringsForDealForDealer = (
     newSpringVal.zIndex = INIT_Z_INDEX + card.index;
 
     retval.push({
-      springValue: newSpringVal,
+      animateValues: [newSpringVal],
       cardIndex: card.index,
       ordinalIndex: card.index
     });
@@ -326,7 +341,7 @@ const getSpringsForDealForRegularPlay = (
       );
 
       retval.push({
-        springValue: newSpringVal,
+        animateValues: [newSpringVal],
         cardIndex: card.index,
         ordinalIndex: card.index,
         location: destinationPlayer.location
@@ -342,7 +357,7 @@ const getSpringsForDealForRegularPlay = (
   const newSpringVal = getSpringForDeal(cardRef.current, relativeHRef, undefined, trump, centerLocation);
   newSpringVal.rotate = centerLocation ? 360 : 270;
   retval.push({
-    springValue: newSpringVal,
+    animateValues: [newSpringVal],
     cardIndex: trump.index,
     ordinalIndex: trump.index
   });
@@ -373,7 +388,7 @@ const getBaseTransitionForCardMoved = (duration: GameSpeed): Transition => {
 
 /** Create and return transition value for a card dealt or played. */
 const getTransitionForCardMoved = (
-  cardState: CardState,
+  animationState: CardAnimationState,
   duration: GameSpeed,
   initDelay?: number
 ): Transition => {
@@ -385,15 +400,15 @@ const getTransitionForCardMoved = (
     opacity: { duration: 0 },
     x: {
       duration: durationSec,
-      stiffness: cardState.xStiffness,
-      damping: cardState.xDamping,
+      stiffness: animationState.xStiffness,
+      damping: animationState.xDamping,
       ease: 'easeOut',
       delay: delay
     },
     y: {
       duration: durationSec,
-      stiffness: cardState.yStiffness,
-      damping: cardState.yDamping,
+      stiffness: animationState.yStiffness,
+      damping: animationState.yDamping,
       ease: 'easeOut',
       delay: delay
     },
@@ -451,8 +466,8 @@ const getSpringsForCardPlayed = (
       cardPlayedFunc = getPlayer4SpringForCardPlayed;
   }
 
-  const currentSpring = currentForCardPlayed.springValue;
-  const newVal = cardPlayedFunc(cardRef, tableRef, currentSpring);
+  const currentSpring = currentForCardPlayed.animateValues;
+  const newVal = cardPlayedFunc(cardRef, tableRef, currentSpring[0]);
 
   newVal.rotate = rotation;
   newVal.rotateX = 0;
@@ -463,7 +478,7 @@ const getSpringsForCardPlayed = (
   retval.push({
     ordinalIndex: -1,
     cardIndex: cardIndex,
-    springValue: newVal
+    animateValues: [newVal]
   });
 
   // group remaining cards.
@@ -638,19 +653,21 @@ const groupPlayer1RemainingCards = (
   let newIndex: number = 0;
   retval.push(
     ...stateForAvailableCards.map((currentState) => {
-      if (!currentState.springValue) throw new Error();
+      if (!currentState.animateValues.at(0)) throw new Error();
 
       return {
         ordinalIndex: newIndex,
         cardIndex: currentState.cardIndex,
-        springValue: {
-          ...currentState.springValue,
-          x: values.widthOffsetStart + values.widthOffset * newIndex,
-          y: -values.heightOffsetIndices[newIndex] * values.heightOffset,
-          rotate: values.rotationStart + values.rotationOffset * newIndex,
-          opacity: 1,
-          zIndex: INIT_Z_INDEX + newIndex++
-        }
+        animateValues: [
+          {
+            ...currentState.animateValues[0],
+            x: values.widthOffsetStart + values.widthOffset * newIndex,
+            y: -values.heightOffsetIndices[newIndex] * values.heightOffset,
+            rotate: values.rotationStart + values.rotationOffset * newIndex,
+            opacity: 1,
+            zIndex: INIT_Z_INDEX + newIndex++
+          }
+        ]
       };
     })
   );
@@ -664,19 +681,21 @@ const groupPlayer2RemainingCards = (cardWidthOffset: number, stateForAvailableCa
   let newIndex: number = 0;
   retval.push(
     ...stateForAvailableCards.map((currentState) => {
-      if (!currentState.springValue) throw new Error();
+      if (!currentState.animateValues.at(0)) throw new Error();
 
       return {
         ordinalIndex: newIndex,
         cardIndex: currentState.cardIndex,
-        springValue: {
-          ...currentState.springValue,
-          x: values.widthOffsetStart + values.widthOffset * newIndex,
-          y: values.heightOffsetIndices[newIndex] * values.heightOffset,
-          opacity: 1,
-          rotate: -(values.rotationStart + values.rotationOffset * newIndex),
-          zIndex: INIT_Z_INDEX + newIndex++
-        }
+        animateValues: [
+          {
+            ...currentState.animateValues[0],
+            x: values.widthOffsetStart + values.widthOffset * newIndex,
+            y: values.heightOffsetIndices[newIndex] * values.heightOffset,
+            opacity: 1,
+            rotate: -(values.rotationStart + values.rotationOffset * newIndex),
+            zIndex: INIT_Z_INDEX + newIndex++
+          }
+        ]
       };
     })
   );
@@ -689,19 +708,21 @@ const groupPlayer3RemainingCards = (cardWidthOffset: number, stateForAvailableCa
   let newIndex: number = 0;
   retval.push(
     ...stateForAvailableCards.map((currentState) => {
-      if (!currentState.springValue) throw new Error();
+      if (!currentState.animateValues.at(0)) throw new Error();
 
       return {
         ordinalIndex: newIndex,
         cardIndex: currentState.cardIndex,
-        springValue: {
-          ...currentState.springValue,
-          x: values.heightOffsetIndices[newIndex] * values.heightOffset,
-          y: values.widthOffsetStart + values.widthOffset * newIndex,
-          opacity: 1,
-          rotate: values.rotationStart + values.rotationOffset * newIndex,
-          zIndex: INIT_Z_INDEX + newIndex++
-        }
+        animateValues: [
+          {
+            ...currentState.animateValues[0],
+            x: values.heightOffsetIndices[newIndex] * values.heightOffset,
+            y: values.widthOffsetStart + values.widthOffset * newIndex,
+            opacity: 1,
+            rotate: values.rotationStart + values.rotationOffset * newIndex,
+            zIndex: INIT_Z_INDEX + newIndex++
+          }
+        ]
       };
     })
   );
@@ -714,19 +735,21 @@ const groupPlayer4RemainingCards = (cardWidthOffset: number, stateForAvailableCa
   let newIndex: number = 0;
   retval.push(
     ...stateForAvailableCards.map((currentState) => {
-      if (!currentState.springValue) throw new Error();
+      if (!currentState.animateValues.at(0)) throw new Error();
 
       return {
         ordinalIndex: newIndex,
         cardIndex: currentState.cardIndex,
-        springValue: {
-          ...currentState.springValue,
-          x: -values.heightOffsetIndices[newIndex] * values.heightOffset,
-          y: values.widthOffsetStart + values.widthOffset * newIndex,
-          opacity: 1,
-          rotate: -(values.rotationStart + values.rotationOffset * newIndex),
-          zIndex: INIT_Z_INDEX + newIndex++
-        }
+        animateValues: [
+          {
+            ...currentState.animateValues[0],
+            x: -values.heightOffsetIndices[newIndex] * values.heightOffset,
+            y: values.widthOffsetStart + values.widthOffset * newIndex,
+            opacity: 1,
+            rotate: -(values.rotationStart + values.rotationOffset * newIndex),
+            zIndex: INIT_Z_INDEX + newIndex++
+          }
+        ]
       };
     })
   );
@@ -762,11 +785,11 @@ const getDestinationOffset = (location: TableLocation): { x: number; y: number }
  * player picked them up.
  */
 const moveCardsToPlayerArea = (
-  cardStates: CardState[],
+  cardStates: CardBaseState[],
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
   cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
   gameSpeed: GameSpeed
-): CardState[] => {
+): CardBaseState[] => {
   const newState = [...cardStates];
 
   for (const cardState of newState) {
@@ -779,15 +802,15 @@ const moveCardsToPlayerArea = (
         const spring = getSpringMoveElement(
           cardRef.current,
           destRef.current,
-          undefined,
-          cardState.springValue
+          undefined
+          //cardState.springValue
         );
 
         spring.x += offsets.x;
         spring.y += offsets.y;
 
-        spring.transition = getTransitionForCardMoved(cardState, gameSpeed);
-        cardState.springValue = spring;
+        // cardState.transition = getTransitionForCardMoved(cardState, gameSpeed);
+        // cardState.springValue = spring;
       }
     }
   }
@@ -803,7 +826,9 @@ const getSpringsToMoveToPlayer = (
   cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
   destinationDeckRef: HTMLElement,
   destinationLocation: TableLocation,
-  cardStates: CardState[],
+  cardStates: CardBaseState[],
+  animationStates: CardAnimationState[],
+  cardAnimations: CardAnimationControls[],
   useTransition: boolean,
   gameSpeed?: GameSpeed
 ): CardSpringProps[] => {
@@ -812,7 +837,9 @@ const getSpringsToMoveToPlayer = (
   for (const cardRefMap of cardRefs) {
     const cardRef = cardRefMap[1].current;
     const cardIndex = cardRefMap[0];
-    const state: CardState = cardStates[cardIndex];
+    const cardState: CardBaseState = cardStates[cardIndex];
+    const cardControl: CardAnimationControls = cardAnimations[cardIndex];
+    const animationState: CardAnimationState = animationStates[cardIndex];
 
     if (!cardRef) throw new Error('Invalid card ref to move cards to player.');
 
@@ -821,7 +848,9 @@ const getSpringsToMoveToPlayer = (
         cardRef,
         destinationDeckRef,
         destinationLocation,
-        state,
+        cardState,
+        animationState,
+        cardControl,
         useTransition,
         gameSpeed
       )
@@ -835,33 +864,60 @@ const getSpringToMoveToPlayer = (
   sourceRef: HTMLElement,
   destRef: HTMLElement,
   destLocation: TableLocation,
-  cardState: CardState,
+  cardState: CardBaseState,
+  animationState: CardAnimationState,
+  cardAnimation: CardAnimationControls,
   useTransition: boolean,
-  gameSpeed?: GameSpeed
+  gameSpeed?: GameSpeed,
+  delayVariation?: 'low' | 'med' | 'high'
 ): CardSpringProps => {
   const offsets = getDestinationOffset(destLocation);
-  const newSpring = getSpringMoveElement(sourceRef, destRef, undefined, cardState.springValue);
+  const lastAnimation = cardAnimation.animateValues.at(-1);
+  const newSpring = getSpringMoveElement(sourceRef, destRef, undefined, lastAnimation);
+  let transition: Transition | undefined = undefined;
 
   newSpring.x += offsets.x;
   newSpring.y += offsets.y;
   newSpring.rotate = Math.random() * 720 - 360;
 
   if (useTransition) {
+    const variation = delayVariation ?? 'med';
     const speed = gameSpeed ?? 1200;
     const duration = speed / 1000;
-    const delayBetweenDeal = duration / 5;
+    let variationDivisor = 6;
 
-    newSpring.transition = getTransitionForCardMoved(
-      cardState,
+    switch (variation) {
+      case 'low':
+        variationDivisor = 3;
+        break;
+      case 'high':
+        variationDivisor = 9;
+        break;
+    }
+
+    const delayBetweenMove = duration / variationDivisor;
+
+    transition = getTransitionForCardMoved(
+      animationState,
       speed,
-      delayBetweenDeal * Math.floor(Math.random() * 3)
+      delayBetweenMove * Math.round(Math.random() * variationDivisor)
     );
+
+    newSpring.transition = transition;
   }
+
   return {
-    springValue: newSpring,
+    animateValues: [newSpring],
     cardIndex: cardState.cardIndex,
     ordinalIndex: cardState.cardIndex
   };
+
+  // return {
+  //   springValue: newSpring,
+  //   transition: transition,
+  //   cardIndex: cardState.cardIndex,
+  //   ordinalIndex: cardState.cardIndex
+  // };
 };
 
 //#endregion
@@ -881,8 +937,7 @@ const getSpringsForCardInit = (location: TableLocation | undefined): CardSpringT
   return {
     ...DEFAULT_SPRING_VAL,
     opacity: 0,
-    rotate: 0,
-    transition: { rotateY: { duration: 0 }, rotateX: { duration: 0 } }
+    rotate: 0
   };
 };
 
@@ -894,7 +949,6 @@ const getBottomStartLocation = (): CardSpringTarget => {
     rotate: 0,
     rotateY: INIT_ROTATION,
     rotateX: 0,
-    transition: { ...DEFAULT_TRANSITION_VAL },
     zIndex: INIT_Z_INDEX
   };
 };
@@ -907,7 +961,6 @@ const getTopStartLocation = (): CardSpringTarget => {
     rotate: 0,
     rotateY: INIT_ROTATION,
     rotateX: 0,
-    transition: { ...DEFAULT_TRANSITION_VAL },
     zIndex: INIT_Z_INDEX
   };
 };
@@ -920,7 +973,6 @@ const getLeftStartLocation = (): CardSpringTarget => {
     rotate: 0,
     rotateY: 0,
     rotateX: INIT_ROTATION,
-    transition: { ...DEFAULT_TRANSITION_VAL },
     zIndex: INIT_Z_INDEX
   };
 };
@@ -933,7 +985,6 @@ const getRightStartLocation = (): CardSpringTarget => {
     rotate: 0,
     rotateY: 0,
     rotateX: INIT_ROTATION,
-    transition: { ...DEFAULT_TRANSITION_VAL },
     zIndex: INIT_Z_INDEX
   };
 };
@@ -950,7 +1001,7 @@ export {
   getSpringsToMoveToPlayer,
   getSpringToMoveToPlayer,
   getSpringMoveElement,
-  getElementOffsetForLocation,
+  getElementOffset,
   getSpringsForDealForRegularPlay,
   getElementOriginalPosition,
   getSpringsForCardInit,

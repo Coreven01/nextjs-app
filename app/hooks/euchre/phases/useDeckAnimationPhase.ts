@@ -3,7 +3,7 @@ import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
 
-const useAnimationDeckState = (state: EuchreGameState) => {
+const useDeckAnimationPhase = (state: EuchreGameState) => {
   const { euchreGameFlow, euchreAnimationFlow, euchrePauseState } = state;
 
   const isAnimatePhase =
@@ -19,4 +19,4 @@ const useAnimationDeckState = (state: EuchreGameState) => {
   };
 };
 
-export default useAnimationDeckState;
+export default useDeckAnimationPhase;

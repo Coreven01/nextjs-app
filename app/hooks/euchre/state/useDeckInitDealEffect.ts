@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ErrorHandlers, EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
-import useAnimationDeckState from '../phases/useAnimationDeckState';
+import useDeckAnimationPhase from '../phases/useDeckAnimationPhase';
 
 /** Effects to run animations during specific points in the game flow/phases. This handles dealing cards for
  * initial deal and for regular play.
@@ -15,7 +15,7 @@ const useDeckInitDealEffect = (
   onBeginAnimationEndDealForDealer: () => void
 ) => {
   const { euchreSettings } = state;
-  const { shouldBeginDealForDealer, shouldEndDealForDealer } = useAnimationDeckState(state);
+  const { shouldBeginDealForDealer, shouldEndDealForDealer } = useDeckAnimationPhase(state);
   const initBeginDealForDealerEffect = useRef(false);
   const endBeginDealForDealerEffect = useRef(false);
   const initEndDealForDealerEffect = useRef(false);
@@ -54,7 +54,7 @@ const useDeckInitDealEffect = (
     if (runEffect) {
       endBeginDealForDealerEffect.current = true;
 
-      onEndAnimationBeginDealForDealer();
+      //onEndAnimationBeginDealForDealer();
     }
   }, [dealAnimationEnabled, initialDealIsComplete, onEndAnimationBeginDealForDealer]);
 
@@ -67,7 +67,7 @@ const useDeckInitDealEffect = (
     if (shouldAnimate) {
       initEndDealForDealerEffect.current = true;
 
-      onBeginAnimationEndDealForDealer();
+      //onBeginAnimationEndDealForDealer();
     }
   }, [dealAnimationEnabled, onBeginAnimationEndDealForDealer, shouldEndDealForDealer]);
 
@@ -88,7 +88,7 @@ const useDeckInitDealEffect = (
 
   /** Effect to run after the deal the players is complete. Animates moving the cards to the new dealer. */
   useEffect(() => {
-    handleBeginAnimationEndDealForDealer();
+    //handleBeginAnimationEndDealForDealer();
   }, [handleBeginAnimationEndDealForDealer]);
 
   return { setRefsReady };

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { ErrorHandlers, EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
-import useAnimationDeckState from '../phases/useAnimationDeckState';
+import useAnimationDeckState from '../effects/deal/useDeckStateEffect';
+import useDeckAnimationPhase from '../phases/useDeckAnimationPhase';
 
 /** Effect to handle reseting the deck state after the game deck changed for a new deal. */
 const useDeckRegularDealEffect = (
@@ -11,7 +12,7 @@ const useDeckRegularDealEffect = (
   onEndAnimationForRegularPlay: () => Promise<void>
 ) => {
   const { euchreSettings } = state;
-  const { shouldBeginDealCards, shouldResetDealState } = useAnimationDeckState(state);
+  const { shouldBeginDealCards, shouldResetDealState } = useDeckAnimationPhase(state);
   const dealAnimationEnabled = euchreSettings.shouldAnimateDeal;
   const initBeginDealForRegularPlayEffect = useRef(false);
   const endBeginDealForRegularPlayEffect = useRef(false);

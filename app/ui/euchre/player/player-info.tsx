@@ -108,7 +108,7 @@ const PlayerInfo = ({ player, state, ...rest }: Props) => {
       enablePulse={showTurnIndicator ? true : false}
       highlightColorCss={showTurnIndicator ? 'shadow-xl shadow-amber-400' : 'shadow-md shadow-black'}
     >
-      <GameBorderBare className="" {...rest}>
+      <GameBorderBare className="min-w-24" {...rest}>
         <PlayerColor teamColor={getTeamColor(player, euchreSettings)}>
           <div className="bg-white dark:bg-stone-800 p-1">{infoToRender}</div>
         </PlayerColor>

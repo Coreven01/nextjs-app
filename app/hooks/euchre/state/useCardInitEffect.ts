@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ErrorHandlers, EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
-import { PlayerHandState } from '../reducers/cardStateReducer';
+import {
+  ErrorHandlers,
+  EuchreGameState,
+  PlayerHandState
+} from '../../../lib/euchre/definitions/game-state-definitions';
 import useAnimationCardState from '../phases/useAnimationCardState';
 
 const useCardInitEffect = (

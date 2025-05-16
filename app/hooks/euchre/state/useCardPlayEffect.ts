@@ -2,9 +2,9 @@ import { RefObject, useCallback, useEffect, useRef } from 'react';
 import {
   ErrorHandlers,
   EuchreGameState,
-  EuchrePlayer
+  EuchrePlayer,
+  PlayerHandState
 } from '../../../lib/euchre/definitions/game-state-definitions';
-import { PlayerHandState } from '../reducers/cardStateReducer';
 import useAnimationCardState from '../phases/useAnimationCardState';
 import { playerSittingOut } from '../../../lib/euchre/util/gameDataUtil';
 import { playerEqual } from '../../../lib/euchre/util/playerDataUtil';
@@ -96,6 +96,7 @@ const useCardPlayEffect = (
       shouldAnimateTrickFinished;
 
     if (shouldHandleTrickFinished) {
+      trickIdOnTrickFinishHandled.current.push(currentTrick.trickId);
       onTrickFinished();
     }
   }, [euchreGame.currentTrick, onTrickFinished, shouldAnimateTrickFinished]);

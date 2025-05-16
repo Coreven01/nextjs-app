@@ -26,6 +26,8 @@ import {
 } from '../../../hooks/euchre/reducers/playerNotificationReducer';
 import { EuchrePauseActionType, EuchrePauseState } from '../../../hooks/euchre/reducers/gamePauseReducer';
 import { InitDealResult } from './logic-definitions';
+import { CardSpringTarget } from './transform-definitions';
+import { AnimationControls } from 'framer-motion';
 
 export interface EuchreGameInstance {
   gameId: string;
@@ -230,4 +232,42 @@ export interface EuchreSettings {
   stickTheDealer: boolean;
   playerName: string;
   gamePoints: number;
+}
+
+export interface PlayerHandState {
+  handId: string;
+  width: number;
+  height: number;
+  location: TableLocation;
+  shouldShowCardValue?: boolean;
+  player?: EuchrePlayer;
+  responsive?: boolean;
+
+  /** Used to identify which state is being updated, and to prevent the state from being updated more than once. */
+  stateEffect?: EuchreGameFlow;
+}
+
+export interface CardIndex {
+  cardIndex: number;
+}
+export interface CardBaseState extends CardIndex {
+  renderKey: string;
+  src?: string;
+  cardFullName: string;
+  location?: TableLocation;
+  enabled: boolean;
+}
+
+export interface CardAnimationState extends CardIndex {
+  xDamping: number;
+  xStiffness: number;
+  yDamping: number;
+  yStiffness: number;
+  runEffectForState?: EuchreGameFlow;
+}
+
+export interface CardAnimationControls extends CardIndex {
+  initSpringValue?: CardSpringTarget;
+  animateValues: CardSpringTarget[];
+  controls: AnimationControls | undefined;
 }

@@ -23,7 +23,8 @@ const useAnimationCardState = (state: EuchreGameState) => {
       euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE,
     shouldAnimateTrickFinished:
       euchreGameFlow.gameFlow === EuchreGameFlow.TRICK_FINISHED &&
-      euchreAnimationFlow.animationType === EuchreAnimateType.NONE,
+      euchreAnimationFlow.animationType === EuchreAnimateType.NONE &&
+      euchrePauseState.pauseType === EuchrePauseType.ANIMATE,
     shoudUpdateCardStateForTurnEnd:
       euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_PLAY_CARD &&
       euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE &&

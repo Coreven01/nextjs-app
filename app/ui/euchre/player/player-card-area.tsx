@@ -8,7 +8,7 @@ import {
   EuchreTrick
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import useDeckState from '../../../hooks/euchre/state/useDeckState';
+import useDeckAnimation from '../../../hooks/euchre/state/useDeckAnimation';
 import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
 import PlayerHand from './player-hand';
@@ -55,8 +55,9 @@ const PlayerCardArea = ({
     deckCardRefs,
     gameDeckState,
     deckAnimationControls,
-    cardStates
-  } = useDeckState(
+    deckCardStates,
+    deckCardsAnimationControls
+  } = useDeckAnimation(
     state,
     eventHandlers,
     errorHandlers,
@@ -209,9 +210,8 @@ const PlayerCardArea = ({
           deckCardRefs={deckCardRefs}
           location={gameDeckState.location}
           playerNumber={gameDeckState.playerNumber}
-          cardStates={cardStates}
-          onAnimationComplete={gameDeckState.handleAnimationComplete}
-          dealType={gameDeckState.dealType}
+          cardStates={deckCardStates}
+          animationControls={deckCardsAnimationControls}
           initDeckState={gameDeckState.initSpringValue}
           controls={deckAnimationControls}
           width={gameDeckState.width}

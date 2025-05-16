@@ -2,16 +2,16 @@ import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotif
 import GameBorder from './game-border';
 import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
-import { RefObject, useMemo } from 'react';
+import { RefObject, useEffect, useMemo, useRef } from 'react';
 import GameFlippedCard from './game-flipped-card';
 import { TableLocation } from '../../../lib/euchre/definitions/definitions';
-import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
 import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
 import GameTrumpIndicator from './game-trump-indicator';
 import { getCardFullName, getEncodedCardSvg } from '../../../lib/euchre/util/cardSvgDataUtil';
 import { GAME_STATES_FOR_BID } from '../../../lib/euchre/util/gameStateLogicUtil';
 import { DEFAULT_SPRING_VAL } from '../../../lib/euchre/definitions/transform-definitions';
 import { v4 as uuidv4 } from 'uuid';
+import { useAnimation } from 'framer-motion';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameState;
@@ -31,6 +31,8 @@ const GameTable = ({
   directCenterVRef,
   ...rest
 }: Props) => {
+  const flippedUp = useRef(false);
+  const controls = useAnimation();
   const { euchreGame: game, euchreGameFlow: gameFlow } = { ...state };
   const hidePosition = !state.euchreSettings.debugShowPositionElements;
   const renderOrder = [
@@ -44,26 +46,44 @@ const GameTable = ({
   const gameBidding = game.maker === null && GAME_STATES_FOR_BID.includes(gameFlow.gameFlow);
   const gamePlay = game.maker !== null;
 
-  const cardState: CardState = useMemo(
-    () => ({
-      src: getEncodedCardSvg(game.trump, 'top'),
-      cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
-      cardIndex: 0,
-      initSpringValue: {
-        ...DEFAULT_SPRING_VAL,
-        opacity: 1,
-        rotateY: 180,
-        transition: { rotateY: { duration: 0 } }
-      },
-      springValue:
-        gameBidding && !gameFlow.hasFirstBiddingPassed
-          ? { ...DEFAULT_SPRING_VAL, rotateY: 0, transition: { rotateY: { duration: 0.75 } } }
-          : { ...DEFAULT_SPRING_VAL, rotateY: 180, transition: { rotateY: { duration: 0.75 } } },
-      enabled: false,
-      renderKey: uuidv4()
-    }),
-    [game.trump, gameBidding, gameFlow.hasFirstBiddingPassed]
-  );
+  useEffect(() => {
+    const flipCardAnimation = async () => {
+      if (!flippedUp && gameBidding && !gameFlow.hasFirstBiddingPassed) {
+        await controls.start({
+          ...DEFAULT_SPRING_VAL,
+          rotateY: 0,
+          transition: { rotateY: { duration: 0.75 } }
+        });
+      } else {
+        await controls.start({
+          ...DEFAULT_SPRING_VAL,
+          rotateY: 180,
+          transition: { rotateY: { duration: 0.75 } }
+        });
+      }
+    };
+
+    flipCardAnimation();
+  });
+
+  // const cardState: CardState = useMemo(
+  //   () => ({
+  //     src: getEncodedCardSvg(game.trump, 'top'),
+  //     cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
+  //     cardIndex: 0,
+  //     controls: controls,
+  //     initSpringValue: {
+  //       ...DEFAULT_SPRING_VAL,
+  //       opacity: 1,
+  //       rotateY: 180,
+  //       transition: { rotateY: { duration: 0 } }
+  //     },
+  //     animateValues: [],
+  //     enabled: false,
+  //     renderKey: uuidv4()
+  //   }),
+  //   [controls, game.trump, gameBidding]
+  // );
 
   return (
     <GameBorder innerClass="bg-yellow-800 relative" className="h-full shadow-md shadow-black">
@@ -113,7 +133,7 @@ const GameTable = ({
           id="game-info"
           className="col-span-1 col-start-2 row-start-2 relative flex justify-center items-center"
         >
-          <GameFlippedCard cardState={cardState} card={game.trump} key={game.handId} visible={gameBidding} />
+          {/* <GameFlippedCard cardState={cardState} card={game.trump} key={game.handId} visible={gameBidding} /> */}
           {gamePlay && (
             <GameTrumpIndicator
               notificationSpeed={state.euchreSettings.notificationSpeed}

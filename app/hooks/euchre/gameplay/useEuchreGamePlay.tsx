@@ -41,6 +41,7 @@ import {
   addTrickWonEvent
 } from '../../../lib/euchre/util/gamePlayEventsUtil';
 import { determineCardToPlay } from '../../../lib/euchre/util/gamePlayLogicUtil';
+import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 
 const useEuchreGamePlay = (
   state: EuchreGameValues,
@@ -68,9 +69,10 @@ const useEuchreGamePlay = (
     continueToTrickFinished,
     continueToAnimateTrickFinished,
     pauseForPrompt,
+    pauseForTrickFinished,
     resetForNewHand
   } = useGamePlayState(state, setters, errorHandlers);
-  const { euchreGame, euchreSettings, euchrePauseState, playedCard } = state;
+  const { euchreGame, euchreGameFlow, euchreSettings, euchrePauseState, playedCard } = state;
   /**
    * Show an indicator in the player's area to show which card won.
    */
@@ -127,7 +129,10 @@ const useEuchreGamePlay = (
    *
    */
   const handleTrickFinished = useCallback(() => {
-    if (shouldBeginTrickFinished) {
+    if (
+      euchreGameFlow.gameFlow === EuchreGameFlow.TRICK_FINISHED &&
+      euchrePauseState.pauseType === EuchrePauseType.ANIMATE
+    ) {
       continueToAnimateTrickFinished();
     }
   }, [continueToAnimateTrickFinished, shouldBeginTrickFinished]);
@@ -346,6 +351,7 @@ const useEuchreGamePlay = (
         if (wonCard) {
           addTrickWonEvent(currentTrick.taker, wonCard.card, state, eventHandlers);
         }
+        pauseForTrickFinished();
       } else if (currentTrick.playerRenege) {
         const renegeCard = currentTrick.cardsPlayed.find((c) => c.player === currentTrick.playerRenege);
 
@@ -370,9 +376,9 @@ const useEuchreGamePlay = (
         };
 
         setters.dispatchPlayerNotification(notification);
+        await notificationDelay(euchreSettings, playedReneged ? 1 : undefined);
+        continueToTrickFinished();
       }
-      await notificationDelay(euchreSettings, playedReneged ? 1 : undefined);
-      continueToTrickFinished();
     };
 
     errorHandlers.catchAsync(

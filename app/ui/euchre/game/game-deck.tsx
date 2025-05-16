@@ -6,27 +6,26 @@ import {
 } from '@/app/lib/euchre/definitions/definitions';
 import React, { forwardRef, PropsWithoutRef, RefObject, useEffect } from 'react';
 import GameCard from './game-card';
-import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
+
 import clsx from 'clsx';
-import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import { AnimationControls, motion, TargetAndTransition } from 'framer-motion';
 import DummyCard from '../common/dummy-card';
 import { logConsole } from '../../../lib/euchre/util/util';
+import { CardAnimationControls, CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props {
   location: TableLocation;
   playerNumber: number;
   deck?: Card[];
-  cardStates?: CardState[];
+  cardStates: CardBaseState[] | undefined;
+  animationControls: CardAnimationControls[];
   deckCardRefs?: Map<number, RefObject<HTMLDivElement | null>>;
-  dealType?: EuchreGameFlow;
   initDeckState?: TargetAndTransition;
   controls?: AnimationControls;
   width: number;
   height: number;
   handId: string;
   showPosition: boolean;
-  onAnimationComplete?: () => void;
   onFirstRender?: (ready: boolean) => void;
 }
 
@@ -35,16 +34,15 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     {
       deck,
       cardStates,
+      animationControls,
       deckCardRefs,
       location,
-      dealType,
       initDeckState,
       controls,
       width,
       height,
       handId,
       showPosition,
-      onAnimationComplete,
       onFirstRender
     }: Props,
     ref
@@ -84,6 +82,8 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           deck.map((card) => {
             const cardState = cardStates[card.index];
             const cardRef = deckCardRefs.get(card.index);
+            const animationControl = animationControls[card.index];
+
             return (
               <GameCard
                 renderKey={cardState.renderKey}
@@ -94,11 +94,10 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
                 className="absolute top-0"
                 card={card}
                 cardState={cardState}
+                animationControls={animationControl}
                 width={width}
                 height={height}
                 responsive={true}
-                runAnimationCompleteEffect={dealType}
-                onAnimationComplete={onAnimationComplete}
               />
             );
           })}

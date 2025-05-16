@@ -8,28 +8,24 @@ import React, { CSSProperties, forwardRef, memo, PropsWithoutRef, useCallback, u
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { CardState } from '../../../hooks/euchre/reducers/cardStateReducer';
+import {} from '../../../hooks/euchre/reducers/cardStateReducer';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import { logConsole } from '../../../lib/euchre/util/util';
 import { getCardShadowSrc } from '../../../lib/euchre/util/cardDataUtil';
+import { CardAnimationControls, CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   renderKey: string;
   card: Card;
-  cardState: CardState;
+  cardState: CardBaseState;
+  animationControls: CardAnimationControls;
   width: number;
   height: number;
-
-  /** If set, effect should run for this effect if it hasn't been executed yet. */
-  runAnimationCompleteEffect?: EuchreGameFlow;
   location: TableLocation;
   responsive?: boolean;
   hideBackFace?: boolean;
   /** */
   onCardClick?: (cardIndex: number) => void;
-
-  /** */
-  onAnimationComplete?: (card: Card) => void;
 }
 
 const GameCard = memo(
@@ -40,20 +36,19 @@ const GameCard = memo(
         id,
         card,
         cardState,
+        animationControls,
         width,
         height,
         className,
         location,
-        runAnimationCompleteEffect,
         responsive,
         hideBackFace = true,
-        onCardClick,
-        onAnimationComplete
+        onCardClick
       }: Props,
       ref
     ) => {
       /** Used to prevent the same animation event handler from running more than once for a particular action. */
-      const actionsRun = useRef<EuchreGameFlow[]>([]);
+      //const actionsRun = useRef<EuchreGameFlow[]>([]);
       const sideLocation = location === 'left' || location === 'right';
       const useHoverEffect: boolean = onCardClick !== undefined && cardState.enabled;
       const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
@@ -73,36 +68,50 @@ const GameCard = memo(
        * specific type of effect wasn't already handled.
        */
       const handleAnimationComplete = useCallback(() => {
-        logConsole('*** [GAMECARD] [handleAnimationComplete] - card:', card);
+        //logConsole('*** [GAMECARD] [handleAnimationComplete] - card:', card);
 
-        const shouldRunEffect =
-          runAnimationCompleteEffect &&
-          onAnimationComplete &&
-          cardState.runEffectForState === runAnimationCompleteEffect &&
-          !actionsRun.current.find((e) => e === runAnimationCompleteEffect);
+        const shouldRunEffect = false;
+        // runAnimationCompleteEffect &&
+        // onAnimationComplete &&
+        // !actionsRun.current.find((e) => e === runAnimationCompleteEffect);
 
         if (shouldRunEffect) {
           // fall into this block once animation is complete to update game state (onAnimationComplete).
-          actionsRun.current.push(runAnimationCompleteEffect);
-          onAnimationComplete(card);
+          //actionsRun.current.push(runAnimationCompleteEffect);
+          logConsole(
+            '*** [GAMECARD] ANIMATION VALUE: ',
+            animationControls.controls,
+            ' CARD STATE: ',
+            cardState,
+            ' EXECUTE TIME: ',
+            performance.now()
+          );
+          //onAnimationComplete(card);
         }
-      }, [card, cardState.runEffectForState, onAnimationComplete, runAnimationCompleteEffect]);
+      }, [animationControls.controls, cardState]);
 
       /** Handle card click event. */
       const handleCardClick = useCallback(() => {
         logConsole('*** [GAMECARD] [handleCardClick]');
 
         if (onCardClick) {
-          if (runAnimationCompleteEffect) actionsRun.current.push(runAnimationCompleteEffect);
+          //if (runAnimationCompleteEffect) actionsRun.current.push(runAnimationCompleteEffect);
           // when card is clicked, it activates the animation to play the card.
           // on the animation is complete, the callback handler calls the method that updates,
           // the state the card was played.
           onCardClick(card.index);
         }
-      }, [card.index, onCardClick, runAnimationCompleteEffect]);
+      }, [card.index, onCardClick]);
       //#endregion
 
-      if (cardState.enabled) logConsole('*** [GAMECARD] [RENDER] key: ', renderKey);
+      logConsole(
+        '*** [GAMECARD] [RENDER] key: ',
+        renderKey,
+        ' RENDER TIME: ',
+        performance.now(),
+        ' card: ',
+        card
+      );
 
       return (
         <motion.div
@@ -115,8 +124,8 @@ const GameCard = memo(
           title={cardState.cardFullName}
           id={id}
           ref={ref}
-          initial={cardState.initSpringValue}
-          animate={cardState.springValue}
+          initial={animationControls.initSpringValue}
+          animate={animationControls.controls}
           onAnimationComplete={handleAnimationComplete}
           draggable={false}
         >
@@ -182,8 +191,6 @@ const getShadowOffsetForPlayer = (sideLocation: TableLocation): string => {
     case 'right':
       return 'top-2 -right-2';
   }
-
-  return 'top-2 left-2';
 };
 
 GameCard.displayName = 'GameCard';
