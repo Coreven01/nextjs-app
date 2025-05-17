@@ -1,42 +1,42 @@
 import { RefObject } from 'react';
 import {
   getDestinationOffset,
+  getDurationSeconds,
   getElementOffset,
   getElementOriginalPosition,
   getSpringMoveElement,
   getSpringsForDealForDealer,
   getSpringsForDealForRegularPlay,
   getSpringsToMoveToPlayer,
-  getSpringToMoveToPlayer,
+  getTransitionForCardDeal,
   getTransitionForCardMoved
-} from './cardTransformUtil';
-import { Card, GameSpeed, TableLocation } from '../definitions/definitions';
+} from '../cardTransformUtil';
+import { Card, GameSpeed, TableLocation } from '../../definitions/definitions';
 import { v4 as uuidv4 } from 'uuid';
-import { CardSpringProps } from '../definitions/transform-definitions';
+import { CardSpringProps } from '../../definitions/transform-definitions';
 import {
+  AnimationElementsContext,
   CardAnimationControls,
   CardAnimationState,
+  CardAnimationStateContext,
   CardBaseState,
   EuchreGameInstance,
-  EuchrePlayer,
-  EuchreSettings
-} from '../definitions/game-state-definitions';
-import { getPlayerRotation } from './playerDataUtil';
-import { getCardFullName, getEncodedCardSvg } from './cardSvgDataUtil';
-import { InitDealResult } from '../definitions/logic-definitions';
-import { Transition } from 'framer-motion';
+  EuchrePlayer
+} from '../../definitions/game-state-definitions';
+import { getPlayerRotation } from '../playerDataUtil';
+import { getCardFullName, getEncodedCardSvg } from '../cardSvgDataUtil';
+import { InitDealResult } from '../../definitions/logic-definitions';
 
 /** Move cards from their current location to the destination location of the card state. This is usually the player's
  * area. Used to move cards after they have been dealt from the game table to the player, as if the player picked them up.
  */
 const getCardStatesMoveToPlayer = (
-  cardStates: CardBaseState[],
-  animationStates: CardAnimationState[],
-  cardAnimations: CardAnimationControls[],
+  animationContext: CardAnimationStateContext,
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
   deckCardRefs: Map<number, RefObject<HTMLDivElement | null>>,
   gameSpeed: GameSpeed
 ) => {
+  const { cardStates, animationControls, animationStates } = animationContext;
   const newCardStates = [...cardStates];
   const springsToMove: CardSpringProps[] = [];
 
@@ -45,12 +45,17 @@ const getCardStatesMoveToPlayer = (
       const destRef = playerDeckRefs.get(cardState.location);
       const cardRef = deckCardRefs.get(cardState.cardIndex);
       const offsets = getDestinationOffset(cardState.location);
-      const animationState = animationStates[cardState.cardIndex];
-      const animationControl = cardAnimations[cardState.cardIndex];
-      const lastSpring = animationControl.animateValues.at(-1);
+      const animationState = animationStates.find((s) => s.cardIndex === cardState.cardIndex);
+      const animationControl = animationControls.find((s) => s.cardIndex === cardState.cardIndex);
+      const lastSpring = animationControl?.animateValues.at(-1);
 
-      if (destRef?.current && cardRef?.current) {
-        const spring = getSpringMoveElement(cardRef.current, destRef.current, undefined, lastSpring);
+      if (destRef?.current && cardRef?.current && animationState) {
+        const spring = getSpringMoveElement({
+          sourceElement: cardRef.current,
+          destinationElement: destRef.current,
+          relativeElement: undefined,
+          currentSourceSpring: lastSpring
+        });
 
         spring.x += offsets.x;
         spring.y += offsets.y;
@@ -61,7 +66,8 @@ const getCardStatesMoveToPlayer = (
         springsToMove.push({
           ordinalIndex: cardState.cardIndex,
           cardIndex: cardState.cardIndex,
-          animateValues: [spring]
+          animateValues: [spring],
+          initialValue: undefined
         });
       }
     }
@@ -70,29 +76,31 @@ const getCardStatesMoveToPlayer = (
   return { newCardStates, springsToMove };
 };
 
-const getSpringInitialMoveForDealForDealer = (
+/** Move the deck element from its absolute original postion to the dealer's side of the table. Animate the deck
+ * being moved into view and ready to deal the cards.
+ */
+const getSpringInitialMoveForDeal = (
   destinationElement: HTMLElement,
   relativeCenterElement: HTMLElement,
   gameDeckElement: HTMLElement,
   gameSpeed: GameSpeed
 ) => {
-  const duration = gameSpeed / 1000;
+  const duration = getDurationSeconds(gameSpeed);
   const srcRect = getElementOriginalPosition(gameDeckElement);
   const destRect = getElementOriginalPosition(destinationElement);
   const relativeRect = getElementOriginalPosition(relativeCenterElement);
-  const moveToElementSpring = getSpringMoveElement(gameDeckElement, destinationElement);
+  const moveToElementSpring = getSpringMoveElement({ sourceElement: gameDeckElement, destinationElement });
 
   const distance = Math.max(srcRect.height, srcRect.width) / 2;
   const offsets = getElementOffset(srcRect, destRect, relativeRect, 'out', distance);
 
   // initial move from its absolute postion to the dealer's player location.
-  // the deck position should be positioned absolute in the game area (top left)
+  // the deck position should be positioned absolute in the game area (top left),
   const initMoveToDealer = {
     ...moveToElementSpring,
     opacity: 0,
     x: moveToElementSpring.x + offsets.x,
-    y: moveToElementSpring.y + offsets.y,
-    transition: { opacity: { duration: 0.01 }, x: { duration: 0.01 }, y: { duration: 0.01 } }
+    y: moveToElementSpring.y + offsets.y
   };
 
   // slide the cards into view after moving the deck.
@@ -119,7 +127,7 @@ const getStatesAnimateDealForDealer = (
   initDealResult: InitDealResult
 ) => {
   const rotation: EuchrePlayer[] = getPlayerRotation(game.gamePlayers, game.dealer);
-  const duration: number = gameSpeed / 1000;
+  const duration: number = getDurationSeconds(gameSpeed);
   const delayBetweenMove: number = duration / 6;
   const newState: CardBaseState[] = [...cardStates];
 
@@ -139,7 +147,7 @@ const getStatesAnimateDealForDealer = (
     const card = game.deck.at(updatedSpring.cardIndex);
 
     if (cardState?.location && card && animationState) {
-      const transition = getTransitionForCardMoved(
+      const transition = getTransitionForCardDeal(
         animationState,
         gameSpeed,
         delayBetweenMove * cardState.cardIndex
@@ -167,7 +175,7 @@ const getCardsStatesRegularDeal = (
   deckCardRefs: Map<number, RefObject<HTMLDivElement | null>>
 ) => {
   const rotation: EuchrePlayer[] = getPlayerRotation(game.gamePlayers, game.dealer);
-  const duration: number = gameSpeed / 1000;
+  const duration: number = getDurationSeconds(gameSpeed);
   const delayBetweenDeal: number = duration / 6;
   const newStates = [...cardStates];
   const springsForDeal: CardSpringProps[] = getSpringsForDealForRegularPlay(
@@ -207,26 +215,22 @@ const getCardsStatesRegularDeal = (
 
 /** Move all cards to the destination player after all cards have been dealt */
 const getStatesMoveAllCardsToPlayer = (
-  cardStates: CardBaseState[],
-  animationStates: CardAnimationState[],
-  cardAnimations: CardAnimationControls[],
+  stateContext: CardAnimationStateContext,
   destinationLocation: TableLocation,
   destinationElement: HTMLElement,
   deckCardRefs: Map<number, RefObject<HTMLDivElement | null>>,
   gameSpeed: GameSpeed
 ) => {
-  const newCardStates = [...cardStates];
   const springsToMove = getSpringsToMoveToPlayer(
+    stateContext,
     deckCardRefs,
     destinationElement,
     destinationLocation,
-    newCardStates,
-    animationStates,
-    cardAnimations,
     true,
     gameSpeed
   );
 
+  const newCardStates = [...stateContext.cardStates];
   for (const cardState of newCardStates) {
     cardState.renderKey = uuidv4();
     cardState.location = destinationLocation;
@@ -283,7 +287,7 @@ const getCardStatesForTrickTaken = (
 
 export {
   getCardStatesMoveToPlayer,
-  getSpringInitialMoveForDealForDealer,
+  getSpringInitialMoveForDeal,
   getStatesAnimateDealForDealer,
   getCardsStatesRegularDeal,
   getStatesMoveAllCardsToPlayer,

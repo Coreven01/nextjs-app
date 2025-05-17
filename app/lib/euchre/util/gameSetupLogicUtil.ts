@@ -153,7 +153,7 @@ const dealCardsForNewDealer = (game: EuchreGameInstance): InitDealResult => {
       retval.cardIndex = counter;
       jackCount++;
 
-      if (jackCount === 1) break;
+      if (jackCount === 4) break;
     }
 
     counter++;

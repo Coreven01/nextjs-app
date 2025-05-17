@@ -12,7 +12,7 @@ const useDeckRegularDealEffect = (
   onEndAnimationForRegularPlay: () => Promise<void>
 ) => {
   const { euchreSettings } = state;
-  const { shouldBeginDealCards, shouldResetDealState } = useDeckAnimationPhase(state);
+  //const { shouldBeginDealCards, shouldResetDealState } = useDeckAnimationPhase(state);
   const dealAnimationEnabled = euchreSettings.shouldAnimateDeal;
   const initBeginDealForRegularPlayEffect = useRef(false);
   const endBeginDealForRegularPlayEffect = useRef(false);
@@ -20,26 +20,26 @@ const useDeckRegularDealEffect = (
   /** */
   const handleBeginAnimationForRegularPlay = useCallback(async () => {
     if (!dealAnimationEnabled) return;
-    const runEffect = !initBeginDealForRegularPlayEffect.current && shouldBeginDealCards;
+    // const runEffect = !initBeginDealForRegularPlayEffect.current && shouldBeginDealCards;
 
-    if (runEffect) {
-      initBeginDealForRegularPlayEffect.current = true;
-      await onBeginAnimationForRegularPlay();
-    }
-  }, [dealAnimationEnabled, onBeginAnimationForRegularPlay, shouldBeginDealCards]);
+    // if (runEffect) {
+    //   initBeginDealForRegularPlayEffect.current = true;
+    //   await onBeginAnimationForRegularPlay();
+    // }
+  }, [dealAnimationEnabled, onBeginAnimationForRegularPlay]);
 
   /** */
   const handleEndAnimationForRegularPlay = useCallback(async () => {
     if (!dealAnimationEnabled) return;
 
-    const runEffect =
-      regularDealComplete && !endBeginDealForRegularPlayEffect.current && shouldBeginDealCards;
+    // const runEffect =
+    //   regularDealComplete && !endBeginDealForRegularPlayEffect.current && shouldBeginDealCards;
 
-    if (runEffect) {
-      endBeginDealForRegularPlayEffect.current = true;
-      await onEndAnimationForRegularPlay();
-    }
-  }, [dealAnimationEnabled, onEndAnimationForRegularPlay, regularDealComplete, shouldBeginDealCards]);
+    // if (runEffect) {
+    //   endBeginDealForRegularPlayEffect.current = true;
+    //   await onEndAnimationForRegularPlay();
+    // }
+  }, [dealAnimationEnabled, onEndAnimationForRegularPlay, regularDealComplete]);
 
   /** Animate dealing cards for regular play. This should be run at the beginning of each hand during regular play. */
   useEffect(() => {
@@ -63,13 +63,13 @@ const useDeckRegularDealEffect = (
   }, [errorHandlers, handleEndAnimationForRegularPlay]);
 
   useEffect(() => {
-    if (
-      shouldResetDealState &&
-      (initBeginDealForRegularPlayEffect.current || endBeginDealForRegularPlayEffect.current)
-    ) {
-      initBeginDealForRegularPlayEffect.current = false;
-      endBeginDealForRegularPlayEffect.current = false;
-    }
+    // if (
+    //   shouldResetDealState &&
+    //   (initBeginDealForRegularPlayEffect.current || endBeginDealForRegularPlayEffect.current)
+    // ) {
+    //   initBeginDealForRegularPlayEffect.current = false;
+    //   endBeginDealForRegularPlayEffect.current = false;
+    // }
   });
   return {};
 };

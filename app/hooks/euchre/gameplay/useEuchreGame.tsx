@@ -16,7 +16,8 @@ import {
   EuchreGamePlayHandlers,
   EuchreGameInstance,
   EuchreSettings,
-  ErrorHandlers
+  ErrorHandlers,
+  GamePlayContext
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useEuchreGameState from '../state/useEuchreGameState';
 import { PromptType } from '../../../lib/euchre/definitions/definitions';
@@ -223,16 +224,24 @@ export default function useEuchreGame() {
     ]
   );
 
+  const gameContext: GamePlayContext = useMemo(
+    () => ({
+      state: state,
+      animationHandlers: animationHandlers,
+      errorHandlers: errorHandlers,
+      eventHandlers: eventHandlers
+    }),
+    [animationHandlers, errorHandlers, eventHandlers, state]
+  );
+
   //#endregion
 
   return {
+    gameContext,
     stateValues,
     setters,
-    eventHandlers,
-    errorHandlers,
     gameHandlers,
     events,
-    errorState,
-    animationHandlers
+    errorState
   };
 }

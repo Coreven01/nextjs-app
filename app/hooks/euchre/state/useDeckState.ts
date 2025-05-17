@@ -5,10 +5,11 @@ import {
   createCardStatesFromGameDeck
 } from '../../../lib/euchre/util/cardStateUtil';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import { CardSpringTarget } from '../../../lib/euchre/definitions/transform-definitions';
+import { CardSpringProps, CardSpringTarget } from '../../../lib/euchre/definitions/transform-definitions';
 import {
   CardAnimationControls,
   CardAnimationState,
+  CardAnimationStateContext,
   CardBaseState
 } from '../../../lib/euchre/definitions/game-state-definitions';
 
@@ -101,21 +102,27 @@ const useDeckState = () => {
   const [deckCardStates, setDeckCardStates] = useState<CardBaseState[]>([]);
   const [deckCardsAnimationStates, setDeckCardsAnimationStates] = useState<CardAnimationState[]>([]);
 
+  const stateContext: CardAnimationStateContext = {
+    cardStates: deckCardStates,
+    animationStates: deckCardsAnimationStates,
+    animationControls: deckCardsAnimationControls
+  };
+
   const createStates = useCallback(
     (
       gameDeck: Card[],
       location: TableLocation,
       includeCardValue: boolean,
-      initSpringValue?: CardSpringTarget,
-      initAnimateValues?: CardSpringTarget[]
+      initValues: CardSpringProps[],
+      reverseIndex: boolean
     ) => {
       const states = createCardStatesFromGameDeck(
         gameDeck,
         animationControlsArray,
         location,
         includeCardValue,
-        initSpringValue,
-        initAnimateValues
+        initValues,
+        reverseIndex
       );
 
       return states;
@@ -136,11 +143,9 @@ const useDeckState = () => {
   );
 
   return {
-    deckCardsAnimationControls,
+    stateContext,
     setDeckCardsAnimationControls,
-    deckCardStates,
     setDeckCardStates,
-    deckCardsAnimationStates,
     setDeckCardsAnimationStates,
     createStates,
     recreateAnimationControls

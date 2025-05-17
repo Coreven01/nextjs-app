@@ -34,5 +34,6 @@ export interface CardPosition {
 }
 
 export interface CardSpringProps extends CardPosition {
+  initialValue: CardSpringTarget | undefined;
   animateValues: CardSpringTarget[];
 }

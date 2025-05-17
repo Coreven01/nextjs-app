@@ -11,7 +11,7 @@ const logConsole = (
 ) => {
   if (!ENABLE_LOGGING) return;
 
-  console.log(message, params);
+  console.log(message, ...params);
 };
 
 /** Log error to console. */

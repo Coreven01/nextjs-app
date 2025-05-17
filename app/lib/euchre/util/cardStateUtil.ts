@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getCardFullName, getEncodedCardSvg } from './cardSvgDataUtil';
 import { getRandomDamping, getRandomStiffness } from './cardTransformUtil';
-import { CardSpringTarget, DEFAULT_SPRING_VAL } from '../definitions/transform-definitions';
+import { CardSpringProps, CardSpringTarget, DEFAULT_SPRING_VAL } from '../definitions/transform-definitions';
 import { Card, TableLocation } from '../definitions/definitions';
 import { AnimationControls } from 'framer-motion';
 import {
@@ -9,6 +9,25 @@ import {
   CardAnimationState,
   CardAnimationControls
 } from '../definitions/game-state-definitions';
+
+/** */
+const runCardAnimations = async (animationControls: CardAnimationControls[]) => {
+  const animations: Promise<void>[] = [];
+
+  for (const cardAnimation of animationControls) {
+    if (cardAnimation.animateValues.length > 0) {
+      const temp = async (): Promise<void> => {
+        for (const animateValue of cardAnimation.animateValues) {
+          await cardAnimation.controls?.start(animateValue);
+        }
+      };
+
+      animations.push(temp());
+    }
+  }
+
+  await Promise.all(animations);
+};
 
 /** Create the intial card state values for beginning deal.
  *
@@ -18,18 +37,28 @@ const createCardStatesFromGameDeck = (
   controls: AnimationControls[],
   location: TableLocation,
   includeCardValue: boolean,
-  initSpringValue?: CardSpringTarget,
-  initAnimateValues?: CardSpringTarget[]
+  initValues: CardSpringProps[],
+  reverseIndex: boolean
 ) => {
   const cardStates: CardBaseState[] = [];
   const animationCardStates: CardAnimationState[] = [];
   const animationControls: CardAnimationControls[] = [];
-  const initZIndex: number = DEFAULT_SPRING_VAL.zIndex ?? 30;
+  const cardCount = cards.length;
+  let initZIndex: number = DEFAULT_SPRING_VAL.zIndex ?? 30;
+  let zIndexMultiplier = 1;
+
+  if (reverseIndex) {
+    initZIndex += cardCount;
+    zIndexMultiplier = -1;
+  }
 
   for (const card of cards) {
     const control = controls[card.index];
-    const springValue = initSpringValue ? { ...initSpringValue, zIndex: initZIndex + card.index } : undefined;
-    const animateValue = initAnimateValues ?? [];
+    const propValue = initValues.at(card.index);
+    const springValue = propValue?.initialValue
+      ? { ...propValue?.initialValue, zIndex: initZIndex + card.index * zIndexMultiplier }
+      : undefined;
+    const animateValue = propValue?.animateValues ?? [];
 
     cardStates.push(createCardBaseState(card, location, includeCardValue));
     animationCardStates.push(createAnimationState(card));
@@ -79,18 +108,20 @@ const createAnimationControls = (
   initSpringValue?: CardSpringTarget,
   initAnimateValues?: CardSpringTarget[]
 ) => {
-  const initZIndex: number = DEFAULT_SPRING_VAL.zIndex ?? 30;
-  const springValue = initSpringValue ? { ...initSpringValue, zIndex: initZIndex + card.index } : undefined;
-  const animateValue = initAnimateValues ?? [];
-
   const animationControl: CardAnimationControls = {
     cardIndex: card.index,
-    initSpringValue: springValue,
+    initSpringValue: initSpringValue,
     controls: control,
-    animateValues: animateValue
+    animateValues: initAnimateValues ?? []
   };
 
   return animationControl;
 };
 
-export { createCardStatesFromGameDeck, createCardBaseState, createAnimationState, createAnimationControls };
+export {
+  runCardAnimations,
+  createCardStatesFromGameDeck,
+  createCardBaseState,
+  createAnimationState,
+  createAnimationControls
+};

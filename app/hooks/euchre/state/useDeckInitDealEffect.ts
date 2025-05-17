@@ -15,7 +15,7 @@ const useDeckInitDealEffect = (
   onBeginAnimationEndDealForDealer: () => void
 ) => {
   const { euchreSettings } = state;
-  const { shouldBeginDealForDealer, shouldEndDealForDealer } = useDeckAnimationPhase(state);
+  //const { shouldBeginDealForDealer, shouldEndDealForDealer } = useDeckAnimationPhase(state);
   const initBeginDealForDealerEffect = useRef(false);
   const endBeginDealForDealerEffect = useRef(false);
   const initEndDealForDealerEffect = useRef(false);
@@ -27,23 +27,17 @@ const useDeckInitDealEffect = (
   const handleBeginAnimationBeginDealForDealer = useCallback(async () => {
     if (!dealAnimationEnabled) return;
 
-    const runEffect =
-      shouldBeginDealForDealer &&
-      !initBeginDealForDealerEffect.current &&
-      isDealStateInitialized &&
-      refsReady;
+    // const runEffect =
+    //   shouldBeginDealForDealer &&
+    //   !initBeginDealForDealerEffect.current &&
+    //   isDealStateInitialized &&
+    //   refsReady;
 
-    if (runEffect) {
-      initBeginDealForDealerEffect.current = true;
-      await onBeginAnimationBeginDealForDealer();
-    }
-  }, [
-    dealAnimationEnabled,
-    isDealStateInitialized,
-    onBeginAnimationBeginDealForDealer,
-    refsReady,
-    shouldBeginDealForDealer
-  ]);
+    // if (runEffect) {
+    //   initBeginDealForDealerEffect.current = true;
+    //   await onBeginAnimationBeginDealForDealer();
+    // }
+  }, [dealAnimationEnabled, isDealStateInitialized, onBeginAnimationBeginDealForDealer, refsReady]);
 
   /** */
   const handleEndAnimationBeginDealForDealer = useCallback(() => {
@@ -62,14 +56,14 @@ const useDeckInitDealEffect = (
   const handleBeginAnimationEndDealForDealer = useCallback(() => {
     if (!dealAnimationEnabled) return;
 
-    const shouldAnimate = !initEndDealForDealerEffect.current && shouldEndDealForDealer;
+    // const shouldAnimate = !initEndDealForDealerEffect.current && shouldEndDealForDealer;
 
-    if (shouldAnimate) {
-      initEndDealForDealerEffect.current = true;
+    // if (shouldAnimate) {
+    //   initEndDealForDealerEffect.current = true;
 
-      //onBeginAnimationEndDealForDealer();
-    }
-  }, [dealAnimationEnabled, onBeginAnimationEndDealForDealer, shouldEndDealForDealer]);
+    //   //onBeginAnimationEndDealForDealer();
+    // }
+  }, [dealAnimationEnabled, onBeginAnimationEndDealForDealer]);
 
   /** Effect to run at the initial entry point for dealing for dealer. Sets the cards into view before animation of the deal.
    */

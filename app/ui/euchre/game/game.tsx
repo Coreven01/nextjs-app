@@ -25,23 +25,14 @@ import useEuchreDebug from '../../../hooks/euchre/useEuchreDebug';
 
 export default function EuchreGame() {
   //#region Hooks
-  const {
-    stateValues,
-    setters,
-    eventHandlers,
-    errorHandlers,
-    gameHandlers,
-    events,
-    errorState,
-    animationHandlers
-  } = useEuchreGame();
+  const { gameContext, stateValues, setters, gameHandlers, events, errorState } = useEuchreGame();
 
   const { fullGameInstance, handleStartGameForDebug, handleCloseDebugGame, debugHandlers } = useEuchreDebug(
     stateValues,
     gameHandlers,
     setters,
-    eventHandlers,
-    errorHandlers
+    gameContext.eventHandlers,
+    gameContext.errorHandlers
   );
 
   const {
@@ -106,7 +97,7 @@ export default function EuchreGame() {
   const renderGameEvents = showEvents && (
     <GameEvents
       events={events}
-      onClear={eventHandlers.clearEvents}
+      onClear={gameContext.eventHandlers.clearEvents}
       onClose={() => toggleEvents(false)}
       className="right-16 top-0 dark:text-white"
     />
@@ -124,7 +115,7 @@ export default function EuchreGame() {
     <GameErrorPrompt
       key={stateValues.euchreGame !== null ? 'modal' : 'init'}
       errorState={errorState}
-      onAttemptToRecover={errorHandlers.onResetError}
+      onAttemptToRecover={gameContext.errorHandlers.onResetError}
     />
   );
 
@@ -233,9 +224,7 @@ export default function EuchreGame() {
           >
             <GameArea
               id="game-area"
-              state={stateValues}
-              eventHandlers={eventHandlers}
-              errorHandlers={errorHandlers}
+              gameContext={gameContext}
               className={clsx('transition-opacity opacity-10 duration-1000', {
                 '!opacity-100': !renderIntro
               })}
@@ -245,12 +234,12 @@ export default function EuchreGame() {
               showScore={showScore}
               playerNotification={stateValues.playerNotification}
               playedCard={stateValues.playedCard}
+              initDealer={stateValues.initDealer}
               onToggleFullscreen={toggleFullScreen}
               onToggleEvents={toggleEvents}
               onSettingsToggle={toggleSettings}
               onScoreToggle={toggleScore}
               onCancel={handleCancel}
-              animationHandlers={animationHandlers}
             />
             {renderSettings}
             {renderIntro}

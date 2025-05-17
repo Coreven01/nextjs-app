@@ -1,6 +1,6 @@
-import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
-import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
-import { createAndAddEvent } from './util';
+import { GameEventHandlers } from '../../../../hooks/euchre/useEventLog';
+import { EuchreGameState } from '../../definitions/game-state-definitions';
+import { createAndAddEvent } from '../util';
 
 const EVENT_TYPE = '[DECK STATE]';
 

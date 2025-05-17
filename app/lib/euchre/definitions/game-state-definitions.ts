@@ -1,4 +1,4 @@
-import { ActionDispatch, Dispatch, SetStateAction } from 'react';
+import { ActionDispatch, Dispatch, RefObject, SetStateAction } from 'react';
 import {
   EuchreAnimationAction,
   EuchreAnimationActionType,
@@ -28,6 +28,8 @@ import { EuchrePauseActionType, EuchrePauseState } from '../../../hooks/euchre/r
 import { InitDealResult } from './logic-definitions';
 import { CardSpringTarget } from './transform-definitions';
 import { AnimationControls } from 'framer-motion';
+import { HtmlContext } from 'next/dist/server/route-modules/pages/vendored/contexts/entrypoints';
+import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 
 export interface EuchreGameInstance {
   gameId: string;
@@ -247,6 +249,40 @@ export interface PlayerHandState {
   stateEffect?: EuchreGameFlow;
 }
 
+export interface CardAnimationStateContext {
+  cardStates: CardBaseState[];
+  animationStates: CardAnimationState[];
+  animationControls: CardAnimationControls[];
+}
+
+export interface AnimationElementsContext {
+  sourceElement: HTMLElement;
+  destinationElement: HTMLElement;
+  relativeElement?: HTMLElement;
+  currentSourceSpring?: CardSpringTarget;
+}
+
+export interface GamePlayContext {
+  state: EuchreGameState;
+  eventHandlers: GameEventHandlers;
+  errorHandlers: ErrorHandlers;
+  animationHandlers: EuchreAnimationHandlers;
+}
+
+export interface DeckState {
+  deck: Card[];
+  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  initSpringValue?: CardSpringTarget;
+
+  /** Dealer location */
+  location: TableLocation;
+  playerNumber: number;
+  handId: string;
+  gameId: string;
+  width: number;
+  height: number;
+}
+
 export interface CardIndex {
   cardIndex: number;
 }
@@ -270,4 +306,48 @@ export interface CardAnimationControls extends CardIndex {
   initSpringValue?: CardSpringTarget;
   animateValues: CardSpringTarget[];
   controls: AnimationControls | undefined;
+}
+
+export const DeckStatePhases = {
+  INIT: 'Init',
+  DEAL_FOR_DEALER: 'DealForDealer',
+  REGULAR_DEAL: 'RegularDeal'
+} as const;
+
+export type DeckStatePhase = (typeof DeckStatePhases)[keyof typeof DeckStatePhases];
+
+export const DeckStateActions = {
+  CREATE: 'Create',
+  REINITIALIZE: 'Reinitialize',
+  RESET: 'Reset',
+  MOVE: 'Move',
+  START_ANIMATE_BEGIN: 'StartAnimateBegin',
+  END_ANIMATE_BEGIN: 'EndAnimateBegin',
+  START_ANIMATE_END: 'StartAnimateEnd'
+} as const;
+
+export type DeckStateAction = (typeof DeckStateActions)[keyof typeof DeckStateActions];
+
+export interface StateEffectInfo {
+  func?: () => Promise<void>;
+  stateAction?: DeckStateAction;
+  statePhase?: DeckStatePhase;
+}
+
+export interface InitDealHandlers {
+  onDealerChanged: () => Promise<void>;
+  onStateCreating: () => Promise<void>;
+}
+
+export interface DealForDealerHandlers {
+  onMoveCardsIntoPosition: () => Promise<void>;
+  onStartDealCards: () => Promise<void>;
+  onEndDealCards: () => Promise<void>;
+  onMoveCardsToPlayer: () => Promise<void>;
+}
+
+export interface RegularDealHandlers {
+  onMoveCardsIntoPosition: () => Promise<void>;
+  onStartDealCards: () => Promise<void>;
+  onEndDealCards: () => Promise<void>;
 }

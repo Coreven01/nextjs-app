@@ -3,28 +3,23 @@ import GameTable from './game-table';
 import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import PlayerArea from '../player/player-area';
 import clsx from 'clsx';
-import {
-  EuchreAnimationHandlers,
-  EuchreGameValues,
-  ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
+import { GamePlayContext } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card } from '../../../lib/euchre/definitions/definitions';
 import useTableRefs from '../../../hooks/euchre/useTableRefs';
 import PlayerCardArea from '../player/player-card-area';
 import { useRef } from 'react';
-import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 import { logConsole } from '../../../lib/euchre/util/util';
+import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  state: EuchreGameValues;
-  eventHandlers: GameEventHandlers;
-  errorHandlers: ErrorHandlers;
+  gameContext: GamePlayContext;
   isFullScreen: boolean;
   showEvents: boolean;
   showSettings: boolean;
   showScore: boolean;
   playerNotification: PlayerNotificationState;
   playedCard: Card | null;
+  initDealer: InitDealResult | null;
 
   /** Toggle back and forth between fullscreen and main layout. */
   onToggleFullscreen: (value: boolean) => void;
@@ -38,29 +33,27 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 
   /** Player canceled game play. */
   onCancel: () => void;
-
-  animationHandlers: EuchreAnimationHandlers;
 }
 
 const GameArea = ({
-  state,
-  eventHandlers,
-  errorHandlers,
+  gameContext,
   isFullScreen,
   showEvents,
   showSettings,
   showScore,
   playerNotification,
   playedCard,
+  initDealer,
   className,
   onToggleFullscreen,
   onToggleEvents,
   onSettingsToggle,
   onScoreToggle,
   onCancel,
-  animationHandlers,
   ...rest
 }: Props) => {
+  const { state, eventHandlers, errorHandlers, animationHandlers } = gameContext;
+
   /** Elements associated with the player's center. Used when playing a card to the center of the table. */
   const centerTableRefs = useTableRefs();
   const directCenterHRef = useRef<HTMLDivElement>(null);
@@ -116,15 +109,13 @@ const GameArea = ({
       <PlayerCardArea
         id="player-card-area"
         key={state.euchreGame.gameId}
-        state={state}
-        eventHandlers={eventHandlers}
-        errorHandlers={errorHandlers}
+        gameContext={gameContext}
         playedCard={playedCard}
+        initDealResult={initDealer}
         playerCenterTableRefs={centerTableRefs}
         playerOuterTableRefs={outerTableRefs}
         directCenterHRef={directCenterHRef}
         directCenterVRef={directCenterVRef}
-        animationHandlers={animationHandlers}
         className="relative col-start-1 row-start-1 col-span-3 row-span-3 overflow-hidden"
       />
     </div>

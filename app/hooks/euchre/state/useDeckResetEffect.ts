@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ErrorHandlers, EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
-import { GameDeckState } from './useDeckAnimation';
+import { DeckState } from '../effects/deal/useDeckAnimation';
 
 /** Effect to handle reseting the deck state after the game deck changed for a new deal. */
 const useDeckResetEffect = (
   state: EuchreGameState,
   errorHandlers: ErrorHandlers,
-  gameDeckState: GameDeckState | undefined,
+  gameDeckState: DeckState | undefined,
   onDeckReset: () => void
 ) => {
   const { euchreGame, euchreSettings, euchreGameFlow } = state;

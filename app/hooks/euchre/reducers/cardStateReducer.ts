@@ -1,8 +1,4 @@
-import { AnimationControls } from 'framer-motion';
-import { TableLocation } from '../../../lib/euchre/definitions/definitions';
-import { EuchrePlayer, PlayerHandState } from '../../../lib/euchre/definitions/game-state-definitions';
-import { CardSpringTarget } from '../../../lib/euchre/definitions/transform-definitions';
-import { EuchreGameFlow } from './gameFlowReducer';
+import { PlayerHandState } from '../../../lib/euchre/definitions/game-state-definitions';
 
 export interface PlayCardStateActionAction {
   type: PlayCardStateActionType;

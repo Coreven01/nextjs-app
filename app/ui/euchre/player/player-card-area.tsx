@@ -1,47 +1,37 @@
 import clsx from 'clsx';
 import React, { RefObject, useCallback, useEffect, useRef } from 'react';
-import {
-  EuchreAnimationHandlers,
-  EuchreGameValues,
-  EuchrePlayer,
-  ErrorHandlers,
-  EuchreTrick
-} from '../../../lib/euchre/definitions/game-state-definitions';
+import { EuchrePlayer, GamePlayContext } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import useDeckAnimation from '../../../hooks/euchre/state/useDeckAnimation';
+import useDeckAnimation from '../../../hooks/euchre/effects/deal/useDeckAnimation';
 import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
 import PlayerHand from './player-hand';
-import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 import { getPlayerGridLayoutInfo, playerEqual } from '../../../lib/euchre/util/playerDataUtil';
 import { playerSittingOut } from '../../../lib/euchre/util/gameDataUtil';
 import { logConsole } from '../../../lib/euchre/util/util';
 import { getCardClassForPlayerLocation } from '../../../lib/euchre/util/cardDataUtil';
+import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
-  state: EuchreGameValues;
-  eventHandlers: GameEventHandlers;
-  errorHandlers: ErrorHandlers;
+  gameContext: GamePlayContext;
   playedCard: Card | null;
+  initDealResult: InitDealResult | null;
   playerCenterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   playerOuterTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   directCenterHRef: RefObject<HTMLDivElement | null>;
   directCenterVRef: RefObject<HTMLDivElement | null>;
-  animationHandlers: EuchreAnimationHandlers;
   className: string;
 }
 
 /** Area for card animation for dealing and player's cards. */
 const PlayerCardArea = ({
-  state,
-  eventHandlers,
-  errorHandlers,
+  gameContext,
   playedCard,
+  initDealResult,
   playerCenterTableRefs,
   playerOuterTableRefs,
   directCenterHRef,
   directCenterVRef,
-  animationHandlers,
   className,
   ...rest
 }: DivProps) => {
@@ -53,22 +43,15 @@ const PlayerCardArea = ({
     playerDeckRefs,
     playerInnerDeckRefs,
     deckCardRefs,
-    gameDeckState,
+    deckState,
     deckAnimationControls,
-    deckCardStates,
-    deckCardsAnimationControls
-  } = useDeckAnimation(
-    state,
-    eventHandlers,
-    errorHandlers,
-    playerOuterTableRefs,
-    directCenterHRef,
-    directCenterVRef,
-    animationHandlers
-  );
+    cardStates,
+    animationControls
+  } = useDeckAnimation(gameContext, initDealResult, playerOuterTableRefs, directCenterHRef, directCenterVRef);
+  const { euchreGame, euchreSettings } = gameContext.state;
+  const currentHandId = useRef(euchreGame.handId);
   const playerLayoutForGrid = getPlayerGridLayoutInfo();
-  const sittingOutPlayer: EuchrePlayer | null = playerSittingOut(state.euchreGame);
-  const currentHandId = useRef(state.euchreGame.handId);
+  const sittingOutPlayer: EuchrePlayer | null = playerSittingOut(euchreGame);
 
   const cardCountDuringPlay: number = sittingOutPlayer ? 3 : 4;
   const playersInitDealFinished = useRef<Set<number>>(new Set<number>());
@@ -81,59 +64,56 @@ const PlayerCardArea = ({
   const tricksFinished = useRef<Set<string>>(new Set<string>());
 
   useEffect(() => {
-    if (currentHandId.current !== state.euchreGame.handId) {
+    if (currentHandId.current !== euchreGame.handId) {
       playersInitDealFinished.current.clear();
       cardsPassedDeal.current.clear();
     }
-  }, [state.euchreGame.handId]);
+  }, [euchreGame.handId]);
 
   const handleDealAnimationComplete = (playerNumber: number) => {
     logConsole('*** [PLAYERCARDAREA] [handleDealAnimationComplete]');
-    if (playersInitDealFinished.current.values().toArray().length === 4) return;
+    // if (playersInitDealFinished.current.values().toArray().length === 4) return;
 
-    playersInitDealFinished.current.add(playerNumber);
+    // playersInitDealFinished.current.add(playerNumber);
 
-    if (playersInitDealFinished.current.values().toArray().length === 4) {
-      animationHandlers.onEndRegularDealComplete();
-    }
+    // if (playersInitDealFinished.current.values().toArray().length === 4) {
+    //   animationHandlers.onEndRegularDealComplete();
+    // }
   };
 
   const handlePassDealAnimationComplete = (card: Card) => {
     logConsole('*** [PLAYERCARDAREA] [handlePassDealAnimationComplete]');
-    if (cardsPassedDeal.current.values().toArray().length === 20) return;
+    // if (cardsPassedDeal.current.values().toArray().length === 20) return;
 
-    cardsPassedDeal.current.add(`${card.value}${card.suit}`);
+    // cardsPassedDeal.current.add(`${card.value}${card.suit}`);
 
-    if (cardsPassedDeal.current.values().toArray().length === 20) {
-      animationHandlers.onPassDealComplete();
-    }
+    // if (cardsPassedDeal.current.values().toArray().length === 20) {
+    //   animationHandlers.onPassDealComplete();
+    // }
   };
 
   const handleCardPlayed = (card: Card) => {
-    animationHandlers.onCardPlayed(card);
+    // animationHandlers.onCardPlayed(card);
   };
 
-  const handleTrickFinished = useCallback(
-    (card: Card) => {
-      logConsole('*** [PLAYERCARDAREA] [handleTrickFinished]');
+  const handleTrickFinished = useCallback((card: Card) => {
+    logConsole('*** [PLAYERCARDAREA] [handleTrickFinished]');
 
-      const trick: EuchreTrick | undefined = state.euchreGame.currentTrick;
-      const trickFinished = tricksFinished.current.has(trick.trickId);
+    // const trick: EuchreTrick | undefined = state.euchreGame.currentTrick;
+    // const trickFinished = tricksFinished.current.has(trick.trickId);
 
-      if (trickFinished) return;
+    // if (trickFinished) return;
 
-      const cardVals = cardsPlayedForTrick.current.get(trick.trickId) ?? new Set<string>();
+    // const cardVals = cardsPlayedForTrick.current.get(trick.trickId) ?? new Set<string>();
 
-      cardVals.add(`${card.value}-${card.suit}`);
-      cardsPlayedForTrick.current.set(trick.trickId, cardVals);
+    // cardVals.add(`${card.value}-${card.suit}`);
+    // cardsPlayedForTrick.current.set(trick.trickId, cardVals);
 
-      if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
-        tricksFinished.current.add(trick.trickId);
-        animationHandlers.onTrickFinished();
-      }
-    },
-    [animationHandlers, cardCountDuringPlay, state.euchreGame.currentTrick]
-  );
+    // if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
+    //   tricksFinished.current.add(trick.trickId);
+    //   animationHandlers.onTrickFinished();
+    // }
+  }, []);
 
   logConsole(
     '*** [PLAYERCARDAREA] [RENDER]',
@@ -146,7 +126,7 @@ const PlayerCardArea = ({
   return (
     <GameGrid className={className} {...rest}>
       {playerLayoutForGrid.map((info, index) => {
-        const player = state.euchreGame.gamePlayers.find((p) => p.location === info.location);
+        const player = euchreGame.gamePlayers.find((p) => p.location === info.location);
 
         if (!player) {
           return (
@@ -159,8 +139,8 @@ const PlayerCardArea = ({
         const deckRef = playerDeckRefs.get(player.location);
         const innerDeckRef = playerInnerDeckRefs.get(player.location);
         const centerTableRef = playerCenterTableRefs.get(player.location);
-        const gameCard = playerEqual(player, state.euchreGame.currentPlayer) ? playedCard : null;
-        const hidePosition = { invisible: !state.euchreSettings.debugShowPositionElements };
+        const gameCard = playerEqual(player, euchreGame.currentPlayer) ? playedCard : null;
+        const hidePosition = { invisible: !euchreSettings.debugShowPositionElements };
 
         return (
           <div
@@ -171,9 +151,7 @@ const PlayerCardArea = ({
             {!centerTableRef && <div>Invalid center table ref for player card area.</div>}
             {gameHandVisible && centerTableRef && (
               <PlayerHand
-                state={state}
-                eventHandlers={eventHandlers}
-                errorHandlers={errorHandlers}
+                gameContext={gameContext}
                 player={player}
                 playedCard={gameCard}
                 playerCenterTableRef={centerTableRef}
@@ -203,21 +181,21 @@ const PlayerCardArea = ({
           </div>
         );
       })}
-      {gameDeckState && gameDeckVisible && (
+      {deckState && gameDeckVisible && (
         <GameDeck
           ref={gameDeckRef}
-          deck={gameDeckState.deck}
+          deck={deckState.deck}
           deckCardRefs={deckCardRefs}
-          location={gameDeckState.location}
-          playerNumber={gameDeckState.playerNumber}
-          cardStates={deckCardStates}
-          animationControls={deckCardsAnimationControls}
-          initDeckState={gameDeckState.initSpringValue}
+          location={deckState.location}
+          playerNumber={deckState.playerNumber}
+          cardStates={cardStates}
+          animationControls={animationControls}
+          initDeckState={deckState.initSpringValue}
           controls={deckAnimationControls}
-          width={gameDeckState.width}
-          height={gameDeckState.height}
-          handId={gameDeckState.handId}
-          showPosition={state.euchreSettings.debugShowPositionElements}
+          width={deckState.width}
+          height={deckState.height}
+          handId={deckState.handId}
+          showPosition={euchreSettings.debugShowPositionElements}
           onFirstRender={handleRefChange}
         />
       )}
