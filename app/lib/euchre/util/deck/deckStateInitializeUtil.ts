@@ -3,7 +3,7 @@ import {
   DeckStateActions,
   DeckStatePhases,
   InitDealHandlers,
-  StateEffectInfo
+  DealStateEffect
 } from '../../definitions/game-state-definitions';
 
 const getEffectForInitDeckState = (
@@ -25,8 +25,8 @@ const getEffectForInitDeckState = (
   };
 
   const handleStateCreating = async () => {
-    await initDealHandler.onStateCreating();
     addPhaseExecuted({ phase: DeckStatePhases.INIT, action: DeckStateActions.CREATE });
+    await initDealHandler.onStateCreating();
     // isDealStateInitializedRef.current = true;
     // initMoveCardsIntoPosition.current = false;
   };
@@ -45,9 +45,9 @@ const getEffectForInitDeckState = (
 
   //#endregion
 
-  const getEffectForDeckPhase = (): StateEffectInfo => {
+  const getEffectForDeckPhase = (): DealStateEffect => {
     const phase = getDeckPhase();
-    const retval: StateEffectInfo = { statePhase: DeckStatePhases.INIT };
+    const retval: DealStateEffect = { statePhase: DeckStatePhases.INIT };
 
     if (!phase || phase.phase !== DeckStatePhases.INIT) return retval;
 

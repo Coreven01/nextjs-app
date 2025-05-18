@@ -1,20 +1,12 @@
-import { RefObject, useEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
-import useCardState from '../../../hooks/euchre/state/useCardState';
-import {
-  ErrorHandlers,
-  EuchreGameState,
-  EuchrePlayer,
-  GamePlayContext
-} from '../../../lib/euchre/definitions/game-state-definitions';
+import { EuchrePlayer, GamePlayContext } from '../../../lib/euchre/definitions/game-state-definitions';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 import { getCardClassForPlayerLocation } from '../../../lib/euchre/util/cardDataUtil';
 import { logConsole, logError } from '../../../lib/euchre/util/util';
 import { incrementSpeed } from '../../../lib/euchre/util/gameDataUtil';
-import useCardAnimation from '../../../hooks/euchre/state/useCardAnimation';
-import { animationControls } from 'framer-motion';
+import useCardAnimation from '../../../hooks/euchre/effects/play/useCardAnimation';
 
 type Props = {
   gameContext: GamePlayContext;
@@ -50,7 +42,6 @@ const PlayerHand = ({
 
   const {
     playerCardsVisible,
-    initCardStateCreated,
     cardRefs,
     handState,
     cardStates,
@@ -170,7 +161,6 @@ const PlayerHand = ({
 
           return cardState && cardRef ? (
             <GameCard
-              renderKey={cardState.renderKey}
               key={keyval}
               className={clsx('absolute', getCardClassForPlayerLocation(player.location))}
               location={location}

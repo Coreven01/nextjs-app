@@ -10,12 +10,11 @@ import {
   getSpringsToMoveToPlayer,
   getTransitionForCardDeal,
   getTransitionForCardMoved
-} from '../cardTransformUtil';
+} from '../play/cardTransformUtil';
 import { Card, GameSpeed, TableLocation } from '../../definitions/definitions';
 import { v4 as uuidv4 } from 'uuid';
 import { CardSpringProps } from '../../definitions/transform-definitions';
 import {
-  AnimationElementsContext,
   CardAnimationControls,
   CardAnimationState,
   CardAnimationStateContext,
@@ -39,6 +38,7 @@ const getCardStatesMoveToPlayer = (
   const { cardStates, animationControls, animationStates } = animationContext;
   const newCardStates = [...cardStates];
   const springsToMove: CardSpringProps[] = [];
+  const maxDelay = getDurationSeconds(gameSpeed) / 4;
 
   for (const cardState of newCardStates) {
     if (cardState.location) {
@@ -59,8 +59,13 @@ const getCardStatesMoveToPlayer = (
 
         spring.x += offsets.x;
         spring.y += offsets.y;
+        spring.rotate = (lastSpring?.rotate ?? 0) + (135 - Math.round(Math.random() * 270));
 
-        spring.transition = getTransitionForCardMoved(animationState, gameSpeed);
+        spring.transition = getTransitionForCardMoved(
+          animationState,
+          gameSpeed,
+          0.1 + Math.random() * maxDelay
+        );
         cardState.renderKey = uuidv4();
 
         springsToMove.push({
@@ -165,8 +170,7 @@ const getStatesAnimateDealForDealer = (
 
 /** */
 const getCardsStatesRegularDeal = (
-  cardStates: CardBaseState[],
-  animationStates: CardAnimationState[],
+  state: CardAnimationStateContext,
   game: EuchreGameInstance,
   gameSpeed: GameSpeed,
   directCenterH: HTMLElement,
@@ -177,7 +181,7 @@ const getCardsStatesRegularDeal = (
   const rotation: EuchrePlayer[] = getPlayerRotation(game.gamePlayers, game.dealer);
   const duration: number = getDurationSeconds(gameSpeed);
   const delayBetweenDeal: number = duration / 6;
-  const newStates = [...cardStates];
+  const newStates = [...state.cardStates];
   const springsForDeal: CardSpringProps[] = getSpringsForDealForRegularPlay(
     outerTableRefs,
     deckCardRefs,
@@ -191,13 +195,13 @@ const getCardsStatesRegularDeal = (
   );
 
   for (const cardState of newStates) {
-    const spring = springsForDeal.at(cardState.cardIndex);
+    const spring = springsForDeal.find((s) => s.cardIndex === cardState.cardIndex);
     const card = game.deck.at(cardState.cardIndex);
     const cardIsTrump = cardState.cardIndex === game.trump.index;
-    const animationState = animationStates.at(cardState.cardIndex);
+    const animationState = state.animationStates.find((s) => s.cardIndex === cardState.cardIndex);
 
     if (spring && card && animationState) {
-      spring.animateValues[0].transition = getTransitionForCardMoved(
+      spring.animateValues[0].transition = getTransitionForCardDeal(
         animationState,
         gameSpeed,
         delayBetweenDeal * cardState.cardIndex

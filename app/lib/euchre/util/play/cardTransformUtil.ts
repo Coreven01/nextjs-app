@@ -4,8 +4,8 @@ import {
   CardSpringTarget,
   DEFAULT_SPRING_VAL,
   INIT_Z_INDEX
-} from '../definitions/transform-definitions';
-import { Card, GameSpeed, TableLocation } from '../definitions/definitions';
+} from '../../definitions/transform-definitions';
+import { Card, GameSpeed, TableLocation } from '../../definitions/definitions';
 import { RefObject } from 'react';
 import {
   AnimationElementsContext,
@@ -14,9 +14,9 @@ import {
   CardAnimationStateContext,
   CardBaseState,
   EuchrePlayer
-} from '../definitions/game-state-definitions';
-import { InitDealResult } from '../definitions/logic-definitions';
-import { logConsole } from './util';
+} from '../../definitions/game-state-definitions';
+import { InitDealResult } from '../../definitions/logic-definitions';
+import { logConsole } from '../util';
 
 const CARD_HEIGHT_OFFSET = 10;
 const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.
@@ -443,11 +443,11 @@ const getTransitionForCardDeal = (
 const getTransitionForCardMoved = (
   animationState: CardAnimationState,
   duration: GameSpeed,
-  initDelay?: number
+  initDelaySeconds?: number
 ): Transition => {
   const percentDurationForRotate = 0.7;
   const durationSec = getDurationSeconds(duration);
-  const delay = initDelay ?? 0;
+  const delay = initDelaySeconds ?? 0;
 
   return {
     opacity: { duration: 0 },
@@ -1079,38 +1079,41 @@ const getSpringsForBeginNewHand = (
   currentProps: CardSpringProps[]
 ) => {
   const retval: CardSpringProps[] = [];
+  const duration = getDurationSeconds(gameSpeed);
   const centerLocation: boolean = location === 'top' || location === 'bottom';
-  const initSpringValue: CardSpringTarget | undefined = {
+
+  const regroupSprings: CardSpringProps[] = getSpringsGroupHand(location, calculatedWidth, currentProps);
+  const moveIntoView: CardSpringTarget | undefined = {
     ...DEFAULT_SPRING_VAL,
     rotateY: centerLocation ? 180 : 0,
     rotateX: centerLocation ? 0 : 180
-    //transition: getTransitionForCardMoved()
   };
-  const moveIntoView = initSpringValue;
-  const regroupValues: CardSpringProps[] = getSpringsGroupHand(location, calculatedWidth, currentProps);
 
   for (const card of cards) {
     const cardElement = cardElements[card.index];
-    const regroupValue = regroupValues.find((v) => v.cardIndex === card.index)?.animateValues ?? [];
-    const initMoveToPosition = getSpringMoveElement(
-      { sourceElement: cardElement, destinationElement, relativeElement, currentSourceSpring: undefined },
+    const regroupSpring = regroupSprings.find((v) => v.cardIndex === card.index)?.animateValues ?? [];
+
+    // Move to a position just off-screen relative to the player's area.
+    const initialMoveOffScreen = getSpringMoveElement(
+      { sourceElement: cardElement, destinationElement, relativeElement },
       true,
       'out'
     );
 
-    initMoveToPosition.transition = { duration: 0 };
-    moveIntoView.transition = { duration: 5 };
-    regroupValue.forEach((v) => (v.transition = { duration: 5 }));
+    initialMoveOffScreen.opacity = 0;
+    initialMoveOffScreen.transition = { duration: 0.01 };
+    moveIntoView.transition = { duration: duration };
+    regroupSpring.forEach((v) => (v.transition = { duration: duration }));
 
-    logConsole('regroup value: ', regroupValue);
-    const initPosition: CardSpringProps = {
+    logConsole('[BEGIN HAND MOVE] new hand initial moves : ', initialMoveOffScreen, moveIntoView);
+    const moveSpringsForNewDeal: CardSpringProps = {
       ordinalIndex: card.index,
       cardIndex: card.index,
       initialValue: undefined,
-      animateValues: [initMoveToPosition, moveIntoView, ...regroupValue]
+      animateValues: [initialMoveOffScreen, moveIntoView] //, ...regroupValue]
     };
 
-    retval.push(initPosition);
+    retval.push(moveSpringsForNewDeal);
   }
 
   return retval;

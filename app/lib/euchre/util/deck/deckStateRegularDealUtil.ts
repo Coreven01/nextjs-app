@@ -3,7 +3,7 @@ import {
   DeckStateActions,
   DeckStatePhases,
   RegularDealHandlers,
-  StateEffectInfo
+  DealStateEffect
 } from '../../definitions/game-state-definitions';
 
 const getEffectForRegularDeal = (
@@ -48,9 +48,9 @@ const getEffectForRegularDeal = (
     onEndDealCards: handleEndDealCards
   };
 
-  const getEffectForDeckPhase = (): StateEffectInfo => {
+  const getEffectForDeckPhase = (): DealStateEffect => {
     const phase = getDeckPhase();
-    const retval: StateEffectInfo = { statePhase: DeckStatePhases.REGULAR_DEAL };
+    const retval: DealStateEffect = { statePhase: DeckStatePhases.REGULAR_DEAL };
 
     if (!phase || phase.phase !== DeckStatePhases.REGULAR_DEAL) return retval;
 

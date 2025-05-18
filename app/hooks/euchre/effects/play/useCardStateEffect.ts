@@ -1,140 +1,166 @@
-import { useRef, useState } from 'react';
 import {
   EuchreGameState,
-  PlayerHandState,
-  StateEffectInfo
+  HandState,
+  InitHandHandlers,
+  HandStateEffect
 } from '../../../../lib/euchre/definitions/game-state-definitions';
-import useAnimationCardState from '../../phases/useAnimationCardState';
-
-export interface InitCardsHandlers {
-  onResetHandState: () => Promise<void>;
-  onCreateHandState: () => Promise<void>;
-  onCreateCardState: () => Promise<void>;
-  onRegroupCards: () => Promise<void>;
-  onAnimateRegroupCards: () => Promise<void>;
-}
-
-interface InitCardsConditions {
-  shouldResetHandState: boolean;
-  shouldCreateHandState: boolean;
-  shouldCreateCardState: boolean;
-  shouldRegroupCards: boolean;
-  shouldAnimateRegroupCards: boolean;
-}
+import useCardAnimationPhase from '../../phases/useCardAnimationPhase';
+import getEffectForInitHandState from '../../../../lib/euchre/util/play/cardStateInitializeUtil';
 
 const useCardStateEffect = (
   state: EuchreGameState,
-  handState: PlayerHandState | undefined,
+  handState: HandState | undefined,
   cardRefsReady: boolean,
-  initHandler: InitCardsHandlers
+  initHandler: InitHandHandlers
 ) => {
-  const { shouldCreateHandState, shouldCreateCardState } = useAnimationCardState(state);
-  const { euchreGame } = state;
+  const { getHandPhase, resetForNewHand, addPhaseExecuted, addPhaseCompleted } = useCardAnimationPhase(
+    state,
+    handState,
+    cardRefsReady
+  );
 
-  const initForNewHandEffect = useRef(false);
-  const [initCardStateCreated, setInitCardStateCreated] = useState(false);
-  const [initForCardsRegroup, setInitForCardsRegroup] = useState(false);
-  const initAnimateCardsRegroup = useRef(false);
+  // const { shouldCreateHandState, shouldCreateCardState } = useAnimationCardState(state);
+  // const { euchreGame } = state;
 
-  //#region  Deck State Conditions for Effects
-  const getInitCardsConditions = (): InitCardsConditions => {
-    return {
-      shouldResetHandState: handState !== undefined && handState.handId !== euchreGame.handId,
-      shouldCreateHandState: shouldCreateHandState && !initForNewHandEffect.current,
-      shouldCreateCardState: shouldCreateCardState && handState !== undefined && !initCardStateCreated,
-      shouldRegroupCards: initCardStateCreated && !initForCardsRegroup,
-      shouldAnimateRegroupCards: cardRefsReady && initForCardsRegroup && !initAnimateCardsRegroup.current
-    };
-  };
-  //#endregion
+  // const initForNewHandEffect = useRef(false);
+  // const [initCardStateCreated, setInitCardStateCreated] = useState(false);
+  // const [initForCardsRegroup, setInitForCardsRegroup] = useState(false);
+  // const initAnimateCardsRegroup = useRef(false);
 
-  //#region  Handlers for Card State Conditions
+  // //#region  Deck State Conditions for Effects
+  // const getInitCardsConditions = (): InitCardsConditions => {
+  //   return {
+  //     shouldResetHandState: handState !== undefined && handState.handId !== euchreGame.handId,
+  //     shouldCreateHandState: shouldCreateHandState && !initForNewHandEffect.current,
+  //     shouldCreateCardState: shouldCreateCardState && handState !== undefined && !initCardStateCreated,
+  //     shouldRegroupCards: initCardStateCreated && !initForCardsRegroup,
+  //     shouldAnimateRegroupCards: cardRefsReady && initForCardsRegroup && !initAnimateCardsRegroup.current
+  //   };
+  // };
+  // //#endregion
 
-  //#region Initialize Card State Handlers
+  // //#region  Handlers for Card State Conditions
 
-  const handleResetHandState = async () => {
-    initForNewHandEffect.current = false;
-    setInitCardStateCreated(false);
-    setInitForCardsRegroup(false);
-    await initHandler.onResetHandState();
-  };
+  // //#region Initialize Card State Handlers
 
-  const handleCreateHandState = async () => {
-    initForNewHandEffect.current = true;
-    await initHandler.onCreateHandState();
-  };
+  // const handleResetHandState = async () => {
+  //   initForNewHandEffect.current = false;
+  //   setInitCardStateCreated(false);
+  //   setInitForCardsRegroup(false);
+  //   await initHandler.onResetHandState();
+  // };
 
-  const handleCreateCardState = async () => {
-    await initHandler.onCreateCardState();
-    setInitCardStateCreated(true);
-  };
+  // const handleCreateHandState = async () => {
+  //   initForNewHandEffect.current = true;
+  //   await initHandler.onCreateHandState();
+  // };
 
-  const handleRegroupCards = async () => {
-    setInitForCardsRegroup(true);
-    await initHandler.onRegroupCards();
-  };
+  // const handleCreateCardState = async () => {
+  //   await initHandler.onCreateCardState();
+  //   setInitCardStateCreated(true);
+  // };
 
-  const handleAnimateRegroupCards = async () => {
-    initAnimateCardsRegroup.current = true;
-    await initHandler.onAnimateRegroupCards();
-  };
+  // const handleRegroupCards = async () => {
+  //   setInitForCardsRegroup(true);
+  //   await initHandler.onRegroupCards();
+  // };
 
-  const localInitCardsHandlers: InitCardsHandlers = {
-    onResetHandState: handleResetHandState,
-    onCreateHandState: handleCreateHandState,
-    onCreateCardState: handleCreateCardState,
-    onRegroupCards: handleRegroupCards,
-    onAnimateRegroupCards: handleAnimateRegroupCards
-  };
+  // const handleAnimateRegroupCards = async () => {
+  //   initAnimateCardsRegroup.current = true;
+  //   await initHandler.onAnimateRegroupCards();
+  // };
 
-  const getEffectForInit = (): StateEffectInfo => {
-    //const intCardConditions = getInitCardsConditions();
-    //const retval: StateEffectInfo = { statePhase: 'InitDeck' };
-    // if (intCardConditions.shouldResetHandState) {
-    //   retval.func = localInitCardsHandlers.onResetHandState;
-    //   retval.stateConditionName = 'shouldResetHandState';
-    //   retval.stateHandlerName = 'onResetHandState';
-    // } else if (intCardConditions.shouldCreateHandState) {
-    //   retval.func = localInitCardsHandlers.onCreateHandState;
-    //   retval.stateConditionName = 'shouldCreateHandState';
-    //   retval.stateHandlerName = 'onCreateHandState';
-    // } else if (intCardConditions.shouldCreateCardState) {
-    //   retval.func = localInitCardsHandlers.onCreateCardState;
-    //   retval.stateConditionName = 'shouldCreateCardState';
-    //   retval.stateHandlerName = 'onCreateCardState';
-    // } else if (intCardConditions.shouldRegroupCards) {
-    //   retval.func = localInitCardsHandlers.onRegroupCards;
-    //   retval.stateConditionName = 'shouldRegroupCards';
-    //   retval.stateHandlerName = 'onRegroupCards';
-    // } else if (intCardConditions.shouldAnimateRegroupCards) {
-    //   retval.func = localInitCardsHandlers.onAnimateRegroupCards;
-    //   retval.stateConditionName = 'shouldAnimateRegroupCards';
-    //   retval.stateHandlerName = 'onAnimateRegroupCards';
-    // }
-    //return retval;
-  };
-  //#endregion
+  // const localInitCardsHandlers: InitHandHandlers = {
+  //   onResetHandState: handleResetHandState,
+  //   onCreateHandState: handleCreateHandState,
+  //   onCreateCardState: handleCreateCardState,
+  //   onRegroupCards: handleRegroupCards,
+  //   onAnimateRegroupCards: handleAnimateRegroupCards
+  // };
 
-  //#endregion
+  // const getEffectForInit = (): DealStateEffect => {
+  //   //const intCardConditions = getInitCardsConditions();
+  //   //const retval: StateEffectInfo = { statePhase: 'InitDeck' };
+  //   // if (intCardConditions.shouldResetHandState) {
+  //   //   retval.func = localInitCardsHandlers.onResetHandState;
+  //   //   retval.stateConditionName = 'shouldResetHandState';
+  //   //   retval.stateHandlerName = 'onResetHandState';
+  //   // } else if (intCardConditions.shouldCreateHandState) {
+  //   //   retval.func = localInitCardsHandlers.onCreateHandState;
+  //   //   retval.stateConditionName = 'shouldCreateHandState';
+  //   //   retval.stateHandlerName = 'onCreateHandState';
+  //   // } else if (intCardConditions.shouldCreateCardState) {
+  //   //   retval.func = localInitCardsHandlers.onCreateCardState;
+  //   //   retval.stateConditionName = 'shouldCreateCardState';
+  //   //   retval.stateHandlerName = 'onCreateCardState';
+  //   // } else if (intCardConditions.shouldRegroupCards) {
+  //   //   retval.func = localInitCardsHandlers.onRegroupCards;
+  //   //   retval.stateConditionName = 'shouldRegroupCards';
+  //   //   retval.stateHandlerName = 'onRegroupCards';
+  //   // } else if (intCardConditions.shouldAnimateRegroupCards) {
+  //   //   retval.func = localInitCardsHandlers.onAnimateRegroupCards;
+  //   //   retval.stateConditionName = 'shouldAnimateRegroupCards';
+  //   //   retval.stateHandlerName = 'onAnimateRegroupCards';
+  //   // }
+  //   //return retval;
+  // };
+  // //#endregion
+
+  // //#endregion
+
+  // /** Get the function that should be executed for the effect for the current deck state. */
+  // const getEffectForCardState = (): DealStateEffect => {
+  //   const intiEffectResult = getEffectForInit();
+
+  //   if (intiEffectResult.func) return intiEffectResult;
+
+  //   // const dealForDealerResult = getEffectDealForDealer();
+
+  //   // if (dealForDealerResult.func) return dealForDealerResult;
+
+  //   // const regularDealResult = getEffectRegularDeal();
+
+  //   // if (regularDealResult.func) return regularDealResult;
+
+  //   return {};
+  // };
+
+  // return { initCardStateCreated, getEffectForCardState };
 
   /** Get the function that should be executed for the effect for the current deck state. */
-  const getEffectForCardState = (): StateEffectInfo => {
-    const intiEffectResult = getEffectForInit();
+  const getEffectForHandState = (): HandStateEffect => {
+    const initEffect = getEffectForInitHandState(
+      getHandPhase,
+      resetForNewHand,
+      addPhaseExecuted,
+      addPhaseCompleted,
+      initHandler
+    );
 
-    if (intiEffectResult.func) return intiEffectResult;
+    if (initEffect.func) return initEffect;
 
-    // const dealForDealerResult = getEffectDealForDealer();
+    // const dealForDealerEffect = getEffectForDealForDealer(
+    //   getDeckPhase,
+    //   addPhaseExecuted,
+    //   addPhaseCompleted,
+    //   dealForDealerHandlers
+    // );
 
-    // if (dealForDealerResult.func) return dealForDealerResult;
+    // if (dealForDealerEffect.func) return dealForDealerEffect;
 
-    // const regularDealResult = getEffectRegularDeal();
+    // const regularDealEffect = getEffectForRegularDeal(
+    //   getDeckPhase,
+    //   addPhaseExecuted,
+    //   addPhaseCompleted,
+    //   regularDealHandlers
+    // );
 
-    // if (regularDealResult.func) return regularDealResult;
+    // if (regularDealEffect.func) return regularDealEffect;
 
     return {};
   };
 
-  return { initCardStateCreated, getEffectForCardState };
+  return { getEffectForHandState };
 };
 
 export default useCardStateEffect;

@@ -8,14 +8,11 @@ import React, { CSSProperties, forwardRef, memo, PropsWithoutRef, useCallback, u
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
-import {} from '../../../hooks/euchre/reducers/cardStateReducer';
-import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
 import { logConsole } from '../../../lib/euchre/util/util';
 import { getCardShadowSrc } from '../../../lib/euchre/util/cardDataUtil';
 import { CardAnimationControls, CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
-  renderKey: string;
   card: Card;
   cardState: CardBaseState;
   animationControls: CardAnimationControls;
@@ -32,7 +29,6 @@ const GameCard = memo(
   forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     (
       {
-        renderKey,
         id,
         card,
         cardState,
@@ -106,7 +102,7 @@ const GameCard = memo(
 
       logConsole(
         '*** [GAMECARD] [RENDER] key: ',
-        renderKey,
+        cardState.renderKey,
         ' RENDER TIME: ',
         performance.now(),
         ' card: ',
@@ -176,7 +172,7 @@ const GameCard = memo(
     }
   ),
   (prevProps, nextProps) => {
-    return prevProps.renderKey === nextProps.renderKey;
+    return prevProps.cardState.renderKey === nextProps.cardState.renderKey;
   }
 );
 

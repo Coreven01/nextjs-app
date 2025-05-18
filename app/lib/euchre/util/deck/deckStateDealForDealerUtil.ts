@@ -3,7 +3,7 @@ import {
   DealForDealerHandlers,
   DeckStateActions,
   DeckStatePhases,
-  StateEffectInfo
+  DealStateEffect
 } from '../../definitions/game-state-definitions';
 
 const getEffectForDealForDealer = (
@@ -55,9 +55,9 @@ const getEffectForDealForDealer = (
     onMoveCardsToPlayer: handleMoveCardsToPlayer
   };
 
-  const getEffectForDeckPhase = (): StateEffectInfo => {
+  const getEffectForDeckPhase = (): DealStateEffect => {
     const phase = getDeckPhase();
-    const retval: StateEffectInfo = { statePhase: DeckStatePhases.DEAL_FOR_DEALER };
+    const retval: DealStateEffect = { statePhase: DeckStatePhases.DEAL_FOR_DEALER };
 
     if (!phase || phase.phase !== DeckStatePhases.DEAL_FOR_DEALER) return retval;
 

@@ -20,7 +20,7 @@ export interface DeckPhase {
 
 const useDeckAnimationPhase = (
   state: EuchreGameState,
-  gameDeckState: DeckState | undefined,
+  deckState: DeckState | undefined,
   cardRefsReady: boolean
 ) => {
   const executedActions = useRef(new Set<string>());
@@ -105,7 +105,7 @@ const useDeckAnimationPhase = (
       hasPhaseExecuted({ phase: DeckStatePhases.REGULAR_DEAL, action: DeckStateActions.END_ANIMATE_BEGIN });
 
     const reinitializeDeckState =
-      gameDeckState !== undefined && gameDeckState.handId !== euchreGame.handId && deckStateCreated;
+      deckState !== undefined && deckState.handId !== euchreGame.handId && deckStateCreated;
     const createDeckState = !deckStateCreated && validDeck && euchreGameFlow.hasGameStarted;
     const reset = gameState.shouldResetDealState && regularDealExecuted;
 

@@ -1,5 +1,5 @@
-import { TargetAndTransition } from 'framer-motion';
-import { TableLocation } from './definitions';
+import { AnimationControls, TargetAndTransition, Transition } from 'framer-motion';
+import { Card, TableLocation } from './definitions';
 
 export const INIT_Z_INDEX = 30;
 export const DEFAULT_SPRING_VAL: CardSpringTarget = {
@@ -7,8 +7,6 @@ export const DEFAULT_SPRING_VAL: CardSpringTarget = {
   y: 0,
   rotate: 0,
   opacity: 1,
-  rotateY: 0,
-  rotateX: 0,
   zIndex: INIT_Z_INDEX,
   transformStyle: 'preserve-3d'
 };
@@ -18,9 +16,13 @@ export interface CardSpringTarget extends TargetAndTransition {
   y: number;
   rotate?: number;
   opacity?: number;
-  rotateY?: number;
-  rotateX?: number;
   zIndex?: number;
+}
+
+export interface FlipSpringTarget {
+  rotateY: number;
+  rotateX: number;
+  transition?: Transition;
 }
 
 export interface CardPosition {
@@ -37,3 +39,26 @@ export interface CardSpringProps extends CardPosition {
   initialValue: CardSpringTarget | undefined;
   animateValues: CardSpringTarget[];
 }
+
+export interface FlipSpringProps extends CardPosition {
+  initialValue: FlipSpringTarget | undefined;
+  animateValues: FlipSpringTarget[];
+}
+
+export interface CreateCardStatesContext {
+  cards: Card[];
+  controls: AnimationControls[];
+  flipControls: AnimationControls[];
+  initCardSpring: CardSpringProps[];
+  initFlipSprings: FlipSpringProps[];
+}
+
+// export interface CreateCardStateContext {
+//   card: Card;
+//   control: AnimationControls;
+//   flipControl: AnimationControls;
+//   initSpringValue?: CardSpringTarget;
+//   initAnimateValues?: CardSpringTarget[];
+//   initFlipValue?: FlipSpringTarget;
+//   initFlipAnimateValues?: FlipSpringTarget[];
+// }

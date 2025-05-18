@@ -26,9 +26,8 @@ import {
 } from '../../../hooks/euchre/reducers/playerNotificationReducer';
 import { EuchrePauseActionType, EuchrePauseState } from '../../../hooks/euchre/reducers/gamePauseReducer';
 import { InitDealResult } from './logic-definitions';
-import { CardSpringTarget } from './transform-definitions';
+import { CardSpringTarget, FlipSpringTarget } from './transform-definitions';
 import { AnimationControls } from 'framer-motion';
-import { HtmlContext } from 'next/dist/server/route-modules/pages/vendored/contexts/entrypoints';
 import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 
 export interface EuchreGameInstance {
@@ -236,7 +235,7 @@ export interface EuchreSettings {
   gamePoints: number;
 }
 
-export interface PlayerHandState {
+export interface HandState {
   handId: string;
   width: number;
   height: number;
@@ -306,6 +305,9 @@ export interface CardAnimationControls extends CardIndex {
   initSpringValue?: CardSpringTarget;
   animateValues: CardSpringTarget[];
   controls: AnimationControls | undefined;
+  flipControl: AnimationControls | undefined;
+  initFlipSpring?: FlipSpringTarget;
+  animateFlipSpring?: FlipSpringTarget[];
 }
 
 export const DeckStatePhases = {
@@ -328,7 +330,7 @@ export const DeckStateActions = {
 
 export type DeckStateAction = (typeof DeckStateActions)[keyof typeof DeckStateActions];
 
-export interface StateEffectInfo {
+export interface DealStateEffect {
   func?: () => Promise<void>;
   stateAction?: DeckStateAction;
   statePhase?: DeckStatePhase;
@@ -350,4 +352,35 @@ export interface RegularDealHandlers {
   onMoveCardsIntoPosition: () => Promise<void>;
   onStartDealCards: () => Promise<void>;
   onEndDealCards: () => Promise<void>;
+}
+
+export const HandStatePhases = {
+  INIT: 'Init',
+  GAME_PLAY: 'GamePlay'
+} as const;
+
+export type HandStatePhase = (typeof HandStatePhases)[keyof typeof HandStatePhases];
+
+export const HandStateActions = {
+  CREATE_HAND: 'CreateHand',
+  RESET: 'Reset',
+  CREATE_CARD: 'CreateCard',
+  REGROUP: 'Regroup',
+  ANIMATE_REGROUP: 'AnimateRegroup'
+} as const;
+
+export type HandStateAction = (typeof HandStateActions)[keyof typeof HandStateActions];
+
+export interface HandStateEffect {
+  func?: () => Promise<void>;
+  stateAction?: HandStateAction;
+  statePhase?: HandStatePhase;
+}
+
+export interface InitHandHandlers {
+  onResetHandState: () => Promise<void>;
+  onCreateHandState: () => Promise<void>;
+  onCreateCardState: () => Promise<void>;
+  onRegroupCards: () => Promise<void>;
+  onAnimateRegroupCards: () => Promise<void>;
 }

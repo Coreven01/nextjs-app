@@ -4,7 +4,7 @@ import {
   EuchreGameState,
   InitDealHandlers,
   RegularDealHandlers,
-  StateEffectInfo
+  DealStateEffect
 } from '../../../../lib/euchre/definitions/game-state-definitions';
 import useDeckAnimationPhase from '../../phases/useDeckAnimationPhase';
 import getEffectForInitDeckState from '../../../../lib/euchre/util/deck/deckStateInitializeUtil';
@@ -250,7 +250,7 @@ const useDeckStateEffect = (
   //#endregion
 
   /** Get the function that should be executed for the effect for the current deck state. */
-  const getEffectForDeckState = (): StateEffectInfo => {
+  const getEffectForDeckState = (): DealStateEffect => {
     const initEffect = getEffectForInitDeckState(
       getDeckPhase,
       resetForNewDeal,

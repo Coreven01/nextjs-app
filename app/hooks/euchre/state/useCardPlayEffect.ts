@@ -3,7 +3,7 @@ import {
   ErrorHandlers,
   EuchreGameState,
   EuchrePlayer,
-  PlayerHandState
+  HandState
 } from '../../../lib/euchre/definitions/game-state-definitions';
 import useAnimationCardState from '../phases/useAnimationCardState';
 import { playerSittingOut } from '../../../lib/euchre/util/gameDataUtil';
@@ -13,7 +13,7 @@ const useCardPlayEffect = (
   state: EuchreGameState,
   player: EuchrePlayer,
   errorHandlers: ErrorHandlers,
-  handState: PlayerHandState | undefined,
+  handState: HandState | undefined,
   playerCardsRefs: Map<number, RefObject<HTMLDivElement | null>>,
   onPassDeal: () => void,
   onReorderHand: () => void,

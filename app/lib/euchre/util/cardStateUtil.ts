@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getCardFullName, getEncodedCardSvg } from './cardSvgDataUtil';
-import { getRandomDamping, getRandomStiffness } from './cardTransformUtil';
-import { CardSpringProps, CardSpringTarget, DEFAULT_SPRING_VAL } from '../definitions/transform-definitions';
+import { getRandomDamping, getRandomStiffness } from './play/cardTransformUtil';
+import { CreateCardStatesContext, DEFAULT_SPRING_VAL } from '../definitions/transform-definitions';
 import { Card, TableLocation } from '../definitions/definitions';
-import { AnimationControls } from 'framer-motion';
 import {
   CardBaseState,
   CardAnimationState,
@@ -33,13 +32,12 @@ const runCardAnimations = async (animationControls: CardAnimationControls[]) => 
  *
  */
 const createCardStatesFromGameDeck = (
-  cards: Card[],
-  controls: AnimationControls[],
+  cardStateContext: CreateCardStatesContext,
   location: TableLocation,
   includeCardValue: boolean,
-  initValues: CardSpringProps[],
   reverseIndex: boolean
 ) => {
+  const { cards, controls, flipControls, initCardSpring, initFlipSprings } = cardStateContext;
   const cardStates: CardBaseState[] = [];
   const animationCardStates: CardAnimationState[] = [];
   const animationControls: CardAnimationControls[] = [];
@@ -54,15 +52,25 @@ const createCardStatesFromGameDeck = (
 
   for (const card of cards) {
     const control = controls[card.index];
-    const propValue = initValues.at(card.index);
-    const springValue = propValue?.initialValue
-      ? { ...propValue?.initialValue, zIndex: initZIndex + card.index * zIndexMultiplier }
+    const flipControl = flipControls[card.index];
+    const initProps = initCardSpring.find((s) => s.cardIndex === card.index);
+    const springValue = initProps?.initialValue
+      ? { ...initProps.initialValue, zIndex: initZIndex + card.index * zIndexMultiplier }
       : undefined;
-    const animateValue = propValue?.animateValues ?? [];
+    const animateValue = initProps?.animateValues ?? [];
+    const initFlipProps = initFlipSprings.find((s) => s.cardIndex === card.index);
 
     cardStates.push(createCardBaseState(card, location, includeCardValue));
     animationCardStates.push(createAnimationState(card));
-    animationControls.push(createAnimationControls(card, control, springValue, animateValue));
+    animationControls.push({
+      cardIndex: card.index,
+      controls: control,
+      flipControl,
+      initSpringValue: springValue,
+      animateValues: animateValue,
+      initFlipSpring: initFlipProps?.initialValue,
+      animateFlipSpring: initFlipProps?.animateValues
+    });
   }
 
   return { cardStates, animationCardStates, animationControls };
@@ -102,26 +110,28 @@ const createAnimationState = (card: Card) => {
 /** Create the intial card state values for beginning deal.
  *
  */
-const createAnimationControls = (
-  card: Card,
-  control: AnimationControls,
-  initSpringValue?: CardSpringTarget,
-  initAnimateValues?: CardSpringTarget[]
-) => {
-  const animationControl: CardAnimationControls = {
-    cardIndex: card.index,
-    initSpringValue: initSpringValue,
-    controls: control,
-    animateValues: initAnimateValues ?? []
-  };
+// const createAnimationControls = (cardValues: CreateCardStateContext) => {
+//   const {
+//     card,
+//     initAnimateValues,
+//     initFlipAnimateValues,
+//     initFlipValue,
+//     initSpringValue,
+//     control,
+//     flipControl
+//   } = cardValues;
 
-  return animationControl;
-};
+//   const animationControl: CardAnimationControls = {
+//     cardIndex: cardValues.card.index,
+//     initSpringValue: cardValues.initSpringValue,
+//     controls: cardValues.control,
+//     animateValues: cardValues.initAnimateValues ?? [],
+//     flipControl: cardValues.flipControl,
+//     initFlipSpring: cardValues.initFlipValue,
+//     animateFlipSpring: cardValues.initFlipAnimateValues
+//   };
 
-export {
-  runCardAnimations,
-  createCardStatesFromGameDeck,
-  createCardBaseState,
-  createAnimationState,
-  createAnimationControls
-};
+//   return animationControl;
+// };
+
+export { runCardAnimations, createCardStatesFromGameDeck, createCardBaseState, createAnimationState };

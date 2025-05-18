@@ -1,8 +1,8 @@
-import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
-import { EuchreGameState, EuchrePlayer } from '../../../lib/euchre/definitions/game-state-definitions';
+import { GameEventHandlers } from '../../../../hooks/euchre/useEventLog';
+import { EuchreGameState, EuchrePlayer } from '../../definitions/game-state-definitions';
 
-import { getTeamColor } from '../../../lib/euchre/util/playerDataUtil';
-import { createAndAddEvent } from './util';
+import { getTeamColor } from '../playerDataUtil';
+import { createAndAddEvent } from '../util';
 
 const EVENT_TYPE = '[CARD STATE]';
 

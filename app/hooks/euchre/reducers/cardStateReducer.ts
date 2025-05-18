@@ -1,15 +1,15 @@
-import { PlayerHandState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { HandState } from '../../../lib/euchre/definitions/game-state-definitions';
 
 export interface PlayCardStateActionAction {
   type: PlayCardStateActionType;
-  payload?: PlayerHandState;
+  payload?: HandState;
 }
 
 export enum PlayCardStateActionType {
   INIT_STATE
 }
 
-export function cardStateReducer(state: PlayerHandState, action: PlayCardStateActionAction): PlayerHandState {
+export function cardStateReducer(state: HandState, action: PlayCardStateActionAction): HandState {
   if (action.type === PlayCardStateActionType.INIT_STATE) {
     return { ...state, ...action.payload };
   } else {
