@@ -47,7 +47,13 @@ const PlayerCardArea = ({
     deckAnimationControls,
     cardStates,
     animationControls
-  } = useDeckAnimation(gameContext, initDealResult, playerOuterTableRefs, directCenterHRef, directCenterVRef);
+  } = useDeckAnimation(
+    gameContext,
+    initDealResult,
+    playerOuterTableRefs,
+    directCenterHRef.current,
+    directCenterVRef.current
+  );
   const { euchreGame, euchreSettings } = gameContext.state;
   const currentHandId = useRef(euchreGame.handId);
   const playerLayoutForGrid = getPlayerGridLayoutInfo();

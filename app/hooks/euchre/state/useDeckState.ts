@@ -2,16 +2,14 @@ import { useCallback, useState } from 'react';
 import { createCardStatesFromGameDeck } from '../../../lib/euchre/util/cardStateUtil';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
 import {
+  CardAnimationControls,
+  CardAnimationState,
+  CardAnimationStateContext,
   CardSpringProps,
   CreateCardStatesContext,
   FlipSpringProps
 } from '../../../lib/euchre/definitions/transform-definitions';
-import {
-  CardAnimationControls,
-  CardAnimationState,
-  CardAnimationStateContext,
-  CardBaseState
-} from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
 import useDeckAnimationControls from './useDeckAnimationControls';
 
 const useDeckState = () => {

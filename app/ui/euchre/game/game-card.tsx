@@ -4,15 +4,17 @@ import {
   RESPONSE_CARD_SIDE,
   TableLocation
 } from '@/app/lib/euchre/definitions/definitions';
-import React, { CSSProperties, forwardRef, memo, PropsWithoutRef, useCallback, useRef } from 'react';
+import React, { CSSProperties, forwardRef, memo, PropsWithoutRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
 import { logConsole } from '../../../lib/euchre/util/util';
 import { getCardShadowSrc } from '../../../lib/euchre/util/cardDataUtil';
-import { CardAnimationControls, CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardAnimationControls } from '../../../lib/euchre/definitions/transform-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
+  renderKey: string;
   card: Card;
   cardState: CardBaseState;
   animationControls: CardAnimationControls;
@@ -20,7 +22,6 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   height: number;
   location: TableLocation;
   responsive?: boolean;
-  hideBackFace?: boolean;
   /** */
   onCardClick?: (cardIndex: number) => void;
 }
@@ -38,16 +39,13 @@ const GameCard = memo(
         className,
         location,
         responsive,
-        hideBackFace = true,
         onCardClick
       }: Props,
       ref
     ) => {
-      /** Used to prevent the same animation event handler from running more than once for a particular action. */
-      //const actionsRun = useRef<EuchreGameFlow[]>([]);
       const sideLocation = location === 'left' || location === 'right';
       const useHoverEffect: boolean = onCardClick !== undefined && cardState.enabled;
-      const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
+      const cssValues: CSSProperties = {};
       const cardBackSrc = sideLocation ? '/card-back-side.svg' : '/card-back.svg';
       if (responsive) {
         cssValues.width = '100%';
@@ -74,21 +72,21 @@ const GameCard = memo(
         if (shouldRunEffect) {
           // fall into this block once animation is complete to update game state (onAnimationComplete).
           //actionsRun.current.push(runAnimationCompleteEffect);
-          logConsole(
-            '*** [GAMECARD] ANIMATION VALUE: ',
-            animationControls.controls,
-            ' CARD STATE: ',
-            cardState,
-            ' EXECUTE TIME: ',
-            performance.now()
-          );
+          // logConsole(
+          //   '*** [GAMECARD] ANIMATION VALUE: ',
+          //   animationControls.controls,
+          //   ' CARD STATE: ',
+          //   cardState,
+          //   ' EXECUTE TIME: ',
+          //   performance.now()
+          // );
           //onAnimationComplete(card);
         }
-      }, [animationControls.controls, cardState]);
+      }, []);
 
       /** Handle card click event. */
       const handleCardClick = useCallback(() => {
-        logConsole('*** [GAMECARD] [handleCardClick]');
+        //logConsole('*** [GAMECARD] [handleCardClick]');
 
         if (onCardClick) {
           //if (runAnimationCompleteEffect) actionsRun.current.push(runAnimationCompleteEffect);
@@ -100,23 +98,19 @@ const GameCard = memo(
       }, [card.index, onCardClick]);
       //#endregion
 
-      logConsole(
-        '*** [GAMECARD] [RENDER] key: ',
-        cardState.renderKey,
-        ' RENDER TIME: ',
-        performance.now(),
-        ' card: ',
-        card
-      );
+      // logConsole(
+      //   '*** [GAMECARD] [RENDER] key: ',
+      //   cardState.renderKey,
+      //   ' RENDER TIME: ',
+      //   performance.now(),
+      //   ' card: ',
+      //   card
+      // );
 
       return (
         <motion.div
-          style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
-          className={clsx(
-            'pointer-events-none overflow-visible',
-            sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER,
-            className
-          )}
+          style={{ perspective: 1000 }}
+          className={clsx('pointer-events-none overflow-visible', className)}
           title={cardState.cardFullName}
           id={id}
           ref={ref}
@@ -125,54 +119,67 @@ const GameCard = memo(
           onAnimationComplete={handleAnimationComplete}
           draggable={false}
         >
-          <Image
-            className={clsx(`relative`, getShadowOffsetForPlayer(location))}
-            quality={50}
-            width={width}
-            height={height}
-            src={getCardShadowSrc(location)}
-            alt={'card shadow'}
-            style={{ ...cssValues, backfaceVisibility: 'visible' }}
-            draggable={false}
-          />
-          <Image
-            className={clsx(
-              'absolute top-0 left-0 pointer-events-auto',
-              { 'cursor-not-allowed': !useHoverEffect },
-              {
-                'cursor-pointer hover:scale-110 hover:-translate-y-2 transition duration-300': useHoverEffect
-              }
-            )}
-            quality={100}
-            width={width}
-            height={height}
-            src={cardState.src ?? cardBackSrc}
-            alt={cardState.cardFullName}
-            unoptimized={true}
-            onClick={handleCardClick}
-            style={cssValues}
-            draggable={false}
-          />
-          <Image
-            className={clsx('absolute top-0 left-0')}
-            quality={100}
-            width={width}
-            height={height}
-            src={cardBackSrc}
-            alt={'Card back'}
-            unoptimized={true}
-            style={{
-              ...cssValues,
-              transform: sideLocation ? 'rotateX(180deg)' : 'rotateY(180deg)'
-            }}
-            draggable={false}
-          />
+          {' '}
+          <motion.div
+            initial={animationControls.initFlipSpring}
+            animate={animationControls.flipControl}
+            style={{ transformStyle: 'preserve-3d' }}
+            className={clsx(sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER)}
+          >
+            <Image
+              className={clsx(`relative`, getShadowOffsetForPlayer(location))}
+              quality={50}
+              width={width}
+              height={height}
+              src={getCardShadowSrc(location)}
+              alt={'Card Shadow'}
+              style={{ ...cssValues, backfaceVisibility: 'visible' }}
+              draggable={false}
+            />
+            <Image
+              className={clsx(
+                'absolute top-0 left-0 pointer-events-auto',
+                { 'cursor-not-allowed': !useHoverEffect },
+                {
+                  'cursor-pointer hover:scale-110 hover:-translate-y-2 transition duration-300':
+                    useHoverEffect
+                }
+              )}
+              quality={100}
+              width={width}
+              height={height}
+              src={cardState.src ?? cardBackSrc}
+              alt={cardState.cardFullName}
+              unoptimized={true}
+              onClick={handleCardClick}
+              style={{
+                ...cssValues,
+                backfaceVisibility: 'visible'
+              }}
+              draggable={false}
+            />
+            <Image
+              className={clsx('absolute top-0 left-0')}
+              quality={100}
+              width={width}
+              height={height}
+              src={cardBackSrc}
+              alt={'Card Back'}
+              unoptimized={true}
+              style={{
+                ...cssValues,
+                transform: sideLocation ? 'rotateX(180deg)' : 'rotateY(180deg)',
+                backfaceVisibility: 'hidden'
+              }}
+              draggable={false}
+            />
+          </motion.div>
         </motion.div>
       );
     }
   ),
   (prevProps, nextProps) => {
-    return prevProps.cardState.renderKey === nextProps.cardState.renderKey;
+    return prevProps.renderKey === nextProps.renderKey;
   }
 );
 

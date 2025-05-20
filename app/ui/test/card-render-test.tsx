@@ -18,9 +18,10 @@ import {
   RESPONSE_CARD_SIDE,
   TableLocation
 } from '../../lib/euchre/definitions/definitions';
-import { CardAnimationControls, CardBaseState } from '../../lib/euchre/definitions/game-state-definitions';
+import { CardBaseState } from '../../lib/euchre/definitions/game-state-definitions';
 import clsx from 'clsx';
 import { getCardShadowSrc } from '../../lib/euchre/util/cardDataUtil';
+import { CardAnimationControls } from '../../lib/euchre/definitions/transform-definitions';
 
 const CardRenderTest = () => {
   const [toggleAnimation, setToggleAnimation] = useState(false);
@@ -50,93 +51,103 @@ const CardRenderTest = () => {
     () => ({
       cardIndex: 1,
       controls: animationControl1,
+      flipControl: flipControl1,
       initSpringValue: { x: 0, y: 10 },
-      animateValues: []
+      animateValues: [],
+      initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
-    [animationControl1]
+    [animationControl1, flipControl1]
   );
 
   const ctrl2: CardAnimationControls = useMemo(
     () => ({
       cardIndex: 2,
       controls: animationControl2,
+      flipControl: flipControl2,
       initSpringValue: { x: cardSpace * 1, y: 5 },
-      animateValues: []
+      animateValues: [],
+      initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
-    [animationControl2]
+    [animationControl2, flipControl2]
   );
 
   const ctrl3: CardAnimationControls = useMemo(
     () => ({
       cardIndex: 3,
       controls: animationControl3,
+      flipControl: flipControl3,
       initSpringValue: { x: cardSpace * 2, y: 0 },
-      animateValues: []
+      animateValues: [],
+      initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
-    [animationControl3]
+    [animationControl3, flipControl3]
   );
 
   const ctrl4: CardAnimationControls = useMemo(
     () => ({
       cardIndex: 4,
+      flipControl: flipControl4,
       controls: animationControl4,
       initSpringValue: { x: cardSpace * 3, y: 5 },
-      animateValues: []
+      animateValues: [],
+      initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
-    [animationControl4]
+    [animationControl4, flipControl4]
   );
 
   const ctrl5: CardAnimationControls = useMemo(
     () => ({
       cardIndex: 5,
       controls: animationControl5,
+      flipControl: flipControl5,
       initSpringValue: { x: cardSpace * 4, y: 10 },
-      animateValues: []
+      animateValues: [],
+      initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
-    [animationControl5]
+    [animationControl5, flipControl5]
   );
 
-  const flipctrl1: CardAnimationControls = useMemo(
-    () => ({
-      cardIndex: 1,
-      controls: flipControl1,
-      initSpringValue: { x: 0, y: 0, rotateY: 180 },
-      animateValues: []
-    }),
-    [flipControl1]
-  );
+  // const flipctrl1: CardAnimationControls = useMemo(
+  //   () => ({
+  //     cardIndex: 1,
+  //     controls: flipControl1,
+  //     initSpringValue: { x: 0, y: 0, rotateY: 180 },
+  //     animateValues: []
+  //   }),
+  //   [flipControl1]
+  // );
 
-  const flipctrl2: CardAnimationControls = {
-    cardIndex: 2,
-    controls: flipControl2,
-    initSpringValue: { x: 0, y: 0, rotateY: 180 },
-    animateValues: []
-  };
+  // const flipctrl2: CardAnimationControls = {
+  //   cardIndex: 2,
+  //   controls: flipControl2,
+  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
+  //   animateValues: []
+  // };
 
-  const flipctrl3: CardAnimationControls = {
-    cardIndex: 3,
-    controls: flipControl3,
-    initSpringValue: { x: 0, y: 0, rotateY: 180 },
-    animateValues: []
-  };
-  const flipctrl4: CardAnimationControls = {
-    cardIndex: 4,
-    controls: flipControl4,
-    initSpringValue: { x: 0, y: 0, rotateY: 180 },
-    animateValues: []
-  };
-  const flipctrl5: CardAnimationControls = {
-    cardIndex: 5,
-    controls: flipControl5,
-    initSpringValue: { x: 0, y: 0, rotateY: 180 },
-    animateValues: []
-  };
+  // const flipctrl3: CardAnimationControls = {
+  //   cardIndex: 3,
+  //   controls: flipControl3,
+  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
+  //   animateValues: []
+  // };
+  // const flipctrl4: CardAnimationControls = {
+  //   cardIndex: 4,
+  //   controls: flipControl4,
+  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
+  //   animateValues: []
+  // };
+  // const flipctrl5: CardAnimationControls = {
+  //   cardIndex: 5,
+  //   controls: flipControl5,
+  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
+  //   animateValues: []
+  // };
 
   const card1: Card = { value: '10', suit: '♠', index: 1 };
-  const card2: Card = { value: '10', suit: '♠', index: 2 };
-  const card3: Card = { value: '10', suit: '♠', index: 3 };
-  const card4: Card = { value: '10', suit: '♠', index: 4 };
-  const card5: Card = { value: '10', suit: '♠', index: 5 };
+  const card2: Card = { value: 'J', suit: '♠', index: 2 };
+  const card3: Card = { value: 'Q', suit: '♣', index: 3 };
+  const card4: Card = { value: 'K', suit: '♦', index: 4 };
+  const card5: Card = { value: 'A', suit: '♥', index: 5 };
 
   const state1: CardBaseState = {
     renderKey: '1',
@@ -175,11 +186,11 @@ const CardRenderTest = () => {
   };
 
   const cardkeys = [
-    { key: 'card1', ref: cardRef1, control: ctrl1, card: card1, state: state1, flip: flipctrl1 },
-    { key: 'card2', ref: cardRef2, control: ctrl2, card: card2, state: state2, flip: flipctrl2 },
-    { key: 'card3', ref: cardRef3, control: ctrl3, card: card3, state: state3, flip: flipctrl3 },
-    { key: 'card4', ref: cardRef4, control: ctrl4, card: card4, state: state4, flip: flipctrl4 },
-    { key: 'card5', ref: cardRef5, control: ctrl5, card: card5, state: state5, flip: flipctrl5 }
+    { key: 'card1', ref: cardRef1, control: ctrl1, card: card1, state: state1 },
+    { key: 'card2', ref: cardRef2, control: ctrl2, card: card2, state: state2 },
+    { key: 'card3', ref: cardRef3, control: ctrl3, card: card3, state: state3 },
+    { key: 'card4', ref: cardRef4, control: ctrl4, card: card4, state: state4 },
+    { key: 'card5', ref: cardRef5, control: ctrl5, card: card5, state: state5 }
   ];
 
   useEffect(() => {
@@ -187,18 +198,26 @@ const CardRenderTest = () => {
       while (runAnimationRef.current) {
         const animations: Promise<void>[] = [];
         animations.push(runAnimation(ctrl1));
-        animations.push(runFlipAnimation(flipctrl1));
+        animations.push(runFlipAnimation(ctrl1));
+
         animations.push(runAnimation(ctrl2));
+        animations.push(runFlipAnimation(ctrl2));
+
         animations.push(runAnimation(ctrl3));
+        animations.push(runFlipAnimation(ctrl3));
+
         animations.push(runAnimation(ctrl4));
+        animations.push(runFlipAnimation(ctrl4));
+
         animations.push(runAnimation(ctrl5));
+        animations.push(runFlipAnimation(ctrl5));
 
         await Promise.all(animations);
       }
     };
 
     runCardAnimation();
-  }, [ctrl1, ctrl2, ctrl3, ctrl4, ctrl5, flipctrl1, toggleAnimation]);
+  }, [ctrl1, ctrl2, ctrl3, ctrl4, ctrl5, toggleAnimation]);
 
   const runAnimation = async (control: CardAnimationControls) => {
     if (!control.controls) return;
@@ -225,20 +244,20 @@ const CardRenderTest = () => {
   };
 
   const runFlipAnimation = async (control: CardAnimationControls) => {
-    if (!control.controls) return;
+    if (!control.flipControl) return;
 
     const duration: number = Math.random() * 2 + 1;
     const wait: number = Math.random() + 1;
     const val1: TargetAndTransition = {
-      ...control.initSpringValue,
+      ...control.initFlipSpring,
       rotateY: 0,
       transition: { duration: duration }
     };
-    const endValue = { ...control.initSpringValue, transition: { duration: duration } };
+    const endValue = { ...control.initFlipSpring, transition: { duration: duration } };
 
-    await control.controls.start(val1);
+    await control.flipControl.start(val1);
     await new Promise((resolve) => setTimeout(resolve, wait));
-    await control.controls.start(endValue);
+    await control.flipControl.start(endValue);
     await new Promise((resolve) => setTimeout(resolve, wait));
   };
 
@@ -265,7 +284,6 @@ const CardRenderTest = () => {
             <div key={v.key} className="absolute left-1/2">
               <TestGameCard
                 animationControls={v.control}
-                flipControls={v.flip}
                 location="bottom"
                 ref={v.ref}
                 width={100}
@@ -293,7 +311,6 @@ export default CardRenderTest;
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   cardState: CardBaseState;
   animationControls: CardAnimationControls;
-  flipControls: CardAnimationControls;
   width: number;
   height: number;
   location: TableLocation;
@@ -310,7 +327,6 @@ const TestGameCard = memo(
         id,
         cardState,
         animationControls,
-        flipControls,
         width,
         height,
         className,
@@ -326,6 +342,7 @@ const TestGameCard = memo(
       const sideLocation = location === 'left' || location === 'right';
       const useHoverEffect: boolean = onCardClick !== undefined && cardState.enabled;
       const cssValues: CSSProperties = { backfaceVisibility: hideBackFace ? 'hidden' : 'visible' };
+      const tempTarget: TargetAndTransition = {};
       const cardBackSrc = sideLocation ? '/card-back-side.svg' : '/card-back.svg';
       if (responsive) {
         cssValues.width = '100%';
@@ -353,8 +370,8 @@ const TestGameCard = memo(
           draggable={false}
         >
           <motion.div
-            initial={flipControls.initSpringValue}
-            animate={flipControls.controls}
+            initial={{ ...tempTarget, ...animationControls.initFlipSpring }}
+            animate={animationControls.flipControl}
             style={{ transformStyle: 'preserve-3d' }}
           >
             <Image

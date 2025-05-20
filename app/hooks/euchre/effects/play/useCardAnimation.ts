@@ -1,6 +1,5 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import {
-  CardAnimationControls,
   CardBaseState,
   EuchrePlayer,
   GamePlayContext,
@@ -11,6 +10,7 @@ import { Card, TableLocation } from '../../../../lib/euchre/definitions/definiti
 import useCardRefs from '../../useCardRefs';
 import useCardState from '../../state/useCardState';
 import {
+  CardAnimationControls,
   CardPosition,
   CardSpringProps,
   CardSpringTarget,
@@ -45,8 +45,8 @@ const useCardAnimation = (
   gameContext: GamePlayContext,
   player: EuchrePlayer,
 
-  directCenterHRef: RefObject<HTMLDivElement | null>,
-  directCenterVRef: RefObject<HTMLDivElement | null>,
+  horizontalElement: HTMLDivElement | null,
+  verticalElement: HTMLDivElement | null,
 
   /** map of location to the player's card deck area element. */
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
@@ -59,14 +59,8 @@ const useCardAnimation = (
 
   /** map of card index to reference to the card elements, used to calc spacing between cards when the screen is resized. */
   const cardRefs = useCardRefs(5);
-  const {
-    stateContext,
-    setCardsAnimationControls,
-    setCardStates,
-    setCardsAnimationStates,
-    createStates,
-    recreateAnimationControls
-  } = useCardState();
+  const { stateContext, setCardsAnimationControls, setCardStates, setCardsAnimationStates, createStates } =
+    useCardState();
 
   const { cardStates, animationControls, animationStates } = stateContext;
 
@@ -74,13 +68,12 @@ const useCardAnimation = (
   const cardPlayedForTrickRef = useRef<Map<string, Card>>(new Map<string, Card>());
   const onAnimationComplete = useRef<undefined | ((card: Card) => void)>(undefined);
   const trickAnimationHandled = useRef<string[]>([]);
-  const [handState, setHandState] = useState<HandState | undefined>(undefined);
 
+  const [handState, setHandState] = useState<HandState | undefined>(undefined);
   const [refsReady, setRefsReady] = useState(false);
 
   /** Ordered card indices after the cards have been sorted/grouped */
   const initSortOrder = useRef<CardPosition[]>([]);
-  //const initCalculatedWidth = useRef(0);
   const { state, eventHandlers, errorHandlers } = gameContext;
   const { euchreGame, euchreGameFlow, euchreSettings } = state;
   const playerCardsVisible = handState !== undefined && cardStates.length > 0;
@@ -91,12 +84,12 @@ const useCardAnimation = (
   const getRelativeCenter = useCallback(
     (location: TableLocation) => {
       if (location === 'top' || location === 'bottom') {
-        return directCenterHRef.current;
+        return horizontalElement;
       } else {
-        return directCenterVRef.current;
+        return verticalElement;
       }
     },
-    [directCenterHRef, directCenterVRef]
+    [horizontalElement, verticalElement]
   );
 
   /** Update state values to the new values passed as parameters. */
@@ -185,11 +178,14 @@ const useCardAnimation = (
   const initCardStatesForNewHand = useCallback(() => {
     if (!handState) throw new Error('[CARD STATE] Invalid hand state for initialization for card state');
 
+    const intialValues = getSpringsPlayerHandInitDeal(player.hand, handState.location);
     const initStates = createStates(
       player.hand,
       handState.location,
       !!handState.shouldShowCardValue,
-      getSpringsPlayerHandInitDeal(player.hand, handState.location)
+      intialValues.cardSprings,
+      intialValues.flipSprings,
+      false
     );
 
     setCardStates(initStates.cardStates);
@@ -846,7 +842,7 @@ const useCardAnimation = (
     cardRefs,
     handState,
     cardStates,
-    cardsAnimationControls: animationControls,
+    animationControls,
     onAnimationComplete,
     getCardsAvailableIfFollowSuit,
     getCardsToDisplay,

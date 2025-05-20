@@ -1,28 +1,36 @@
 import { v4 as uuidv4 } from 'uuid';
 import { getCardFullName, getEncodedCardSvg } from './cardSvgDataUtil';
 import { getRandomDamping, getRandomStiffness } from './play/cardTransformUtil';
-import { CreateCardStatesContext, DEFAULT_SPRING_VAL } from '../definitions/transform-definitions';
-import { Card, TableLocation } from '../definitions/definitions';
 import {
-  CardBaseState,
+  CardAnimationControls,
   CardAnimationState,
-  CardAnimationControls
-} from '../definitions/game-state-definitions';
+  CreateCardStatesContext,
+  DEFAULT_SPRING_VAL
+} from '../definitions/transform-definitions';
+import { Card, TableLocation } from '../definitions/definitions';
+import { CardBaseState } from '../definitions/game-state-definitions';
 
 /** */
 const runCardAnimations = async (animationControls: CardAnimationControls[]) => {
   const animations: Promise<void>[] = [];
 
   for (const cardAnimation of animationControls) {
-    if (cardAnimation.animateValues.length > 0) {
-      const temp = async (): Promise<void> => {
-        for (const animateValue of cardAnimation.animateValues) {
-          await cardAnimation.controls?.start(animateValue);
-        }
-      };
+    const startAnimation1 = async (): Promise<void> => {
+      for (const animateValue of cardAnimation.animateValues) {
+        await cardAnimation.controls?.start(animateValue);
+      }
+    };
 
-      animations.push(temp());
-    }
+    animations.push(startAnimation1());
+
+    const startAnimation2 = async (): Promise<void> => {
+      if (cardAnimation.animateFlipSpring)
+        for (const animateValue of cardAnimation.animateFlipSpring) {
+          await cardAnimation.flipControl?.start(animateValue);
+        }
+    };
+
+    animations.push(startAnimation2());
   }
 
   await Promise.all(animations);

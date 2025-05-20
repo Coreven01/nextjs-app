@@ -1,23 +1,20 @@
-import { useAnimation } from 'framer-motion';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { createCardStatesFromGameDeck } from '../../../lib/euchre/util/cardStateUtil';
 import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
-import { CardSpringProps, CardSpringTarget } from '../../../lib/euchre/definitions/transform-definitions';
 import {
   CardAnimationControls,
   CardAnimationState,
   CardAnimationStateContext,
-  CardBaseState
-} from '../../../lib/euchre/definitions/game-state-definitions';
+  CardSpringProps,
+  CreateCardStatesContext,
+  FlipSpringProps
+} from '../../../lib/euchre/definitions/transform-definitions';
+import { CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
+import useCardAnimationControls from './useCardAnimationControls';
 
 const useCardState = () => {
-  const c0 = useAnimation();
-  const c1 = useAnimation();
-  const c2 = useAnimation();
-  const c3 = useAnimation();
-  const c4 = useAnimation();
-
-  const animationControlsArray = useMemo(() => [c0, c1, c2, c3, c4], [c0, c1, c2, c3, c4]);
+  const animationControls = useCardAnimationControls();
+  const flipAnimiationControls = useCardAnimationControls();
 
   const [cardsAnimationControls, setCardsAnimationControls] = useState<CardAnimationControls[]>([]);
   const [cardStates, setCardStates] = useState<CardBaseState[]>([]);
@@ -30,31 +27,49 @@ const useCardState = () => {
   };
 
   const createStates = useCallback(
-    (cards: Card[], location: TableLocation, includeCardValue: boolean, initValues: CardSpringProps[]) => {
-      const states = createCardStatesFromGameDeck(
-        cards,
-        animationControlsArray,
-        location,
-        includeCardValue,
-        initValues,
-        false
-      );
+    (
+      cards: Card[],
+      location: TableLocation,
+      includeCardValue: boolean,
+      initValues: CardSpringProps[],
+      initFlipValues: FlipSpringProps[],
+      reverseIndex: boolean
+    ) => {
+      const cardContext: CreateCardStatesContext = {
+        cards: cards,
+        controls: animationControls,
+        flipControls: flipAnimiationControls,
+        initCardSpring: initValues,
+        initFlipSprings: initFlipValues
+      };
+
+      const states = createCardStatesFromGameDeck(cardContext, location, includeCardValue, reverseIndex);
 
       return states;
     },
-    [animationControlsArray]
+    [animationControls, flipAnimiationControls]
   );
 
   const recreateAnimationControls = useCallback(
-    (cards: Card[], initSpringValue?: CardSpringTarget, initAnimateValues?: CardSpringTarget[]) => {
-      const states = cards.map((c) => {
-        const control = animationControlsArray[c.index];
-        return createAnimationControls(c, control, initSpringValue, initAnimateValues);
+    (gameDeck: Card[], cardSpringProps: CardSpringProps, flipSpringProps: FlipSpringProps) => {
+      const states = gameDeck.map((c) => {
+        const control = animationControls[c.index];
+        const flipControl = flipAnimiationControls[c.index];
+
+        return {
+          cardIndex: c.index,
+          controls: control,
+          flipControl,
+          initSpringValue: cardSpringProps.initialValue,
+          animateValues: cardSpringProps.animateValues,
+          initFlipSpring: flipSpringProps.initialValue,
+          animateFlipSpring: flipSpringProps.animateValues
+        };
       });
 
       return states;
     },
-    [animationControlsArray]
+    [animationControls, flipAnimiationControls]
   );
 
   return {

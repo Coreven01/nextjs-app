@@ -1,5 +1,6 @@
 import { AnimationControls, TargetAndTransition, Transition } from 'framer-motion';
-import { Card, TableLocation } from './definitions';
+import { Card, GameSpeed, TableLocation } from './definitions';
+import { CardBaseState, CardIndex } from './game-state-definitions';
 
 export const INIT_Z_INDEX = 30;
 export const DEFAULT_SPRING_VAL: CardSpringTarget = {
@@ -19,7 +20,7 @@ export interface CardSpringTarget extends TargetAndTransition {
   zIndex?: number;
 }
 
-export interface FlipSpringTarget {
+export interface FlipSpringTarget extends TargetAndTransition {
   rotateY: number;
   rotateX: number;
   transition?: Transition;
@@ -53,12 +54,38 @@ export interface CreateCardStatesContext {
   initFlipSprings: FlipSpringProps[];
 }
 
-// export interface CreateCardStateContext {
-//   card: Card;
-//   control: AnimationControls;
-//   flipControl: AnimationControls;
-//   initSpringValue?: CardSpringTarget;
-//   initAnimateValues?: CardSpringTarget[];
-//   initFlipValue?: FlipSpringTarget;
-//   initFlipAnimateValues?: FlipSpringTarget[];
-// }
+export interface AnimationSpringsResult {
+  cardSprings: CardSpringProps[];
+  flipSprings: FlipSpringProps[];
+}
+
+export interface CardAnimationState extends CardIndex {
+  xDamping: number;
+  xStiffness: number;
+  yDamping: number;
+  yStiffness: number;
+}
+
+export interface CardAnimationControls extends CardIndex {
+  initSpringValue?: CardSpringTarget;
+  animateValues: CardSpringTarget[];
+  controls: AnimationControls | undefined;
+  flipControl: AnimationControls | undefined;
+  initFlipSpring?: FlipSpringTarget;
+  animateFlipSpring?: FlipSpringTarget[];
+}
+
+export interface CardAnimationStateContext {
+  cardStates: CardBaseState[];
+  animationStates: CardAnimationState[];
+  animationControls: CardAnimationControls[];
+}
+
+export interface SpringContext {
+  sourceElement: HTMLElement;
+  destinationElement: HTMLElement;
+  relativeElement?: HTMLElement;
+  destinationLocation?: TableLocation;
+  gameSpeed?: GameSpeed;
+  currentSpring?: CardSpringTarget;
+}

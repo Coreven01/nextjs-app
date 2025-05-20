@@ -5,7 +5,8 @@ import { Card } from '../../../lib/euchre/definitions/definitions';
 import { motion, TargetAndTransition } from 'framer-motion';
 
 import { getDisplayHeight, getDisplayWidth } from '../../../lib/euchre/util/cardDataUtil';
-import { CardAnimationControls, CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardAnimationControls } from '../../../lib/euchre/definitions/transform-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   card: Card;

@@ -248,19 +248,6 @@ export interface HandState {
   stateEffect?: EuchreGameFlow;
 }
 
-export interface CardAnimationStateContext {
-  cardStates: CardBaseState[];
-  animationStates: CardAnimationState[];
-  animationControls: CardAnimationControls[];
-}
-
-export interface AnimationElementsContext {
-  sourceElement: HTMLElement;
-  destinationElement: HTMLElement;
-  relativeElement?: HTMLElement;
-  currentSourceSpring?: CardSpringTarget;
-}
-
 export interface GamePlayContext {
   state: EuchreGameState;
   eventHandlers: GameEventHandlers;
@@ -291,23 +278,6 @@ export interface CardBaseState extends CardIndex {
   cardFullName: string;
   location?: TableLocation;
   enabled: boolean;
-}
-
-export interface CardAnimationState extends CardIndex {
-  xDamping: number;
-  xStiffness: number;
-  yDamping: number;
-  yStiffness: number;
-  runEffectForState?: EuchreGameFlow;
-}
-
-export interface CardAnimationControls extends CardIndex {
-  initSpringValue?: CardSpringTarget;
-  animateValues: CardSpringTarget[];
-  controls: AnimationControls | undefined;
-  flipControl: AnimationControls | undefined;
-  initFlipSpring?: FlipSpringTarget;
-  animateFlipSpring?: FlipSpringTarget[];
 }
 
 export const DeckStatePhases = {

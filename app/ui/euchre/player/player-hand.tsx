@@ -45,7 +45,7 @@ const PlayerHand = ({
     cardRefs,
     handState,
     cardStates,
-    cardsAnimationControls,
+    animationControls,
     getCardsToDisplay,
     handlePlayCardAnimation,
     updateCardStateForTurn,
@@ -53,8 +53,8 @@ const PlayerHand = ({
   } = useCardAnimation(
     gameContext,
     player,
-    directCenterHRef,
-    directCenterVRef,
+    directCenterHRef.current,
+    directCenterVRef.current,
     playerDeckRefs,
     onTrickComplete,
     onPassDeal,
@@ -156,11 +156,12 @@ const PlayerHand = ({
         playerCurrentHand.map((card) => {
           const keyval = `${player.playerNumber}-${card.index}`;
           const cardState = cardStates.find((s) => s.cardIndex === card.index);
-          const animationControl = cardsAnimationControls[card.index];
+          const animationControl = animationControls[card.index];
           const cardRef = cardRefs.get(card.index);
 
           return cardState && cardRef ? (
             <GameCard
+              renderKey={cardState.renderKey}
               key={keyval}
               className={clsx('absolute', getCardClassForPlayerLocation(player.location))}
               location={location}

@@ -8,20 +8,20 @@ import {
   getSpringsForDealForDealer,
   getSpringsForDealForRegularPlay,
   getSpringsToMoveToPlayer,
+  getSpringToMoveToPlayer,
   getTransitionForCardDeal,
+  getTransitionForCardFlipped,
   getTransitionForCardMoved
 } from '../play/cardTransformUtil';
-import { Card, GameSpeed, TableLocation } from '../../definitions/definitions';
+import { GameSpeed, TableLocation } from '../../definitions/definitions';
 import { v4 as uuidv4 } from 'uuid';
-import { CardSpringProps } from '../../definitions/transform-definitions';
 import {
-  CardAnimationControls,
+  AnimationSpringsResult,
   CardAnimationState,
   CardAnimationStateContext,
-  CardBaseState,
-  EuchreGameInstance,
-  EuchrePlayer
-} from '../../definitions/game-state-definitions';
+  CardSpringProps
+} from '../../definitions/transform-definitions';
+import { CardBaseState, EuchreGameInstance, EuchrePlayer } from '../../definitions/game-state-definitions';
 import { getPlayerRotation } from '../playerDataUtil';
 import { getCardFullName, getEncodedCardSvg } from '../cardSvgDataUtil';
 import { InitDealResult } from '../../definitions/logic-definitions';
@@ -38,34 +38,47 @@ const getCardStatesMoveToPlayer = (
   const { cardStates, animationControls, animationStates } = animationContext;
   const newCardStates = [...cardStates];
   const springsToMove: CardSpringProps[] = [];
-  const maxDelay = getDurationSeconds(gameSpeed) / 4;
+  const duration = getDurationSeconds(gameSpeed);
+  const maxDelay = duration / 4;
+  const fadeOutDurationPercent = 0.3;
 
   for (const cardState of newCardStates) {
     if (cardState.location) {
-      const destRef = playerDeckRefs.get(cardState.location);
-      const cardRef = deckCardRefs.get(cardState.cardIndex);
+      const destinationElement = playerDeckRefs.get(cardState.location)?.current;
+      const cardElement = deckCardRefs.get(cardState.cardIndex)?.current;
       const offsets = getDestinationOffset(cardState.location);
       const animationState = animationStates.find((s) => s.cardIndex === cardState.cardIndex);
       const animationControl = animationControls.find((s) => s.cardIndex === cardState.cardIndex);
       const lastSpring = animationControl?.animateValues.at(-1);
+      const initialDelay = 0.1 + Math.random() * maxDelay;
 
-      if (destRef?.current && cardRef?.current && animationState) {
-        const spring = getSpringMoveElement({
-          sourceElement: cardRef.current,
-          destinationElement: destRef.current,
-          relativeElement: undefined,
-          currentSourceSpring: lastSpring
-        });
+      if (destinationElement && cardElement && animationState && animationControl) {
+        const spring = getSpringToMoveToPlayer(
+          {
+            sourceElement: cardElement,
+            destinationElement: destinationElement,
+            relativeElement: undefined,
+            currentSpring: lastSpring
+          },
+          cardState,
+          animationState,
+          animationControl,
+          true
+        ).animateValues[0];
 
         spring.x += offsets.x;
         spring.y += offsets.y;
+        spring.opacity = 0;
         spring.rotate = (lastSpring?.rotate ?? 0) + (135 - Math.round(Math.random() * 270));
 
-        spring.transition = getTransitionForCardMoved(
-          animationState,
-          gameSpeed,
-          0.1 + Math.random() * maxDelay
-        );
+        spring.transition = getTransitionForCardMoved(animationState, gameSpeed, 1, initialDelay);
+        spring.transition = {
+          ...spring.transition,
+          opacity: {
+            duration: duration * fadeOutDurationPercent,
+            delay: duration * (1 - fadeOutDurationPercent)
+          }
+        };
         cardState.renderKey = uuidv4();
 
         springsToMove.push({
@@ -74,6 +87,18 @@ const getCardStatesMoveToPlayer = (
           animateValues: [spring],
           initialValue: undefined
         });
+
+        //       const delayBetweenMove = duration / variationDivisor;
+        // const delayVariationDuration = delayBetweenMove * Math.round(Math.random() * variationDivisor);
+        // const fadeOutDurationPercent = 0.3;
+        // const fadeOutDelay = (duration + delayVariationDuration) * (1 - fadeOutDurationPercent);
+
+        // transition = getTransitionForCardMoved(animationState, speed, 0.95, delayVariationDuration);
+        // transition = {
+        //   ...transition,
+        //   opacity: { duration: duration * fadeOutDurationPercent, delay: fadeOutDelay }
+        // };
+        // newSpring.transition = transition;
       }
     }
   }
@@ -136,7 +161,7 @@ const getStatesAnimateDealForDealer = (
   const delayBetweenMove: number = duration / 6;
   const newState: CardBaseState[] = [...cardStates];
 
-  const springsForDeal: CardSpringProps[] = getSpringsForDealForDealer(
+  const springsForDeal: AnimationSpringsResult = getSpringsForDealForDealer(
     outerTableRefs,
     deckCardRefs,
     directCenterH,
@@ -146,19 +171,32 @@ const getStatesAnimateDealForDealer = (
     initDealResult
   );
 
-  for (const updatedSpring of springsForDeal) {
-    const cardState = newState.at(updatedSpring.cardIndex);
-    const animationState = animationStates.at(updatedSpring.cardIndex);
-    const card = game.deck.at(updatedSpring.cardIndex);
+  const springCount = springsForDeal.cardSprings.length;
+  for (let i = 0; i < springCount; i++) {
+    const updatedSpring = springsForDeal.cardSprings[i];
+    const updatedFlipSpring = springsForDeal.flipSprings[i];
+
+    const cardState = newState.find((s) => s.cardIndex === updatedSpring.cardIndex);
+    const animationState = animationStates.find((s) => s.cardIndex === updatedSpring.cardIndex);
+    const card = game.deck.find((s) => s.index === updatedSpring.cardIndex);
+    const percentDurationForRotate = 0.66 + Math.random() * 0.1;
 
     if (cardState?.location && card && animationState) {
       const transition = getTransitionForCardDeal(
         animationState,
         gameSpeed,
+        percentDurationForRotate,
+        delayBetweenMove * cardState.cardIndex
+      );
+
+      const flipTransition = getTransitionForCardFlipped(
+        gameSpeed,
+        percentDurationForRotate,
         delayBetweenMove * cardState.cardIndex
       );
 
       updatedSpring.animateValues[0].transition = transition;
+      updatedFlipSpring.animateValues[0].transition = flipTransition;
       cardState.src = getEncodedCardSvg(card, cardState.location);
       cardState.cardFullName = getCardFullName(card);
       cardState.renderKey = uuidv4();
@@ -173,20 +211,21 @@ const getCardsStatesRegularDeal = (
   state: CardAnimationStateContext,
   game: EuchreGameInstance,
   gameSpeed: GameSpeed,
-  directCenterH: HTMLElement,
-  directCenterV: HTMLElement,
+  horizontalElement: HTMLElement,
+  verticalElement: HTMLElement,
   outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
   deckCardRefs: Map<number, RefObject<HTMLDivElement | null>>
 ) => {
   const rotation: EuchrePlayer[] = getPlayerRotation(game.gamePlayers, game.dealer);
   const duration: number = getDurationSeconds(gameSpeed);
-  const delayBetweenDeal: number = duration / 6;
+  const delayBetweenMove: number = duration / 6;
   const newStates = [...state.cardStates];
-  const springsForDeal: CardSpringProps[] = getSpringsForDealForRegularPlay(
+  const percentDurationForRotate = 0.66 + Math.random() * 0.1;
+  const springsForDeal: AnimationSpringsResult = getSpringsForDealForRegularPlay(
     outerTableRefs,
     deckCardRefs,
-    directCenterH,
-    directCenterV,
+    horizontalElement,
+    verticalElement,
     rotation,
     game.cardDealCount,
     game.deck,
@@ -195,19 +234,31 @@ const getCardsStatesRegularDeal = (
   );
 
   for (const cardState of newStates) {
-    const spring = springsForDeal.find((s) => s.cardIndex === cardState.cardIndex);
+    const updatedSpring = springsForDeal.cardSprings.find((s) => s.cardIndex === cardState.cardIndex);
+    const updatedFlipSpring = springsForDeal.flipSprings.find((s) => s.cardIndex === cardState.cardIndex);
+
     const card = game.deck.at(cardState.cardIndex);
     const cardIsTrump = cardState.cardIndex === game.trump.index;
     const animationState = state.animationStates.find((s) => s.cardIndex === cardState.cardIndex);
 
-    if (spring && card && animationState) {
-      spring.animateValues[0].transition = getTransitionForCardDeal(
+    if (updatedSpring && updatedFlipSpring && card && animationState) {
+      const transition = getTransitionForCardDeal(
         animationState,
         gameSpeed,
-        delayBetweenDeal * cardState.cardIndex
+        percentDurationForRotate,
+        delayBetweenMove * cardState.cardIndex
       );
 
-      cardState.location = spring.location;
+      const flipTransition = getTransitionForCardFlipped(
+        gameSpeed,
+        percentDurationForRotate,
+        delayBetweenMove * cardState.cardIndex
+      );
+
+      updatedSpring.animateValues[0].transition = transition;
+      updatedFlipSpring.animateValues[0].transition = flipTransition;
+
+      cardState.location = updatedSpring.location;
       cardState.renderKey = uuidv4();
     } else if (!cardIsTrump) {
       cardState.location = game.dealer.location;
@@ -243,57 +294,57 @@ const getStatesMoveAllCardsToPlayer = (
   return { newCardStates, springsToMove };
 };
 
-const getCardStatesForTrickTaken = (
-  cardPlayed: Card,
-  cardStates: CardBaseState[],
-  cardAnimations: CardAnimationControls[],
-  destinationLocation: TableLocation,
-  destinationElement: HTMLElement,
-  sourceElement: HTMLElement,
-  gameSpeed: GameSpeed
-) => {
-  const newCardStates = [...cardStates];
+// const getCardStatesForTrickTaken = (
+//   cardPlayed: Card,
+//   cardStates: CardBaseState[],
+//   cardAnimations: CardAnimationControls[],
+//   destinationLocation: TableLocation,
+//   destinationElement: HTMLElement,
+//   sourceElement: HTMLElement,
+//   gameSpeed: GameSpeed
+// ) => {
+//   const newCardStates = [...cardStates];
 
-  //newCardState.forEach((s) => (s.runEffectForState = undefined));
-  // const stateToUpdate = newCardStates.find((c) => c.cardIndex === cardPlayed.index);
+//newCardState.forEach((s) => (s.runEffectForState = undefined));
+// const stateToUpdate = newCardStates.find((c) => c.cardIndex === cardPlayed.index);
 
-  // if (!stateToUpdate) throw new Error('Card state not found for trick taken.');
+// if (!stateToUpdate) throw new Error('Card state not found for trick taken.');
 
-  // const newSpring = getSpringToMoveToPlayer(
-  //   sourceElement,
-  //   destinationElement,
-  //   destinationLocation,
-  //   stateToUpdate,
-  //   false,
-  //   gameSpeed
-  // ).animateValues;
+// const newSpring = getSpringToMoveToPlayer(
+//   sourceElement,
+//   destinationElement,
+//   destinationLocation,
+//   stateToUpdate,
+//   false,
+//   gameSpeed
+// ).animateValues;
 
-  // const duration = gameSpeed / 100;
-  // const transition: Transition = {
-  //   x: { duration: duration },
-  //   y: { duration: duration },
-  //   rotate: { duration: duration }
-  // };
+// const duration = gameSpeed / 100;
+// const transition: Transition = {
+//   x: { duration: duration },
+//   y: { duration: duration },
+//   rotate: { duration: duration }
+// };
 
-  // stateToUpdate.useInitValue = false;
-  // stateToUpdate.renderKey = uuidv4();
-  // stateToUpdate.springValue = {
-  //   x: newSpring.x,
-  //   y: newSpring.y,
-  //   rotate: newSpring.rotate
-  // };
+// stateToUpdate.useInitValue = false;
+// stateToUpdate.renderKey = uuidv4();
+// stateToUpdate.springValue = {
+//   x: newSpring.x,
+//   y: newSpring.y,
+//   rotate: newSpring.rotate
+// };
 
-  // stateToUpdate.transition = transition;
-  // stateToUpdate.runEffectForState = EuchreGameFlow.TRICK_FINISHED;
+// stateToUpdate.transition = transition;
+// stateToUpdate.runEffectForState = EuchreGameFlow.TRICK_FINISHED;
 
-  return newCardStates;
-};
+//   return newCardStates;
+// };
 
 export {
   getCardStatesMoveToPlayer,
   getSpringInitialMoveForDeal,
   getStatesAnimateDealForDealer,
   getCardsStatesRegularDeal,
-  getStatesMoveAllCardsToPlayer,
-  getCardStatesForTrickTaken
+  getStatesMoveAllCardsToPlayer
+  //getCardStatesForTrickTaken
 };

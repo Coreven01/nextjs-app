@@ -11,7 +11,8 @@ import clsx from 'clsx';
 import { AnimationControls, motion, TargetAndTransition } from 'framer-motion';
 import DummyCard from '../common/dummy-card';
 import { logConsole } from '../../../lib/euchre/util/util';
-import { CardAnimationControls, CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardAnimationControls } from '../../../lib/euchre/definitions/transform-definitions';
 
 interface Props {
   location: TableLocation;
