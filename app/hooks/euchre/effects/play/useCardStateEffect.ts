@@ -2,22 +2,23 @@ import {
   EuchreGameState,
   HandState,
   InitHandHandlers,
-  HandStateEffect
+  HandStateEffect,
+  PlayHandHandlers
 } from '../../../../lib/euchre/definitions/game-state-definitions';
 import useCardAnimationPhase from '../../phases/useCardAnimationPhase';
 import getEffectForInitHandState from '../../../../lib/euchre/util/play/cardStateInitializeUtil';
+import getEffectForPlayHandState from '../../../../lib/euchre/util/play/cardStatePlayUtil';
 
 const useCardStateEffect = (
   state: EuchreGameState,
   handState: HandState | undefined,
+  currentTrickId: string,
   cardRefsReady: boolean,
-  initHandler: InitHandHandlers
+  initHandler: InitHandHandlers,
+  playHandHandlers: PlayHandHandlers
 ) => {
-  const { getHandPhase, resetForNewHand, addPhaseExecuted, addPhaseCompleted } = useCardAnimationPhase(
-    state,
-    handState,
-    cardRefsReady
-  );
+  const { getHandPhase, resetForNewHand, addPhaseExecuted, addPhaseCompleted, addTrickHandled } =
+    useCardAnimationPhase(state, handState, cardRefsReady);
 
   // const { shouldCreateHandState, shouldCreateCardState } = useAnimationCardState(state);
   // const { euchreGame } = state;
@@ -139,23 +140,16 @@ const useCardStateEffect = (
 
     if (initEffect.func) return initEffect;
 
-    // const dealForDealerEffect = getEffectForDealForDealer(
-    //   getDeckPhase,
-    //   addPhaseExecuted,
-    //   addPhaseCompleted,
-    //   dealForDealerHandlers
-    // );
+    const playHandEffect = getEffectForPlayHandState(
+      getHandPhase,
+      addPhaseExecuted,
+      addPhaseCompleted,
+      addTrickHandled,
+      playHandHandlers,
+      currentTrickId
+    );
 
-    // if (dealForDealerEffect.func) return dealForDealerEffect;
-
-    // const regularDealEffect = getEffectForRegularDeal(
-    //   getDeckPhase,
-    //   addPhaseExecuted,
-    //   addPhaseCompleted,
-    //   regularDealHandlers
-    // );
-
-    // if (regularDealEffect.func) return regularDealEffect;
+    if (playHandEffect.func) return playHandEffect;
 
     return {};
   };

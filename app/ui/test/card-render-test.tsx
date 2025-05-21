@@ -53,7 +53,7 @@ const CardRenderTest = () => {
       controls: animationControl1,
       flipControl: flipControl1,
       initSpringValue: { x: 0, y: 10 },
-      animateValues: [],
+      animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
     [animationControl1, flipControl1]
@@ -65,7 +65,7 @@ const CardRenderTest = () => {
       controls: animationControl2,
       flipControl: flipControl2,
       initSpringValue: { x: cardSpace * 1, y: 5 },
-      animateValues: [],
+      animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
     [animationControl2, flipControl2]
@@ -77,7 +77,7 @@ const CardRenderTest = () => {
       controls: animationControl3,
       flipControl: flipControl3,
       initSpringValue: { x: cardSpace * 2, y: 0 },
-      animateValues: [],
+      animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
     [animationControl3, flipControl3]
@@ -89,7 +89,7 @@ const CardRenderTest = () => {
       flipControl: flipControl4,
       controls: animationControl4,
       initSpringValue: { x: cardSpace * 3, y: 5 },
-      animateValues: [],
+      animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
     [animationControl4, flipControl4]
@@ -101,7 +101,7 @@ const CardRenderTest = () => {
       controls: animationControl5,
       flipControl: flipControl5,
       initSpringValue: { x: cardSpace * 4, y: 10 },
-      animateValues: [],
+      animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
     [animationControl5, flipControl5]
@@ -225,13 +225,13 @@ const CardRenderTest = () => {
     const duration: number = Math.random() * 2 + 1;
     const wait: number = Math.random() + 1;
     const val1: TargetAndTransition = {
-      ...control.initSpringValue,
+      ...control.initSpring,
       opacity: 0,
       rotate: 180,
       transition: { duration: duration }
     };
     const endValue = {
-      ...control.initSpringValue,
+      ...control.initSpring,
       opacity: 1,
       rotate: 0,
       transition: { duration: duration }
@@ -365,7 +365,7 @@ const TestGameCard = memo(
           title={cardState.cardFullName}
           id={id}
           ref={ref}
-          initial={animationControls.initSpringValue}
+          initial={animationControls.initSpring}
           animate={animationControls.controls}
           draggable={false}
         >

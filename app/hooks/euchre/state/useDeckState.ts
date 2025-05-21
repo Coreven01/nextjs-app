@@ -12,6 +12,7 @@ import {
 import { CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
 import useDeckAnimationControls from './useDeckAnimationControls';
 
+/** State values used to animate dealing cards to players. */
 const useDeckState = () => {
   const animationControls = useDeckAnimationControls();
   const flipAnimiationControls = useDeckAnimationControls();
@@ -59,10 +60,10 @@ const useDeckState = () => {
           cardIndex: c.index,
           controls: control,
           flipControl,
-          initSpringValue: cardSpringProps.initialValue,
-          animateValues: cardSpringProps.animateValues,
-          initFlipSpring: flipSpringProps.initialValue,
-          animateFlipSpring: flipSpringProps.animateValues
+          initSpringValue: cardSpringProps.initialSpring,
+          animateValues: cardSpringProps.animateSprings,
+          initFlipSpring: flipSpringProps.initialSpring,
+          animateFlipSpring: flipSpringProps.animateSprings
         };
       });
 

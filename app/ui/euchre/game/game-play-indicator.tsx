@@ -13,23 +13,23 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 const GamePlayIndicator = ({ notificationSpeed, location, className }: Props) => {
   let locationClass = '';
   const icon: React.ReactNode = (
-    <CheckCircleIcon className="lg:min-h-[20px] lg:max-h-[22px] min-h-[16px] max-h-[18px] text-green-300" />
+    <CheckCircleIcon className="lg:min-h-[22px] lg:max-h-[24px] min-h-[18px] max-h-[20px] text-green-300" />
   );
 
   switch (location) {
     case 'bottom':
-      locationClass = 'top-1/4';
+      locationClass = 'bottom-1/3';
       break;
     case 'top':
-      locationClass = 'bottom-1/4';
+      locationClass = 'top-1/4';
       break;
     case 'left':
-      locationClass = 'right-1/4';
-      break;
-    case 'right':
       locationClass = 'left-1/4';
       break;
+    case 'right':
+      locationClass = 'righ-1/4';
   }
+
   return (
     <EphemeralModal
       key={uuidv4()}

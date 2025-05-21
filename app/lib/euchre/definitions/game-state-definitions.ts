@@ -26,8 +26,7 @@ import {
 } from '../../../hooks/euchre/reducers/playerNotificationReducer';
 import { EuchrePauseActionType, EuchrePauseState } from '../../../hooks/euchre/reducers/gamePauseReducer';
 import { InitDealResult } from './logic-definitions';
-import { CardSpringTarget, FlipSpringTarget } from './transform-definitions';
-import { AnimationControls } from 'framer-motion';
+import { CardSpringTarget } from './transform-definitions';
 import { GameEventHandlers } from '../../../hooks/euchre/useEventLog';
 
 export interface EuchreGameInstance {
@@ -174,6 +173,7 @@ export interface EuchreAnimationHandlers {
   onEndDealForDealerComplete: () => void;
   onTrickFinished: () => void;
   onCardPlayed: (cardPlayed: Card) => void;
+  onCardPlayedComplete: () => void;
   onPassDealComplete: () => void;
 }
 
@@ -336,7 +336,15 @@ export const HandStateActions = {
   RESET: 'Reset',
   CREATE_CARD: 'CreateCard',
   REGROUP: 'Regroup',
-  ANIMATE_REGROUP: 'AnimateRegroup'
+  ANIMATE_REGROUP: 'AnimateRegroup',
+  PASS_DEAL: 'PassDeal',
+  RE_ORDER_HAND: 'ReOrderHand',
+  TRICK_FINISHED: 'TrickFinished',
+  BEGIN_TURN: 'BeginTurn',
+  END_TURN: 'EndTurn',
+  SITTING_OUT: 'SittingOut',
+  PLAY_CARD: 'PlayCard',
+  ANIMATE_PLAY_CARD: 'AnimatePlayCard'
 } as const;
 
 export type HandStateAction = (typeof HandStateActions)[keyof typeof HandStateActions];
@@ -353,4 +361,15 @@ export interface InitHandHandlers {
   onCreateCardState: () => Promise<void>;
   onRegroupCards: () => Promise<void>;
   onAnimateRegroupCards: () => Promise<void>;
+}
+
+export interface PlayHandHandlers {
+  onPlayCard: () => Promise<void>;
+  onAnimatePlayCard: () => Promise<void>;
+  onPassDeal: () => Promise<void>;
+  onReorderHand: () => Promise<void>;
+  onPlayerSittingOut: () => Promise<void>;
+  onTrickFinished: () => Promise<void>;
+  onBeginPlayerTurn: () => Promise<void>;
+  onEndPlayerTurn: () => Promise<void>;
 }

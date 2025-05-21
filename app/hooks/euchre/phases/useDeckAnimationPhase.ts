@@ -18,6 +18,7 @@ export interface DeckPhase {
   action: DeckStateAction;
 }
 
+/** Controls which effect phase should be run based on the game state.  */
 const useDeckAnimationPhase = (
   state: EuchreGameState,
   deckState: DeckState | undefined,

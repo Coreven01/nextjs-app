@@ -2,16 +2,20 @@ import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotif
 import GameBorder from './game-border';
 import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
-import { RefObject, useEffect, useMemo, useRef } from 'react';
+import { RefObject, useEffect, useMemo } from 'react';
 import GameFlippedCard from './game-flipped-card';
 import { TableLocation } from '../../../lib/euchre/definitions/definitions';
-import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { CardBaseState, EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
 import GameTrumpIndicator from './game-trump-indicator';
 import { getCardFullName, getEncodedCardSvg } from '../../../lib/euchre/util/cardSvgDataUtil';
 import { GAME_STATES_FOR_BID } from '../../../lib/euchre/util/gameStateLogicUtil';
-import { DEFAULT_SPRING_VAL } from '../../../lib/euchre/definitions/transform-definitions';
+import { CardAnimationControls } from '../../../lib/euchre/definitions/transform-definitions';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnimation } from 'framer-motion';
+import { getDurationSeconds } from '../../../lib/euchre/util/play/cardTransformUtil';
+import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
+import { EuchreAnimateType } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
+import { logConsole } from '../../../lib/euchre/util/util';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameState;
@@ -31,8 +35,20 @@ const GameTable = ({
   directCenterVRef,
   ...rest
 }: Props) => {
-  const flippedUp = useRef(false);
-  const controls = useAnimation();
+  const cardControl = useAnimation();
+  const flipControl = useAnimation();
+  const duration = getDurationSeconds(state.euchreSettings.gameSpeed);
+
+  const animationControl: CardAnimationControls = {
+    cardIndex: 0,
+    controls: cardControl,
+    flipControl: flipControl,
+    initSpring: { x: 0, y: 0 },
+    initFlipSpring: { rotateY: 180, rotateX: 0 },
+    animateSprings: [],
+    animateFlipSprings: []
+  };
+
   const { euchreGame: game, euchreGameFlow: gameFlow } = { ...state };
   const hidePosition = !state.euchreSettings.debugShowPositionElements;
   const renderOrder = [
@@ -43,22 +59,24 @@ const GameTable = ({
     playerNotification.bottomGameInfo
   ];
 
+  const firstRound = !gameFlow.hasFirstBiddingPassed;
+  const animatePickUp = firstRound && gameFlow.gameFlow === EuchreGameFlow.BEGIN_ORDER_TRUMP;
+
   const gameBidding = game.maker === null && GAME_STATES_FOR_BID.includes(gameFlow.gameFlow);
-  const gamePlay = game.maker !== null;
+  const showFaceUp = (gameBidding && firstRound) || animatePickUp;
+  const showTrumpIndicator = game.maker !== null && !animatePickUp;
 
   useEffect(() => {
     const flipCardAnimation = async () => {
-      if (!flippedUp && gameBidding && !gameFlow.hasFirstBiddingPassed) {
-        await controls.start({
-          ...DEFAULT_SPRING_VAL,
+      if (showFaceUp) {
+        await flipControl.start({
           rotateY: 0,
-          transition: { rotateY: { duration: 0.75 } }
+          transition: { rotateY: { delay: duration, duration: duration } }
         });
       } else {
-        await controls.start({
-          ...DEFAULT_SPRING_VAL,
+        await flipControl.start({
           rotateY: 180,
-          transition: { rotateY: { duration: 0.75 } }
+          transition: { rotateY: { duration: duration } }
         });
       }
     };
@@ -66,25 +84,24 @@ const GameTable = ({
     flipCardAnimation();
   });
 
-  // const cardState: CardState = useMemo(
-  //   () => ({
-  //     src: getEncodedCardSvg(game.trump, 'top'),
-  //     cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
-  //     cardIndex: 0,
-  //     controls: controls,
-  //     initSpringValue: {
-  //       ...DEFAULT_SPRING_VAL,
-  //       opacity: 1,
-  //       rotateY: 180,
-  //       transition: { rotateY: { duration: 0 } }
-  //     },
-  //     animateValues: [],
-  //     enabled: false,
-  //     renderKey: uuidv4()
-  //   }),
-  //   [controls, game.trump, gameBidding]
-  // );
+  useEffect(() => {
+    if (animatePickUp) {
+      logConsole('animate pickup');
+    }
+  }, [animatePickUp]);
 
+  const cardState: CardBaseState = useMemo(
+    () => ({
+      src: getEncodedCardSvg(game.trump, 'top'),
+      cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
+      cardIndex: 0,
+      enabled: false,
+      renderKey: uuidv4()
+    }),
+    [game.trump, gameBidding]
+  );
+
+  logConsole('set variable animate pickup: ', animatePickUp);
   return (
     <GameBorder innerClass="bg-yellow-800 relative" className="h-full shadow-md shadow-black">
       <WoodenBoard className="absolute h-full w-full top-0 left-0 overflow-hidden" rows={25} />
@@ -133,8 +150,14 @@ const GameTable = ({
           id="game-info"
           className="col-span-1 col-start-2 row-start-2 relative flex justify-center items-center"
         >
-          {/* <GameFlippedCard cardState={cardState} card={game.trump} key={game.handId} visible={gameBidding} /> */}
-          {gamePlay && (
+          <GameFlippedCard
+            animationControl={animationControl}
+            cardState={cardState}
+            card={game.trump}
+            key={game.handId}
+            visible={gameBidding || showFaceUp}
+          />
+          {showTrumpIndicator && (
             <GameTrumpIndicator
               notificationSpeed={state.euchreSettings.notificationSpeed}
               trumpSuit={game.trump.suit}

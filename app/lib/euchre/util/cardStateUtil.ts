@@ -15,22 +15,26 @@ const runCardAnimations = async (animationControls: CardAnimationControls[]) => 
   const animations: Promise<void>[] = [];
 
   for (const cardAnimation of animationControls) {
-    const startAnimation1 = async (): Promise<void> => {
-      for (const animateValue of cardAnimation.animateValues) {
-        await cardAnimation.controls?.start(animateValue);
-      }
-    };
-
-    animations.push(startAnimation1());
-
-    const startAnimation2 = async (): Promise<void> => {
-      if (cardAnimation.animateFlipSpring)
-        for (const animateValue of cardAnimation.animateFlipSpring) {
-          await cardAnimation.flipControl?.start(animateValue);
+    if (cardAnimation.animateSprings.length > 0) {
+      const startAnimation = async (): Promise<void> => {
+        for (const animateValue of cardAnimation.animateSprings) {
+          await cardAnimation.controls?.start(animateValue);
         }
-    };
+      };
 
-    animations.push(startAnimation2());
+      animations.push(startAnimation());
+    }
+
+    if (cardAnimation.animateFlipSprings && cardAnimation.animateFlipSprings.length > 0) {
+      const startAnimation = async (): Promise<void> => {
+        if (cardAnimation.animateFlipSprings)
+          for (const animateValue of cardAnimation.animateFlipSprings) {
+            await cardAnimation.flipControl?.start(animateValue);
+          }
+      };
+
+      animations.push(startAnimation());
+    }
   }
 
   await Promise.all(animations);
@@ -62,10 +66,10 @@ const createCardStatesFromGameDeck = (
     const control = controls[card.index];
     const flipControl = flipControls[card.index];
     const initProps = initCardSpring.find((s) => s.cardIndex === card.index);
-    const springValue = initProps?.initialValue
-      ? { ...initProps.initialValue, zIndex: initZIndex + card.index * zIndexMultiplier }
+    const springValue = initProps?.initialSpring
+      ? { ...initProps.initialSpring, zIndex: initZIndex + card.index * zIndexMultiplier }
       : undefined;
-    const animateValue = initProps?.animateValues ?? [];
+    const animateValue = initProps?.animateSprings ?? [];
     const initFlipProps = initFlipSprings.find((s) => s.cardIndex === card.index);
 
     cardStates.push(createCardBaseState(card, location, includeCardValue));
@@ -74,10 +78,10 @@ const createCardStatesFromGameDeck = (
       cardIndex: card.index,
       controls: control,
       flipControl,
-      initSpringValue: springValue,
-      animateValues: animateValue,
-      initFlipSpring: initFlipProps?.initialValue,
-      animateFlipSpring: initFlipProps?.animateValues
+      initSpring: springValue,
+      animateSprings: animateValue,
+      initFlipSpring: initFlipProps?.initialSpring,
+      animateFlipSprings: initFlipProps?.animateSprings
     });
   }
 

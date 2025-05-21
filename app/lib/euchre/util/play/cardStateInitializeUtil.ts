@@ -1,6 +1,5 @@
 import { HandPhase } from '../../../../hooks/euchre/phases/useCardAnimationPhase';
 import {
-  DeckStatePhases,
   InitHandHandlers,
   HandStateEffect,
   HandStateActions,
@@ -21,23 +20,23 @@ const getEffectForInitHandState = (
   };
 
   const handleCreateHandState = async () => {
-    addPhaseExecuted({ phase: DeckStatePhases.INIT, action: HandStateActions.CREATE_HAND });
+    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_HAND });
     await initHandHandler.onCreateHandState();
   };
 
   const handleCreateCardState = async () => {
-    addPhaseExecuted({ phase: DeckStatePhases.INIT, action: HandStateActions.CREATE_CARD });
+    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_CARD });
     await initHandHandler.onCreateCardState();
-    addPhaseCompleted({ phase: DeckStatePhases.INIT, action: HandStateActions.CREATE_CARD });
+    addPhaseCompleted({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_CARD });
   };
 
   const handleRegroupCards = async () => {
-    addPhaseExecuted({ phase: DeckStatePhases.INIT, action: HandStateActions.REGROUP });
+    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.REGROUP });
     await initHandHandler.onRegroupCards();
   };
 
   const handleAnimateRegroup = async () => {
-    addPhaseExecuted({ phase: DeckStatePhases.INIT, action: HandStateActions.ANIMATE_REGROUP });
+    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.ANIMATE_REGROUP });
     await initHandHandler.onAnimateRegroupCards();
   };
 

@@ -60,10 +60,10 @@ const useCardState = () => {
           cardIndex: c.index,
           controls: control,
           flipControl,
-          initSpringValue: cardSpringProps.initialValue,
-          animateValues: cardSpringProps.animateValues,
-          initFlipSpring: flipSpringProps.initialValue,
-          animateFlipSpring: flipSpringProps.animateValues
+          initSpringValue: cardSpringProps.initialSpring,
+          animateValues: cardSpringProps.animateSprings,
+          initFlipSpring: flipSpringProps.initialSpring,
+          animateFlipSpring: flipSpringProps.animateSprings
         };
       });
 

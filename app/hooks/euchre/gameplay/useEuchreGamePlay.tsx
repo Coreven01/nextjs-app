@@ -42,6 +42,7 @@ import {
 } from '../../../lib/euchre/util/gamePlayEventsUtil';
 import { determineCardToPlay } from '../../../lib/euchre/util/gamePlayLogicUtil';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
+import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
 
 const useEuchreGamePlay = (
   state: EuchreGameValues,
@@ -57,9 +58,9 @@ const useEuchreGamePlay = (
     shouldAnimateBeginPlayCardResult,
     shouldEndPlayCardResult,
     shouldAnimateEndPlayCardResult,
-    shouldBeginTrickFinished,
     shouldAnimateBeginTrickFinished,
     pauseForPlayCard,
+    pauseForPlayCardAnimation,
     continueToAnimateBeginPlayCard,
     continueToEndPlayCard,
     continueToAnimateBeginPlayCardResult,
@@ -72,7 +73,8 @@ const useEuchreGamePlay = (
     pauseForTrickFinished,
     resetForNewHand
   } = useGamePlayState(state, setters, errorHandlers);
-  const { euchreGame, euchreGameFlow, euchreSettings, euchrePauseState, playedCard } = state;
+  const { euchreGame, euchreGameFlow, euchreAnimationFlow, euchreSettings, euchrePauseState, playedCard } =
+    state;
   /**
    * Show an indicator in the player's area to show which card won.
    */
@@ -125,6 +127,16 @@ const useEuchreGamePlay = (
     }
   };
 
+  const handleCardPlayedComplete = () => {
+    if (
+      euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_PLAY_CARD &&
+      euchreAnimationFlow.animationType === EuchreAnimateType.ANIMATE &&
+      euchrePauseState.pauseType === EuchrePauseType.ANIMATE
+    ) {
+      continueToEndPlayCard();
+    }
+  };
+
   /**
    *
    */
@@ -135,7 +147,7 @@ const useEuchreGamePlay = (
     ) {
       continueToAnimateTrickFinished();
     }
-  }, [continueToAnimateTrickFinished, shouldBeginTrickFinished]);
+  }, [continueToAnimateTrickFinished, euchreGameFlow.gameFlow, euchrePauseState.pauseType]);
 
   //#region Play Card *************************************************************************
 
@@ -214,13 +226,14 @@ const useEuchreGamePlay = (
       playerAutoPlayed.current = false;
 
       // this state triggers a re-order of player's hand in useCardState.ts
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      //await new Promise((resolve) => setTimeout(resolve, 50));
 
-      continueToEndPlayCard();
+      //continueToEndPlayCard();
+      pauseForPlayCardAnimation();
     };
 
     errorHandlers.catchAsync(animateBeginPlayCards, errorHandlers.onError, 'animateBeginPlayCards');
-  }, [continueToEndPlayCard, errorHandlers, setters, shouldAnimateBeginPlayCard]);
+  }, [continueToEndPlayCard, errorHandlers, pauseForPlayCardAnimation, setters, shouldAnimateBeginPlayCard]);
 
   /**
    *
@@ -394,6 +407,7 @@ const useEuchreGamePlay = (
     euchreSettings,
     eventHandlers,
     getPlayerNotificationCheck,
+    pauseForTrickFinished,
     setters,
     shouldAnimateEndPlayCardResult,
     state
@@ -445,7 +459,7 @@ const useEuchreGamePlay = (
 
   //#endregion
 
-  return { handleCardPlayed, handleCloseHandResults, handleTrickFinished };
+  return { handleCardPlayed, handleCardPlayedComplete, handleCloseHandResults, handleTrickFinished };
 };
 
 export default useEuchreGamePlay;

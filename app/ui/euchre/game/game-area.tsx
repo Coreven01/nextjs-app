@@ -52,7 +52,7 @@ const GameArea = ({
   onCancel,
   ...rest
 }: Props) => {
-  const { state, eventHandlers, errorHandlers, animationHandlers } = gameContext;
+  const { state } = gameContext;
 
   /** Elements associated with the player's center. Used when playing a card to the center of the table. */
   const centerTableRefs = useTableRefs();

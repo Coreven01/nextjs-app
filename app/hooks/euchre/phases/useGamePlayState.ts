@@ -83,6 +83,14 @@ const useGamePlayState = (state: EuchreGameValues, setters: EuchreGameSetters, h
     );
   };
 
+  const pauseForPlayCardAnimation = () => {
+    setters.dispatchStateChange(
+      EuchreGameFlow.BEGIN_PLAY_CARD,
+      EuchreAnimationActionType.SET_ANIMATE,
+      EuchrePauseActionType.SET_ANIMATE
+    );
+  };
+
   const pauseForPrompt = () => {
     setters.dispatchStateChange(
       EuchreGameFlow.END_PLAY_CARD_RESULT,
@@ -197,7 +205,8 @@ const useGamePlayState = (state: EuchreGameValues, setters: EuchreGameSetters, h
     pauseForTrickFinished,
     continueToAnimateTrickFinished,
     pauseForPrompt,
-    resetForNewHand
+    resetForNewHand,
+    pauseForPlayCardAnimation
   };
 };
 

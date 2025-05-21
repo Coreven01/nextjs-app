@@ -37,13 +37,13 @@ export interface CardPosition {
 }
 
 export interface CardSpringProps extends CardPosition {
-  initialValue: CardSpringTarget | undefined;
-  animateValues: CardSpringTarget[];
+  initialSpring: CardSpringTarget | undefined;
+  animateSprings: CardSpringTarget[];
 }
 
 export interface FlipSpringProps extends CardPosition {
-  initialValue: FlipSpringTarget | undefined;
-  animateValues: FlipSpringTarget[];
+  initialSpring: FlipSpringTarget | undefined;
+  animateSprings: FlipSpringTarget[];
 }
 
 export interface CreateCardStatesContext {
@@ -67,12 +67,12 @@ export interface CardAnimationState extends CardIndex {
 }
 
 export interface CardAnimationControls extends CardIndex {
-  initSpringValue?: CardSpringTarget;
-  animateValues: CardSpringTarget[];
+  initSpring?: CardSpringTarget;
+  animateSprings: CardSpringTarget[];
   controls: AnimationControls | undefined;
   flipControl: AnimationControls | undefined;
   initFlipSpring?: FlipSpringTarget;
-  animateFlipSpring?: FlipSpringTarget[];
+  animateFlipSprings?: FlipSpringTarget[];
 }
 
 export interface CardAnimationStateContext {

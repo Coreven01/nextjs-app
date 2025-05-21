@@ -14,7 +14,7 @@ type Props = {
 
   /** Card to played without user interaction. Used for auto play. */
   playedCard: Card | null;
-  playerCenterTableRef: RefObject<HTMLDivElement | null> | undefined;
+  playerCenterTableRef: RefObject<HTMLDivElement | null>;
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
   directCenterHRef: RefObject<HTMLDivElement | null>;
   directCenterVRef: RefObject<HTMLDivElement | null>;
@@ -47,7 +47,7 @@ const PlayerHand = ({
     cardStates,
     animationControls,
     getCardsToDisplay,
-    handlePlayCardAnimation,
+    handlePlayCard,
     updateCardStateForTurn,
     setRefsReady
   } = useCardAnimation(
@@ -55,11 +55,10 @@ const PlayerHand = ({
     player,
     directCenterHRef.current,
     directCenterVRef.current,
+    playerCenterTableRef?.current,
     playerDeckRefs,
-    onTrickComplete,
-    onPassDeal,
-    onCardPlayed,
-    onDealComplete
+    onDealComplete,
+    onTrickComplete
   );
   const { euchreGame, euchreSettings } = gameContext.state;
 
@@ -87,17 +86,19 @@ const PlayerHand = ({
       cardIndicesPlayed.current.set(euchreGame.currentTrick.trickId, playedCard.index);
       logConsole('[PLAYERHAND] [useEffect] [handlePlayCardAnimation], auto played card: ', playedCard);
 
-      const tableRef = playerCenterTableRef?.current;
+      const playerTableElement = playerCenterTableRef?.current;
 
-      if (!tableRef)
+      if (!playerTableElement)
         logError(
-          '[PLAYERHAND] [useEffect] [handlePlayCardAnimation] - Invalid table ref. Card animation was not handled.'
+          '[PLAYERHAND] [useEffect] [handlePlayCardAnimation] - Invalid table element. Card animation was not handled.'
         );
       else {
-        handlePlayCardAnimation(playedCard.index, tableRef);
+        handlePlayCard(playedCard.index);
+        //throw new Error('not implemented');
+        //onCardPlayed(playedCard);
       }
     }
-  }, [handlePlayCardAnimation, playedCard, playerCenterTableRef, euchreGame.currentTrick.trickId]);
+  }, [handlePlayCard, playedCard, playerCenterTableRef, euchreGame.currentTrick.trickId]);
   //#endregion
 
   const playerCurrentHand: Card[] = getCardsToDisplay();
@@ -116,11 +117,11 @@ const PlayerHand = ({
       cardIndicesPlayed.current.set(euchreGame.currentTrick.trickId, cardIndex);
 
       const delay = incrementSpeed(euchreSettings.gameSpeed, 1);
-      const tableRef = playerCenterTableRef?.current;
+      const tableElement = playerCenterTableRef?.current;
 
       updateCardStateForTurn(false);
 
-      if (!tableRef) {
+      if (!tableElement) {
         logError(
           '[PLAYERHAND] [useEffect] [handleCardClick] - Invalid table ref. Card animation was not handled.'
         );
@@ -132,7 +133,7 @@ const PlayerHand = ({
         isCardClickHandled.current = false;
       }, delay);
 
-      handlePlayCardAnimation(cardIndex, tableRef);
+      handlePlayCard(cardIndex);
     }
   };
 
