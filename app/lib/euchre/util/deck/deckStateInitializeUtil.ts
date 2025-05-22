@@ -10,7 +10,9 @@ const getEffectForInitDeckState = (
   getDeckPhase: () => DeckPhase | undefined,
   resetForNewDeal: () => void,
   addPhaseExecuted: (phase: DeckPhase) => void,
-  initDealHandler: InitDealHandlers
+  setCurrentInitializedId: (id: string) => void,
+  initDealHandler: InitDealHandlers,
+  handId: string
 ) => {
   //#region Initialize Deck State Handlers
   const handleDealerChanged = async () => {
@@ -26,7 +28,9 @@ const getEffectForInitDeckState = (
 
   const handleStateCreating = async () => {
     addPhaseExecuted({ phase: DeckStatePhases.INIT, action: DeckStateActions.CREATE });
+    setCurrentInitializedId(handId);
     await initDealHandler.onStateCreating();
+
     // isDealStateInitializedRef.current = true;
     // initMoveCardsIntoPosition.current = false;
   };

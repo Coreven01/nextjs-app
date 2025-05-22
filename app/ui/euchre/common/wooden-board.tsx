@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { createRange } from '../../../lib/euchre/util/util';
 
 const height = 25;
@@ -12,10 +12,10 @@ const boardRowVals = [
   [7, 8, 2, 4, 1, 9],
   [1, 3, 5, 7, 8, 2],
   [9, 2, 1, 3, 7, 5],
-  [3, 8, 5, 7, 9, 2]
+  [3, 8, 5, 6, 9, 2]
 ];
 
-const boardRowOffset = ['-left-64', '-left-8', '-left-32', '-left-24', '-left-8', '-left-24', '-left-16'];
+const boardRowOffset = ['-left-64', '-left-16', '-left-32', '-left-24', '-left-4', '-left-20', '-left-8'];
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   rows: number;
@@ -28,16 +28,17 @@ const WoodenBoard = ({ rows, className }: Props) => {
     const boardRows: React.ReactNode[] = [];
 
     rowValues.map((v) => {
-      const index = v % boardRowVals.length;
+      const valueOffset = v;
+      const index = valueOffset % boardRowVals.length;
       const values = boardRowVals[index];
       const offset = boardRowOffset[index];
 
       boardRows.push(
-        <div key={v} className="flex overflow-hidden">
+        <div key={valueOffset} className="flex overflow-hidden">
           {values.map((i) => {
             return (
               <Image
-                key={`${v}${i}`}
+                key={`${valueOffset}${i}`}
                 src={`/wooden/wooden-${i}.jpg`}
                 width={width}
                 height={height}

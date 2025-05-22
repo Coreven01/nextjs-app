@@ -18,7 +18,7 @@ import {
   addAnimateForDealForRegularPlayEvent,
   addResetForDealerEvent
 } from '../../../../lib/euchre/util/deck/deckStateEventsUtil';
-import { gameDelay, notificationDelay } from '../../../../lib/euchre/util/gameDataUtil';
+import { notificationDelay } from '../../../../lib/euchre/util/gameDataUtil';
 import {
   CardAnimationStateContext,
   CardSpringProps,
@@ -49,16 +49,20 @@ const useDeckAnimation = (
   gameContext: GamePlayContext,
   initDealer: InitDealResult | null,
   outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
-  centerHorizontalRef: HTMLDivElement | null,
-  centerVerticalRef: HTMLDivElement | null
+  centerHorizontalElement: HTMLElement | null,
+  centerVerticalElement: HTMLElement | null
 ) => {
   const { state, eventHandlers, errorHandlers, animationHandlers } = gameContext;
   const { euchreGame, euchreSettings, euchreGameFlow } = state;
   const [renderKey, setRenderKey] = useState<string>('');
 
-  /** Game deck state of values used when rendering the game deck and for animation. */
+  /** Values associated with the deck state used when rendering the deck and for animation. */
   const [deckState, setDeckState] = useState<DeckState | undefined>();
+
+  /** Used to move the entire deck element to the player's position for deal. */
   const deckAnimationControls = useAnimation();
+
+  /** Values for the cards in the deck associated with animation individual cards. */
   const {
     stateContext,
     setDeckCardsAnimationControls,
@@ -66,6 +70,7 @@ const useDeckAnimation = (
     setDeckCardsAnimationStates,
     createStates
   } = useDeckState();
+
   const { cardStates, animationControls, animationStates } = stateContext;
 
   /** Elements associated with a player's area, outside of the table. */
@@ -89,7 +94,9 @@ const useDeckAnimation = (
 
   /** ************************************************************************************************************************************* */
 
-  /** */
+  /** Used to determine when the game deck element has been first rendered. Ref elements that have been passed to the game deck
+   * should now have a value set to a card in the deck.
+   */
   const handleRefChange = useCallback(
     (ready: boolean) => {
       setRefsReady(ready);
@@ -101,17 +108,17 @@ const useDeckAnimation = (
    * element that bisects the game table.
    */
   const getRelativeCenter = useCallback(
-    (location: TableLocation) => {
+    (location: TableLocation): HTMLElement | null => {
       if (location === 'top' || location === 'bottom') {
-        return centerHorizontalRef;
+        return centerHorizontalElement;
       } else {
-        return centerVerticalRef;
+        return centerVerticalElement;
       }
     },
-    [centerHorizontalRef, centerVerticalRef]
+    [centerHorizontalElement, centerVerticalElement]
   );
 
-  /** Update state values to the new values passed as parameters. */
+  /** Update card state values to the new values passed as parameters. */
   const updateCardBaseAndAnimationSprings = useCallback(
     (
       stateContext: CardAnimationStateContext,
@@ -135,8 +142,9 @@ const useDeckAnimation = (
     [setDeckCardStates, setDeckCardsAnimationControls]
   );
 
-  //#region Deck State Reset Effect Hook
+  //#region Deck State Reset
 
+  /** Create deck state values from game values. */
   const createInitDeckState = useCallback(() => {
     const location: TableLocation = euchreGame.dealer.location;
 
@@ -191,6 +199,7 @@ const useDeckAnimation = (
         ...DEFAULT_SPRING_VAL
       };
 
+      // rotate value is set to 180 if card is flipped face down.
       const initFlipSpringValue: FlipSpringTarget = {
         rotateY: centerLocation ? 180 : 0,
         rotateX: centerLocation ? 0 : 180
@@ -278,12 +287,10 @@ const useDeckAnimation = (
    * */
   const setCardStatesForAnimateDealForDealer = useCallback(() => {
     if (!deckState) throw new Error(`${ERR_ID} - Invalid deck state for dealing cards.`);
-
-    const horizontalElement = centerHorizontalRef;
-    const verticalElement = centerVerticalRef;
-
-    if (!horizontalElement) throw new Error(`${ERR_ID} - Invalid direct center ref for initializing deal.`);
-    if (!verticalElement) throw new Error(`${ERR_ID} - Invalid direct center ref for initializing deal.`);
+    if (!centerHorizontalElement)
+      throw new Error(`${ERR_ID} - Invalid direct center ref for initializing deal.`);
+    if (!centerVerticalElement)
+      throw new Error(`${ERR_ID} - Invalid direct center ref for initializing deal.`);
     if (!initDealer) throw new Error(`${ERR_ID} - Invalid deal result for dealing cards.`);
 
     const newStates = getStatesAnimateDealForDealer(
@@ -291,8 +298,8 @@ const useDeckAnimation = (
       animationStates,
       euchreGame,
       euchreSettings.gameSpeed,
-      horizontalElement,
-      verticalElement,
+      centerHorizontalElement,
+      centerVerticalElement,
       outerTableRefs,
       deckCardRefs,
       initDealer
@@ -312,8 +319,8 @@ const useDeckAnimation = (
     cardStates,
     animationControls,
     animationStates,
-    centerHorizontalRef,
-    centerVerticalRef,
+    centerHorizontalElement,
+    centerVerticalElement,
     euchreGame,
     euchreSettings.gameSpeed,
     deckState,
@@ -328,16 +335,20 @@ const useDeckAnimation = (
   const animateMoveCardsIntoPosition = useCallback(async () => {
     if (!deckState) throw new Error(`${ERR_ID} - Invalid game deck state for initializing deal.`);
 
-    const destRef = playerDeckRefs.get(deckState.location);
-    const directCenterRef = getRelativeCenter(deckState.location);
+    const destinationElement = playerDeckRefs.get(deckState.location)?.current;
+    const directCenterElement = getRelativeCenter(deckState.location);
 
-    if (!destRef?.current) throw new Error(`${ERR_ID} - Invalid destination ref for initializing deal.`);
-    if (!gameDeckRef.current) throw new Error(`${ERR_ID} - Invalid game deck ref for initializing deal.`);
-    if (!directCenterRef) throw new Error(`${ERR_ID} - Invalid direct center ref for initializing deal.`);
+    if (!destinationElement)
+      throw new Error(`${ERR_ID} - Invalid destination element for initializing deal.`);
+
+    if (!gameDeckRef.current) throw new Error(`${ERR_ID} - Invalid game deck element for initializing deal.`);
+
+    if (!directCenterElement)
+      throw new Error(`${ERR_ID} - Invalid direct center element for initializing deal.`);
 
     const initialMoves = getSpringInitialMoveForDeal(
-      destRef.current,
-      directCenterRef,
+      destinationElement,
+      directCenterElement,
       gameDeckRef.current,
       euchreSettings.gameSpeed
     );
@@ -351,11 +362,12 @@ const useDeckAnimation = (
   /** Reset the deck state to deal a new set of cards. */
   const handleCreateDealStates = useCallback(async () => {
     addResetForDealerEvent(state, eventHandlers);
+
     await initDeckStateForNewDealer();
     await initCardStatesForNewDealer(false);
   }, [eventHandlers, initCardStatesForNewDealer, initDeckStateForNewDealer, state]);
 
-  /** */
+  /**  */
   const initDealHandlers: InitDealHandlers = {
     onDealerChanged: () => new Promise<void>((resolve) => setTimeout(resolve, 25)),
     onStateCreating: handleCreateDealStates
@@ -367,7 +379,7 @@ const useDeckAnimation = (
 
   //#region Deck State Deal For Dealer Effect Hook
 
-  /** Handler to move cards into position for initial deal and set state to animate cards being dealt for initial dealer. */
+  /** Handler to move cards into position for initial deal, and set card states to animate cards being dealt for initial dealer. */
   const handleMoveCardsIntoPositionDealForDealer = useCallback(async () => {
     addAnimateForBeginDealForDealerEvent(true, !dealAnimationEnabled, state, eventHandlers);
 
@@ -388,13 +400,14 @@ const useDeckAnimation = (
    */
   const setCardStateMoveCardsToPlayer = useCallback(
     (destinationPlayer: EuchrePlayer) => {
-      const destRef = playerDeckRefs.get(destinationPlayer.location);
-      if (!destRef?.current) throw new Error(`${ERR_ID} - Invalid destination ref to move cards to dealer`);
+      const destinationElement = playerDeckRefs.get(destinationPlayer.location)?.current;
+      if (!destinationElement)
+        throw new Error(`${ERR_ID} - Invalid destination element to move cards to dealer`);
 
       const newStates = getStatesMoveAllCardsToPlayer(
         stateContext,
         destinationPlayer.location,
-        destRef.current,
+        destinationElement,
         deckCardRefs,
         euchreSettings.gameSpeed
       );
@@ -461,20 +474,17 @@ const useDeckAnimation = (
   /** Create the animation values for the cards being dealt for regular play.
    */
   const setCardStateForDealCardsForRegularPlay = useCallback(() => {
-    const horizontalElement = centerHorizontalRef;
-    const verticalElement = centerVerticalRef;
-
-    if (!horizontalElement)
-      throw new Error(`${ERR_ID} - Invalid direct center ref for dealing cards for regular play.`);
-    if (!verticalElement)
-      throw new Error(`${ERR_ID} - Invalid direct center ref for dealing cards for regular play.`);
+    if (!centerHorizontalElement)
+      throw new Error(`${ERR_ID} - Invalid direct center element for dealing cards for regular play.`);
+    if (!centerVerticalElement)
+      throw new Error(`${ERR_ID} - Invalid direct center element for dealing cards for regular play.`);
 
     const newStates = getCardsStatesRegularDeal(
       stateContext,
       euchreGame,
       euchreSettings.gameSpeed,
-      horizontalElement,
-      verticalElement,
+      centerHorizontalElement,
+      centerVerticalElement,
       outerTableRefs,
       deckCardRefs
     );
@@ -492,8 +502,8 @@ const useDeckAnimation = (
     animationControls,
     animationStates,
     deckCardRefs,
-    centerHorizontalRef,
-    centerVerticalRef,
+    centerHorizontalElement,
+    centerVerticalElement,
     euchreGame,
     euchreSettings.gameSpeed,
     outerTableRefs,
@@ -534,15 +544,11 @@ const useDeckAnimation = (
   /** Handler to move cards into position for initial deal and set state to animate cards being dealt for initial dealer. */
   const handleMoveCardsIntoPositionRegularDeal = useCallback(async () => {
     addAnimateForDealForRegularPlayEvent(true, !dealAnimationEnabled, state, eventHandlers);
-
-    await gameDelay(euchreSettings);
     await animateMoveCardsIntoPosition();
-
     setCardStateForDealCardsForRegularPlay();
   }, [
     animateMoveCardsIntoPosition,
     dealAnimationEnabled,
-    euchreSettings,
     eventHandlers,
     setCardStateForDealCardsForRegularPlay,
     state

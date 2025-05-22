@@ -14,7 +14,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAnimation } from 'framer-motion';
 import { getDurationSeconds } from '../../../lib/euchre/util/play/cardTransformUtil';
 import { EuchreGameFlow } from '../../../hooks/euchre/reducers/gameFlowReducer';
-import { EuchreAnimateType } from '../../../hooks/euchre/reducers/gameAnimationFlowReducer';
 import { logConsole } from '../../../lib/euchre/util/util';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {

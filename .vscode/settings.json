@@ -1,6 +1,7 @@
 {
   "emmet.excludeLanguages": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
 
+  "workbench.editor.restoreViewState": false,
   "editor.autoClosingBrackets": "never",
   "editor.autoClosingQuotes": "never",
   "editor.acceptSuggestionOnEnter": "off",

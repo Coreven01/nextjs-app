@@ -31,6 +31,7 @@ import {
   getDurationSeconds,
   getSpringsForBeginNewHand,
   getSpringsForCardPlayed,
+  getSpringsGroupHand,
   getSpringsPlayerHandInitDeal,
   getSpringToMoveToPlayer,
   groupHand
@@ -83,6 +84,7 @@ const useCardAnimation = (
 
   const { state, eventHandlers, errorHandlers, animationHandlers } = gameContext;
   const { euchreGame, euchreGameFlow, euchreSettings } = state;
+
   const playerCardsVisible = handState !== undefined && cardStates.length > 0;
   const currentTrick = euchreGame.currentTrick;
 
@@ -338,25 +340,25 @@ const useCardAnimation = (
   ]);
 
   /** Animates flipping a player's hand so the card values are visible. */
-  const animateFlipPlayerHand = useCallback(() => {
-    // const newCardStates: CardBaseState[] = [...cardStates];
-    // const location = player.location;
-    // for (const cardState of newCardStates) {
-    //   const card = player.hand[cardState.cardIndex];
-    //   cardState.cardFullName = getCardFullName(card);
-    //   cardState.src = getEncodedCardSvg(card, location);
-    //   cardState.renderKey = uuidv4();
-    //   // if (cardState.springValue) {
-    //   //   cardState.springValue = {
-    //   //     ...cardState.springValue,
-    //   //     rotateX: 0,
-    //   //     rotateY: 0
-    //   //   };
-    //   //   //cardState.transition = { transition: { rotateY: { duration: 0.3 }, rotateX: { duration: 0.3 } } };
-    //   // }
-    // }
-    // setCardStates(newCardStates);
-  }, []);
+  //const animateFlipPlayerHand = useCallback(() => {
+  // const newCardStates: CardBaseState[] = [...cardStates];
+  // const location = player.location;
+  // for (const cardState of newCardStates) {
+  //   const card = player.hand[cardState.cardIndex];
+  //   cardState.cardFullName = getCardFullName(card);
+  //   cardState.src = getEncodedCardSvg(card, location);
+  //   cardState.renderKey = uuidv4();
+  //   // if (cardState.springValue) {
+  //   //   cardState.springValue = {
+  //   //     ...cardState.springValue,
+  //   //     rotateX: 0,
+  //   //     rotateY: 0
+  //   //   };
+  //   //   //cardState.transition = { transition: { rotateY: { duration: 0.3 }, rotateX: { duration: 0.3 } } };
+  //   // }
+  // }
+  // setCardStates(newCardStates);
+  //}, []);
 
   /** Re-adjusts the player's hand that are displayed. Used after a player plays a card and to group the cards together. */
   const regroupCards = useCallback(
@@ -575,6 +577,8 @@ const useCardAnimation = (
       onTrickComplete(lastCardPlayed);
     } else if (lastCardPlayed && handState && !currentTrick.playerRenege) {
       // animate trick being taken by the winner.
+
+      const newAnimationControls = [...animationControls];
       const trickWonLocation = currentTrick.taker?.location;
       const cardElement = cardRefs.entries().find((r) => r[0] === lastCardPlayed.index)?.[1]?.current;
       const destinationDeckElement = playerDeckRefs
@@ -586,7 +590,7 @@ const useCardAnimation = (
         throw new Error(`${ERR_ID} - Destination element not found for animate trick.`);
 
       const animationState = animationStates.find((s) => s.cardIndex === lastCardPlayed.index);
-      const animationControl = animationControls.find((s) => s.cardIndex === lastCardPlayed.index);
+      const animationControl = newAnimationControls.find((s) => s.cardIndex === lastCardPlayed.index);
 
       if (!animationState) throw new Error(`${ERR_ID} - Animation state not found for animate trick.`);
       if (!animationControl) throw new Error(`${ERR_ID} - Animation control not found for animate trick.`);
@@ -606,7 +610,14 @@ const useCardAnimation = (
           animationControl,
           true
         );
+
+        animationControl.animateSprings = moveSpring.animateSprings;
+
+        await runCardAnimations([animationControl]);
       }
+
+      setCardsAnimationControls(newAnimationControls);
+      onTrickComplete(lastCardPlayed);
     }
   }, [
     animationControls,
@@ -615,11 +626,12 @@ const useCardAnimation = (
     currentTrick.playerRenege,
     currentTrick.taker?.location,
     currentTrick.trickId,
-    euchreSettings.gameSpeed,
+    euchreSettings,
     handState,
     onTrickComplete,
     player.name,
-    playerDeckRefs
+    playerDeckRefs,
+    setCardsAnimationControls
   ]);
 
   /** Gets the cards that are available to be played for the current trick. If enforce follow suit setting is enabled, then only
@@ -696,12 +708,10 @@ const useCardAnimation = (
       euchreSettings.gameSpeed
     );
 
-    const regroupHandValues = groupHand(
+    const regroupHandValues = getSpringsGroupHand(
       player.location,
       cardWidthOffset,
-      currentProps.filter((c) => c.cardIndex !== cardIndex),
-      animationStates,
-      euchreSettings.gameSpeed
+      currentProps.filter((c) => c.cardIndex !== cardIndex)
     );
 
     for (const ctrl of newAnimationControls) {
@@ -768,6 +778,11 @@ const useCardAnimation = (
     //gameContext.animationHandlers.onCardPlayed(card);
   };
 
+  /** */
+  const handleDiscard = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  };
+
   const handleReorderHand = useCallback(async () => {
     const cardElement = cardRefs.values().find((c) => c?.current)?.current;
     if (!cardElement)
@@ -825,6 +840,16 @@ const useCardAnimation = (
   const handleTrickFinished = useCallback(async () => {
     await animateTakeTrick();
   }, [animateTakeTrick]);
+
+  /** */
+  const handlePassDeal = useCallback(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }, []);
+
+  /** */
+  const handleSittingOut = useCallback(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }, []);
 
   /** */
   //   const handlePassDealComplete = useCallback(
@@ -918,14 +943,11 @@ const useCardAnimation = (
 
   const playHandHandler: PlayHandHandlers = {
     onPlayCard: handleBeginPlayCard,
+    onDiscard: handleDiscard,
     onAnimatePlayCard: handleAnimatePlayCard,
-    onPassDeal: async () => {
-      throw new Error('pass deal not implemented');
-    },
+    onPassDeal: handlePassDeal,
     onReorderHand: handleReorderHand,
-    onPlayerSittingOut: async () => {
-      throw new Error('player sitting out not implemented');
-    },
+    onPlayerSittingOut: handleSittingOut,
     onTrickFinished: handleTrickFinished,
     onBeginPlayerTurn: handleBeginPlayerTurn,
     onEndPlayerTurn: handleEndPlayerTurn

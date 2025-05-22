@@ -36,7 +36,8 @@ export default function useEuchreGameOrder(
     continueToEndOrderTrump,
     pauseForUserDiscardSelection,
     continueToAnimateEndOrderTrump,
-    continueToBeginPlayCard
+    continueToBeginPlayCard,
+    pauseForAnimateEndOrderTrump
   } = useGameOrderState(state, setters, errorHandlers);
   const { euchreGame, euchreSettings, euchrePauseState, bidResult } = state;
 
@@ -67,6 +68,12 @@ export default function useEuchreGameOrder(
     },
     [continueToAnimateEndOrderTrump, euchreGame, euchrePauseState.pauseType, eventHandlers, setters, state]
   );
+
+  const handleTrumpOrderedComplete = () => {
+    if (euchrePauseState.pauseType === EuchrePauseType.ANIMATE) {
+      continueToBeginPlayCard();
+    }
+  };
 
   /** Player has ordered trump either by naming suit or telling the dealer to pick up the flipped card.
    */
@@ -222,12 +229,13 @@ export default function useEuchreGameOrder(
     const endAnimationOrderTrump = async () => {
       if (!shouldAnimateEndOrderTrump) return;
 
-      setters.dispatchPause();
+      //setters.dispatchPause();
 
       // update player's hand in an effect in useCardState with the new card if player had to discard.
-      await notificationDelay(euchreSettings);
+      //await notificationDelay(euchreSettings);
 
-      continueToBeginPlayCard();
+      pauseForAnimateEndOrderTrump();
+      //continueToBeginPlayCard();
     };
 
     try {
@@ -236,9 +244,16 @@ export default function useEuchreGameOrder(
       const error = e as Error;
       errorHandlers.onError(error, 'endAnimationOrderTrump');
     }
-  }, [continueToBeginPlayCard, errorHandlers, euchreSettings, setters, shouldAnimateEndOrderTrump]);
+  }, [
+    continueToBeginPlayCard,
+    errorHandlers,
+    euchreSettings,
+    pauseForAnimateEndOrderTrump,
+    setters,
+    shouldAnimateEndOrderTrump
+  ]);
 
   //#endregion
 
-  return { handleDiscardSubmit };
+  return { handleDiscardSubmit, handleTrumpOrderedComplete };
 }

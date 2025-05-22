@@ -26,6 +26,7 @@ const useDeckAnimationPhase = (
 ) => {
   const executedActions = useRef(new Set<string>());
   const [completedActions, setCompletedActions] = useState(new Set<string>());
+  const idForReinitializeState = useRef('');
 
   const { euchreGame, euchreGameFlow, euchreAnimationFlow, euchrePauseState } = state;
 
@@ -39,6 +40,10 @@ const useDeckAnimationPhase = (
     shouldEndDealForDealer: euchreGameFlow.gameFlow === EuchreGameFlow.END_DEAL_FOR_DEALER && isAnimatePhase,
     shouldBeginDealCards: euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_DEAL_CARDS && isAnimatePhase,
     shouldResetDealState: euchreGameFlow.gameFlow === EuchreGameFlow.BEGIN_BID_FOR_TRUMP
+  };
+
+  const setCurrentInitializedId = (id: string) => {
+    idForReinitializeState.current = id;
   };
 
   const addPhaseExecuted = (phase: DeckPhase) => {
@@ -72,24 +77,18 @@ const useDeckAnimationPhase = (
   };
 
   const resetForNewDeal = () => {
-    removePhaseCompleted({ phase: DeckStatePhases.DEAL_FOR_DEALER, action: DeckStateActions.MOVE });
-    removePhaseCompleted({ phase: DeckStatePhases.REGULAR_DEAL, action: DeckStateActions.MOVE });
-    removePhaseCompleted({
-      phase: DeckStatePhases.REGULAR_DEAL,
-      action: DeckStateActions.START_ANIMATE_BEGIN
-    });
     removePhaseExecuted({ phase: DeckStatePhases.INIT, action: DeckStateActions.CREATE });
+    removePhaseExecuted({ phase: DeckStatePhases.REGULAR_DEAL, action: DeckStateActions.MOVE });
     removePhaseExecuted({
       phase: DeckStatePhases.REGULAR_DEAL,
       action: DeckStateActions.START_ANIMATE_BEGIN
     });
     removePhaseExecuted({ phase: DeckStatePhases.REGULAR_DEAL, action: DeckStateActions.END_ANIMATE_BEGIN });
-
-    // setMoveCardsIntoPositionComplete(false);
-    // setBeginRegularDealComplete(false);
-    // isDealStateInitializedRef.current = false;
-    // initBeginDealForRegularDealEffect.current = false;
-    // endBeginDealForRegularDealEffect.current = false;
+    removePhaseCompleted({ phase: DeckStatePhases.REGULAR_DEAL, action: DeckStateActions.MOVE });
+    removePhaseCompleted({
+      phase: DeckStatePhases.REGULAR_DEAL,
+      action: DeckStateActions.START_ANIMATE_BEGIN
+    });
   };
 
   const getPhaseForInit = (): DeckPhase | undefined => {
@@ -98,6 +97,7 @@ const useDeckAnimationPhase = (
       phase: DeckStatePhases.INIT,
       action: DeckStateActions.CREATE
     });
+
     const regularDealExecuted =
       hasPhaseExecuted({
         phase: DeckStatePhases.REGULAR_DEAL,
@@ -106,7 +106,7 @@ const useDeckAnimationPhase = (
       hasPhaseExecuted({ phase: DeckStatePhases.REGULAR_DEAL, action: DeckStateActions.END_ANIMATE_BEGIN });
 
     const reinitializeDeckState =
-      deckState !== undefined && deckState.handId !== euchreGame.handId && deckStateCreated;
+      deckState !== undefined && idForReinitializeState.current !== euchreGame.handId && deckStateCreated;
     const createDeckState = !deckStateCreated && validDeck && euchreGameFlow.hasGameStarted;
     const reset = gameState.shouldResetDealState && regularDealExecuted;
 
@@ -216,7 +216,8 @@ const useDeckAnimationPhase = (
     addPhaseExecuted,
     removePhaseExecuted,
     addPhaseCompleted,
-    removePhaseCompleted
+    removePhaseCompleted,
+    setCurrentInitializedId
   };
 };
 

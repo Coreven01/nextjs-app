@@ -81,6 +81,14 @@ const useGameOrderState = (state: EuchreGameValues, setters: EuchreGameSetters, 
     );
   };
 
+  const pauseForAnimateEndOrderTrump = () => {
+    setters.dispatchStateChange(
+      EuchreGameFlow.END_ORDER_TRUMP,
+      EuchreAnimationActionType.SET_ANIMATE,
+      EuchrePauseActionType.SET_ANIMATE
+    );
+  };
+
   return {
     shouldBeginOrderTrump,
     shouldAnimateBeginOrderTrump,
@@ -90,7 +98,8 @@ const useGameOrderState = (state: EuchreGameValues, setters: EuchreGameSetters, 
     continueToEndOrderTrump,
     pauseForUserDiscardSelection,
     continueToAnimateEndOrderTrump,
-    continueToBeginPlayCard
+    continueToBeginPlayCard,
+    pauseForAnimateEndOrderTrump
   };
 };
 

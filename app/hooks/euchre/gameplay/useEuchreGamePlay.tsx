@@ -364,6 +364,9 @@ const useEuchreGamePlay = (
         if (wonCard) {
           addTrickWonEvent(currentTrick.taker, wonCard.card, state, eventHandlers);
         }
+
+        await notificationDelay(euchreSettings);
+
         pauseForTrickFinished();
       } else if (currentTrick.playerRenege) {
         const renegeCard = currentTrick.cardsPlayed.find((c) => c.player === currentTrick.playerRenege);
@@ -390,7 +393,7 @@ const useEuchreGamePlay = (
 
         setters.dispatchPlayerNotification(notification);
         await notificationDelay(euchreSettings, playedReneged ? 1 : undefined);
-        continueToTrickFinished();
+        continueToAnimateTrickFinished();
       }
     };
 
@@ -400,8 +403,8 @@ const useEuchreGamePlay = (
       'animateEndResultOfCardPlayed'
     );
   }, [
+    continueToAnimateTrickFinished,
     continueToBeginPlayCard,
-    continueToTrickFinished,
     errorHandlers,
     euchreGame,
     euchreSettings,

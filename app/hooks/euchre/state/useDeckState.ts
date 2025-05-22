@@ -27,6 +27,7 @@ const useDeckState = () => {
     animationControls: deckCardsAnimationControls
   };
 
+  /** Create card states based on initial values passed in.*/
   const createStates = useCallback(
     (
       gameDeck: Card[],

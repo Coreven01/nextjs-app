@@ -118,7 +118,12 @@ export default function useEuchreGame() {
     eventHandlers,
     errorHandlers
   );
-  const { handleDiscardSubmit } = useEuchreGameOrder(stateValues, setters, eventHandlers, errorHandlers);
+  const { handleDiscardSubmit, handleTrumpOrderedComplete } = useEuchreGameOrder(
+    stateValues,
+    setters,
+    eventHandlers,
+    errorHandlers
+  );
   const { handleCardPlayed, handleCardPlayedComplete, handleCloseHandResults, handleTrickFinished } =
     useEuchreGamePlay(stateValues, setters, eventHandlers, errorHandlers);
   //#endregion
@@ -208,7 +213,8 @@ export default function useEuchreGame() {
       onEndDealForDealerComplete: handleEndDealForDealerComplete,
       onCardPlayed: handleCardPlayed,
       onPassDealComplete: handlePassDealComplete,
-      onCardPlayedComplete: handleCardPlayedComplete
+      onCardPlayedComplete: handleCardPlayedComplete,
+      onTrumpOrderedComplete: handleTrumpOrderedComplete
     }),
     [
       handleBeginRegularDealComplete,
@@ -218,7 +224,8 @@ export default function useEuchreGame() {
       handleEndDealForDealerComplete,
       handleCardPlayed,
       handlePassDealComplete,
-      handleCardPlayedComplete
+      handleCardPlayedComplete,
+      handleTrumpOrderedComplete
     ]
   );
 

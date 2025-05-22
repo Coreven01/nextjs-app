@@ -20,11 +20,8 @@ const useDeckStateEffect = (
   dealForDealerHandlers: DealForDealerHandlers,
   regularDealHandlers: RegularDealHandlers
 ) => {
-  const { getDeckPhase, resetForNewDeal, addPhaseExecuted, addPhaseCompleted } = useDeckAnimationPhase(
-    state,
-    gameDeckState,
-    cardRefsReady
-  );
+  const { getDeckPhase, resetForNewDeal, addPhaseExecuted, addPhaseCompleted, setCurrentInitializedId } =
+    useDeckAnimationPhase(state, gameDeckState, cardRefsReady);
 
   /** Get the function that should be executed for the effect for the current deck state. */
   const getEffectForDeckState = (): DealStateEffect => {
@@ -32,7 +29,9 @@ const useDeckStateEffect = (
       getDeckPhase,
       resetForNewDeal,
       addPhaseExecuted,
-      initDealHandler
+      setCurrentInitializedId,
+      initDealHandler,
+      state.euchreGame.handId
     );
 
     if (initEffect.func) return initEffect;

@@ -175,6 +175,7 @@ export interface EuchreAnimationHandlers {
   onCardPlayed: (cardPlayed: Card) => void;
   onCardPlayedComplete: () => void;
   onPassDealComplete: () => void;
+  onTrumpOrderedComplete: () => void;
 }
 
 export interface EuchreGameSetters {
@@ -332,12 +333,14 @@ export const HandStatePhases = {
 export type HandStatePhase = (typeof HandStatePhases)[keyof typeof HandStatePhases];
 
 export const HandStateActions = {
+  NO_ACTION: 'NoAction',
   CREATE_HAND: 'CreateHand',
   RESET: 'Reset',
   CREATE_CARD: 'CreateCard',
   REGROUP: 'Regroup',
   ANIMATE_REGROUP: 'AnimateRegroup',
   PASS_DEAL: 'PassDeal',
+  DISCARD: 'Discard',
   RE_ORDER_HAND: 'ReOrderHand',
   TRICK_FINISHED: 'TrickFinished',
   BEGIN_TURN: 'BeginTurn',
@@ -367,6 +370,7 @@ export interface PlayHandHandlers {
   onPlayCard: () => Promise<void>;
   onAnimatePlayCard: () => Promise<void>;
   onPassDeal: () => Promise<void>;
+  onDiscard: () => Promise<void>;
   onReorderHand: () => Promise<void>;
   onPlayerSittingOut: () => Promise<void>;
   onTrickFinished: () => Promise<void>;

@@ -9,9 +9,10 @@ import {
 const getEffectForInitHandState = (
   getHandPhase: () => HandPhase | undefined,
   resetForNewHand: () => void,
-  addPhaseExecuted: (phase: HandPhase) => void,
-  addPhaseCompleted: (phase: HandPhase) => void,
-  initHandHandler: InitHandHandlers
+  addPhaseHandled: (phase: HandPhase, id: string) => void,
+  addPhaseCompleted: (phase: HandPhase, id: string) => void,
+  initHandHandler: InitHandHandlers,
+  handId: string
 ) => {
   //#region Initialize Hand State Handlers
   const handleResetHand = async () => {
@@ -20,23 +21,26 @@ const getEffectForInitHandState = (
   };
 
   const handleCreateHandState = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_HAND });
+    addPhaseHandled(
+      { phase: HandStatePhases.INIT, action: HandStateActions.CREATE_HAND },
+      HandStateActions.CREATE_HAND
+    );
     await initHandHandler.onCreateHandState();
   };
 
   const handleCreateCardState = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_CARD });
+    addPhaseHandled({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_CARD }, handId);
     await initHandHandler.onCreateCardState();
-    addPhaseCompleted({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_CARD });
+    addPhaseCompleted({ phase: HandStatePhases.INIT, action: HandStateActions.CREATE_CARD }, handId);
   };
 
   const handleRegroupCards = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.REGROUP });
+    addPhaseHandled({ phase: HandStatePhases.INIT, action: HandStateActions.REGROUP }, handId);
     await initHandHandler.onRegroupCards();
   };
 
   const handleAnimateRegroup = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.INIT, action: HandStateActions.ANIMATE_REGROUP });
+    addPhaseHandled({ phase: HandStatePhases.INIT, action: HandStateActions.ANIMATE_REGROUP }, handId);
     await initHandHandler.onAnimateRegroupCards();
   };
 

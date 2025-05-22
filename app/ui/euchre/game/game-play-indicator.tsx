@@ -18,7 +18,7 @@ const GamePlayIndicator = ({ notificationSpeed, location, className }: Props) =>
 
   switch (location) {
     case 'bottom':
-      locationClass = 'bottom-1/3';
+      locationClass = 'top-1/4';
       break;
     case 'top':
       locationClass = 'top-1/4';
@@ -27,7 +27,7 @@ const GamePlayIndicator = ({ notificationSpeed, location, className }: Props) =>
       locationClass = 'left-1/4';
       break;
     case 'right':
-      locationClass = 'righ-1/4';
+      locationClass = 'right-1/4';
   }
 
   return (

@@ -17,8 +17,11 @@ const useCardStateEffect = (
   initHandler: InitHandHandlers,
   playHandHandlers: PlayHandHandlers
 ) => {
-  const { getHandPhase, resetForNewHand, addPhaseExecuted, addPhaseCompleted, addTrickHandled } =
-    useCardAnimationPhase(state, handState, cardRefsReady);
+  const { getHandPhase, resetForNewHand, addPhaseCompleted, addPhaseHandled } = useCardAnimationPhase(
+    state,
+    handState,
+    cardRefsReady
+  );
 
   // const { shouldCreateHandState, shouldCreateCardState } = useAnimationCardState(state);
   // const { euchreGame } = state;
@@ -133,19 +136,20 @@ const useCardStateEffect = (
     const initEffect = getEffectForInitHandState(
       getHandPhase,
       resetForNewHand,
-      addPhaseExecuted,
+      addPhaseHandled,
       addPhaseCompleted,
-      initHandler
+      initHandler,
+      handState?.handId ?? ''
     );
 
     if (initEffect.func) return initEffect;
 
     const playHandEffect = getEffectForPlayHandState(
       getHandPhase,
-      addPhaseExecuted,
+      addPhaseHandled,
       addPhaseCompleted,
-      addTrickHandled,
       playHandHandlers,
+      handState?.handId ?? '',
       currentTrickId
     );
 

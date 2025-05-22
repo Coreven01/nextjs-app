@@ -3,16 +3,15 @@ import {
   HandStateEffect,
   HandStateActions,
   HandStatePhases,
-  PlayHandHandlers,
-  HandStateAction
+  PlayHandHandlers
 } from '../../definitions/game-state-definitions';
 
 const getEffectForPlayHandState = (
   getHandPhase: () => HandPhase | undefined,
-  addPhaseExecuted: (phase: HandPhase) => void,
-  addPhaseCompleted: (phase: HandPhase) => void,
-  addTrickHandled: (action: HandStateAction, trickId: string) => void,
+  addPhaseHandled: (phase: HandPhase, id: string) => void,
+  addPhaseCompleted: (phase: HandPhase, id: string) => void,
   playHandHandler: PlayHandHandlers,
+  handId: string,
   currentTrickId: string
 ) => {
   //#region Play Hand Handlers
@@ -26,50 +25,69 @@ const getEffectForPlayHandState = (
   //     //   trickIdOnTrickFinishHandled.current = [];
   //   };
   const handlePlayCard = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.PLAY_CARD });
+    addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.PLAY_CARD }, currentTrickId);
     await playHandHandler.onPlayCard();
-    addPhaseCompleted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.PLAY_CARD });
+    addPhaseCompleted(
+      { phase: HandStatePhases.GAME_PLAY, action: HandStateActions.PLAY_CARD },
+      currentTrickId
+    );
   };
 
   const handleAnimatePlayCard = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.ANIMATE_PLAY_CARD });
+    addPhaseHandled(
+      { phase: HandStatePhases.GAME_PLAY, action: HandStateActions.ANIMATE_PLAY_CARD },
+      currentTrickId
+    );
     await playHandHandler.onAnimatePlayCard();
   };
 
   const handlePassDeal = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.PASS_DEAL });
+    addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.PASS_DEAL }, handId);
     await playHandHandler.onPassDeal();
   };
 
   const handleReOrderHand = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.RE_ORDER_HAND });
+    addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.RE_ORDER_HAND }, handId);
     await playHandHandler.onReorderHand();
   };
 
   const handePlayerSittingOut = async () => {
-    addPhaseExecuted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.SITTING_OUT });
+    addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.SITTING_OUT }, handId);
     await playHandHandler.onPlayerSittingOut();
   };
 
   const handleTrickFinished = async () => {
-    addTrickHandled(HandStateActions.TRICK_FINISHED, currentTrickId);
+    addPhaseHandled(
+      { phase: HandStatePhases.GAME_PLAY, action: HandStateActions.TRICK_FINISHED },
+      currentTrickId
+    );
     await playHandHandler.onTrickFinished();
   };
 
   const handleBeginTurn = async () => {
-    addTrickHandled(HandStateActions.BEGIN_TURN, currentTrickId);
+    addPhaseHandled(
+      { phase: HandStatePhases.GAME_PLAY, action: HandStateActions.BEGIN_TURN },
+      currentTrickId
+    );
     await playHandHandler.onBeginPlayerTurn();
   };
 
   const handleEndTurn = async () => {
-    addTrickHandled(HandStateActions.END_TURN, currentTrickId);
+    addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.END_TURN }, currentTrickId);
     await playHandHandler.onEndPlayerTurn();
+  };
+
+  const handleDiscard = async () => {
+    addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.DISCARD }, handId);
+    await playHandHandler.onDiscard();
+    addPhaseCompleted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.DISCARD }, handId);
   };
 
   const localPlayHandHandlers: PlayHandHandlers = {
     onPlayCard: handlePlayCard,
     onAnimatePlayCard: handleAnimatePlayCard,
     onPassDeal: handlePassDeal,
+    onDiscard: handleDiscard,
     onReorderHand: handleReOrderHand,
     onPlayerSittingOut: handePlayerSittingOut,
     onTrickFinished: handleTrickFinished,
@@ -89,6 +107,10 @@ const getEffectForPlayHandState = (
       case HandStateActions.PASS_DEAL:
         retval.stateAction = HandStateActions.PASS_DEAL;
         retval.func = localPlayHandHandlers.onPassDeal;
+        break;
+      case HandStateActions.DISCARD:
+        retval.stateAction = HandStateActions.DISCARD;
+        retval.func = localPlayHandHandlers.onDiscard;
         break;
       case HandStateActions.RE_ORDER_HAND:
         retval.stateAction = HandStateActions.RE_ORDER_HAND;
