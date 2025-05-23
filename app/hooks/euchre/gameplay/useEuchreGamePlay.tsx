@@ -1,22 +1,26 @@
-import { Card, PromptType, TableLocation } from '@/app/lib/euchre/definitions/definitions';
 import {
   getPlayerNotificationType,
   PlayerNotificationAction,
   PlayerNotificationActionType
 } from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect, useRef } from 'react';
-import PlayerNotification from '@/app/ui/euchre/player/player-notification';
+import PlayerNotification from '@/features/euchre/components/player/player-notification';
 import { v4 as uuidv4 } from 'uuid';
 import { GameEventHandlers } from '../useEventLog';
 import {
+  ErrorHandlers,
+  EuchreAnimationHandlers,
   EuchreCard,
+  EuchreError,
   EuchreGameInstance,
+  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
+  EuchreSettings,
   EuchreTrick,
-  ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
-import GamePlayIndicator from '../../../ui/euchre/game/game-play-indicator';
+  GamePlayContext
+} from '../../../../features/euchre/definitions/game-state-definitions';
+import GamePlayIndicator from '../../../../features/euchre/components/game/game-play-indicator';
 import useGamePlayState from '../phases/useGamePlayState';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
 import {
@@ -31,18 +35,22 @@ import {
   playerSittingOut,
   updateIfHandOver,
   updateIfTrickOver
-} from '../../../lib/euchre/util/gameDataUtil';
-import { availableCardsToPlay, getPlayerRotation } from '../../../lib/euchre/util/playerDataUtil';
+} from '../../../../features/euchre/util/game/gameDataUtil';
+import {
+  availableCardsToPlay,
+  getPlayerRotation
+} from '../../../../features/euchre/util/game/playerDataUtil';
 import {
   addCardPlayedEvent,
   addHandWonEvent,
   addPlayCardEvent,
   addPlayerRenegedEvent,
   addTrickWonEvent
-} from '../../../lib/euchre/util/gamePlayEventsUtil';
-import { determineCardToPlay } from '../../../lib/euchre/util/gamePlayLogicUtil';
+} from '../../../../features/euchre/util/game/gamePlayEventsUtil';
+import { determineCardToPlay } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
+import { TableLocation, PromptType, Card } from '../../../../features/euchre/definitions/definitions';
 
 const useEuchreGamePlay = (
   state: EuchreGameValues,

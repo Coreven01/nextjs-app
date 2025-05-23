@@ -1,6 +1,6 @@
 import React from 'react';
 import { RefObject, useRef } from 'react';
-import { TableLocation } from '../../lib/euchre/definitions/definitions';
+import { TableLocation } from '../../../features/euchre/definitions/definitions';
 
 const useTableRef = () => {
   const tableRefs = useRef(new Map<TableLocation, RefObject<HTMLDivElement | null>>());

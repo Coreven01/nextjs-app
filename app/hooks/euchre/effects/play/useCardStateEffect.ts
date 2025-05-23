@@ -1,13 +1,13 @@
+import useCardAnimationPhase from '../../phases/useCardAnimationPhase';
+import getEffectForInitHandState from '../../../../../features/euchre/util/play/cardStateInitializeUtil';
+import getEffectForPlayHandState from '../../../../../features/euchre/util/play/cardStatePlayUtil';
 import {
   EuchreGameState,
   HandState,
-  InitHandHandlers,
   HandStateEffect,
+  InitHandHandlers,
   PlayHandHandlers
-} from '../../../../lib/euchre/definitions/game-state-definitions';
-import useCardAnimationPhase from '../../phases/useCardAnimationPhase';
-import getEffectForInitHandState from '../../../../lib/euchre/util/play/cardStateInitializeUtil';
-import getEffectForPlayHandState from '../../../../lib/euchre/util/play/cardStatePlayUtil';
+} from '../../../../../features/euchre/definitions/game-state-definitions';
 
 const useCardStateEffect = (
   state: EuchreGameState,

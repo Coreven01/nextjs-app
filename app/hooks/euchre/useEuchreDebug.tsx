@@ -1,21 +1,23 @@
 import { useCallback, useMemo, useState } from 'react';
-import {
-  ErrorHandlers,
-  EuchreDebugHandlers,
-  EuchreGameInstance,
-  EuchreGamePlayHandlers,
-  EuchreGameSetters,
-  EuchreGameValues
-} from '../../lib/euchre/definitions/game-state-definitions';
+
 import { GameEventHandlers } from './useEventLog';
-import { GameSpeed, PromptType, TableLocation } from '../../lib/euchre/definitions/definitions';
+
 import { EuchreGameFlow } from './reducers/gameFlowReducer';
 import { PlayerNotificationAction, PlayerNotificationActionType } from './reducers/playerNotificationReducer';
-import GamePlayIndicator from '../../ui/euchre/game/game-play-indicator';
+import GamePlayIndicator from '../../../features/euchre/components/game/game-play-indicator';
 import useEuchreGameAuto from './gameplay/useEuchreGameAuto';
 import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
 import { EuchrePauseActionType } from './reducers/gamePauseReducer';
-import { createDefaultEuchreGame } from '../../lib/euchre/util/gameSetupLogicUtil';
+import { createDefaultEuchreGame } from '../../../features/euchre/util/game/gameSetupLogicUtil';
+import { GameSpeed, TableLocation, PromptType } from '../../../features/euchre/definitions/definitions';
+import {
+  EuchreGameValues,
+  EuchreGamePlayHandlers,
+  EuchreGameSetters,
+  ErrorHandlers,
+  EuchreGameInstance,
+  EuchreDebugHandlers
+} from '../../../features/euchre/definitions/game-state-definitions';
 
 const useEuchreDebug = (
   state: EuchreGameValues,

@@ -4,23 +4,28 @@ import {
   PlayerNotificationAction,
   PlayerNotificationActionType
 } from '../reducers/playerNotificationReducer';
-import { BidResult, PromptType } from '@/app/lib/euchre/definitions/definitions';
-import UserInfo from '@/app/ui/euchre/player/user-info';
-import PlayerNotification from '@/app/ui/euchre/player/player-notification';
+
+import UserInfo from '@/features/euchre/components/player/user-info';
+import PlayerNotification from '@/features/euchre/components/player/player-notification';
 import { v4 as uuidv4 } from 'uuid';
 import {
+  ErrorHandlers,
+  EuchreAnimationHandlers,
+  EuchreError,
   EuchreGameInstance,
+  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
   EuchrePlayer,
-  ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
+  EuchreSettings,
+  GamePlayContext
+} from '../../../../features/euchre/definitions/game-state-definitions';
 import { GameEventHandlers } from '../useEventLog';
 import { EuchrePauseActionType, EuchrePauseType } from '../reducers/gamePauseReducer';
 import useGameBidState from '../phases/useGameBidState';
-import { determineBid } from '../../../lib/euchre/util/gameBidLogicUtil';
-import { notificationDelay } from '../../../lib/euchre/util/gameDataUtil';
-import { getPlayerRotation } from '../../../lib/euchre/util/playerDataUtil';
+import { determineBid } from '../../../../features/euchre/util/game/gameBidLogicUtil';
+import { notificationDelay } from '../../../../features/euchre/util/game/gameDataUtil';
+import { getPlayerRotation } from '../../../../features/euchre/util/game/playerDataUtil';
 import {
   addAnimateBidForTrumpEvent,
   addBeginBidForTrumpEvent,
@@ -29,7 +34,8 @@ import {
   addFinalizeBidForTrumpEvent,
   addHandleBidSelectionEvent,
   addPassBidEvent
-} from '../../../lib/euchre/util/gameBidEventsUtil';
+} from '../../../../features/euchre/util/game/gameBidEventsUtil';
+import { BidResult, PromptType } from '../../../../features/euchre/definitions/definitions';
 
 export default function useEuchreGameBid(
   state: EuchreGameValues,

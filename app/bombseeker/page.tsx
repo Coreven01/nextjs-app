@@ -1,6 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
-import BombSeeker from '../ui/bombseeker/bomb-seeker';
+import BombSeeker from '../../features/bombseeker/components/bomb-seeker';
 import { SECTION_STYLE } from '../ui/home/home-description';
 
 export const metadata: Metadata = {

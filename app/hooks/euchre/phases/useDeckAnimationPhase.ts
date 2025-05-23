@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
-import {
-  DeckState,
-  DeckStateAction,
-  DeckStateActions,
-  DeckStatePhase,
-  DeckStatePhases,
-  EuchreGameState
-} from '../../../lib/euchre/definitions/game-state-definitions';
+
 import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
+import {
+  DeckStatePhase,
+  DeckStateAction,
+  EuchreGameState,
+  DeckState,
+  DeckStatePhases,
+  DeckStateActions
+} from '../../../../features/euchre/definitions/game-state-definitions';
 
 const getPhaseKey = (phase: DeckPhase) => `${phase.phase}__${phase.action}` as const;
 

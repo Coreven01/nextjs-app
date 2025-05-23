@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ErrorHandlers, EuchreGameValues } from '../../../lib/euchre/definitions/game-state-definitions';
+
 import useDeckAnimationPhase from '../phases/useDeckAnimationPhase';
+import {
+  EuchreGameValues,
+  ErrorHandlers
+} from '../../../../features/euchre/definitions/game-state-definitions';
 
 /** Effects to run animations during specific points in the game flow/phases. This handles dealing cards for
  * initial deal and for regular play.

@@ -8,23 +8,29 @@ import { PlayerNotificationActionType } from '../reducers/playerNotificationRedu
 import { EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
 import { useCallback, useEffect } from 'react';
 import {
+  ErrorHandlers,
+  EuchreAnimationHandlers,
+  EuchreError,
   EuchreGameInstance,
+  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
-  ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
+  EuchreSettings,
+  GamePlayContext
+} from '../../../../features/euchre/definitions/game-state-definitions';
 import { GameEventHandlers } from '../useEventLog';
-import { PromptType } from '../../../lib/euchre/definitions/definitions';
+
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 import useGameInitState from '../phases/useGameInitState';
-import { notificationDelay } from '../../../lib/euchre/util/gameDataUtil';
+import { notificationDelay } from '../../../../features/euchre/util/game/gameDataUtil';
 import {
   createDefaultEuchreGame,
   createEuchreGame,
   createGameForInitialDeal,
   getGameStateForInitialDeal
-} from '../../../lib/euchre/util/gameSetupLogicUtil';
-import { addIntroEvent } from '../../../lib/euchre/util/gameInitEventsUtil';
+} from '../../../../features/euchre/util/game/gameSetupLogicUtil';
+import { addIntroEvent } from '../../../../features/euchre/util/game/gameInitEventsUtil';
+import { PromptType } from '../../../../features/euchre/definitions/definitions';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(

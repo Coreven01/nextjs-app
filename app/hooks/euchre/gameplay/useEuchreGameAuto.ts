@@ -1,19 +1,32 @@
 import { EuchreGameFlowState, INIT_GAME_FLOW_STATE } from '../reducers/gameFlowReducer';
-import { BidResult, Card } from '@/app/lib/euchre/definitions/definitions';
+
 import {
+  ErrorHandlers,
+  EuchreAnimationHandlers,
   EuchreCard,
+  EuchreError,
   EuchreGameInstance,
-  EuchreSettings
-} from '../../../lib/euchre/definitions/game-state-definitions';
+  EuchreGamePlayHandlers,
+  EuchreSettings,
+  GamePlayContext
+} from '../../../../features/euchre/definitions/game-state-definitions';
 import { useEventLog } from '../useEventLog';
 import {
   createGameForInitialDeal,
   dealCardsForDealer,
   shuffleAndDealHand
-} from '../../../lib/euchre/util/gameSetupLogicUtil';
-import { determineBid, determineDiscard, orderTrump } from '../../../lib/euchre/util/gameBidLogicUtil';
-import { discard, getPlayerRotation, playerEqual } from '../../../lib/euchre/util/playerDataUtil';
-import { determineCardToPlay } from '../../../lib/euchre/util/gamePlayLogicUtil';
+} from '../../../../features/euchre/util/game/gameSetupLogicUtil';
+import {
+  determineBid,
+  determineDiscard,
+  orderTrump
+} from '../../../../features/euchre/util/game/gameBidLogicUtil';
+import {
+  discard,
+  getPlayerRotation,
+  playerEqual
+} from '../../../../features/euchre/util/game/playerDataUtil';
+import { determineCardToPlay } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
 import {
   createTrick,
   isHandFinished,
@@ -22,8 +35,9 @@ import {
   teamPoints,
   updateIfHandOver,
   updateIfTrickOver
-} from '../../../lib/euchre/util/gameDataUtil';
+} from '../../../../features/euchre/util/game/gameDataUtil';
 import { logError } from '../../../lib/euchre/util/util';
+import { BidResult, Card } from '../../../../features/euchre/definitions/definitions';
 
 /**  */
 export default function useEuchreGameAuto() {

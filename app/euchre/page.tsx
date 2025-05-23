@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import EuchreGame from '../ui/euchre/game/game';
+import EuchreGame from '../../features/euchre/components/game/game';
 import { SECTION_STYLE } from '../ui/home/home-description';
 
 export const metadata: Metadata = {

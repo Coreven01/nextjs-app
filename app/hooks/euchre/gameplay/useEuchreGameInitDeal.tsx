@@ -1,18 +1,27 @@
 import { useCallback, useEffect } from 'react';
 import {
+  ErrorHandlers,
+  EuchreAnimationHandlers,
+  EuchreError,
   EuchreGameInstance,
+  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
-  ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
-import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
+  EuchreSettings,
+  GamePlayContext
+} from '../../../../features/euchre/definitions/game-state-definitions';
+
 import { GameEventHandlers } from '../useEventLog';
 import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
-import GamePlayIndicator from '../../../ui/euchre/game/game-play-indicator';
+import GamePlayIndicator from '../../../../features/euchre/components/game/game-play-indicator';
 import useGameInitDealState from '../phases/useGameInitDealState';
-import { addInitialDealerSetEvent, addInitialDealEvent } from '../../../lib/euchre/util/gameInitDealEvents';
-import { dealCardsForDealer } from '../../../lib/euchre/util/gameSetupLogicUtil';
-import { notificationDelay } from '../../../lib/euchre/util/gameDataUtil';
+import {
+  addInitialDealerSetEvent,
+  addInitialDealEvent
+} from '../../../../features/euchre/util/game/gameInitDealEvents';
+import { dealCardsForDealer } from '../../../../features/euchre/util/game/gameSetupLogicUtil';
+import { notificationDelay } from '../../../../features/euchre/util/game/gameDataUtil';
+import { InitDealResult } from '../../../../features/euchre/definitions/logic-definitions';
 
 /**
  * Hook used to initialize game play for dealing cards for intial dealer.

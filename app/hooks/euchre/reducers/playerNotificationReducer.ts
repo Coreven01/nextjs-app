@@ -1,5 +1,5 @@
 import React from 'react';
-import { TableLocation } from '../../../lib/euchre/definitions/definitions';
+import { TableLocation } from '../../../../features/euchre/definitions/definitions';
 
 export interface PlayerNotificationState {
   /** Values used to identify what information is dynamically shown in the center of the game. */

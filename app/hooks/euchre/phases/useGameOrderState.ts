@@ -1,9 +1,9 @@
 import {
-  EuchreGameSetters,
   EuchreGameValues,
+  EuchreGameSetters,
   ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
-import { isGameStateValidToContinue } from '../../../lib/euchre/util/gameStateLogicUtil';
+} from '../../../../features/euchre/definitions/game-state-definitions';
+import { isGameStateValidToContinue } from '../../../../features/euchre/util/game/gameStateLogicUtil';
 import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';

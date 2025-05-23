@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { createCardStatesFromGameDeck } from '../../../lib/euchre/util/cardStateUtil';
-import { Card, TableLocation } from '../../../lib/euchre/definitions/definitions';
+import { createCardStatesFromGameDeck } from '../../../../features/euchre/util/game/cardStateUtil';
+import useCardAnimationControls from './useCardAnimationControls';
 import {
   CardAnimationControls,
   CardAnimationState,
@@ -8,9 +8,9 @@ import {
   CardSpringProps,
   CreateCardStatesContext,
   FlipSpringProps
-} from '../../../lib/euchre/definitions/transform-definitions';
-import { CardBaseState } from '../../../lib/euchre/definitions/game-state-definitions';
-import useCardAnimationControls from './useCardAnimationControls';
+} from '../../../../features/euchre/definitions/transform-definitions';
+import { CardBaseState } from '../../../../features/euchre/definitions/game-state-definitions';
+import { Card, TableLocation } from '../../../../features/euchre/definitions/definitions';
 
 const useCardState = () => {
   const animationControls = useCardAnimationControls();

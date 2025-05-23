@@ -1,11 +1,5 @@
 import { useCallback, useMemo, useReducer, useState } from 'react';
-import {
-  EuchreGameInstance,
-  EuchreGameSetters,
-  EuchreGameState,
-  EuchreGameValues,
-  EuchreSettings
-} from '../../../lib/euchre/definitions/game-state-definitions';
+
 import useGameSettings from '../data/useGameSettings';
 import {
   EuchreFlowActionType,
@@ -19,10 +13,17 @@ import {
   INIT_GAME_ANIMATION_STATE
 } from '../reducers/gameAnimationFlowReducer';
 import { EuchrePauseActionType, gamePauseFlowReducer, INIT_PAUSE_STATE } from '../reducers/gamePauseReducer';
-import { BidResult, Card, PromptType } from '../../../lib/euchre/definitions/definitions';
-import { InitDealResult } from '../../../lib/euchre/definitions/logic-definitions';
 import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from '../reducers/playerNotificationReducer';
-import { createDefaultEuchreGame } from '../../../lib/euchre/util/gameSetupLogicUtil';
+import { createDefaultEuchreGame } from '../../../../features/euchre/util/game/gameSetupLogicUtil';
+import { PromptType, Card, BidResult } from '../../../../features/euchre/definitions/definitions';
+import {
+  EuchreGameInstance,
+  EuchreGameState,
+  EuchreGameValues,
+  EuchreGameSetters,
+  EuchreSettings
+} from '../../../../features/euchre/definitions/game-state-definitions';
+import { InitDealResult } from '../../../../features/euchre/definitions/logic-definitions';
 
 const useEuchreGameState = () => {
   const [euchreGame, setEuchreGame] = useState<EuchreGameInstance>(createDefaultEuchreGame());

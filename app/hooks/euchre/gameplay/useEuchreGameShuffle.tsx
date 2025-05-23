@@ -2,19 +2,27 @@ import { useCallback, useEffect } from 'react';
 import { PlayerNotificationActionType } from '../reducers/playerNotificationReducer';
 import { GameEventHandlers } from '../useEventLog';
 import {
+  ErrorHandlers,
+  EuchreAnimationHandlers,
+  EuchreError,
   EuchreGameInstance,
+  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
-  ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
+  EuchreSettings,
+  GamePlayContext
+} from '../../../../features/euchre/definitions/game-state-definitions';
 import useGameShuffleState from '../phases/useGameShuffleState';
 import {
   addBeginShuffleEvent,
   addSkipDealAnimationEvent,
   addTrumpCardFlippedEvent
-} from '../../../lib/euchre/util/gameShuffleEventsUtil';
-import { getPlayerRotation } from '../../../lib/euchre/util/playerDataUtil';
-import { dealCardsForDealer, shuffleAndDealHand } from '../../../lib/euchre/util/gameSetupLogicUtil';
+} from '../../../../features/euchre/util/game/gameShuffleEventsUtil';
+import { getPlayerRotation } from '../../../../features/euchre/util/game/playerDataUtil';
+import {
+  dealCardsForDealer,
+  shuffleAndDealHand
+} from '../../../../features/euchre/util/game/gameSetupLogicUtil';
 
 const useEuchreGameShuffle = (
   state: EuchreGameValues,

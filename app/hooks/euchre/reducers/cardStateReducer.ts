@@ -1,4 +1,4 @@
-import { HandState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { HandState } from '../../../../features/euchre/definitions/game-state-definitions';
 
 export interface PlayCardStateActionAction {
   type: PlayCardStateActionType;

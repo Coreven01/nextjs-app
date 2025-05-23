@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { EuchreSettings } from '../../../lib/euchre/definitions/game-state-definitions';
-import { INIT_GAME_SETTINGS } from '../../../lib/euchre/definitions/definitions';
+import { INIT_GAME_SETTINGS } from '../../../../features/euchre/definitions/definitions';
+import { EuchreSettings } from '../../../../features/euchre/definitions/game-state-definitions';
 
 const getInitPlayerName = () => {
   const names = ['Joe', 'Jim', 'Jack', 'Jane', 'Joan', 'Jean'];

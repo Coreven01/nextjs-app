@@ -1,11 +1,11 @@
-import { PromptType } from '../../../lib/euchre/definitions/definitions';
+import { PromptType } from '../../../../features/euchre/definitions/definitions';
 import {
-  EuchreGameSetters,
   EuchreGameValues,
+  EuchreGameSetters,
   ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
-import { getGameStateForNextHand } from '../../../lib/euchre/util/gamePlayLogicUtil';
-import { isGameStateValidToContinue } from '../../../lib/euchre/util/gameStateLogicUtil';
+} from '../../../../features/euchre/definitions/game-state-definitions';
+import { getGameStateForNextHand } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
+import { isGameStateValidToContinue } from '../../../../features/euchre/util/game/gameStateLogicUtil';
 import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreFlowActionType, EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';

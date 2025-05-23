@@ -10,19 +10,19 @@ import useEuchreGameOrder from './useEuchreGameOrder';
 import useEuchreGamePlay from './useEuchreGamePlay';
 import { v4 as uuidv4 } from 'uuid';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
+import { reverseLastHandPlayed } from '../../../../features/euchre/util/game/gameDataUtil';
+import { getGameStateForNextHand } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
+import useEuchreGameState from '../state/useEuchreGameState';
 import {
+  ErrorHandlers,
   EuchreAnimationHandlers,
   EuchreError,
-  EuchreGamePlayHandlers,
   EuchreGameInstance,
+  EuchreGamePlayHandlers,
   EuchreSettings,
-  ErrorHandlers,
   GamePlayContext
-} from '../../../lib/euchre/definitions/game-state-definitions';
-import useEuchreGameState from '../state/useEuchreGameState';
-import { PromptType } from '../../../lib/euchre/definitions/definitions';
-import { reverseLastHandPlayed } from '../../../lib/euchre/util/gameDataUtil';
-import { getGameStateForNextHand } from '../../../lib/euchre/util/gamePlayLogicUtil';
+} from '../../../../features/euchre/definitions/game-state-definitions';
+import { PromptType } from '../../../../features/euchre/definitions/definitions';
 
 /** Main euchre game hook that aggregates logic from different states of the game. */
 export default function useEuchreGame() {

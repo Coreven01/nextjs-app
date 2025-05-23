@@ -1,25 +1,38 @@
-import { Card, PromptType } from '@/app/lib/euchre/definitions/definitions';
 import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect } from 'react';
-import PlayerNotification from '@/app/ui/euchre/player/player-notification';
+import PlayerNotification from '@/features/euchre/components/player/player-notification';
 import { GameEventHandlers } from '../useEventLog';
 import {
+  ErrorHandlers,
+  EuchreAnimationHandlers,
+  EuchreError,
   EuchreGameInstance,
+  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
-  ErrorHandlers
-} from '../../../lib/euchre/definitions/game-state-definitions';
+  EuchreSettings,
+  GamePlayContext
+} from '../../../../features/euchre/definitions/game-state-definitions';
 import useGameOrderState from '../phases/useGameOrderState';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
-import { incrementSpeed, notificationDelay, playerSittingOut } from '../../../lib/euchre/util/gameDataUtil';
-import { discard, getPlayerRotation, playerEqual } from '../../../lib/euchre/util/playerDataUtil';
-import { indexCards } from '../../../lib/euchre/util/cardDataUtil';
-import { determineDiscard, orderTrump } from '../../../lib/euchre/util/gameBidLogicUtil';
+import {
+  incrementSpeed,
+  notificationDelay,
+  playerSittingOut
+} from '../../../../features/euchre/util/game/gameDataUtil';
+import {
+  discard,
+  getPlayerRotation,
+  playerEqual
+} from '../../../../features/euchre/util/game/playerDataUtil';
+import { indexCards } from '../../../../features/euchre/util/game/cardDataUtil';
+import { determineDiscard, orderTrump } from '../../../../features/euchre/util/game/gameBidLogicUtil';
 import {
   addDealerPickedUpEvent,
   addDiscardEvent,
   addTrumpOrderedEvent
-} from '../../../lib/euchre/util/gameOrderEventsUtil';
+} from '../../../../features/euchre/util/game/gameOrderEventsUtil';
+import { Card, PromptType } from '../../../../features/euchre/definitions/definitions';
 
 export default function useEuchreGameOrder(
   state: EuchreGameValues,

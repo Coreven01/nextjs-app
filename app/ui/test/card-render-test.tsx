@@ -11,17 +11,17 @@ import {
   useRef,
   useState
 } from 'react';
-import { getEncodedCardSvg } from '../../lib/euchre/util/cardSvgDataUtil';
+import { getEncodedCardSvg } from '../../../features/euchre/util/game/cardSvgDataUtil';
+import clsx from 'clsx';
+import { getCardShadowSrc } from '../../../features/euchre/util/game/cardDataUtil';
 import {
   Card,
-  RESPONSE_CARD_CENTER,
+  TableLocation,
   RESPONSE_CARD_SIDE,
-  TableLocation
-} from '../../lib/euchre/definitions/definitions';
-import { CardBaseState } from '../../lib/euchre/definitions/game-state-definitions';
-import clsx from 'clsx';
-import { getCardShadowSrc } from '../../lib/euchre/util/cardDataUtil';
-import { CardAnimationControls } from '../../lib/euchre/definitions/transform-definitions';
+  RESPONSE_CARD_CENTER
+} from '../../../features/euchre/definitions/definitions';
+import { CardBaseState } from '../../../features/euchre/definitions/game-state-definitions';
+import { CardAnimationControls } from '../../../features/euchre/definitions/transform-definitions';
 
 const CardRenderTest = () => {
   const [toggleAnimation, setToggleAnimation] = useState(false);
@@ -244,7 +244,7 @@ const CardRenderTest = () => {
   };
 
   const runFlipAnimation = async (control: CardAnimationControls) => {
-    if (!control.flipControl) return;
+    if (!control.flipControls) return;
 
     const duration: number = Math.random() * 2 + 1;
     const wait: number = Math.random() + 1;
@@ -255,9 +255,9 @@ const CardRenderTest = () => {
     };
     const endValue = { ...control.initFlipSpring, transition: { duration: duration } };
 
-    await control.flipControl.start(val1);
+    await control.flipControls.start(val1);
     await new Promise((resolve) => setTimeout(resolve, wait));
-    await control.flipControl.start(endValue);
+    await control.flipControls.start(endValue);
     await new Promise((resolve) => setTimeout(resolve, wait));
   };
 
@@ -371,7 +371,7 @@ const TestGameCard = memo(
         >
           <motion.div
             initial={{ ...tempTarget, ...animationControls.initFlipSpring }}
-            animate={animationControls.flipControl}
+            animate={animationControls.flipControls}
             style={{ transformStyle: 'preserve-3d' }}
           >
             <Image

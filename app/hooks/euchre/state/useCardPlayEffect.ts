@@ -1,13 +1,14 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react';
+
+import useAnimationCardState from '../phases/useAnimationCardState';
+import { playerSittingOut } from '../../../../features/euchre/util/game/gameDataUtil';
+import { playerEqual } from '../../../../features/euchre/util/game/playerDataUtil';
 import {
-  ErrorHandlers,
   EuchreGameState,
   EuchrePlayer,
+  ErrorHandlers,
   HandState
-} from '../../../lib/euchre/definitions/game-state-definitions';
-import useAnimationCardState from '../phases/useAnimationCardState';
-import { playerSittingOut } from '../../../lib/euchre/util/gameDataUtil';
-import { playerEqual } from '../../../lib/euchre/util/playerDataUtil';
+} from '../../../../features/euchre/definitions/game-state-definitions';
 
 const useCardPlayEffect = (
   state: EuchreGameState,

@@ -1,7 +1,7 @@
-import { Card, TeamColor } from '@/app/lib/euchre/definitions/definitions';
 import { useCallback, useState } from 'react';
-import { EuchrePlayer } from '../../lib/euchre/definitions/game-state-definitions';
 import { v4 as uuidv4 } from 'uuid';
+import { TeamColor, Card } from '../../../features/euchre/definitions/definitions';
+import { EuchrePlayer } from '../../../features/euchre/definitions/game-state-definitions';
 
 /** Information, Warn, Error, Debug, Verbose */
 export type GameEventType = 'i' | 'w' | 'e' | 'd' | 'v';

@@ -1,3 +1,9 @@
+import { EuchreGameFlow } from '../reducers/gameFlowReducer';
+import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
+import { EuchrePauseType } from '../reducers/gamePauseReducer';
+import { playerSittingOut } from '../../../../features/euchre/util/game/gameDataUtil';
+import { playerEqual } from '../../../../features/euchre/util/game/playerDataUtil';
+import useCardAnimationPhaseState from '../state/useCardAnimationPhaseState';
 import {
   EuchreGameState,
   HandState,
@@ -5,13 +11,7 @@ import {
   HandStateActions,
   HandStatePhase,
   HandStatePhases
-} from '../../../lib/euchre/definitions/game-state-definitions';
-import { EuchreGameFlow } from '../reducers/gameFlowReducer';
-import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
-import { EuchrePauseType } from '../reducers/gamePauseReducer';
-import { playerSittingOut } from '../../../lib/euchre/util/gameDataUtil';
-import { playerEqual } from '../../../lib/euchre/util/playerDataUtil';
-import useCardAnimationPhaseState from '../state/useCardAnimationPhaseState';
+} from '../../../../features/euchre/definitions/game-state-definitions';
 
 export interface HandPhase {
   phase: HandStatePhase;
@@ -190,7 +190,7 @@ const useCardAnimationPhase = (
 
     const cardReOrdered = hasIdBeenHandledForPhase({ phase, action: HandStateActions.RE_ORDER_HAND }, handId);
 
-    const playerSittingOutAnimated = hasPhaseCompleted(
+    const sittingOutAnimated = hasIdBeenHandledForPhase(
       { phase, action: HandStateActions.SITTING_OUT },
       handId
     );
@@ -223,8 +223,8 @@ const useCardAnimationPhase = (
       shouldPassDeal: !hasPassedDeal && gameState.shouldAnimateBeginPassDeal,
       shouldDiscard: !beginDiscard && gameState.shouldReorderHand,
       shouldReOrderHand: !cardReOrdered && gameState.shouldReorderHand && discardComplete,
-      shouldPlayerSittingOut: playerIsSittingOut && !playerSittingOutAnimated,
-      shouldTrickFinished: gameState.shouldAnimateTrickFinished && hasTrickFinished,
+      shouldPlayerSittingOut: playerIsSittingOut && !sittingOutAnimated,
+      isTrickFinished: gameState.shouldAnimateTrickFinished && hasTrickFinished,
       showBeginPlayerTurn:
         handState.player.human &&
         gameState.shouldUpdateCardStateForTurn &&
@@ -253,7 +253,7 @@ const useCardAnimationPhase = (
     else if (gameChecks.shouldDiscard) basePhase.action = HandStateActions.DISCARD;
     else if (gameChecks.shouldReOrderHand) basePhase.action = HandStateActions.RE_ORDER_HAND;
     else if (gameChecks.shouldPlayerSittingOut) basePhase.action = HandStateActions.SITTING_OUT;
-    else if (gameChecks.shouldTrickFinished) basePhase.action = HandStateActions.TRICK_FINISHED;
+    else if (gameChecks.isTrickFinished) basePhase.action = HandStateActions.TRICK_FINISHED;
     else if (gameChecks.showBeginPlayerTurn) basePhase.action = HandStateActions.BEGIN_TURN;
     else if (gameChecks.showEndPlayerTurn) basePhase.action = HandStateActions.END_TURN;
 

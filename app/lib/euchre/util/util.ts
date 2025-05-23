@@ -1,6 +1,6 @@
 import { GameEvent, GameEventHandlers, GameEventType } from '@/app/hooks/euchre/useEventLog';
-import { EuchrePlayer } from '../definitions/game-state-definitions';
-import { Card, TeamColor } from '../definitions/definitions';
+import { Card, TeamColor } from '../../../../features/euchre/definitions/definitions';
+import { EuchrePlayer } from '../../../../features/euchre/definitions/game-state-definitions';
 
 const ENABLE_LOGGING = true;
 

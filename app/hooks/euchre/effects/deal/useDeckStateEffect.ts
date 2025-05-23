@@ -1,15 +1,15 @@
+import useDeckAnimationPhase from '../../phases/useDeckAnimationPhase';
+import getEffectForInitDeckState from '../../../../../features/euchre/util/deck/deckStateInitializeUtil';
+import getEffectForDealForDealer from '../../../../../features/euchre/util/deck/deckStateDealForDealerUtil';
+import getEffectForRegularDeal from '../../../../../features/euchre/util/deck/deckStateRegularDealUtil';
 import {
   DealForDealerHandlers,
+  DealStateEffect,
   DeckState,
   EuchreGameState,
   InitDealHandlers,
-  RegularDealHandlers,
-  DealStateEffect
-} from '../../../../lib/euchre/definitions/game-state-definitions';
-import useDeckAnimationPhase from '../../phases/useDeckAnimationPhase';
-import getEffectForInitDeckState from '../../../../lib/euchre/util/deck/deckStateInitializeUtil';
-import getEffectForDealForDealer from '../../../../lib/euchre/util/deck/deckStateDealForDealerUtil';
-import getEffectForRegularDeal from '../../../../lib/euchre/util/deck/deckStateRegularDealUtil';
+  RegularDealHandlers
+} from '../../../../../features/euchre/definitions/game-state-definitions';
 
 /** Used to return a handler that should be run from an effect for different phases of the game. */
 const useDeckStateEffect = (

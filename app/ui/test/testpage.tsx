@@ -3,7 +3,7 @@
 import { motion, TargetAndTransition } from 'framer-motion';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
-import { getEncodedCardSvg } from '../../lib/euchre/util/cardSvgDataUtil';
+import { getEncodedCardSvg } from '../../../features/euchre/util/game/cardSvgDataUtil';
 import CardRenderTest from './card-render-test';
 
 const TestPage = () => {

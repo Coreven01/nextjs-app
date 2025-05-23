@@ -1,32 +1,18 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  EuchrePlayer,
-  InitDealHandlers,
-  DealForDealerHandlers,
-  RegularDealHandlers,
-  DeckState,
-  GamePlayContext
-} from '../../../../lib/euchre/definitions/game-state-definitions';
 import useCardRefs from '../../useCardRefs';
-import { TableLocation } from '../../../../lib/euchre/definitions/definitions';
 import useTableRef from '../../useTableRefs';
-import { GAME_STATES_FOR_DEAL, GAME_STATES_FOR_PLAY } from '../../../../lib/euchre/util/gameStateLogicUtil';
+import {
+  GAME_STATES_FOR_DEAL,
+  GAME_STATES_FOR_PLAY
+} from '../../../../../features/euchre/util/game/gameStateLogicUtil';
 import { logConsole } from '../../../../lib/euchre/util/util';
-import { getDisplayHeight, getDisplayWidth } from '../../../../lib/euchre/util/cardDataUtil';
+import { getDisplayHeight, getDisplayWidth } from '../../../../../features/euchre/util/game/cardDataUtil';
 import {
   addAnimateForBeginDealForDealerEvent,
   addAnimateForDealForRegularPlayEvent,
   addResetForDealerEvent
-} from '../../../../lib/euchre/util/deck/deckStateEventsUtil';
-import { notificationDelay } from '../../../../lib/euchre/util/gameDataUtil';
-import {
-  CardAnimationStateContext,
-  CardSpringProps,
-  CardSpringTarget,
-  DEFAULT_SPRING_VAL,
-  FlipSpringProps,
-  FlipSpringTarget
-} from '../../../../lib/euchre/definitions/transform-definitions';
+} from '../../../../../features/euchre/util/deck/deckStateEventsUtil';
+import { notificationDelay } from '../../../../../features/euchre/util/game/gameDataUtil';
 import { v4 as uuidv4 } from 'uuid';
 import {
   getCardsStatesRegularDeal,
@@ -34,12 +20,32 @@ import {
   getSpringInitialMoveForDeal,
   getStatesAnimateDealForDealer,
   getStatesMoveAllCardsToPlayer
-} from '../../../../lib/euchre/util/deck/deckTransformUtil';
+} from '../../../../../features/euchre/util/deck/deckTransformUtil';
 import useDeckState from '../../state/useDeckState';
 import useDeckStateEffect from './useDeckStateEffect';
 import { useAnimation } from 'framer-motion';
-import { createCardBaseState, runCardAnimations } from '../../../../lib/euchre/util/cardStateUtil';
-import { InitDealResult } from '../../../../lib/euchre/definitions/logic-definitions';
+import {
+  createCardBaseState,
+  runCardAnimations
+} from '../../../../../features/euchre/util/game/cardStateUtil';
+import {
+  DealForDealerHandlers,
+  DeckState,
+  EuchrePlayer,
+  GamePlayContext,
+  InitDealHandlers,
+  RegularDealHandlers
+} from '../../../../../features/euchre/definitions/game-state-definitions';
+import { InitDealResult } from '../../../../../features/euchre/definitions/logic-definitions';
+import { TableLocation } from '../../../../../features/euchre/definitions/definitions';
+import {
+  CardAnimationStateContext,
+  CardSpringProps,
+  CardSpringTarget,
+  DEFAULT_SPRING_VAL,
+  FlipSpringProps,
+  FlipSpringTarget
+} from '../../../../../features/euchre/definitions/transform-definitions';
 
 const ERR_ID: string = '[DECK ANIMATION]';
 
@@ -409,7 +415,8 @@ const useDeckAnimation = (
         destinationPlayer.location,
         destinationElement,
         deckCardRefs,
-        euchreSettings.gameSpeed
+        euchreSettings.gameSpeed,
+        'med'
       );
 
       updateCardBaseAndAnimationSprings(
@@ -519,7 +526,9 @@ const useDeckAnimation = (
       stateContext,
       playerDeckRefs,
       deckCardRefs,
-      euchreSettings.gameSpeed
+      euchreSettings.gameSpeed,
+      true,
+      'med'
     );
 
     updateCardBaseAndAnimationSprings(

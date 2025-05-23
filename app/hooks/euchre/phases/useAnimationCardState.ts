@@ -1,4 +1,4 @@
-import { EuchreGameState } from '../../../lib/euchre/definitions/game-state-definitions';
+import { EuchreGameState } from '../../../../features/euchre/definitions/game-state-definitions';
 import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseType } from '../reducers/gamePauseReducer';
