@@ -22,7 +22,7 @@ type Props = {
 
   onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
-  onPassDeal: (card: Card) => void;
+  onDealPassed: (playerNumber: number) => void;
   onDealComplete: (playerNumber: number) => void;
   onTrumpOrderedComplete: (playerNumber: number) => void;
 };
@@ -37,7 +37,7 @@ const PlayerHand = ({
   centerVerticalRef,
   onCardPlayed,
   onTrickComplete,
-  onPassDeal,
+  onDealPassed,
   onDealComplete,
   onTrumpOrderedComplete
 }: Props) => {
@@ -62,7 +62,8 @@ const PlayerHand = ({
     playerDeckRefs,
     onDealComplete,
     onTrickComplete,
-    onTrumpOrderedComplete
+    onTrumpOrderedComplete,
+    onDealPassed
   );
   const { euchreGame, euchreSettings } = gameContext.state;
 

@@ -4,7 +4,7 @@ import {
   EuchreGameFlowState,
   INIT_GAME_FLOW_STATE
 } from '../reducers/gameFlowReducer';
-import { PlayerNotificationActionType } from '../reducers/playerNotificationReducer';
+import { NotificationActionType } from '../reducers/playerNotificationReducer';
 import { EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
 import { useCallback, useEffect } from 'react';
 import {
@@ -89,7 +89,7 @@ export default function useEuchreGameInit(
       );
 
       setters.replacePromptValues([PromptType.INTRO]);
-      setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
+      setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
       setters.setBidResult(null);
       setters.setPlayedCard(null);
       setters.setInitialDealerResult(null);

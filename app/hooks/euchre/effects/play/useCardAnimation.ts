@@ -70,7 +70,8 @@ const useCardAnimation = (
   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
   onDealComplete: (playerNumber: number) => void,
   onTrickComplete: (card: Card) => void,
-  onTrumpOrderedComplete: (playerNumber: number) => void
+  onTrumpOrderedComplete: (playerNumber: number) => void,
+  onDealPassed: (playerNumber: number) => void
 ) => {
   /** ************************************************************************************************************************************* */
 
@@ -907,7 +908,8 @@ const useCardAnimation = (
   /** */
   const handlePassDeal = useCallback(async () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-  }, []);
+    onDealPassed(player.playerNumber);
+  }, [onDealPassed, player.playerNumber]);
 
   /** */
   const handleSittingOut = useCallback(async () => {

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { createRange } from '../../../../app/lib/euchre/util/util';
 
 const height = 25;
@@ -45,15 +45,11 @@ const WoodenBoard = ({ rows, className }: Props) => {
                 alt="wooden board"
                 loading="eager"
                 quality={100}
-                unoptimized={true}
                 placeholder="blur"
                 blurDataURL="/wooden/wooden-0.jpg"
-                priority={true}
-                className={`contain border-r border-b border-black relative ${offset}`}
-                style={{
-                  width: '100%',
-                  height: 'auto'
-                }}
+                unoptimized
+                priority
+                className={`w-full h-auto border-r border-b border-black relative ${offset}`}
               />
             );
           })}

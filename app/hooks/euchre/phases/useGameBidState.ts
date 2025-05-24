@@ -3,13 +3,14 @@ import {
   EuchreGameValues,
   EuchreGameSetters,
   ErrorHandlers,
-  EuchreGameInstance
+  EuchreGameInstance,
+  EuchrePlayer
 } from '../../../../features/euchre/definitions/game-state-definitions';
 import { getGameStateForNextHand } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
 import { isGameStateValidToContinue } from '../../../../features/euchre/util/game/gameStateLogicUtil';
-import { playerEqual } from '../../../../features/euchre/util/game/playerDataUtil';
+import { getPlayerRotation, playerEqual } from '../../../../features/euchre/util/game/playerDataUtil';
 import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
-import { EuchreFlowActionType, EuchreGameFlow, EuchreGameFlowState } from '../reducers/gameFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
 
 const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, handlers: ErrorHandlers) => {
@@ -94,18 +95,47 @@ const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, ha
     );
   };
 
-  const updateStateAndContinueToBidForTrump = (game: EuchreGameInstance, gameflow: EuchreGameFlowState) => {
-    const newGameFlow = { ...gameflow };
-    const biddingRoundFinished = playerEqual(game.dealer, game.currentPlayer);
+  // const updateStateAndContinueToBidForTrump = (game: EuchreGameInstance, gameflow: EuchreGameFlowState) => {
+  //   const newGameFlow = { ...gameflow };
+  //   const biddingRoundFinished = playerEqual(game.dealer, game.currentPlayer);
+  //   const firstRound = !state.euchreGameFlow.hasFirstBiddingPassed;
+
+  //   newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
+  //   if (biddingRoundFinished) {
+  //     newGameFlow.hasFirstBiddingPassed = firstRound || newGameFlow.hasFirstBiddingPassed;
+  //     newGameFlow.hasSecondBiddingPassed = !firstRound;
+  //   }
+
+  //   setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
+  // };
+
+  /** Update game state for next player in rotation and update which round of bidding has passed.
+   * If second round of bidding is finished, move to pass deal state, otherwise move back to begin
+   * bid for trump for the next player in turn.
+   */
+  const updateStateForEndOfTrump = () => {
+    const newGameFlow = { ...state.euchreGameFlow };
+    const biddingRoundFinished = playerEqual(state.euchreGame.dealer, state.euchreGame.currentPlayer);
     const firstRound = !state.euchreGameFlow.hasFirstBiddingPassed;
 
-    newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
     if (biddingRoundFinished) {
       newGameFlow.hasFirstBiddingPassed = firstRound || newGameFlow.hasFirstBiddingPassed;
       newGameFlow.hasSecondBiddingPassed = !firstRound;
     }
 
-    setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
+    if (newGameFlow.hasSecondBiddingPassed) {
+      // all users have passed. pass the deal to the next user and begin to re-deal.
+      continueToBeginPassDeal();
+    } else {
+      newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
+      setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
+
+      const newGame: EuchreGameInstance = { ...state.euchreGame };
+      const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
+      newGame.currentPlayer = rotation[0];
+
+      setters.setEuchreGame(newGame);
+    }
   };
 
   const updateStateForNewHand = () => {
@@ -147,7 +177,8 @@ const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, ha
     pauseForBidForTrump,
     continueToBeginPassDeal,
     continueToEndBidForTrump,
-    updateStateAndContinueToBidForTrump,
+    //updateStateAndContinueToBidForTrump,
+    updateStateForEndOfTrump,
     updateStateForNewHand,
     continueToBeginOrderTrump,
     pauseForPassDeal,

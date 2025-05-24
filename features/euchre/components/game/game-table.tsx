@@ -1,4 +1,4 @@
-import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
+import { NotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import GameBorder from './game-border';
 import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
@@ -24,7 +24,7 @@ import { GameTableElements, CardAnimationControls } from '../../definitions/tran
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameState;
-  playerNotification: PlayerNotificationState;
+  playerNotification: NotificationState;
   tableElements: GameTableElements;
 }
 
@@ -34,6 +34,13 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     const cardControl = useAnimation();
     const flipControl = useAnimation();
     const duration = getDurationSeconds(state.euchreSettings.gameSpeed);
+
+    const {
+      euchreGame: game,
+      euchreGameFlow: gameFlow,
+      euchrePauseState: pauseState,
+      euchreSettings
+    } = { ...state };
 
     const animationControl: CardAnimationControls = {
       cardIndex: 0,
@@ -45,13 +52,6 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       animateFlipSprings: []
     };
 
-    const {
-      euchreGame: game,
-      euchreGameFlow: gameFlow,
-      euchrePauseState: pauseState,
-      euchreSettings
-    } = { ...state };
-    const hidePosition = !state.euchreSettings.debugShowPositionElements;
     const renderOrder = [
       playerNotification.topGameInfo,
       playerNotification.leftGameInfo,
@@ -60,17 +60,43 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       playerNotification.bottomGameInfo
     ];
 
-    const firstRound = !gameFlow.hasFirstBiddingPassed;
-    const animatePickUp =
-      firstRound &&
-      gameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP &&
-      pauseState.pauseType === EuchrePauseType.ANIMATE;
-    const trumpOrdered =
-      gameFlow.gameFlow === EuchreGameFlow.BEGIN_ORDER_TRUMP ||
-      gameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP;
-    const gameBidding = !game.maker && GAME_STATES_FOR_BID.includes(gameFlow.gameFlow);
-    const showFaceUp = ((gameBidding || trumpOrdered) && firstRound) || animatePickUp;
-    const showTrumpIndicator = game.maker && !trumpOrdered;
+    const getGameTableState = () => {
+      const firstRound = !gameFlow.hasFirstBiddingPassed;
+      const gameBidding = !game.maker && GAME_STATES_FOR_BID.includes(gameFlow.gameFlow);
+      const trumpOrdered =
+        gameFlow.gameFlow === EuchreGameFlow.BEGIN_ORDER_TRUMP ||
+        gameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP;
+      const animatePickUp =
+        firstRound &&
+        gameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP &&
+        pauseState.pauseType === EuchrePauseType.ANIMATE;
+      const dealPassed =
+        gameFlow.gameFlow === EuchreGameFlow.BEGIN_PASS_DEAL ||
+        gameFlow.gameFlow === EuchreGameFlow.END_PASS_DEAL;
+
+      return {
+        hidePosition: !state.euchreSettings.debugShowPositionElements,
+        animatePickUp:
+          firstRound &&
+          gameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP &&
+          pauseState.pauseType === EuchrePauseType.ANIMATE,
+        trumpOrdered: trumpOrdered,
+        gameBidding: !game.maker && GAME_STATES_FOR_BID.includes(gameFlow.gameFlow),
+        showFaceUp: ((gameBidding || trumpOrdered) && firstRound) || animatePickUp,
+        showTrumpIndicator: game.maker && !trumpOrdered,
+        flippedCardVisible: !dealPassed && (gameBidding || trumpOrdered)
+      };
+    };
+
+    const {
+      showFaceUp,
+      animatePickUp,
+      trumpOrdered,
+      hidePosition,
+      showTrumpIndicator,
+      flippedCardVisible,
+      gameBidding
+    } = getGameTableState();
 
     useEffect(() => {
       const flipCardAnimation = async () => {
@@ -193,7 +219,7 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
               cardState={cardState}
               card={game.trump}
               key={game.handId}
-              visible={gameBidding || trumpOrdered}
+              visible={flippedCardVisible}
             />
             {showTrumpIndicator && (
               <GameTrumpIndicator

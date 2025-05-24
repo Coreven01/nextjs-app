@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import {
   getPlayerNotificationType,
-  PlayerNotificationAction,
-  PlayerNotificationActionType
+  NotificationAction,
+  NotificationActionType
 } from '../reducers/playerNotificationReducer';
 
 import UserInfo from '@/features/euchre/components/player/user-info';
@@ -10,15 +10,10 @@ import PlayerNotification from '@/features/euchre/components/player/player-notif
 import { v4 as uuidv4 } from 'uuid';
 import {
   ErrorHandlers,
-  EuchreAnimationHandlers,
-  EuchreError,
   EuchreGameInstance,
-  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
-  EuchrePlayer,
-  EuchreSettings,
-  GamePlayContext
+  EuchrePlayer
 } from '../../../../features/euchre/definitions/game-state-definitions';
 import { GameEventHandlers } from '../useEventLog';
 import { EuchrePauseActionType, EuchrePauseType } from '../reducers/gamePauseReducer';
@@ -52,7 +47,7 @@ export default function useEuchreGameBid(
     pauseForBidForTrump,
     continueToBeginPassDeal,
     continueToEndBidForTrump,
-    updateStateAndContinueToBidForTrump,
+    updateStateForEndOfTrump,
     pauseForPassDeal,
     continueToBeginOrderTrump,
     continueToShuffleCards,
@@ -67,8 +62,8 @@ export default function useEuchreGameBid(
    * @returns
    */
   const getPlayerNotificationForAllPassed = useCallback(() => {
-    const newAction: PlayerNotificationAction = {
-      type: PlayerNotificationActionType.UPDATE_CENTER,
+    const newAction: NotificationAction = {
+      type: NotificationActionType.CENTER,
       payload: undefined
     };
     const id = '1';
@@ -97,7 +92,7 @@ export default function useEuchreGameBid(
         addBidScoreEvent(bidResult, state, eventHandlers);
       }
 
-      const notification: PlayerNotificationAction = {
+      const notification: NotificationAction = {
         type: getPlayerNotificationType(currentPlayer.location),
         payload: (
           <PlayerNotification
@@ -173,8 +168,10 @@ export default function useEuchreGameBid(
   );
 
   const handlePassDealComplete = useCallback(() => {
-    continueToShuffleCards();
-  }, [continueToShuffleCards]);
+    updateStateForNewHand();
+    setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
+    //continueToShuffleCards();
+  }, [setters, updateStateForNewHand]);
 
   //#endregion
 
@@ -264,22 +261,33 @@ export default function useEuchreGameBid(
     if (!shouldEndBidForTrump) return;
 
     addFinalizeBidForTrumpEvent(false, state, eventHandlers);
-    updateStateAndContinueToBidForTrump(euchreGame, euchreGameFlow);
+    //updateStateAndContinueToBidForTrump(euchreGame, euchreGameFlow);
+    updateStateForEndOfTrump();
 
-    const newGame: EuchreGameInstance = { ...euchreGame };
-    const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
-    newGame.currentPlayer = rotation[0];
+    //     const newGameFlow = { ...gameflow };
+    // const biddingRoundFinished = playerEqual(game.dealer, game.currentPlayer);
+    // const firstRound = !state.euchreGameFlow.hasFirstBiddingPassed;
 
-    setters.setEuchreGame(newGame);
-  }, [
-    euchreGame,
-    euchreGameFlow,
-    eventHandlers,
-    setters,
-    shouldEndBidForTrump,
-    state,
-    updateStateAndContinueToBidForTrump
-  ]);
+    // newGameFlow.gameFlow = EuchreGameFlow.BEGIN_BID_FOR_TRUMP;
+    // if (biddingRoundFinished) {
+    //   newGameFlow.hasFirstBiddingPassed = firstRound || newGameFlow.hasFirstBiddingPassed;
+    //   newGameFlow.hasSecondBiddingPassed = !firstRound;
+    // }
+
+    // setters.dispatchGameFlow({ type: EuchreFlowActionType.SET_STATE, state: newGameFlow });
+
+    //     if (euchreGameFlow.hasSecondBiddingPassed) {
+    //   // all users have passed. pass the deal to the next user and begin to re-deal.
+    //   continueToBeginPassDeal();
+    //   return;
+    // }
+
+    // const newGame: EuchreGameInstance = { ...euchreGame };
+    // const rotation: EuchrePlayer[] = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer);
+    // newGame.currentPlayer = rotation[0];
+
+    // setters.setEuchreGame(newGame);
+  }, [eventHandlers, shouldEndBidForTrump, state, updateStateForEndOfTrump]);
 
   /**
    *
@@ -303,8 +311,8 @@ export default function useEuchreGameBid(
   const beginPassDeal = useCallback(async () => {
     if (!shouldBeginPassDeal) return;
 
-    setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
-
+    //setters.dispatchStateChange(undefined, undefined, EuchrePauseActionType.SET_GENERAL);
+    pauseForPassDeal();
     addBeginPassDealEvent(state, eventHandlers);
 
     const newGame: EuchreGameInstance = { ...euchreGame };
@@ -312,15 +320,14 @@ export default function useEuchreGameBid(
 
     newGame.dealer = rotation[0];
     newGame.dealPassedCount += 1;
-
-    setters.dispatchPlayerNotification(getPlayerNotificationForAllPassed());
-    await notificationDelay(euchreSettings, 1);
-
     setters.setEuchreGame(newGame);
 
-    pauseForPassDeal();
-    updateStateForNewHand();
-    setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
+    setters.dispatchPlayerNotification(getPlayerNotificationForAllPassed());
+    //await notificationDelay(euchreSettings, 1);
+
+    //pauseForPassDeal();
+    //updateStateForNewHand();
+    //setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
   }, [
     euchreGame,
     euchreSettings,

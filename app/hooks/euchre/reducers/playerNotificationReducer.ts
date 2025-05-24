@@ -1,7 +1,7 @@
 import React from 'react';
 import { TableLocation } from '../../../../features/euchre/definitions/definitions';
 
-export interface PlayerNotificationState {
+export interface NotificationState {
   /** Values used to identify what information is dynamically shown in the center of the game. */
   bottomGameInfo: React.ReactNode;
   topGameInfo: React.ReactNode;
@@ -10,21 +10,21 @@ export interface PlayerNotificationState {
   centerGameInfo: React.ReactNode;
 }
 
-export interface PlayerNotificationAction {
-  type: PlayerNotificationActionType;
+export interface NotificationAction {
+  type: NotificationActionType;
   payload?: React.ReactNode;
 }
 
-export enum PlayerNotificationActionType {
-  UPDATE_BOTTOM,
-  UPDATE_TOP,
-  UPDATE_LEFT,
-  UPDATE_RIGHT,
-  UPDATE_CENTER,
+export enum NotificationActionType {
+  BOTTOM,
+  TOP,
+  LEFT,
+  RIGHT,
+  CENTER,
   RESET
 }
 
-export const INIT_PLAYER_NOTIFICATION: PlayerNotificationState = {
+export const INIT_PLAYER_NOTIFICATION: NotificationState = {
   bottomGameInfo: undefined,
   topGameInfo: undefined,
   leftGameInfo: undefined,
@@ -33,37 +33,37 @@ export const INIT_PLAYER_NOTIFICATION: PlayerNotificationState = {
 };
 
 export function playerNotificationReducer(
-  state: PlayerNotificationState,
-  action: PlayerNotificationAction
-): PlayerNotificationState {
-  if (action.type === PlayerNotificationActionType.UPDATE_BOTTOM) {
+  state: NotificationState,
+  action: NotificationAction
+): NotificationState {
+  if (action.type === NotificationActionType.BOTTOM) {
     return { ...state, bottomGameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.UPDATE_TOP) {
+  } else if (action.type === NotificationActionType.TOP) {
     return { ...state, topGameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.UPDATE_LEFT) {
+  } else if (action.type === NotificationActionType.LEFT) {
     return { ...state, leftGameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.UPDATE_RIGHT) {
+  } else if (action.type === NotificationActionType.RIGHT) {
     return { ...state, rightGameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.UPDATE_CENTER) {
+  } else if (action.type === NotificationActionType.CENTER) {
     return { ...state, centerGameInfo: action.payload };
-  } else if (action.type === PlayerNotificationActionType.RESET) {
+  } else if (action.type === NotificationActionType.RESET) {
     return { ...INIT_PLAYER_NOTIFICATION };
   } else {
     throw Error('Unknown action: ' + action.type);
   }
 }
 
-export function getPlayerNotificationType(location: TableLocation): PlayerNotificationActionType {
+export function getPlayerNotificationType(location: TableLocation): NotificationActionType {
   switch (location) {
     case 'bottom':
-      return PlayerNotificationActionType.UPDATE_BOTTOM;
+      return NotificationActionType.BOTTOM;
     case 'top':
-      return PlayerNotificationActionType.UPDATE_TOP;
+      return NotificationActionType.TOP;
     case 'left':
-      return PlayerNotificationActionType.UPDATE_LEFT;
+      return NotificationActionType.LEFT;
     case 'right':
-      return PlayerNotificationActionType.UPDATE_RIGHT;
+      return NotificationActionType.RIGHT;
   }
 
-  return PlayerNotificationActionType.UPDATE_BOTTOM;
+  return NotificationActionType.BOTTOM;
 }

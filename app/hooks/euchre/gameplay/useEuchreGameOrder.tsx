@@ -1,4 +1,4 @@
-import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
+import { getPlayerNotificationType, NotificationAction } from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect } from 'react';
 import PlayerNotification from '@/features/euchre/components/player/player-notification';
 import { GameEventHandlers } from '../useEventLog';
@@ -136,7 +136,7 @@ export default function useEuchreGameOrder(
       if (!euchreGame.maker) throw Error('Maker not found - Order Trump.');
 
       const orderType = bidResult.calledSuit ? 'named' : 'order';
-      const notification: PlayerNotificationAction = {
+      const notification: NotificationAction = {
         type: getPlayerNotificationType(euchreGame.maker.location),
         payload: (
           <PlayerNotification

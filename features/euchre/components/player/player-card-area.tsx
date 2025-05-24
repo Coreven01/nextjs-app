@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import React, { RefObject, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import useDeckAnimation from '../../../../app/hooks/euchre/effects/deal/useDeckAnimation';
 import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
@@ -54,7 +54,8 @@ const PlayerCardArea = ({
     resetStateForNewHand,
     handleDealAnimationComplete,
     handleTrickFinished,
-    handleTrumpOrderedComplete
+    handleTrumpOrderedComplete,
+    handlePassDealAnimationComplete
   } = usePlayerActionState(gameContext);
 
   const playerLayoutForGrid = getPlayerGridLayoutInfo();
@@ -189,7 +190,7 @@ const PlayerCardArea = ({
                 centerVerticalRef={tableElements.centerVerticalRef}
                 onCardPlayed={() => null}
                 onTrickComplete={handleTrickFinished}
-                onPassDeal={() => null}
+                onDealPassed={handlePassDealAnimationComplete}
                 onDealComplete={handleDealAnimationComplete}
                 onTrumpOrderedComplete={handleTrumpOrderedComplete}
               />

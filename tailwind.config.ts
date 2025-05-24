@@ -1,10 +1,12 @@
 import type { Config } from 'tailwindcss';
+import forms from '@tailwindcss/forms';
 
 export default {
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
-    './app/**/*.{js,ts,jsx,tsx,mdx}'
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './features/**/*.{js,ts,jsx,tsx,mdx}'
   ],
   safelist: [
     'rotate-[-10deg],rotate-[-5deg],rotate-[10deg],rotate-[5deg]',
@@ -17,9 +19,9 @@ export default {
   theme: {
     extend: {
       backgroundImage: {
-        wooden1: "url('/wooden/wooden2.jpg'),url('/wooden/wooden3.jpg')",
-        wooden2: "url('/wooden/wooden1.jpg'),url('/wooden/wooden4.jpg')",
-        wooden3: "url('/wooden/wooden5.jpg'),url('/wooden/wooden6.jpg')"
+        wooden1: "url('/wooden/wooden-2.jpg'),url('/wooden/wooden-3.jpg')",
+        wooden2: "url('/wooden/wooden-1.jpg'),url('/wooden/wooden-4.jpg')",
+        wooden3: "url('/wooden/wooden-5.jpg'),url('/wooden/wooden-6.jpg')"
       },
       gridTemplateColumns: {
         '13': 'repeat(13, minmax(0, 1fr))'
@@ -82,5 +84,5 @@ export default {
       }
     }
   },
-  plugins: [require('@tailwindcss/forms')]
+  plugins: [forms]
 } satisfies Config;

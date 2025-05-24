@@ -1,7 +1,7 @@
 import {
   getPlayerNotificationType,
-  PlayerNotificationAction,
-  PlayerNotificationActionType
+  NotificationAction,
+  NotificationActionType
 } from '../reducers/playerNotificationReducer';
 import { useCallback, useEffect, useRef } from 'react';
 import PlayerNotification from '@/features/euchre/components/player/player-notification';
@@ -88,14 +88,17 @@ const useEuchreGamePlay = (
    */
   const getPlayerNotificationCheck = useCallback(
     (location: TableLocation) => {
-      const newAction: PlayerNotificationAction = {
-        type: getPlayerNotificationType(location),
-        payload: undefined
+      const playerLocation = getPlayerNotificationType(location);
+      const newAction: NotificationAction = {
+        type: playerLocation,
+        payload: (
+          <GamePlayIndicator
+            relativeLocation="center"
+            playerLocation={playerLocation}
+            notificationSpeed={euchreSettings.notificationSpeed}
+          />
+        )
       };
-
-      newAction.payload = (
-        <GamePlayIndicator location={location} notificationSpeed={euchreSettings.notificationSpeed} />
-      );
 
       return newAction;
     },
@@ -174,7 +177,7 @@ const useEuchreGamePlay = (
     }
 
     if (newGame.currentTrick.cardsPlayed.length === 0) {
-      setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
+      setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
     }
 
     // if settings set to auto follow suit, and only one card to play, then play that card without user interaction.
@@ -383,8 +386,8 @@ const useEuchreGamePlay = (
           addPlayerRenegedEvent(currentTrick.playerRenege, renegeCard.card, state, eventHandlers);
         }
 
-        const notification: PlayerNotificationAction = {
-          type: PlayerNotificationActionType.UPDATE_CENTER,
+        const notification: NotificationAction = {
+          type: NotificationActionType.CENTER,
           payload: (
             <PlayerNotification
               key={uuidv4()}
@@ -441,7 +444,7 @@ const useEuchreGamePlay = (
 
         await gameDelay(euchreSettings);
 
-        setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
+        setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
         pauseForPrompt();
 
         if (euchreSettings.showHandResult) {

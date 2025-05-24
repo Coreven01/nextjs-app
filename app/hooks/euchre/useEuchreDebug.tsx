@@ -3,13 +3,13 @@ import { useCallback, useMemo, useState } from 'react';
 import { GameEventHandlers } from './useEventLog';
 
 import { EuchreGameFlow } from './reducers/gameFlowReducer';
-import { PlayerNotificationAction, PlayerNotificationActionType } from './reducers/playerNotificationReducer';
+import { NotificationAction, NotificationActionType } from './reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../../features/euchre/components/game/game-play-indicator';
 import useEuchreGameAuto from './gameplay/useEuchreGameAuto';
 import { EuchreAnimationActionType } from './reducers/gameAnimationFlowReducer';
 import { EuchrePauseActionType } from './reducers/gamePauseReducer';
 import { createDefaultEuchreGame } from '../../../features/euchre/util/game/gameSetupLogicUtil';
-import { GameSpeed, TableLocation, PromptType } from '../../../features/euchre/definitions/definitions';
+import { GameSpeed, PromptType } from '../../../features/euchre/definitions/definitions';
 import {
   EuchreGameValues,
   EuchreGamePlayHandlers,
@@ -30,13 +30,15 @@ const useEuchreDebug = (
   const [fullGameInstance, setFullGameInstance] = useState<EuchreGameInstance | null>(null);
 
   const getNotification = useCallback(
-    (type: PlayerNotificationActionType, speed: GameSpeed, location: TableLocation) => {
-      const newAction: PlayerNotificationAction = {
+    (type: NotificationActionType, speed: GameSpeed, location: 'center' | 'middle' | 'outer') => {
+      const newAction: NotificationAction = {
         type: type,
         payload: undefined
       };
 
-      newAction.payload = <GamePlayIndicator location={location} notificationSpeed={speed} />;
+      newAction.payload = (
+        <GamePlayIndicator playerLocation={type} relativeLocation={location} notificationSpeed={speed} />
+      );
 
       return newAction;
     },
@@ -51,7 +53,7 @@ const useEuchreDebug = (
     setters.setEuchreDebug(undefined);
     setters.setEuchreReplayGame(null);
     setters.setInitialDealerResult(null);
-    setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
+    setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
     setters.dispatchStateChange(
       EuchreGameFlow.BEGIN_INTRO,
       EuchreAnimationActionType.SET_NONE,
@@ -117,14 +119,14 @@ const useEuchreDebug = (
   /** */
   const handleRunTrickNotification = useCallback(async () => {
     console.log('game speed: ', state.euchreSettings.notificationSpeed);
-    const types: PlayerNotificationActionType[] = [
-      PlayerNotificationActionType.UPDATE_TOP,
-      PlayerNotificationActionType.UPDATE_BOTTOM,
-      PlayerNotificationActionType.UPDATE_LEFT,
-      PlayerNotificationActionType.UPDATE_RIGHT,
-      PlayerNotificationActionType.UPDATE_CENTER
+    const types: NotificationActionType[] = [
+      NotificationActionType.TOP,
+      NotificationActionType.BOTTOM,
+      NotificationActionType.LEFT,
+      NotificationActionType.RIGHT,
+      NotificationActionType.CENTER
     ];
-    const locations: TableLocation[] = ['top', 'bottom', 'left', 'right'];
+    const locations: ('center' | 'middle' | 'outer')[] = ['center', 'middle', 'outer'];
 
     for (let t = 0; t < types.length; t++) {
       for (let l = 0; l < locations.length; l++) {

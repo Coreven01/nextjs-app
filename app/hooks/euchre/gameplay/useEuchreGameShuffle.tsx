@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { PlayerNotificationActionType } from '../reducers/playerNotificationReducer';
+import { NotificationActionType } from '../reducers/playerNotificationReducer';
 import { GameEventHandlers } from '../useEventLog';
 import {
   ErrorHandlers,
@@ -122,7 +122,7 @@ const useEuchreGameShuffle = (
     const shuffleResult = shuffleAndDealHand(euchreGame, euchreSettings, euchreReplayGame, shouldCancel);
     const newGame = shuffleResult.game;
 
-    setters.dispatchPlayerNotification({ type: PlayerNotificationActionType.RESET });
+    setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
     setters.setEuchreGame(newGame);
 
     if (!euchreSettings.shouldAnimateDeal) {

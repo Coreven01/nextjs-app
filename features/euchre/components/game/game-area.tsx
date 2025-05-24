@@ -1,6 +1,6 @@
 import GameMenu from './game-menu';
 import GameTable from './game-table';
-import { PlayerNotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
+import { NotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
 import PlayerArea from '../player/player-area';
 import clsx from 'clsx';
 import useTableRefs from '../../../../app/hooks/euchre/useTableRefs';
@@ -18,7 +18,7 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   showEvents: boolean;
   showSettings: boolean;
   showScore: boolean;
-  playerNotification: PlayerNotificationState;
+  playerNotification: NotificationState;
   playedCard: Card | null;
   initDealer: InitDealResult | null;
 

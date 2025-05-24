@@ -72,8 +72,6 @@ export const GAME_STATES_FOR_BID = [
 export const GAME_STATES_FOR_PLAYER_TURN = [
   EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
   EuchreGameFlow.END_BID_FOR_TRUMP,
-  EuchreGameFlow.BEGIN_PASS_DEAL,
-  EuchreGameFlow.END_PASS_DEAL,
   EuchreGameFlow.BEGIN_ORDER_TRUMP,
   EuchreGameFlow.END_ORDER_TRUMP,
   EuchreGameFlow.BEGIN_PLAY_CARD,

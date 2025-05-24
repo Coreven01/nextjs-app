@@ -10,7 +10,7 @@ import { Card } from '../../../../features/euchre/definitions/definitions';
 const usePlayerActionState = (gameContext: GamePlayContext) => {
   const playersInitDealFinished = useRef<Set<number>>(new Set<number>());
   const playersTrumpOrderedComplete = useRef<Set<number>>(new Set<number>());
-  //const cardsPassedDeal = useRef<Set<string>>(new Set<string>());
+  const playersDealPassedComplete = useRef<Set<number>>(new Set<number>());
 
   /** Map of trick id to the card values that were played for that trick. */
   const cardsPlayedForTrick = useRef<Map<string, Set<string>>>(new Map<string, Set<string>>());
@@ -28,6 +28,7 @@ const usePlayerActionState = (gameContext: GamePlayContext) => {
     playersTrumpOrderedComplete.current.clear();
     cardsPlayedForTrick.current.clear();
     tricksFinished.current.clear();
+    playersDealPassedComplete.current.clear();
   };
 
   const handleDealAnimationComplete = useCallback(
@@ -44,14 +45,16 @@ const usePlayerActionState = (gameContext: GamePlayContext) => {
     [gameContext.animationHandlers]
   );
 
-  // const handlePassDealAnimationComplete = (card: Card) => {
-  //   //logConsole('*** [PLAYERCARDAREA] [handlePassDealAnimationComplete]');
-  //   // if (cardsPassedDeal.current.values().toArray().length === 20) return;
-  //   // cardsPassedDeal.current.add(`${card.value}${card.suit}`);
-  //   // if (cardsPassedDeal.current.values().toArray().length === 20) {
-  //   //   animationHandlers.onPassDealComplete();
-  //   // }
-  // };
+  const handlePassDealAnimationComplete = (playerNumber: number) => {
+    //logConsole('*** [PLAYERCARDAREA] [handleDealAnimationComplete]');
+    if (playersDealPassedComplete.current.values().toArray().length === 4) return;
+
+    playersDealPassedComplete.current.add(playerNumber);
+
+    if (playersDealPassedComplete.current.values().toArray().length === 4) {
+      gameContext.animationHandlers.onPassDealComplete();
+    }
+  };
 
   // const handleCardPlayed = (card: Card) => {
   //   // animationHandlers.onCardPlayed(card);
@@ -97,7 +100,8 @@ const usePlayerActionState = (gameContext: GamePlayContext) => {
     resetStateForNewHand,
     handleDealAnimationComplete,
     handleTrickFinished,
-    handleTrumpOrderedComplete
+    handleTrumpOrderedComplete,
+    handlePassDealAnimationComplete
   };
 };
 

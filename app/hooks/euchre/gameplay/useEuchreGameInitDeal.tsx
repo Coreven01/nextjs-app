@@ -1,18 +1,13 @@
 import { useCallback, useEffect } from 'react';
 import {
   ErrorHandlers,
-  EuchreAnimationHandlers,
-  EuchreError,
   EuchreGameInstance,
-  EuchreGamePlayHandlers,
   EuchreGameSetters,
-  EuchreGameValues,
-  EuchreSettings,
-  GamePlayContext
+  EuchreGameValues
 } from '../../../../features/euchre/definitions/game-state-definitions';
 
 import { GameEventHandlers } from '../useEventLog';
-import { getPlayerNotificationType, PlayerNotificationAction } from '../reducers/playerNotificationReducer';
+import { getPlayerNotificationType, NotificationAction } from '../reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../../../features/euchre/components/game/game-play-indicator';
 import useGameInitDealState from '../phases/useGameInitDealState';
 import {
@@ -169,13 +164,15 @@ export default function useEuchreGameInitDeal(
       if (euchreSettings.shouldAnimateDeal) {
         setters.dispatchPause();
 
+        const playerLocation = getPlayerNotificationType(euchreGame.dealer.location);
         // show an indicator who will be the next dealer.
-        const newAction: PlayerNotificationAction = {
-          type: getPlayerNotificationType(euchreGame.dealer.location),
+        const newAction: NotificationAction = {
+          type: playerLocation,
           payload: (
             <GamePlayIndicator
-              location={euchreGame.dealer.location}
+              playerLocation={playerLocation}
               notificationSpeed={euchreSettings.notificationSpeed}
+              relativeLocation="center"
             />
           )
         };

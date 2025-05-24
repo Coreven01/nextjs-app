@@ -24,8 +24,8 @@ import {
 } from '../../../app/hooks/euchre/reducers/gameAnimationFlowReducer';
 import { EuchrePauseActionType, EuchrePauseState } from '../../../app/hooks/euchre/reducers/gamePauseReducer';
 import {
-  PlayerNotificationAction,
-  PlayerNotificationState
+  NotificationAction,
+  NotificationState
 } from '../../../app/hooks/euchre/reducers/playerNotificationReducer';
 import { GameEventHandlers } from '../../../app/hooks/euchre/useEventLog';
 
@@ -119,7 +119,7 @@ export interface EuchreGameValues extends EuchreGameState {
 
   /** The resulting information from the bidding processes used by AI. */
   bidResult: BidResult | null;
-  playerNotification: PlayerNotificationState;
+  playerNotification: NotificationState;
 
   /** A value to indicate which prompt is present during the game. The initial intent was the possibilty that more than one
    * prompt could be present.
@@ -199,7 +199,7 @@ export interface EuchreGameSetters {
     gameAnimationAction?: EuchreAnimationActionType,
     gameWait?: EuchrePauseActionType
   ) => void;
-  dispatchPlayerNotification: ActionDispatch<[action: PlayerNotificationAction]>;
+  dispatchPlayerNotification: ActionDispatch<[action: NotificationAction]>;
   dispatchGameFlow: ActionDispatch<[action: GameFlowAction]>;
   dispatchGameAnimationFlow: ActionDispatch<[action: EuchreAnimationAction]>;
   dispatchPause: () => void;

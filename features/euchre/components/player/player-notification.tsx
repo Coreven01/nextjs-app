@@ -38,17 +38,17 @@ const PlayerNotification = ({
   let icon: React.ReactNode;
   let messageLocation = '';
 
-  switch (player.playerNumber) {
-    case 1:
+  switch (player.location) {
+    case 'bottom':
       messageLocation = 'lg:bottom-8 lg:top-auto top-3';
       break;
-    case 2:
+    case 'top':
       messageLocation = 'lg:top-8 top-3';
       break;
-    case 3:
+    case 'left':
       messageLocation = 'lg:right-8 lg:left-auto left-3';
       break;
-    case 4:
+    case 'right':
       messageLocation = 'lg:left-8 lg:right-auto right-3';
       break;
   }
