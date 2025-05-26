@@ -20,7 +20,6 @@ type Props = {
   centerHorizontalRef: RefObject<HTMLDivElement | null>;
   centerVerticalRef: RefObject<HTMLDivElement | null>;
 
-  onCardPlayed: (card: Card) => void;
   onTrickComplete: (card: Card) => void;
   onDealPassed: (playerNumber: number) => void;
   onDealComplete: (playerNumber: number) => void;
@@ -35,7 +34,6 @@ const PlayerHand = ({
   playerDeckRefs,
   centerHorizontalRef,
   centerVerticalRef,
-  onCardPlayed,
   onTrickComplete,
   onDealPassed,
   onDealComplete,

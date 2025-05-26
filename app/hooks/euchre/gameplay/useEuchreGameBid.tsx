@@ -16,7 +16,7 @@ import {
   EuchrePlayer
 } from '../../../../features/euchre/definitions/game-state-definitions';
 import { GameEventHandlers } from '../useEventLog';
-import { EuchrePauseActionType, EuchrePauseType } from '../reducers/gamePauseReducer';
+import { EuchrePauseType } from '../reducers/gamePauseReducer';
 import useGameBidState from '../phases/useGameBidState';
 import { determineBid } from '../../../../features/euchre/util/game/gameBidLogicUtil';
 import { notificationDelay } from '../../../../features/euchre/util/game/gameDataUtil';
@@ -50,7 +50,6 @@ export default function useEuchreGameBid(
     updateStateForEndOfTrump,
     pauseForPassDeal,
     continueToBeginOrderTrump,
-    continueToShuffleCards,
     updateStateForNewHand
   } = useGameBidState(state, setters, errorHandlers);
 
@@ -66,9 +65,8 @@ export default function useEuchreGameBid(
       type: NotificationActionType.CENTER,
       payload: undefined
     };
-    const id = '1';
     const infoDetail = (
-      <UserInfo className="absolute p-2 w-auto whitespace-nowrap shadow-lg shadow-black" id={id}>
+      <UserInfo className="absolute p-2 w-auto whitespace-nowrap shadow-lg shadow-black">
         <div className="flex items-center">All Players Passed</div>
       </UserInfo>
     );
@@ -330,14 +328,12 @@ export default function useEuchreGameBid(
     //setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
   }, [
     euchreGame,
-    euchreSettings,
     eventHandlers,
     getPlayerNotificationForAllPassed,
     pauseForPassDeal,
     setters,
     shouldBeginPassDeal,
-    state,
-    updateStateForNewHand
+    state
   ]);
 
   useEffect(() => {

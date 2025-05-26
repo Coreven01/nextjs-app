@@ -9,16 +9,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { GameEventHandlers } from '../useEventLog';
 import {
   ErrorHandlers,
-  EuchreAnimationHandlers,
   EuchreCard,
-  EuchreError,
   EuchreGameInstance,
-  EuchreGamePlayHandlers,
   EuchreGameSetters,
   EuchreGameValues,
-  EuchreSettings,
-  EuchreTrick,
-  GamePlayContext
+  EuchreTrick
 } from '../../../../features/euchre/definitions/game-state-definitions';
 import GamePlayIndicator from '../../../../features/euchre/components/game/game-play-indicator';
 import useGamePlayState from '../phases/useGamePlayState';
@@ -31,6 +26,7 @@ import {
   isGameOver,
   isHandFinished,
   isTrickFinished,
+  minNotificationDelay,
   notificationDelay,
   playerSittingOut,
   updateIfHandOver,
@@ -38,7 +34,8 @@ import {
 } from '../../../../features/euchre/util/game/gameDataUtil';
 import {
   availableCardsToPlay,
-  getPlayerRotation
+  getPlayerRotation,
+  getTeamColor
 } from '../../../../features/euchre/util/game/playerDataUtil';
 import {
   addCardPlayedEvent,
@@ -51,6 +48,8 @@ import { determineCardToPlay } from '../../../../features/euchre/util/game/gameP
 import { EuchreGameFlow } from '../reducers/gameFlowReducer';
 import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
 import { TableLocation, PromptType, Card } from '../../../../features/euchre/definitions/definitions';
+import UserInfo from '../../../../features/euchre/components/player/user-info';
+import PlayerColor from '../../../../features/euchre/components/player/player-team-color';
 
 const useEuchreGamePlay = (
   state: EuchreGameValues,
@@ -75,7 +74,6 @@ const useEuchreGamePlay = (
     continueToEndPlayCardResult,
     continueToAnimateEndPlayCardResult,
     continueToBeginPlayCard,
-    continueToTrickFinished,
     continueToAnimateTrickFinished,
     pauseForPrompt,
     pauseForTrickFinished,
@@ -83,6 +81,7 @@ const useEuchreGamePlay = (
   } = useGamePlayState(state, setters, errorHandlers);
   const { euchreGame, euchreGameFlow, euchreAnimationFlow, euchreSettings, euchrePauseState, playedCard } =
     state;
+
   /**
    * Show an indicator in the player's area to show which card won.
    */
@@ -107,9 +106,46 @@ const useEuchreGamePlay = (
 
   /**
    *
+   * @param player
+   * @returns
+   */
+  const getNotificationForHandkWon = useCallback(() => {
+    const newAction: NotificationAction = {
+      type: NotificationActionType.CENTER,
+      payload: undefined
+    };
+
+    const handResult = euchreGame.handResults.at(-1);
+    const wonPlayer = euchreGame.gamePlayers.find((p) => p.team === handResult?.teamWon);
+
+    if (!handResult) return newAction;
+    if (!wonPlayer) return newAction;
+
+    const infoDetail = (
+      <UserInfo className="absolute p-2 w-auto whitespace-nowrap shadow-lg shadow-black z-50">
+        <div className="flex items-center">
+          <PlayerColor
+            className="border border-white text-transparent h-4 w-4 mr-2"
+            teamColor={getTeamColor(wonPlayer, euchreSettings)}
+          >
+            X
+          </PlayerColor>
+          {'  '}
+          Team won {handResult.points} {handResult.points === 1 ? 'point' : 'points'}
+        </div>
+      </UserInfo>
+    );
+    newAction.payload = infoDetail;
+
+    return newAction;
+  }, [euchreGame.gamePlayers, euchreGame.handResults, euchreSettings]);
+
+  /**
+   *
    */
   const handleCloseHandResults = useCallback(() => {
     const gameOver = isGameOver(euchreGame, euchreSettings.gamePoints);
+    setters.dispatchPlayerNotification({ type: NotificationActionType.RESET });
 
     if (gameOver) {
       setters.dispatchPause();
@@ -352,11 +388,6 @@ const useEuchreGamePlay = (
       if (isTrickFinished(euchreGame)) {
         await animateEndResultTrickFinished();
       } else {
-        //short delay between players playing cards if the next player is AI.
-        if (!euchreGame.currentPlayer.human) {
-          //await gameDelay(euchreSettings);
-        }
-
         continueToBeginPlayCard();
       }
     };
@@ -450,6 +481,8 @@ const useEuchreGamePlay = (
         if (euchreSettings.showHandResult) {
           setters.addPromptValue(PromptType.HAND_RESULT);
         } else {
+          setters.dispatchPlayerNotification(getNotificationForHandkWon());
+          await minNotificationDelay(euchreSettings, 2000);
           handleCloseHandResults();
         }
       } else {
@@ -464,6 +497,7 @@ const useEuchreGamePlay = (
     euchreGame,
     euchreSettings,
     eventHandlers,
+    getNotificationForHandkWon,
     handleCloseHandResults,
     pauseForPrompt,
     setters,

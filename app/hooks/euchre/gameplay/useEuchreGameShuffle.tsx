@@ -3,14 +3,9 @@ import { NotificationActionType } from '../reducers/playerNotificationReducer';
 import { GameEventHandlers } from '../useEventLog';
 import {
   ErrorHandlers,
-  EuchreAnimationHandlers,
-  EuchreError,
   EuchreGameInstance,
-  EuchreGamePlayHandlers,
   EuchreGameSetters,
-  EuchreGameValues,
-  EuchreSettings,
-  GamePlayContext
+  EuchreGameValues
 } from '../../../../features/euchre/definitions/game-state-definitions';
 import useGameShuffleState from '../phases/useGameShuffleState';
 import {
@@ -164,7 +159,7 @@ const useEuchreGameShuffle = (
       // which gets executed by an effect in useCardState after the animation is complete for dealing cards.
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      //await new Promise((resolve) => setTimeout(resolve, 50));
       pauseForAnimateBeginDealCards();
     };
 
@@ -199,7 +194,7 @@ const useEuchreGameShuffle = (
       // which gets executed by an effect in useCardState after the animation is complete for dealing cards.
 
       // wait a short period to make sure the state chage was picked up by the useCardState effect.
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      //await new Promise((resolve) => setTimeout(resolve, 50));
       pauseForAnimateEndDealCards();
     };
 

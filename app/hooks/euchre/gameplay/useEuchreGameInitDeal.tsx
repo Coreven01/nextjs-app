@@ -172,7 +172,7 @@ export default function useEuchreGameInitDeal(
             <GamePlayIndicator
               playerLocation={playerLocation}
               notificationSpeed={euchreSettings.notificationSpeed}
-              relativeLocation="center"
+              relativeLocation="middle"
             />
           )
         };

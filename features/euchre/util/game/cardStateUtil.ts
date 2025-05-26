@@ -6,7 +6,8 @@ import {
   CardAnimationControls,
   CreateCardStatesContext,
   CardAnimationState,
-  DEFAULT_SPRING_VAL
+  DEFAULT_SPRING_VAL,
+  CardAnimationStateContext
 } from '../../definitions/transform-definitions';
 import { getEncodedCardSvg, getCardFullName } from './cardSvgDataUtil';
 
@@ -48,10 +49,10 @@ const createCardStatesFromGameDeck = (
   location: TableLocation,
   includeCardValue: boolean,
   reverseIndex: boolean
-) => {
+): CardAnimationStateContext => {
   const { cards, controls, flipControls, initCardSpring, initFlipSprings } = cardStateContext;
   const cardStates: CardBaseState[] = [];
-  const animationCardStates: CardAnimationState[] = [];
+  const animationStates: CardAnimationState[] = [];
   const animationControls: CardAnimationControls[] = [];
   const cardCount = cards.length;
   let initZIndex: number = DEFAULT_SPRING_VAL.zIndex ?? 30;
@@ -73,7 +74,7 @@ const createCardStatesFromGameDeck = (
     const initFlipProps = initFlipSprings.find((s) => s.cardIndex === card.index);
 
     cardStates.push(createCardBaseState(card, location, includeCardValue));
-    animationCardStates.push(createCardAnimationState(card.index));
+    animationStates.push(createCardAnimationState(card.index));
     animationControls.push({
       cardIndex: card.index,
       controls: control,
@@ -85,7 +86,7 @@ const createCardStatesFromGameDeck = (
     });
   }
 
-  return { cardStates, animationCardStates, animationControls };
+  return { cardStates, animationStates, animationControls };
 };
 
 /** Create the intial card state values for beginning deal.

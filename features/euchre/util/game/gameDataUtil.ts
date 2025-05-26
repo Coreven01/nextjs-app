@@ -667,6 +667,12 @@ const notificationDelay = async (gameSettings: EuchreSettings, increment?: numbe
   );
 };
 
+const minNotificationDelay = async (gameSettings: EuchreSettings, minDelay: GameSpeed) => {
+  const delay = gameSettings.notificationSpeed < minDelay ? minDelay : gameSettings.notificationSpeed;
+
+  await new Promise((resolve) => setTimeout(resolve, delay));
+};
+
 export {
   teamPoints,
   determineCurrentWinnerForTrick,
@@ -687,6 +693,7 @@ export {
   isGameOver,
   gameDelay,
   notificationDelay,
+  minNotificationDelay,
   createTrick,
   getTeamOverviewStats,
   getPlayerOverviewStats

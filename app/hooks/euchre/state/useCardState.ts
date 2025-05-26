@@ -7,6 +7,7 @@ import {
   CardAnimationStateContext,
   CardSpringProps,
   CreateCardStatesContext,
+  DispatchCardAnimation,
   FlipSpringProps
 } from '../../../../features/euchre/definitions/transform-definitions';
 import { CardBaseState } from '../../../../features/euchre/definitions/game-state-definitions';
@@ -16,14 +17,14 @@ const useCardState = () => {
   const animationControls = useCardAnimationControls();
   const flipAnimiationControls = useCardAnimationControls();
 
-  const [cardsAnimationControls, setCardsAnimationControls] = useState<CardAnimationControls[]>([]);
+  const [cardAnimationControls, setCardAnimationControls] = useState<CardAnimationControls[]>([]);
   const [cardStates, setCardStates] = useState<CardBaseState[]>([]);
-  const [cardsAnimationStates, setCardsAnimationStates] = useState<CardAnimationState[]>([]);
+  const [cardAnimationStates, setCardAnimationStates] = useState<CardAnimationState[]>([]);
 
   const stateContext: CardAnimationStateContext = {
     cardStates: cardStates,
-    animationStates: cardsAnimationStates,
-    animationControls: cardsAnimationControls
+    animationStates: cardAnimationStates,
+    animationControls: cardAnimationControls
   };
 
   const createStates = useCallback(
@@ -34,7 +35,7 @@ const useCardState = () => {
       initValues: CardSpringProps[],
       initFlipValues: FlipSpringProps[],
       reverseIndex: boolean
-    ) => {
+    ): CardAnimationStateContext => {
       const cardContext: CreateCardStatesContext = {
         cards: cards,
         controls: animationControls,
@@ -51,7 +52,11 @@ const useCardState = () => {
   );
 
   const recreateAnimationControls = useCallback(
-    (gameDeck: Card[], cardSpringProps: CardSpringProps, flipSpringProps: FlipSpringProps) => {
+    (
+      gameDeck: Card[],
+      cardSpringProps: CardSpringProps,
+      flipSpringProps: FlipSpringProps
+    ): CardAnimationControls[] => {
       const states = gameDeck.map((c) => {
         const control = animationControls[c.index];
         const flipControl = flipAnimiationControls[c.index];
@@ -61,7 +66,7 @@ const useCardState = () => {
           controls: control,
           flipControl,
           initSpringValue: cardSpringProps.initialSpring,
-          animateValues: cardSpringProps.animateSprings,
+          animateSprings: cardSpringProps.animateSprings,
           initFlipSpring: flipSpringProps.initialSpring,
           animateFlipSpring: flipSpringProps.animateSprings
         };
@@ -72,11 +77,15 @@ const useCardState = () => {
     [animationControls, flipAnimiationControls]
   );
 
+  const dispatchAnimationState: DispatchCardAnimation = {
+    setCardStates,
+    setCardAnimationStates,
+    setCardAnimationControls
+  };
+
   return {
     stateContext,
-    setCardsAnimationControls,
-    setCardStates,
-    setCardsAnimationStates,
+    dispatchAnimationState,
     createStates,
     recreateAnimationControls
   };

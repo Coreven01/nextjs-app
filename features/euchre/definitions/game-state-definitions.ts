@@ -342,6 +342,7 @@ export const HandStateActions = {
   PASS_DEAL: 'PassDeal',
   DISCARD: 'Discard',
   RE_ORDER_HAND: 'ReOrderHand',
+  ANIMATE_RE_ORDER_HAND: 'AnimateReOrderHand',
   TRICK_FINISHED: 'TrickFinished',
   BEGIN_TURN: 'BeginTurn',
   END_TURN: 'EndTurn',
@@ -372,6 +373,7 @@ export interface PlayHandHandlers {
   onPassDeal: () => Promise<void>;
   onDiscard: () => Promise<void>;
   onReorderHand: () => Promise<void>;
+  onAnimateReorderHand: () => Promise<void>;
   onPlayerSittingOut: () => Promise<void>;
   onTrickFinished: () => Promise<void>;
   onBeginPlayerTurn: () => Promise<void>;

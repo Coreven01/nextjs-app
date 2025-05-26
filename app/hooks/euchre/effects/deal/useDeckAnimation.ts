@@ -240,7 +240,7 @@ const useDeckAnimation = (
 
       setDeckCardStates(initStates.cardStates);
       setDeckCardsAnimationControls(initStates.animationControls);
-      setDeckCardsAnimationStates(initStates.animationCardStates);
+      setDeckCardsAnimationStates(initStates.animationStates);
     },
     [
       createStates,

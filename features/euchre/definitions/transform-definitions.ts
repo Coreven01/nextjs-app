@@ -1,7 +1,7 @@
 import { AnimationControls, TargetAndTransition, Transition } from 'framer-motion';
 import { Card, GameSpeed, TableLocation } from './definitions';
-import { CardBaseState, CardIndex } from './game-state-definitions';
-import { RefObject } from 'react';
+import { CardBaseState, CardIndex, EuchrePlayer, GamePlayContext, HandState } from './game-state-definitions';
+import { Dispatch, RefObject, SetStateAction } from 'react';
 
 export const INIT_Z_INDEX = 30;
 export const DEFAULT_SPRING_VAL: CardSpringTarget = {
@@ -82,6 +82,12 @@ export interface CardAnimationStateContext {
   animationControls: CardAnimationControls[];
 }
 
+export interface DispatchCardAnimation {
+  setCardStates: Dispatch<SetStateAction<CardBaseState[]>>;
+  setCardAnimationStates: Dispatch<SetStateAction<CardAnimationState[]>>;
+  setCardAnimationControls: Dispatch<SetStateAction<CardAnimationControls[]>>;
+}
+
 export interface SpringContext {
   sourceElement: HTMLElement;
   destinationElement: HTMLElement;
@@ -107,4 +113,49 @@ export interface GameTableElements {
 
   /** Element for the entire game table. */
   gameTableRef: RefObject<HTMLDivElement | null> | undefined;
+}
+
+export interface CardPlayAnimationState {
+  handState: HandState | undefined;
+  gameContext: GamePlayContext;
+  stateContext: CardAnimationStateContext;
+  player: EuchrePlayer;
+  dispatchAnimationState: DispatchCardAnimation;
+  playerTableCenterElement: HTMLElement | null;
+  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  initializeSortOrder: () => void;
+  getRelativeCenter: (location: TableLocation) => HTMLElement | null;
+  getWidth: (element: HTMLElement, reset: boolean) => number;
+  getAvailableCardsAndState: (useInitSortOrder: boolean) => CardSpringProps[];
+  onTrickComplete: (card: Card) => void;
+  onTrumpOrderedComplete: (playerNumber: number) => void;
+  onDealPassed: (playerNumber: number) => void;
+}
+
+export interface CardInitAnimationState {
+  gameContext: GamePlayContext;
+  stateContext: CardAnimationStateContext;
+  player: EuchrePlayer;
+  dispatchAnimationState: DispatchCardAnimation;
+  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  getUpdatedCardAnimationSprings: (
+    controls: CardAnimationControls[],
+    updatedSprings: CardSpringProps[],
+    flipSprings: FlipSpringProps[]
+  ) => CardAnimationControls[];
+  setSortOrder: (orderedIndices: CardPosition[]) => void;
+  createStates: (
+    cards: Card[],
+    location: TableLocation,
+    includeCardValue: boolean,
+    initValues: CardSpringProps[],
+    initFlipValues: FlipSpringProps[],
+    reverseIndex: boolean
+  ) => CardAnimationStateContext;
+  getRelativeCenter: (location: TableLocation) => HTMLElement | null;
+  getWidth: (element: HTMLElement, reset: boolean) => number;
+  getAvailableCardsAndState: (useInitSortOrder: boolean) => CardSpringProps[];
+  onDealComplete: (playerNumber: number) => void;
 }

@@ -188,7 +188,6 @@ const PlayerCardArea = ({
                 playerDeckRefs={playerDeckRefs}
                 centerHorizontalRef={tableElements.centerHorizontalRef}
                 centerVerticalRef={tableElements.centerVerticalRef}
-                onCardPlayed={() => null}
                 onTrickComplete={handleTrickFinished}
                 onDealPassed={handlePassDealAnimationComplete}
                 onDealComplete={handleDealAnimationComplete}

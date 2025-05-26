@@ -188,7 +188,17 @@ const useCardAnimationPhase = (
 
     const discardComplete = hasPhaseCompleted({ phase, action: HandStateActions.DISCARD }, handId);
 
+    const cardReOrderedComplete = hasPhaseCompleted(
+      { phase, action: HandStateActions.RE_ORDER_HAND },
+      handId
+    );
+
     const cardReOrdered = hasIdBeenHandledForPhase({ phase, action: HandStateActions.RE_ORDER_HAND }, handId);
+
+    const cardReOrderAnimated = hasIdBeenHandledForPhase(
+      { phase, action: HandStateActions.ANIMATE_RE_ORDER_HAND },
+      handId
+    );
 
     const sittingOutAnimated = hasIdBeenHandledForPhase(
       { phase, action: HandStateActions.SITTING_OUT },
@@ -223,15 +233,20 @@ const useCardAnimationPhase = (
       shouldPassDeal: !hasPassedDeal && gameState.shouldAnimateBeginPassDeal,
       shouldDiscard: !beginDiscard && gameState.shouldReorderHand,
       shouldReOrderHand: !cardReOrdered && gameState.shouldReorderHand && discardComplete,
+      shouldAnimateReOrderHand: !cardReOrderAnimated && gameState.shouldReorderHand && cardReOrderedComplete,
       shouldPlayerSittingOut: playerIsSittingOut && !sittingOutAnimated,
       isTrickFinished: gameState.shouldAnimateTrickFinished && hasTrickFinished,
+
       showBeginPlayerTurn:
         handState.player.human &&
+        !playerIsSittingOut &&
         gameState.shouldUpdateCardStateForTurn &&
         !hasTurnStarted &&
         playerIsCurrentPlayer,
+
       showEndPlayerTurn:
         handState.player.human &&
+        !playerIsSittingOut &&
         gameState.shouldUpdateCardStateForTurnEnd &&
         !hasTurnEnded &&
         playerIsCurrentPlayer
@@ -252,6 +267,7 @@ const useCardAnimationPhase = (
     else if (gameChecks.shouldPassDeal) basePhase.action = HandStateActions.PASS_DEAL;
     else if (gameChecks.shouldDiscard) basePhase.action = HandStateActions.DISCARD;
     else if (gameChecks.shouldReOrderHand) basePhase.action = HandStateActions.RE_ORDER_HAND;
+    else if (gameChecks.shouldAnimateReOrderHand) basePhase.action = HandStateActions.ANIMATE_RE_ORDER_HAND;
     else if (gameChecks.shouldPlayerSittingOut) basePhase.action = HandStateActions.SITTING_OUT;
     else if (gameChecks.isTrickFinished) basePhase.action = HandStateActions.TRICK_FINISHED;
     else if (gameChecks.showBeginPlayerTurn) basePhase.action = HandStateActions.BEGIN_TURN;

@@ -15,15 +15,7 @@ const getEffectForPlayHandState = (
   currentTrickId: string
 ) => {
   //#region Play Hand Handlers
-  //   const handleResetHand = async () => {
-  //     //await playHandHandler.onResetHandState();
-  //     //resetForNewHand();
-  //     // initAnimatePassDeal.current = false;
-  //     //   initForCardsReorder.current = false;
-  //     //   initForSittingOut.current = false;
-  //     //   trickIdHandledEndPlayerTurn.current = [];
-  //     //   trickIdOnTrickFinishHandled.current = [];
-  //   };
+
   const handlePlayCard = async () => {
     addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.PLAY_CARD }, currentTrickId);
     await playHandHandler.onPlayCard();
@@ -49,6 +41,12 @@ const getEffectForPlayHandState = (
   const handleReOrderHand = async () => {
     addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.RE_ORDER_HAND }, handId);
     await playHandHandler.onReorderHand();
+    addPhaseCompleted({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.RE_ORDER_HAND }, handId);
+  };
+
+  const handleAnimateReOrderHand = async () => {
+    addPhaseHandled({ phase: HandStatePhases.GAME_PLAY, action: HandStateActions.ANIMATE_PLAY_CARD }, handId);
+    await playHandHandler.onAnimateReorderHand();
   };
 
   const handePlayerSittingOut = async () => {
@@ -89,6 +87,7 @@ const getEffectForPlayHandState = (
     onPassDeal: handlePassDeal,
     onDiscard: handleDiscard,
     onReorderHand: handleReOrderHand,
+    onAnimateReorderHand: handleAnimateReOrderHand,
     onPlayerSittingOut: handePlayerSittingOut,
     onTrickFinished: handleTrickFinished,
     onBeginPlayerTurn: handleBeginTurn,
@@ -115,6 +114,10 @@ const getEffectForPlayHandState = (
       case HandStateActions.RE_ORDER_HAND:
         retval.stateAction = HandStateActions.RE_ORDER_HAND;
         retval.func = localPlayHandHandlers.onReorderHand;
+        break;
+      case HandStateActions.ANIMATE_RE_ORDER_HAND:
+        retval.stateAction = HandStateActions.ANIMATE_RE_ORDER_HAND;
+        retval.func = localPlayHandHandlers.onAnimateReorderHand;
         break;
       case HandStateActions.SITTING_OUT:
         retval.stateAction = HandStateActions.SITTING_OUT;
