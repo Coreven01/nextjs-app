@@ -1,4 +1,4 @@
-import { EuchreGameFlowState, EuchreGameFlow } from '../../../../app/hooks/euchre/reducers/gameFlowReducer';
+import { EuchreGameFlowState, EuchreGameFlow } from '../../state/reducers/gameFlowReducer';
 import { Card, Suit, GameDifficulty, CardValue } from '../../definitions/definitions';
 import {
   EuchreGameInstance,

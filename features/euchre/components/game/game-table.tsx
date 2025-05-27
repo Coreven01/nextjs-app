@@ -1,14 +1,12 @@
-import { NotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
+import { NotificationState } from '@/features/euchre/state/reducers/playerNotificationReducer';
 import GameBorder from './game-border';
 import WoodenBoard from '../common/wooden-board';
 import clsx from 'clsx';
 import { forwardRef, PropsWithoutRef, useEffect, useMemo, useRef } from 'react';
 import GameFlippedCard from './game-flipped-card';
-
 import GameTrumpIndicator from './game-trump-indicator';
 import { getCardFullName, getEncodedCardSvg } from '../../util/game/cardSvgDataUtil';
-import { GAME_STATES_FOR_BID } from '../../util/game/gameStateLogicUtil';
-
+import { GAME_STATES_FOR_BID, GAME_STATES_INIT_GAMEPLAY } from '../../util/game/gameStateLogicUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnimation } from 'framer-motion';
 import {
@@ -16,11 +14,12 @@ import {
   getDurationSeconds,
   getSpringToMoveToPlayer
 } from '../../util/play/cardTransformUtil';
-import { EuchreGameFlow } from '../../../../app/hooks/euchre/reducers/gameFlowReducer';
-import { logConsole } from '../../../../app/lib/euchre/util/util';
-import { EuchrePauseType } from '../../../../app/hooks/euchre/reducers/gamePauseReducer';
+import { EuchreGameFlow } from '../../state/reducers/gameFlowReducer';
+import { EuchrePauseType } from '../../state/reducers/gamePauseReducer';
 import { EuchreGameState, CardBaseState } from '../../definitions/game-state-definitions';
 import { GameTableElements, CardAnimationControls } from '../../definitions/transform-definitions';
+import { playerSittingOut } from '../../util/game/gameDataUtil';
+import { playerEqual } from '../../util/game/playerDataUtil';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   state: EuchreGameState;
@@ -73,18 +72,20 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       const dealPassed =
         gameFlow.gameFlow === EuchreGameFlow.BEGIN_PASS_DEAL ||
         gameFlow.gameFlow === EuchreGameFlow.END_PASS_DEAL;
-
+      const handFinished =
+        game.handResults.find((h) => h.roundNumber === game.currentRound)?.teamWon !== undefined;
+      const sittingOut = playerSittingOut(game);
+      const dealerSittingOut = sittingOut && playerEqual(game.dealer, sittingOut);
+      const initGamplay = GAME_STATES_INIT_GAMEPLAY.includes(gameFlow.gameFlow);
       return {
         hidePosition: !state.euchreSettings.debugShowPositionElements,
-        animatePickUp:
-          firstRound &&
-          gameFlow.gameFlow === EuchreGameFlow.END_ORDER_TRUMP &&
-          pauseState.pauseType === EuchrePauseType.ANIMATE,
+        animatePickUp: animatePickUp,
         trumpOrdered: trumpOrdered,
-        gameBidding: !game.maker && GAME_STATES_FOR_BID.includes(gameFlow.gameFlow),
+        gameBidding: gameBidding,
         showFaceUp: ((gameBidding || trumpOrdered) && firstRound) || animatePickUp,
-        showTrumpIndicator: game.maker && !trumpOrdered,
-        flippedCardVisible: !dealPassed && (gameBidding || trumpOrdered)
+        showTrumpIndicator: game.maker && !initGamplay && !handFinished && !trumpOrdered,
+        flippedCardVisible: !dealPassed && (gameBidding || trumpOrdered),
+        dealerSittingOut
       };
     };
 
@@ -95,7 +96,8 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       hidePosition,
       showTrumpIndicator,
       flippedCardVisible,
-      gameBidding
+      gameBidding,
+      dealerSittingOut
     } = getGameTableState();
 
     useEffect(() => {
@@ -118,7 +120,7 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
     useEffect(() => {
       const handleAnimatePickup = async () => {
-        if (animatePickUp && trumpOrdered) {
+        if (animatePickUp && trumpOrdered && !dealerSittingOut) {
           const dealerLocation = game.dealer.location;
           const destinationElement = tableElements.outerTableRefs.get(dealerLocation)?.current;
           const sourceElement = flippedCardRef.current;
@@ -143,6 +145,7 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
     }, [
       animatePickUp,
       cardControl,
+      dealerSittingOut,
       euchreSettings.gameSpeed,
       game.dealer.location,
       tableElements.outerTableRefs,

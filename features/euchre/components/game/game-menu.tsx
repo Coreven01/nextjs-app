@@ -1,38 +1,23 @@
 import { forwardRef, PropsWithoutRef, useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import Switch from '@mui/material/Switch';
+import { GameMenuValues } from '../../definitions/game-state-definitions';
 
 interface Props {
-  isFullScreen: boolean;
-  showEvents: boolean;
-  showSettings: boolean;
-  showScore: boolean;
-  onFullScreenToggle: (e: boolean) => void;
-  onEventsToggle: (e: boolean) => void;
-  onSettingsToggle: (e: boolean) => void;
-  onScoreToggle: (e: boolean) => void;
-  onCancelAndReset: () => void;
+  menuValues: GameMenuValues;
 }
 
 const menuSvg =
   "checked:bg-[url('/menu.svg')] bg-[url('/menu.svg')] bg-no-repeat bg-center bg-[length:1rem] lg:bg-[length:1.75rem] bg-[rgba(25,115,25,0.9)] dark:bg-[rgba(15,150,15,0.1)]";
 
-const GameMenu = ({
-  isFullScreen,
-  showEvents,
-  showSettings,
-  showScore,
-  onFullScreenToggle,
-  onEventsToggle,
-  onSettingsToggle,
-  onScoreToggle,
-  onCancelAndReset
-}: Props) => {
+const GameMenu = ({ menuValues }: Props) => {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const eventAdded = useRef(false);
   const enableToggleSettings = false;
   const enableToggleEvents = true;
+
+  const { isFullScreen, onCancel } = menuValues;
 
   const exitMenu = useCallback((event: MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -96,8 +81,10 @@ const GameMenu = ({
 
   const handleCancelGame = () => {
     setShowMenu(false);
-    onCancelAndReset();
+    onCancel();
   };
+
+  const newMenuValues = { ...menuValues, onCancel: handleCancelGame };
 
   return (
     <>
@@ -118,17 +105,9 @@ const GameMenu = ({
       <GameMenuContent
         ref={menuRef}
         showMenu={showMenu}
-        showEvents={showEvents}
-        showSettings={showSettings}
-        showScore={showScore}
+        menuValues={newMenuValues}
         enableToggleEvents={enableToggleEvents}
-        isFullScreen={isFullScreen}
         enableToggleSettings={enableToggleSettings}
-        onFullScreenToggle={onFullScreenToggle}
-        onEventsToggle={onEventsToggle}
-        onSettingsToggle={onSettingsToggle}
-        onScoreToggle={onScoreToggle}
-        onCancelGame={handleCancelGame}
       />
     </>
   );
@@ -136,37 +115,25 @@ const GameMenu = ({
 
 interface ContentProps {
   showMenu: boolean;
-  showEvents: boolean;
-  showSettings: boolean;
-  showScore: boolean;
-  enableToggleEvents: boolean;
-  isFullScreen: boolean;
   enableToggleSettings: boolean;
-  onFullScreenToggle: (value: boolean) => void;
-  onEventsToggle: (value: boolean) => void;
-  onSettingsToggle: (value: boolean) => void;
-  onScoreToggle: (value: boolean) => void;
-  onCancelGame: () => void;
+  enableToggleEvents: boolean;
+  menuValues: GameMenuValues;
 }
 
 const GameMenuContent = forwardRef<HTMLDivElement, PropsWithoutRef<ContentProps>>(
-  (
-    {
-      showMenu,
+  ({ showMenu, menuValues, enableToggleSettings, enableToggleEvents }: ContentProps, ref) => {
+    const {
       showEvents,
       showSettings,
       showScore,
-      enableToggleEvents,
       isFullScreen,
-      enableToggleSettings,
-      onFullScreenToggle,
-      onEventsToggle,
-      onSettingsToggle,
-      onScoreToggle,
-      onCancelGame
-    }: ContentProps,
-    ref
-  ) => {
+      onToggleFullscreen,
+      onToggleEvents,
+      onToggleSettings,
+      onToggleScore,
+      onCancel
+    } = menuValues;
+
     return (
       <div
         id="game-menu"
@@ -187,7 +154,7 @@ const GameMenuContent = forwardRef<HTMLDivElement, PropsWithoutRef<ContentProps>
             checked={isFullScreen}
             name="isFullScreen"
             color="success"
-            onChange={(e) => onFullScreenToggle(e.target.checked)}
+            onChange={(e) => onToggleFullscreen(e.target.checked)}
           />
         </div>
         {enableToggleEvents && (
@@ -199,7 +166,7 @@ const GameMenuContent = forwardRef<HTMLDivElement, PropsWithoutRef<ContentProps>
               checked={showEvents}
               name="showEvents"
               color="success"
-              onChange={(e) => onEventsToggle(e.target.checked)}
+              onChange={(e) => onToggleEvents(e.target.checked)}
             />
           </div>
         )}
@@ -212,7 +179,7 @@ const GameMenuContent = forwardRef<HTMLDivElement, PropsWithoutRef<ContentProps>
               checked={showSettings}
               name="showSettings"
               color="success"
-              onChange={(e) => onSettingsToggle(e.target.checked)}
+              onChange={(e) => onToggleSettings(e.target.checked)}
             />
           </div>
         )}
@@ -224,11 +191,11 @@ const GameMenuContent = forwardRef<HTMLDivElement, PropsWithoutRef<ContentProps>
             checked={showScore}
             name="showScore"
             color="success"
-            onChange={(e) => onScoreToggle(e.target.checked)}
+            onChange={(e) => onToggleScore(e.target.checked)}
           />
         </div>
         <div className="lg:p-2 p-1 text-white lg:text-base text-sm">
-          <button onClick={onCancelGame}>Cancel Game</button>
+          <button onClick={onCancel}>Cancel Game</button>
         </div>
       </div>
     );

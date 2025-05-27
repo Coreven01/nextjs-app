@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { RefObject, useEffect, useRef } from 'react';
 import Draggable from 'react-draggable';
 import GameBorder from './game-border';
-import { GameEvent, GameEventType } from '@/app/hooks/euchre/useEventLog';
+import { GameEvent, GameEventType } from '@/features/euchre/hooks/common/useEventLog';
 import PromptHeader from '../prompt/prompt-header';
 import Switch from '@mui/material/Switch';
 import { useState } from 'react';

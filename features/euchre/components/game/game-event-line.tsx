@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { GameEvent, GameEventType, SUB_CARD } from '../../../../app/hooks/euchre/useEventLog';
+import { GameEvent, GameEventType, SUB_CARD } from '../../hooks/common/useEventLog';
 import PlayerColor from '../player/player-team-color';
 import { getCardClassColorFromSuit, getCardFullName, getSuitName } from '../../util/game/cardSvgDataUtil';
 import { Card } from '../../definitions/definitions';

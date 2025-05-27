@@ -7,7 +7,7 @@ import PromptHeader from './prompt-header';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
 
 import GameButton from '../game/game-button';
-import { scrollElementIntoViewIfNeeded } from '../../../../app/lib/euchre/util/util';
+import { scrollElementIntoViewIfNeeded } from '../../util/util';
 import { EuchreHandResult } from '../../definitions/definitions';
 import { EuchreGameInstance, EuchreSettings } from '../../definitions/game-state-definitions';
 

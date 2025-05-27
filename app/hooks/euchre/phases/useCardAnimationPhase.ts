@@ -1,6 +1,6 @@
-import { EuchreGameFlow } from '../reducers/gameFlowReducer';
-import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
-import { EuchrePauseType } from '../reducers/gamePauseReducer';
+import { EuchreGameFlow } from '../../../../features/euchre/state/reducers/gameFlowReducer';
+import { EuchreAnimateType } from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
+import { EuchrePauseType } from '../../../../features/euchre/state/reducers/gamePauseReducer';
 import { playerSittingOut } from '../../../../features/euchre/util/game/gameDataUtil';
 import { playerEqual } from '../../../../features/euchre/util/game/playerDataUtil';
 import useCardAnimationPhaseState from '../state/useCardAnimationPhaseState';

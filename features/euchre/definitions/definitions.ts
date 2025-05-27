@@ -106,7 +106,7 @@ export const DEFAULT_GAME_SETTINGS = {
   debugAllComputerPlayers: false,
   debugAlwaysPass: false,
   debugLogDebugEvents: false,
-  debugEnableDebugMenu: true,
+  debugEnableDebugMenu: false,
   debugShowPositionElements: false
 };
 

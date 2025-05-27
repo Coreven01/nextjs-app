@@ -1,9 +1,14 @@
 import { useCallback, useRef } from 'react';
-import { logConsole } from '../../../../app/lib/euchre/util/util';
+import { logConsole } from '../../util/util';
 import { CardBaseState, PlayHandHandlers } from '../../definitions/game-state-definitions';
 import { Card } from '../../definitions/definitions';
 import { availableCardsToPlay, playerEqual } from '../../util/game/playerDataUtil';
-import { getCardsAvailableToPlay, isHandFinished, notificationDelay } from '../../util/game/gameDataUtil';
+import {
+  getCardsAvailableToPlay,
+  isHandFinished,
+  notificationDelay,
+  playerSittingOut
+} from '../../util/game/gameDataUtil';
 import {
   CardAnimationControls,
   CardPlayAnimationState,
@@ -462,6 +467,8 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
     // setCardAnimationControls(newAnimationControls);
   };
 
+  //#region Game Play Handlers
+
   /** */
   const handleDiscard = async () => {
     if (!euchreGame.discard) return;
@@ -470,14 +477,28 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
 
     if (!playerIsDealer) return;
 
+    if (euchreGame.loner) {
+      const sittingOut = playerSittingOut(euchreGame);
+      if (sittingOut && playerEqual(sittingOut, euchreGame.dealer)) {
+        return;
+      }
+    }
+
     await animateDiscard();
   };
 
   /** */
   const handleReorderHand = useCallback(async () => {
     if (!handState?.shouldShowCardValue) {
-      onTrumpOrderedComplete(player.playerNumber);
+      //onTrumpOrderedComplete(player.playerNumber);
       return;
+    }
+
+    if (euchreGame.loner) {
+      const sittingOut = playerSittingOut(euchreGame);
+      if (sittingOut && playerEqual(sittingOut, euchreGame.dealer)) {
+        return;
+      }
     }
 
     animateReorderHand();
@@ -491,6 +512,14 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
   ]);
 
   const handleAnimateReorder = async () => {
+    if (euchreGame.loner) {
+      const sittingOut = playerSittingOut(euchreGame);
+      if (sittingOut && playerEqual(sittingOut, euchreGame.dealer)) {
+        onTrumpOrderedComplete(player.playerNumber);
+        return;
+      }
+    }
+
     if (handState?.shouldShowCardValue) {
       await runCardAnimations(animationControls);
     }
@@ -588,6 +617,8 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
     onBeginPlayerTurn: handleBeginPlayerTurn,
     onEndPlayerTurn: handleEndPlayerTurn
   };
+
+  //#endregion
 
   return {
     cardPlayedForTrick: cardPlayedForTrickRef.current,

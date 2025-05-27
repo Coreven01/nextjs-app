@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { useMemo } from 'react';
-import { createRange } from '../../../../app/lib/euchre/util/util';
+import { createRange } from '../../util/util';
 
 const height = 25;
 const width = 275;

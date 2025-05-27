@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { v4 as uuidv4 } from 'uuid';
 import EphemeralModal from '../common/ephemeral-modal';
 import { GameSpeed } from '../../definitions/definitions';
-import { NotificationActionType } from '../../../../app/hooks/euchre/reducers/playerNotificationReducer';
+import { NotificationActionType } from '../../state/reducers/playerNotificationReducer';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   notificationSpeed: GameSpeed;

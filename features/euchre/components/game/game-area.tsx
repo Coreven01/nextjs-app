@@ -1,56 +1,31 @@
 import GameMenu from './game-menu';
 import GameTable from './game-table';
-import { NotificationState } from '@/app/hooks/euchre/reducers/playerNotificationReducer';
+import { NotificationState } from '@/features/euchre/state/reducers/playerNotificationReducer';
 import PlayerArea from '../player/player-area';
 import clsx from 'clsx';
-import useTableRefs from '../../../../app/hooks/euchre/useTableRefs';
+import useTableRefs from '../../hooks/common/useTableRefs';
 import PlayerCardArea from '../player/player-card-area';
 import { useRef } from 'react';
-import { logConsole } from '../../../../app/lib/euchre/util/util';
-import { GamePlayContext } from '../../definitions/game-state-definitions';
+import { GameMenuValues, GamePlayContext } from '../../definitions/game-state-definitions';
 import { Card } from '../../definitions/definitions';
 import { InitDealResult } from '../../definitions/logic-definitions';
 import { GameTableElements } from '../../definitions/transform-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   gameContext: GamePlayContext;
-  isFullScreen: boolean;
-  showEvents: boolean;
-  showSettings: boolean;
-  showScore: boolean;
   playerNotification: NotificationState;
   playedCard: Card | null;
   initDealer: InitDealResult | null;
-
-  /** Toggle back and forth between fullscreen and main layout. */
-  onToggleFullscreen: (value: boolean) => void;
-
-  /** Toggle events visibility panel. */
-  onToggleEvents: (value: boolean) => void;
-  onSettingsToggle: (e: boolean) => void;
-
-  /** Toggle visibility of the score panel */
-  onScoreToggle: (e: boolean) => void;
-
-  /** Player canceled game play. */
-  onCancel: () => void;
+  menuValues: GameMenuValues;
 }
 
 const GameArea = ({
   gameContext,
-  isFullScreen,
-  showEvents,
-  showSettings,
-  showScore,
   playerNotification,
   playedCard,
   initDealer,
   className,
-  onToggleFullscreen,
-  onToggleEvents,
-  onSettingsToggle,
-  onScoreToggle,
-  onCancel,
+  menuValues,
   ...rest
 }: Props) => {
   const { state } = gameContext;
@@ -72,16 +47,16 @@ const GameArea = ({
     gameTableRef
   };
 
-  logConsole(
-    '[GAMEAREA] gameID: ',
-    state.euchreGame.gameId,
-    ' state: ',
-    state.euchreGameFlow.gameFlow,
-    ' ',
-    state.euchreAnimationFlow.animationType,
-    ' ',
-    state.euchrePauseState.pauseType
-  );
+  // logConsole(
+  //   '[GAMEAREA] gameID: ',
+  //   state.euchreGame.gameId,
+  //   ' state: ',
+  //   state.euchreGameFlow.gameFlow,
+  //   ' ',
+  //   state.euchreAnimationFlow.animationType,
+  //   ' ',
+  //   state.euchrePauseState.pauseType
+  // );
   return (
     <div
       className={clsx(
@@ -90,17 +65,7 @@ const GameArea = ({
       )}
       {...rest}
     >
-      <GameMenu
-        isFullScreen={isFullScreen}
-        showEvents={showEvents}
-        showSettings={showSettings}
-        showScore={showScore}
-        onFullScreenToggle={onToggleFullscreen}
-        onEventsToggle={onToggleEvents}
-        onSettingsToggle={onSettingsToggle}
-        onCancelAndReset={onCancel}
-        onScoreToggle={onScoreToggle}
-      />
+      <GameMenu menuValues={menuValues} />
       <div className="col-start-2 row-start-2 col-span-1 row-span-1">
         <GameTable
           id="game-table"

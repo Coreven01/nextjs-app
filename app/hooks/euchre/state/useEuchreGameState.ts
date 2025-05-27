@@ -6,14 +6,21 @@ import {
   EuchreGameFlow,
   gameFlowStateReducer,
   INIT_GAME_FLOW_STATE
-} from '../reducers/gameFlowReducer';
+} from '../../../../features/euchre/state/reducers/gameFlowReducer';
 import {
   EuchreAnimationActionType,
   gameAnimationFlowReducer,
   INIT_GAME_ANIMATION_STATE
-} from '../reducers/gameAnimationFlowReducer';
-import { EuchrePauseActionType, gamePauseFlowReducer, INIT_PAUSE_STATE } from '../reducers/gamePauseReducer';
-import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from '../reducers/playerNotificationReducer';
+} from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
+import {
+  EuchrePauseActionType,
+  gamePauseFlowReducer,
+  INIT_PAUSE_STATE
+} from '../../../../features/euchre/state/reducers/gamePauseReducer';
+import {
+  INIT_PLAYER_NOTIFICATION,
+  playerNotificationReducer
+} from '../../../../features/euchre/state/reducers/playerNotificationReducer';
 import { createDefaultEuchreGame } from '../../../../features/euchre/util/game/gameSetupLogicUtil';
 import { PromptType, Card, BidResult } from '../../../../features/euchre/definitions/definitions';
 import {
@@ -39,6 +46,7 @@ const useEuchreGameState = () => {
   const [euchreDebug, setEuchreDebug] = useState<EuchreGameFlow | undefined>(undefined);
   const [promptValue, setPromptValue] = useState<PromptType[]>([PromptType.INTRO]);
   const [shouldCancelGame, setShouldCancelGame] = useState(false);
+  const [shouldReplayHand, setShouldReplayHand] = useState(false);
   const [playedCard, setPlayedCard] = useState<Card | null>(null);
   const [dealResult, setDealResult] = useState<InitDealResult | null>(null);
   const [bidResult, setBidResult] = useState<BidResult | null>(null);
@@ -46,31 +54,34 @@ const useEuchreGameState = () => {
     ...INIT_PLAYER_NOTIFICATION
   });
 
-  const dispatchStateChange = (
-    gameAction?: EuchreGameFlow,
-    gameAnimationAction?: EuchreAnimationActionType,
-    gameWait?: EuchrePauseActionType
-  ) => {
-    if (gameAction) dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: gameAction });
-    if (gameAnimationAction) dispatchGameAnimationFlow({ type: gameAnimationAction });
-    if (gameWait) dispatchPauseState({ type: gameWait });
-  };
+  const dispatchStateChange = useCallback(
+    (
+      gameAction?: EuchreGameFlow,
+      gameAnimationAction?: EuchreAnimationActionType,
+      gameWait?: EuchrePauseActionType
+    ) => {
+      if (gameAction) dispatchGameFlow({ type: EuchreFlowActionType.SET_GAME_FLOW, gameFlow: gameAction });
+      if (gameAnimationAction) dispatchGameAnimationFlow({ type: gameAnimationAction });
+      if (gameWait) dispatchPauseState({ type: gameWait });
+    },
+    []
+  );
 
-  const handleAddPromptValue = (value: PromptType) => {
+  const handleAddPromptValue = useCallback((value: PromptType) => {
     setPromptValue((prev) => [...prev, value]);
-  };
+  }, []);
 
-  const handleRemovePromptValue = (value: PromptType) => {
+  const handleRemovePromptValue = useCallback((value: PromptType) => {
     setPromptValue((prev) => [...prev.filter((p) => p !== value)]);
-  };
+  }, []);
 
-  const handleClearPromptValues = () => {
+  const handleClearPromptValues = useCallback(() => {
     setPromptValue([]);
-  };
+  }, []);
 
-  const handleReplacePromptValues = (values: PromptType[]) => {
+  const handleReplacePromptValues = useCallback((values: PromptType[]) => {
     setPromptValue(values);
-  };
+  }, []);
 
   const state: EuchreGameState = useMemo(() => {
     return {
@@ -106,22 +117,24 @@ const useEuchreGameState = () => {
       playedCard: playedCard,
       bidResult: bidResult,
       initDealer: dealResult,
-      shouldCancel: shouldCancelGame
+      shouldCancel: shouldCancelGame,
+      shouldReplayHand: shouldReplayHand
     }),
     [
+      euchreGame,
+      euchreReplayGame,
+      gameFlow,
+      euchreSettings,
+      euchrePauseState,
+      euchreDebug,
+      playerNotification,
+      gameAnimationFlow,
+      promptValue,
+      playedCard,
       bidResult,
       dealResult,
-      euchreGame,
-      euchrePauseState,
-      euchreReplayGame,
-      euchreSettings,
-      euchreDebug,
-      gameAnimationFlow,
-      gameFlow,
-      playedCard,
-      playerNotification,
-      promptValue,
-      shouldCancelGame
+      shouldCancelGame,
+      shouldReplayHand
     ]
   );
 
@@ -134,6 +147,7 @@ const useEuchreGameState = () => {
       setBidResult: setBidResult,
       setInitialDealerResult: setDealResult,
       setShouldCancelGame: setShouldCancelGame,
+      setShouldReplayHand: setShouldReplayHand,
 
       addPromptValue: handleAddPromptValue,
       removePromptValue: handleRemovePromptValue,

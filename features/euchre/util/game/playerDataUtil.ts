@@ -82,7 +82,7 @@ const getPlayerGridLayoutInfo = () => {
       location: 'bottom',
       locationClass: 'row-start-3 col-start-1 col-span-3 row-span-1 lg:top-0 md:top-4 sm:top-4 top-4',
       innerClassName: 'flex items-end h-full justify-center',
-      playerInfoClass: 'lg:relative lg:right-4 lg:bottom-8 lg:min-w-32 right-28 bottom-8',
+      playerInfoClass: 'lg:relative lg:right-4 lg:bottom-8 lg:min-w-32 right-32 bottom-8',
       playerInnerDeckOffsetClass: 'left-1/2 top-0',
       width: getDisplayWidth('bottom'),
       height: getDisplayHeight('bottom')

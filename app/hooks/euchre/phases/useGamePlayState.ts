@@ -6,9 +6,15 @@ import {
 } from '../../../../features/euchre/definitions/game-state-definitions';
 import { getGameStateForNextHand } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
 import { isGameStateValidToContinue } from '../../../../features/euchre/util/game/gameStateLogicUtil';
-import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
-import { EuchreFlowActionType, EuchreGameFlow } from '../reducers/gameFlowReducer';
-import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
+import {
+  EuchreAnimateType,
+  EuchreAnimationActionType
+} from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
+import {
+  EuchreFlowActionType,
+  EuchreGameFlow
+} from '../../../../features/euchre/state/reducers/gameFlowReducer';
+import { EuchrePauseActionType } from '../../../../features/euchre/state/reducers/gamePauseReducer';
 
 const useGamePlayState = (state: EuchreGameValues, setters: EuchreGameSetters, handlers: ErrorHandlers) => {
   const shouldBeginPlayCard = isGameStateValidToContinue(

@@ -40,7 +40,7 @@ const PlayerNotification = ({
 
   switch (player.location) {
     case 'bottom':
-      messageLocation = 'lg:bottom-8 lg:top-auto top-3';
+      messageLocation = 'lg:bottom-8 lg:top-auto bottom-4';
       break;
     case 'top':
       messageLocation = 'lg:top-8 top-3';

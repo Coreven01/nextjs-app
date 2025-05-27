@@ -1,7 +1,7 @@
-import { EuchreGameFlow } from '@/app/hooks/euchre/reducers/gameFlowReducer';
-import { EuchreAnimateType } from '@/app/hooks/euchre/reducers/gameAnimationFlowReducer';
+import { EuchreGameFlow } from '@/features/euchre/state/reducers/gameFlowReducer';
+import { EuchreAnimateType } from '@/features/euchre/state/reducers/gameAnimationFlowReducer';
 
-import { EuchrePauseType } from '../../../../app/hooks/euchre/reducers/gamePauseReducer';
+import { EuchrePauseType } from '../../state/reducers/gamePauseReducer';
 import { EuchreGameState } from '../../definitions/game-state-definitions';
 
 /** Verify the game state before attempting to execute specific logic in the Euchre game play through. */
@@ -77,6 +77,21 @@ export const GAME_STATES_FOR_PLAYER_TURN = [
   EuchreGameFlow.BEGIN_PLAY_CARD,
   EuchreGameFlow.END_PLAY_CARD,
   EuchreGameFlow.BEGIN_PLAY_CARD_RESULT
+];
+
+export const GAME_STATES_INIT_GAMEPLAY = [
+  EuchreGameFlow.BEGIN_INTRO,
+  EuchreGameFlow.END_INTRO,
+  EuchreGameFlow.BEGIN_INIT_DEAL,
+  EuchreGameFlow.END_INIT_DEAL,
+  EuchreGameFlow.BEGIN_SHUFFLE_CARDS,
+  EuchreGameFlow.END_SHUFFLE_CARDS,
+  EuchreGameFlow.BEGIN_DEAL_CARDS,
+  EuchreGameFlow.END_DEAL_CARDS,
+  EuchreGameFlow.BEGIN_BID_FOR_TRUMP,
+  EuchreGameFlow.END_BID_FOR_TRUMP,
+  EuchreGameFlow.BEGIN_PASS_DEAL,
+  EuchreGameFlow.END_PASS_DEAL
 ];
 
 export { isGameStateValidToContinue };

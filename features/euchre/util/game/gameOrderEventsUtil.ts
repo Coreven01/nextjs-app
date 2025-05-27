@@ -1,6 +1,6 @@
-import { GameEventHandlers, SUB_CARD, SUB_SUIT } from '../../../../app/hooks/euchre/useEventLog';
+import { GameEventHandlers, SUB_CARD, SUB_SUIT } from '../../hooks/common/useEventLog';
 
-import { createAndAddEvent } from '../../../../app/lib/euchre/util/util';
+import { createAndAddEvent } from '../util';
 import { BidResult, Card } from '../../definitions/definitions';
 import { EuchrePlayer, EuchreGameValues } from '../../definitions/game-state-definitions';
 import { getTeamColor } from './playerDataUtil';

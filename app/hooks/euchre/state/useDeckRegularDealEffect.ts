@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 
-import useAnimationDeckState from '../effects/deal/useDeckStateEffect';
+import useAnimationDeckState from '../../../../features/euchre/hooks/deal/useDeckStateEffect';
 import useDeckAnimationPhase from '../phases/useDeckAnimationPhase';
 import {
   EuchreGameState,

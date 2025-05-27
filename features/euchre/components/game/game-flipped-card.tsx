@@ -6,7 +6,7 @@ import { getDisplayHeight, getDisplayWidth } from '../../util/game/cardDataUtil'
 import { forwardRef, PropsWithoutRef } from 'react';
 import { Card } from '../../definitions/definitions';
 import { CardBaseState } from '../../definitions/game-state-definitions';
-import { CardAnimationControls, INIT_Z_INDEX } from '../../definitions/transform-definitions';
+import { CardAnimationControls } from '../../definitions/transform-definitions';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
   card: Card;
@@ -31,7 +31,7 @@ const GameFlippedCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
           <div className="lg:p-2 p-1 bg-green-950 flex items-center justify-center">
             <GameCard
               ref={ref}
-              className={INIT_Z_INDEX.toString()}
+              className="z-50"
               renderKey={cardState.renderKey}
               cardState={cardState}
               animationControls={animationControl}

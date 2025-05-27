@@ -26,7 +26,7 @@ const PlayerArea = ({ state, className, ...rest }: DivProps) => {
         <DummyCard
           id={`dummy-${player.playerNumber}-${i}`}
           key={`dummy-${player.playerNumber}-${i}`}
-          className={getCardClassForPlayerLocation(location)}
+          className={clsx('', getCardClassForPlayerLocation(location))}
           width={width}
           height={height}
           responsive={true}

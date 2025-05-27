@@ -3,9 +3,9 @@ import GameCard from '../game/game-card';
 import clsx from 'clsx';
 
 import { getCardClassForPlayerLocation } from '../../util/game/cardDataUtil';
-import { logConsole, logError } from '../../../../app/lib/euchre/util/util';
+import { logConsole, logError } from '../../util/util';
 import { incrementSpeed } from '../../util/game/gameDataUtil';
-import useCardAnimation from '../../../../app/hooks/euchre/effects/play/useCardAnimation';
+import useCardAnimation from '../../hooks/play/useCardAnimation';
 import { Card, TableLocation } from '../../definitions/definitions';
 import { GamePlayContext, EuchrePlayer } from '../../definitions/game-state-definitions';
 

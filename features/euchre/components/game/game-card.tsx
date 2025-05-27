@@ -2,7 +2,7 @@ import React, { CSSProperties, forwardRef, memo, PropsWithoutRef, useCallback } 
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { logConsole } from '../../../../app/lib/euchre/util/util';
+import { logConsole } from '../../util/util';
 import { getCardShadowSrc } from '../../util/game/cardDataUtil';
 import { Card, TableLocation, RESPONSE_CARD_SIDE, RESPONSE_CARD_CENTER } from '../../definitions/definitions';
 import { CardBaseState } from '../../definitions/game-state-definitions';

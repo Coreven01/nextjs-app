@@ -19,7 +19,6 @@ import {
   cardEqual,
   getCardValue,
   cardIsLeftBower,
-  indexCards,
   getSuitCount,
   getCardValuesForSuit
 } from './cardDataUtil';
@@ -177,43 +176,6 @@ const copyCardsFromReplay = (game: EuchreGameInstance, replayHand: EuchreHandRes
   }
 
   return newGame;
-};
-
-/** Verify cards were dealt correctly. */
-const verifyDealtCards = (game: EuchreGameInstance): void => {
-  const msg: string = 'Card dealt verification failed.';
-
-  if (game.deck.length !== 24) {
-    throw new Error(msg + ' Invalid deck.');
-  }
-
-  if (game.kitty.length !== 4) {
-    throw new Error(msg + ' Invalid kitty.');
-  }
-  const allCardsDealt: Card[] = [game.kitty].flat();
-
-  for (const player of game.gamePlayers) {
-    const playerHand: Card[] = player.hand;
-    if (playerHand.length !== 5) throw new Error(msg + ' Invalid card count for player: ' + player.name);
-
-    if (playerHand.find((c) => c.value === 'P'))
-      throw Error(msg + ' Invalid cards found in player hand. (Value === P) Player: ' + player.name);
-
-    const cardIndices = new Set<number>([...player.hand.map((c) => c.index)]);
-
-    if (cardIndices.values().toArray().length !== 5) {
-      throw new Error(msg + ' Invalid card indices for player: ' + player.name);
-    }
-
-    allCardsDealt.push(...playerHand);
-  }
-
-  const tempSet = new Set<string>([...allCardsDealt.map((c) => `${c.value}${c.suit}`)]);
-
-  if (tempSet.size !== 24) {
-    const missingCards = allCardsDealt.filter((c) => !tempSet.has(`${c.value}${c.suit}`));
-    throw Error(msg + '  Missing Cards: ' + missingCards.map((c) => `${c.value}${c.suit}`).join(','));
-  }
 };
 
 /** Create a hand result for the current round of play. Determines and sets the winning team and points. */
@@ -403,71 +365,6 @@ const updateIfHandOver = (game: EuchreGameInstance): EuchreGameInstance => {
     // if hand is over update the game results.
     newGame.handResults.push(getHandResult(newGame));
   }
-  return newGame;
-};
-
-/**
- * Undo the result of the last hand and deal the same cards again as if the hand started over.
- */
-const reverseLastHandPlayed = (game: EuchreGameInstance): EuchreGameInstance => {
-  let newGame: EuchreGameInstance = { ...game };
-  const lastHandResult: EuchreHandResult | undefined = newGame.handResults.pop();
-
-  if (!lastHandResult) throw new Error('Hand result not found for replay.');
-
-  const discard: Card | null = newGame.discard ? { ...newGame.discard } : null;
-  const allCards: EuchreCard[] = lastHandResult.allPlayerCards;
-  const currentKitty: Card[] = [
-    ...newGame.kitty.map((c) => {
-      return { ...c };
-    })
-  ];
-  const dealCount: number[] = newGame.cardDealCount.length > 0 ? [...newGame.cardDealCount] : [2, 3];
-  const player1Hand: Card[] = allCards
-    .filter((c) => playerEqual(c.player, newGame.player1))
-    .map((c) => {
-      return { ...c.card };
-    });
-  const player2Hand: Card[] = allCards
-    .filter((c) => playerEqual(c.player, newGame.player2))
-    .map((c) => {
-      return { ...c.card };
-    });
-  const player3Hand: Card[] = allCards
-    .filter((c) => playerEqual(c.player, newGame.player3))
-    .map((c) => {
-      return { ...c.card };
-    });
-  const player4Hand: Card[] = allCards
-    .filter((c) => playerEqual(c.player, newGame.player4))
-    .map((c) => {
-      return { ...c.card };
-    });
-
-  newGame = resetForNewDeal(newGame);
-  newGame.cardDealCount = dealCount;
-  newGame.kitty = currentKitty;
-  newGame.trump = newGame.kitty[0];
-  newGame.player1.hand = player1Hand;
-  newGame.player2.hand = player2Hand;
-  newGame.player3.hand = player3Hand;
-  newGame.player4.hand = player4Hand;
-  newGame.dealer = lastHandResult.dealer;
-  newGame.currentPlayer = getPlayerRotation(newGame.gamePlayers, newGame.dealer)[0];
-  newGame.handId = uuidv4();
-  newGame.currentTrick = createTrick(lastHandResult.roundNumber);
-  const tempTrump = newGame.trump;
-
-  if (discard && newGame.trump) {
-    newGame.dealer.hand = [...newGame.dealer.hand.filter((c) => !cardEqual(c, tempTrump)), discard];
-  }
-
-  newGame.deck = [...player1Hand, ...player2Hand, ...player3Hand, ...player4Hand, ...currentKitty];
-  newGame.currentRound = lastHandResult.roundNumber;
-  for (const player of newGame.gamePlayers) player.hand = indexCards(player.hand);
-
-  verifyDealtCards(newGame);
-
   return newGame;
 };
 
@@ -679,10 +576,8 @@ export {
   resetForNewDeal,
   dealCards,
   copyCardsFromReplay,
-  verifyDealtCards,
   playerSittingOut,
   getRandomScoreForDifficulty,
-  reverseLastHandPlayed,
   incrementSpeed,
   decrementSpeed,
   isHandFinished,

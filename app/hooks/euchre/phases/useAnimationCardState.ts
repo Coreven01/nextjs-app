@@ -1,7 +1,7 @@
 import { EuchreGameState } from '../../../../features/euchre/definitions/game-state-definitions';
-import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
-import { EuchreGameFlow } from '../reducers/gameFlowReducer';
-import { EuchrePauseType } from '../reducers/gamePauseReducer';
+import { EuchreAnimateType } from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
+import { EuchreGameFlow } from '../../../../features/euchre/state/reducers/gameFlowReducer';
+import { EuchrePauseType } from '../../../../features/euchre/state/reducers/gamePauseReducer';
 
 const useAnimationCardState = (state: EuchreGameState) => {
   const { euchreGameFlow, euchreAnimationFlow, euchrePauseState } = state;

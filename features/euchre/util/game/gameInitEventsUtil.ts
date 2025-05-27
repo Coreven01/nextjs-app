@@ -1,4 +1,4 @@
-import { GameEventHandlers } from '../../../../app/hooks/euchre/useEventLog';
+import { GameEventHandlers } from '../../hooks/common/useEventLog';
 import { EuchreGameValues } from '../../definitions/game-state-definitions';
 
 const addIntroEvent = (state: EuchreGameValues, eventHandlers: GameEventHandlers) => {

@@ -1,5 +1,5 @@
 import { OFFSUIT_VALUES, TRUMP_VALUES } from '@/features/euchre/definitions/card-data';
-import { createRange } from '../../../../app/lib/euchre/util/util';
+import { createRange } from '../util';
 import {
   Card,
   TableLocation,
@@ -365,16 +365,16 @@ const getCardClassForPlayerLocation = (location: TableLocation): string => {
 
   switch (location) {
     case 'bottom':
-      retval = `lg:left-[35%] left-[40%] bottom-0`;
+      retval = `lg:left-[35%] left-[38%] bottom-0`;
       break;
     case 'top':
-      retval = `left-[35%] top-0`;
+      retval = `left-[32%] top-0`;
       break;
     case 'left':
-      retval = 'lg:top-[40%] top-[35%] left-0';
+      retval = 'lg:top-[40%] top-[38%] left-0';
       break;
     case 'right':
-      retval = `lg:top-[40%] top-[35%] right-0`;
+      retval = `lg:top-[40%] top-[38%] right-0`;
       break;
   }
 

@@ -4,7 +4,7 @@ import React, { useCallback } from 'react';
 import { SECTION_STYLE } from '../../../../app/ui/home/home-description';
 import { inter } from '../../../../app/ui/fonts';
 import GameSettings from './game-settings';
-import useEuchreGame from '@/app/hooks/euchre/gameplay/useEuchreGame';
+import useEuchreGame from '@/features/euchre/hooks/game/useEuchreGame';
 import GameScore from './game-score';
 import GameBorder from './game-border';
 import BidPrompt from '../prompt/bid-prompt';
@@ -14,12 +14,12 @@ import GameResult from '../prompt/game-result';
 import GameEvents from './game-events';
 import GameArea from './game-area';
 import GamePrompt from '../prompt/game-prompt';
-import useMenuItems from '@/app/hooks/euchre/useMenuItems';
+import useMenuItems from '@/features/euchre/hooks/common/useMenuItems';
 import clsx from 'clsx';
 import GameErrorPrompt from '../prompt/game-error-prompt';
 import GameIntro from '../prompt/game-intro';
 import GameDebugMenu from './game-debug-menu';
-import useEuchreDebug from '../../../../app/hooks/euchre/useEuchreDebug';
+import useEuchreDebug from '../../hooks/common/useEuchreDebug';
 import { PromptType } from '../../definitions/definitions';
 import { EuchreSettings, EuchreGameInstance } from '../../definitions/game-state-definitions';
 
@@ -35,16 +35,8 @@ export default function EuchreGame() {
     gameContext.errorHandlers
   );
 
-  const {
-    isFullScreen,
-    showEvents,
-    showSettings,
-    showScore,
-    toggleFullScreen,
-    toggleEvents,
-    toggleSettings,
-    toggleScore
-  } = useMenuItems();
+  const menuValues = useMenuItems(gameHandlers.onCancelAndReset, gameHandlers.onSettingsChange);
+  const { isFullScreen, onToggleEvents, onToggleSettings, showEvents, showScore, showSettings } = menuValues;
 
   const enableFullScreen = stateValues.euchreGame && isFullScreen;
   // #endregion
@@ -55,26 +47,21 @@ export default function EuchreGame() {
   };
 
   const handleStartNewGame = () => {
-    toggleSettings(false);
+    onToggleSettings(false);
     gameHandlers.onBeginNewGame();
   };
 
   const handleReturnFromSettings = () => {
-    toggleSettings(false);
+    onToggleSettings(false);
   };
 
-  const handleCancel = useCallback(() => {
-    gameHandlers.onCancelAndReset();
-    toggleSettings(false);
-  }, [gameHandlers, toggleSettings]);
-
   const handleBeginReplayGame = (gameToReplay: EuchreGameInstance) => {
-    toggleSettings(false);
+    onToggleSettings(false);
     gameHandlers.onReplayGame({ ...gameToReplay });
   };
 
   const handleShowSettings = () => {
-    toggleSettings(true);
+    onToggleSettings(true);
   };
 
   const handleCloseGameResults = () => {
@@ -98,7 +85,7 @@ export default function EuchreGame() {
     <GameEvents
       events={events}
       onClear={gameContext.eventHandlers.clearEvents}
-      onClose={() => toggleEvents(false)}
+      onClose={() => onToggleEvents(false)}
       className="right-16 top-0 dark:text-white"
     />
   );
@@ -228,18 +215,10 @@ export default function EuchreGame() {
               className={clsx('transition-opacity opacity-10 duration-1000', {
                 '!opacity-100': !renderIntro
               })}
-              isFullScreen={isFullScreen}
-              showEvents={showEvents}
-              showSettings={showSettings}
-              showScore={showScore}
               playerNotification={stateValues.playerNotification}
               playedCard={stateValues.playedCard}
               initDealer={stateValues.initDealer}
-              onToggleFullscreen={toggleFullScreen}
-              onToggleEvents={toggleEvents}
-              onSettingsToggle={toggleSettings}
-              onScoreToggle={toggleScore}
-              onCancel={handleCancel}
+              menuValues={menuValues}
             />
             {renderSettings}
             {renderIntro}

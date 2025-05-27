@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 
-import { EuchreAnimateType } from '../reducers/gameAnimationFlowReducer';
-import { EuchreGameFlow } from '../reducers/gameFlowReducer';
-import { EuchrePauseType } from '../reducers/gamePauseReducer';
+import { EuchreAnimateType } from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
+import { EuchreGameFlow } from '../../../../features/euchre/state/reducers/gameFlowReducer';
+import { EuchrePauseType } from '../../../../features/euchre/state/reducers/gamePauseReducer';
 import {
   DeckStatePhase,
   DeckStateAction,

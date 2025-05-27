@@ -1,17 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { EuchreGameFlowState, EuchreGameFlow } from '../../../../app/hooks/euchre/reducers/gameFlowReducer';
+import { EuchreGameFlowState, EuchreGameFlow } from '../../state/reducers/gameFlowReducer';
 import { TableLocation, GameDifficulty } from '../../definitions/definitions';
 import { EuchrePlayer, EuchreGameInstance, EuchreSettings } from '../../definitions/game-state-definitions';
 import { InitDealResult, ShuffleResult } from '../../definitions/logic-definitions';
 import { createPlaceholderCards, createShuffledDeck, getSuitCount, indexCards } from './cardDataUtil';
-import {
-  createTrick,
-  resetForNewDeal,
-  dealCards,
-  copyCardsFromReplay,
-  verifyDealtCards
-} from './gameDataUtil';
+import { createTrick, resetForNewDeal, dealCards, copyCardsFromReplay } from './gameDataUtil';
 import { getPlayerRotation } from './playerDataUtil';
+import { verifyDealtCards } from './gameDebugUtil';
 
 const createPlayer = (
   name: string,

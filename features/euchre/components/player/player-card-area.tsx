@@ -1,11 +1,11 @@
 import clsx from 'clsx';
 import React, { useEffect, useRef } from 'react';
-import useDeckAnimation from '../../../../app/hooks/euchre/effects/deal/useDeckAnimation';
+import useDeckAnimation from '../../hooks/deal/useDeckAnimation';
 import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
 import PlayerHand from './player-hand';
 import { getPlayerGridLayoutInfo, playerEqual } from '../../util/game/playerDataUtil';
-import { logConsole } from '../../../../app/lib/euchre/util/util';
+import { logConsole } from '../../util/util';
 import { getCardClassForPlayerLocation } from '../../util/game/cardDataUtil';
 import usePlayerActionState from '../../../../app/hooks/euchre/state/usePlayerActionsState';
 import { Card } from '../../definitions/definitions';

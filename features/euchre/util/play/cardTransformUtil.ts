@@ -14,7 +14,7 @@ import { Card, GameSpeed, TableLocation } from '../../definitions/definitions';
 import { RefObject } from 'react';
 import { CardBaseState, EuchrePlayer } from '../../definitions/game-state-definitions';
 import { InitDealResult } from '../../definitions/logic-definitions';
-import { logConsole } from '../../../../app/lib/euchre/util/util';
+import { logConsole } from '../util';
 
 const CARD_HEIGHT_OFFSET = 10;
 const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.

@@ -12,22 +12,15 @@ import {
 } from './definitions';
 import { InitDealResult } from './logic-definitions';
 import { CardSpringTarget } from './transform-definitions';
-import {
-  EuchreGameFlow,
-  EuchreGameFlowState,
-  GameFlowAction
-} from '../../../app/hooks/euchre/reducers/gameFlowReducer';
+import { EuchreGameFlow, EuchreGameFlowState, GameFlowAction } from '../state/reducers/gameFlowReducer';
 import {
   EuchreAnimationAction,
   EuchreAnimationActionType,
   EuchreAnimationState
-} from '../../../app/hooks/euchre/reducers/gameAnimationFlowReducer';
-import { EuchrePauseActionType, EuchrePauseState } from '../../../app/hooks/euchre/reducers/gamePauseReducer';
-import {
-  NotificationAction,
-  NotificationState
-} from '../../../app/hooks/euchre/reducers/playerNotificationReducer';
-import { GameEventHandlers } from '../../../app/hooks/euchre/useEventLog';
+} from '../state/reducers/gameAnimationFlowReducer';
+import { EuchrePauseActionType, EuchrePauseState } from '../state/reducers/gamePauseReducer';
+import { NotificationAction, NotificationState } from '../state/reducers/playerNotificationReducer';
+import { GameEventHandlers } from '../hooks/common/useEventLog';
 
 export interface EuchreGameInstance {
   gameId: string;
@@ -128,6 +121,9 @@ export interface EuchreGameValues extends EuchreGameState {
 
   /** Boolean value to indicate that the user pressed the cancel button. */
   shouldCancel: boolean;
+
+  /** User selected to replay the same hand again, and should shuffle and deal the same cards again as if the hand never was played. */
+  shouldReplayHand: boolean;
 }
 
 export interface ErrorHandlers {
@@ -163,6 +159,7 @@ export interface EuchreDebugHandlers {
   onRunTrickNotification: () => void;
   onRunFullGame: () => void;
   onRunFullGameLoop: () => void;
+  onRunLonerGame: () => void;
   onClearDebugGame: () => void;
 }
 
@@ -187,6 +184,7 @@ export interface EuchreGameSetters {
   setInitialDealerResult: Dispatch<SetStateAction<InitDealResult | null>>;
   setBidResult: Dispatch<SetStateAction<BidResult | null>>;
   setShouldCancelGame: Dispatch<SetStateAction<boolean>>;
+  setShouldReplayHand: Dispatch<SetStateAction<boolean>>;
 
   addPromptValue: (value: PromptType) => void;
   removePromptValue: (value: PromptType) => void;
@@ -378,4 +376,25 @@ export interface PlayHandHandlers {
   onTrickFinished: () => Promise<void>;
   onBeginPlayerTurn: () => Promise<void>;
   onEndPlayerTurn: () => Promise<void>;
+}
+
+export interface GameMenuValues {
+  isFullScreen: boolean;
+  showEvents: boolean;
+  showSettings: boolean;
+  showScore: boolean;
+
+  /** Toggle back and forth between fullscreen and main layout. */
+  onToggleFullscreen: (value: boolean) => void;
+
+  /** Toggle events visibility panel. */
+  onToggleEvents: (value: boolean) => void;
+  onToggleSettings: (e: boolean) => void;
+
+  /** Toggle visibility of the score panel */
+  onToggleScore: (e: boolean) => void;
+
+  /** Player canceled game play. */
+  onCancel: () => void;
+  onSaveSettings: (settings: EuchreSettings) => void;
 }

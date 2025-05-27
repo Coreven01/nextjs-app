@@ -9,9 +9,15 @@ import {
 import { getGameStateForNextHand } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
 import { isGameStateValidToContinue } from '../../../../features/euchre/util/game/gameStateLogicUtil';
 import { getPlayerRotation, playerEqual } from '../../../../features/euchre/util/game/playerDataUtil';
-import { EuchreAnimateType, EuchreAnimationActionType } from '../reducers/gameAnimationFlowReducer';
-import { EuchreFlowActionType, EuchreGameFlow } from '../reducers/gameFlowReducer';
-import { EuchrePauseActionType } from '../reducers/gamePauseReducer';
+import {
+  EuchreAnimateType,
+  EuchreAnimationActionType
+} from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
+import {
+  EuchreFlowActionType,
+  EuchreGameFlow
+} from '../../../../features/euchre/state/reducers/gameFlowReducer';
+import { EuchrePauseActionType } from '../../../../features/euchre/state/reducers/gamePauseReducer';
 
 const useGameBidState = (state: EuchreGameValues, setters: EuchreGameSetters, handlers: ErrorHandlers) => {
   const shouldBeginBidForTrump = isGameStateValidToContinue(
