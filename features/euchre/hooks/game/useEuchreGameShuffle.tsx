@@ -8,13 +8,9 @@ import {
   EuchreGameValues
 } from '../../definitions/game-state-definitions';
 import useGameShuffleState from '../../../../app/hooks/euchre/phases/useGameShuffleState';
-import {
-  addBeginShuffleEvent,
-  addSkipDealAnimationEvent,
-  addTrumpCardFlippedEvent
-} from '../../util/game/gameShuffleEventsUtil';
+import { addBeginShuffleEvent, addTrumpCardFlippedEvent } from '../../util/game/events/gameShuffleEventsUtil';
 import { getPlayerRotation } from '../../util/game/playerDataUtil';
-import { dealCardsForDealer, shuffleAndDealHand } from '../../util/game/gameSetupLogicUtil';
+import { shuffleAndDealHand } from '../../util/game/gameSetupLogicUtil';
 import { reverseLastHandPlayed } from '../../util/game/gameDebugUtil';
 
 const useEuchreGameShuffle = (
@@ -36,7 +32,7 @@ const useEuchreGameShuffle = (
     pauseForAnimateEndDealCards,
     continueToBeginBidForTrump
   } = useGameShuffleState(state, setters, errorHandlers);
-  const { euchreGame, euchreGameFlow, euchreSettings, euchreReplayGame, shouldCancel } = state;
+  const { euchreGame, euchreSettings, euchreReplayGame } = state;
 
   //#region Handlers
 
@@ -63,39 +59,27 @@ const useEuchreGameShuffle = (
    * or if a player will name suit. After deal logic is run, begin animation for dealing cards to players. */
   const beginSkipDealAnimation = useCallback(() => {
     if (!shouldBeginSkipAnimation) return;
+    throw new Error('not implemented');
+    // addSkipDealAnimationEvent(state, eventHandlers);
 
-    addSkipDealAnimationEvent(state, eventHandlers);
+    // let newGame = { ...euchreGame };
+    // const dealResult = dealCardsForDealer(newGame, euchreGameFlow);
 
-    let newGame = { ...euchreGame };
-    const dealResult = dealCardsForDealer(newGame, euchreGameFlow);
+    // if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
 
-    if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
+    // newGame.dealer = dealResult.newDealer;
+    // newGame.currentPlayer = dealResult.newDealer;
 
-    newGame.dealer = dealResult.newDealer;
-    newGame.currentPlayer = dealResult.newDealer;
-
-    if (state.shouldReplayHand) {
-      newGame = reverseLastHandPlayed(newGame);
-      setters.setShouldReplayHand(false);
-    } else {
-      const shuffleResult = shuffleAndDealHand(newGame, euchreSettings, euchreReplayGame, shouldCancel);
-
-      newGame = shuffleResult.game;
-    }
-    setters.setEuchreGame(newGame);
-    continueToAnimateEndDealCards();
-  }, [
-    continueToAnimateEndDealCards,
-    euchreGame,
-    euchreGameFlow,
-    euchreReplayGame,
-    euchreSettings,
-    eventHandlers,
-    setters,
-    shouldBeginSkipAnimation,
-    shouldCancel,
-    state
-  ]);
+    // if (state.shouldReplayHand) {
+    //   newGame = reverseLastHandPlayed(newGame);
+    //   setters.setShouldReplayHand(false);
+    // } else {
+    //   const shuffleResult = shuffleAndDealHand(newGame, euchreSettings, euchreReplayGame);
+    //   newGame = shuffleResult.game;
+    // }
+    // setters.setEuchreGame(newGame);
+    // continueToAnimateEndDealCards();
+  }, [shouldBeginSkipAnimation]);
 
   /**
    *
@@ -121,7 +105,7 @@ const useEuchreGameShuffle = (
       newGame = reverseLastHandPlayed(euchreGame);
       setters.setShouldReplayHand(false);
     } else {
-      const shuffleResult = shuffleAndDealHand(euchreGame, euchreSettings, euchreReplayGame, shouldCancel);
+      const shuffleResult = shuffleAndDealHand(euchreGame, euchreSettings, euchreReplayGame);
       newGame = shuffleResult.game;
     }
 
@@ -141,7 +125,6 @@ const useEuchreGameShuffle = (
     euchreSettings,
     eventHandlers,
     setters,
-    shouldCancel,
     shouldShuffleCards,
     state
   ]);

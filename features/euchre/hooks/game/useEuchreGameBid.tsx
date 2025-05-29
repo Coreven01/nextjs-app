@@ -29,7 +29,7 @@ import {
   addFinalizeBidForTrumpEvent,
   addHandleBidSelectionEvent,
   addPassBidEvent
-} from '../../util/game/gameBidEventsUtil';
+} from '../../util/game/events/gameBidEventsUtil';
 import { BidResult, PromptType } from '../../definitions/definitions';
 
 export default function useEuchreGameBid(

@@ -11,7 +11,7 @@ import {
 } from '../../definitions/transform-definitions';
 import { getEncodedCardSvg, getCardFullName } from './cardSvgDataUtil';
 
-/** */
+/** Run the animations for the given controls */
 const runCardAnimations = async (animationControls: CardAnimationControls[]) => {
   const animations: Promise<void>[] = [];
 
@@ -104,32 +104,5 @@ const createCardBaseState = (card: Card, location: TableLocation, includeCardVal
 
   return cardState;
 };
-
-/** Create the intial card state values for beginning deal.
- *
- */
-// const createAnimationControls = (cardValues: CreateCardStateContext) => {
-//   const {
-//     card,
-//     initAnimateValues,
-//     initFlipAnimateValues,
-//     initFlipValue,
-//     initSpringValue,
-//     control,
-//     flipControl
-//   } = cardValues;
-
-//   const animationControl: CardAnimationControls = {
-//     cardIndex: cardValues.card.index,
-//     initSpringValue: cardValues.initSpringValue,
-//     controls: cardValues.control,
-//     animateValues: cardValues.initAnimateValues ?? [],
-//     flipControl: cardValues.flipControl,
-//     initFlipSpring: cardValues.initFlipValue,
-//     animateFlipSpring: cardValues.initFlipAnimateValues
-//   };
-
-//   return animationControl;
-// };
 
 export { runCardAnimations, createCardStatesFromGameDeck, createCardBaseState };

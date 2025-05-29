@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import { SECTION_STYLE } from '../../../../app/ui/home/home-description';
 import { inter } from '../../../../app/ui/fonts';
 import GameSettings from './game-settings';
@@ -55,9 +55,9 @@ export default function EuchreGame() {
     onToggleSettings(false);
   };
 
-  const handleBeginReplayGame = (gameToReplay: EuchreGameInstance) => {
+  const handleBeginReplayGame = (gameToReplay: EuchreGameInstance, autoPlay: boolean) => {
     onToggleSettings(false);
-    gameHandlers.onReplayGame({ ...gameToReplay });
+    gameHandlers.onReplayGame({ ...gameToReplay }, autoPlay);
   };
 
   const handleShowSettings = () => {
@@ -169,7 +169,7 @@ export default function EuchreGame() {
         handResults={stateValues.euchreGame.handResults}
         onClose={handleCloseGameResults}
         onNewGame={gameHandlers.onBeginNewGame}
-        onReplayGame={() => handleBeginReplayGame(stateValues.euchreGame)}
+        onReplayGame={(autoPlay: boolean) => handleBeginReplayGame(stateValues.euchreGame, autoPlay)}
       />
     );
 
@@ -181,7 +181,7 @@ export default function EuchreGame() {
         handResults={fullGameInstance.handResults}
         onClose={debugHandlers.onClearDebugGame}
         onNewGame={() => null}
-        onReplayGame={() => handleBeginReplayGame(fullGameInstance)}
+        onReplayGame={(autoPlay: boolean) => handleBeginReplayGame(fullGameInstance, autoPlay)}
       />
     </GamePrompt>
   );

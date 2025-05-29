@@ -11,7 +11,7 @@ const GameButton = ({ type, children, className, disabled, ...rest }: Props) => 
 
   switch (type) {
     case 'primary':
-      btnColor = 'dark:bg-stone-900 dark:text-white';
+      btnColor = 'dark:bg-gray-800 dark:text-white';
       break;
     case 'success':
       btnColor = 'bg-green-950';
@@ -27,7 +27,7 @@ const GameButton = ({ type, children, className, disabled, ...rest }: Props) => 
     <button
       disabled={disabled}
       className={clsx(
-        'md:text-base text-sm h-8 text-white border border-white p-1 min-w-24 dark:hover:bg-amber-100 dark:hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed dark:disabled:text-gray-500',
+        'md:text-base text-sm h-8 text-white border border-white p-1 min-w-24 dark:hover:bg-amber-100 dark:hover:text-black disabled:hover:bg-inherit disabled:cursor-not-allowed dark:disabled:text-gray-500 duration-300 transition-all',
         btnColor,
         className
       )}

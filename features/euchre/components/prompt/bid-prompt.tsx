@@ -10,7 +10,7 @@ import Switch from '@mui/material/Switch';
 import PromptHeader from './prompt-header';
 import GameWarning from '../game/game-warning';
 
-import GameButton from '../game/game-button';
+import GameButton from '../common/game-button';
 import { getCardFullName, getEncodedCardSvg, getSuitName } from '../../util/game/cardSvgDataUtil';
 import { getTeamColor, playerEqual } from '../../util/game/playerDataUtil';
 import { getDisplayHeight, getDisplayWidth } from '../../util/game/cardDataUtil';
@@ -81,7 +81,7 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
   //#endregion
 
   return (
-    <GamePrompt {...rest} zIndex={50} className={clsx('bg-white dark:bg-stone-800', className)}>
+    <GamePrompt {...rest} zIndex={50} className={clsx('bg-white dark:bg-stone-900', className)}>
       <div className="p-1">
         <div
           className={clsx(`grid gap-1`, {

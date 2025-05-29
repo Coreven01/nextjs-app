@@ -1,6 +1,11 @@
 import { EuchreGameFlowState, INIT_GAME_FLOW_STATE } from '../../state/reducers/gameFlowReducer';
 
-import { EuchreCard, EuchreGameInstance, EuchreSettings } from '../../definitions/game-state-definitions';
+import {
+  ErrorHandlers,
+  EuchreCard,
+  EuchreGameInstance,
+  EuchreSettings
+} from '../../definitions/game-state-definitions';
 import { useEventLog } from '../common/useEventLog';
 import {
   createGameForInitialDeal,
@@ -23,7 +28,7 @@ import { logError } from '../../util/util';
 import { BidResult, Card } from '../../definitions/definitions';
 
 /**  */
-export default function useEuchreGameAuto() {
+export default function useEuchreGameAuto(errorHandlers: ErrorHandlers) {
   const { createEvent } = useEventLog();
 
   const dealAndBid = (
@@ -39,7 +44,7 @@ export default function useEuchreGameAuto() {
       gameFlow.hasSecondBiddingPassed = false;
 
       //#region  Shuffle cards and bidding for trump
-      const shuffleResult = shuffleAndDealHand(newGame, gameSetting, null, false);
+      const shuffleResult = shuffleAndDealHand(newGame, gameSetting, null);
 
       newGame = shuffleResult.game;
 
@@ -87,20 +92,22 @@ export default function useEuchreGameAuto() {
     if (shouldDiscard) {
       newGame.discard =
         bidResult.discard ?? determineDiscard(newGame, newGame.dealer, gameSetting.difficulty);
+      if (!newGame.discard) throw new Error();
       newGame.dealer.hand = discard(newGame.dealer, newGame.discard, newGame.trump);
     }
+
+    const sittingOutPlayer = playerSittingOut(game);
+    newGame.currentPlayer = getPlayerRotation(newGame.gamePlayers, newGame.dealer, sittingOutPlayer)[0];
 
     let handComplete = false;
     while (!handComplete) {
       const chosenCard: Card = determineCardToPlay(newGame, gameSetting.difficulty);
       const cardPlayed: EuchreCard = { player: newGame.currentPlayer, card: chosenCard };
+
       newGame.currentPlayer.playedCards.push(chosenCard);
       newGame.currentTrick.cardsPlayed.push(cardPlayed);
 
-      const sittingOut = playerSittingOut(newGame);
-      const playerRotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer, sittingOut);
-
-      newGame = updateIfTrickOver(newGame, playerRotation);
+      newGame = updateIfTrickOver(newGame);
       newGame = updateIfHandOver(newGame);
       handComplete = isHandFinished(newGame);
 
@@ -116,7 +123,7 @@ export default function useEuchreGameAuto() {
    *
    */
   const runFullGame = (gameSetting: EuchreSettings, maxPoints?: number): EuchreGameInstance => {
-    let newGame: EuchreGameInstance = createGameForInitialDeal(gameSetting, false);
+    let newGame: EuchreGameInstance = createGameForInitialDeal(gameSetting);
     const gameFlow: EuchreGameFlowState = { ...INIT_GAME_FLOW_STATE };
 
     newGame.player1.human = false;
@@ -131,7 +138,7 @@ export default function useEuchreGameAuto() {
       if (!dealResult?.newDealer) throw new Error('Dealer not found after dealing for initial deal.');
 
       newGame.dealer = dealResult.newDealer;
-      newGame.currentPlayer = dealResult.newDealer;
+      newGame.currentPlayer = getPlayerRotation(newGame.gamePlayers, newGame.dealer)[0];
       //#endregion
 
       while (!gameOver) {
@@ -139,14 +146,18 @@ export default function useEuchreGameAuto() {
         const bidResult = temp.bidResult;
 
         newGame = playGameTricks(temp.game, gameSetting, bidResult);
+        newGame.currentRound += 1;
 
         gameOver = teamPoints(newGame, 1) >= points || teamPoints(newGame, 2) >= points;
+
         const rotation = getPlayerRotation(newGame.gamePlayers, newGame.dealer);
         newGame.dealer = rotation[0];
       }
     } catch (e) {
       const error = e as Error;
-      logError(createEvent('e', undefined, `${error ? error.message + '\n' + error.stack : e}`));
+      const message = `${error ? error.message + '\n' + error.stack : e}`;
+      logError(createEvent('e', undefined, message));
+      errorHandlers.onError(error, message);
     }
     //#endregion
 

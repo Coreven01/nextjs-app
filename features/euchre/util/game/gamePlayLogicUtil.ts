@@ -45,11 +45,6 @@ const getGamePlayLogic = (game: EuchreGameInstance): GamePlayLogic => {
  *  if the player must follow suit.
  */
 const getTrickLogic = (game: EuchreGameInstance): TrickLogic => {
-  if (!game?.currentPlayer) throw Error('Invalid player gathering trick logic.');
-  if (!game.currentTrick) throw Error('Invalid current trick gathering trick logic.');
-  if (!game.trump) throw Error('Invalid trump card gathering trick logic.');
-  if (!game.dealer) throw Error('Invalid dealer gathering trick logic.');
-
   //#region Gather information for trick information
   const trumpCard: Card = game.trump;
   const suitsThatHaveBeenLead: Suit[] = [];
@@ -134,9 +129,7 @@ const getTrickLogic = (game: EuchreGameInstance): TrickLogic => {
  *
  */
 function getTeamLogic(game: EuchreGameInstance): TeamLogic {
-  if (!game?.currentPlayer) throw Error('Invalid player gathering team logic.');
-  if (!game.maker) throw Error('Invalid maker gathering team logic.');
-  if (!game.currentTrick) throw Error('Invalid current trick gathering team logic.');
+  if (!game.maker) throw Error('Invalid maker gathering team logic for game play.');
 
   const currentPlayer = game.currentPlayer;
   const leadCard: EuchreCard | null = game.currentTrick.cardsPlayed.at(0) ?? null;
@@ -161,10 +154,6 @@ function getTeamLogic(game: EuchreGameInstance): TeamLogic {
  *
  */
 function getTrumpLogic(game: EuchreGameInstance): TrumpLogic {
-  if (!game?.currentPlayer) throw Error('Invalid player gathering trump logic.');
-  if (!game.trump) throw Error('Invalid trump gathering trump logic.');
-  if (!game.dealer) throw Error('Invalid dealer gathering trump logic.');
-
   const trumpCard: Card = game.trump;
   const currentPlayer = game.currentPlayer;
   const playerCards: Card[] = availableCardsToPlay(currentPlayer);
@@ -210,11 +199,6 @@ function getTrumpLogic(game: EuchreGameInstance): TrumpLogic {
  *
  */
 function getOffsuitLogic(game: EuchreGameInstance): OffsuitLogic {
-  if (!game?.currentPlayer) throw Error('Invalid player gathering offsuit logic.');
-  if (!game.currentTrick) throw Error('Invalid player gathering offsuit logic.');
-  if (!game.trump) throw Error('Invalid trump gathering offsuit logic.');
-  if (!game.dealer) throw Error('Invalid dealer gathering offsuit logic.');
-
   const trumpCard: Card = game.trump;
   const currentPlayer = game.currentPlayer;
   const playerCards: Card[] = availableCardsToPlay(currentPlayer);
@@ -254,7 +238,9 @@ function getOffsuitLogic(game: EuchreGameInstance): OffsuitLogic {
  *
  */
 function validateGamePlayLogic(logic: GamePlayLogic) {
-  if (logic.trickInfo.cardValues.length === 0) throw new Error('Invalid card values');
+  if (logic.trickInfo.cardValues.length === 0) {
+    throw new Error('Invalid card values');
+  }
 
   if (
     logic.trickInfo.winningHighLow.high === null &&
@@ -309,8 +295,6 @@ function getRandomCardForDifficulty(
   logic: GamePlayLogic,
   randomNumber: number
 ): Card {
-  if (!game.currentPlayer) throw Error('Invalid player to determine card to play.');
-
   let cardToPlay: Card | undefined;
 
   if (randomNumber % 5 === 0) {
@@ -334,8 +318,6 @@ function getRandomCardForDifficulty(
  *
  */
 function getBestCardForLead(game: EuchreGameInstance, logic: GamePlayLogic): Card {
-  if (!game.currentPlayer) throw Error('Invalid player to determine card to play.');
-
   let cardToPlay: Card | undefined;
 
   if (
@@ -462,7 +444,6 @@ function getBestCardForFollowSuit(game: EuchreGameInstance, gameLogic: GamePlayL
   let cardToPlay: Card | undefined;
 
   if (!gameLogic.trickInfo.leadCard) throw Error('Lead card not found');
-  if (!game.trump) throw Error('Trump card not found');
 
   if (gameLogic.trickInfo.cardsAvailableToFollowSuit.length === 0)
     throw new Error('Invalid card for follow suit. No cards found.');
@@ -556,10 +537,6 @@ function getBestCardForFollowSuit(game: EuchreGameInstance, gameLogic: GamePlayL
 
 /** */
 function getBestCardWhenTeammateLeadAce(game: EuchreGameInstance, gameLogic: GamePlayLogic): Card {
-  if (!game.trump) throw Error();
-
-  if (!game.currentPlayer) throw Error();
-
   let cardToPlay: Card | undefined;
 
   if (gameLogic.trickInfo.currentlyLosing) {

@@ -1,4 +1,4 @@
-import { EuchreCard, EuchrePlayer, EuchreSettings, EuchreTrick } from './game-state-definitions';
+import { EuchreCard, EuchreSettings, EuchreTrick } from './game-state-definitions';
 
 // const arrowUpSvg = `checked:bg-[url('/arrowup.svg')] bg-[url('/arrowup.svg')]`;
 // const arrowDownSvg = `checked:bg-[url('/arrowdown.svg')] bg-[url('/arrowdown.svg')]`;
@@ -124,16 +124,15 @@ export const INIT_GAME_SETTINGS: EuchreSettings = {
 export interface EuchreHandResult extends EuchrePlayersPassedResult {
   tricks: EuchreTrick[];
   points: number;
-  maker: EuchrePlayer;
+  makerPlayerNumber: number;
   teamWon: 1 | 2;
   loner: boolean;
   discard: Card | null;
   turnedDown: Card | null;
-  defenders: EuchrePlayer[];
 }
 
 export interface EuchrePlayersPassedResult {
-  dealer: EuchrePlayer;
+  dealerPlayerNumber: number;
   roundNumber: number;
   kitty: Card[];
   trump: Card;

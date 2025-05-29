@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { createCardStatesFromGameDeck } from '../../../../features/euchre/util/game/cardStateUtil';
 
-import useDeckAnimationControls from './useDeckAnimationControls';
+import useDeckAnimationControls from '../../../../features/euchre/state/useDeckAnimationControls';
 import { Card, TableLocation } from '../../../../features/euchre/definitions/definitions';
 import { CardBaseState } from '../../../../features/euchre/definitions/game-state-definitions';
 import {

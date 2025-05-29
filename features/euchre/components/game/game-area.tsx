@@ -47,16 +47,6 @@ const GameArea = ({
     gameTableRef
   };
 
-  // logConsole(
-  //   '[GAMEAREA] gameID: ',
-  //   state.euchreGame.gameId,
-  //   ' state: ',
-  //   state.euchreGameFlow.gameFlow,
-  //   ' ',
-  //   state.euchreAnimationFlow.animationType,
-  //   ' ',
-  //   state.euchrePauseState.pauseType
-  // );
   return (
     <div
       className={clsx(

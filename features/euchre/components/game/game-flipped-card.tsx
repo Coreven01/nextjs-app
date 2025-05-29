@@ -27,7 +27,7 @@ const GameFlippedCard = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         animate={animateVal}
         transition={{ duration: 0.5 }}
       >
-        <GameBorder innerClass="bg-stone-800" className="shadow-md shadow-black" size="small">
+        <GameBorder innerClass="bg-stone-900" className="shadow-md shadow-black" size="small">
           <div className="lg:p-2 p-1 bg-green-950 flex items-center justify-center">
             <GameCard
               ref={ref}

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useReducer, useState } from 'react';
 
-import useGameSettings from '../data/useGameSettings';
+import useGameSettings from '../../../../features/euchre/state/useGameSettings';
 import {
   EuchreFlowActionType,
   EuchreGameFlow,
@@ -162,7 +162,13 @@ const useEuchreGameState = () => {
     };
 
     return setters;
-  }, []);
+  }, [
+    dispatchStateChange,
+    handleAddPromptValue,
+    handleClearPromptValues,
+    handleRemovePromptValue,
+    handleReplacePromptValues
+  ]);
 
   const handleSaveSettings = useCallback(
     (settings: EuchreSettings) => {

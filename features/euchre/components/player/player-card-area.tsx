@@ -5,7 +5,6 @@ import GameGrid from '../game/game-grid';
 import GameDeck from '../game/game-deck';
 import PlayerHand from './player-hand';
 import { getPlayerGridLayoutInfo, playerEqual } from '../../util/game/playerDataUtil';
-import { logConsole } from '../../util/util';
 import { getCardClassForPlayerLocation } from '../../util/game/cardDataUtil';
 import usePlayerActionState from '../../../../app/hooks/euchre/state/usePlayerActionsState';
 import { Card } from '../../definitions/definitions';
@@ -59,99 +58,13 @@ const PlayerCardArea = ({
   } = usePlayerActionState(gameContext);
 
   const playerLayoutForGrid = getPlayerGridLayoutInfo();
-  // const sittingOutPlayer: EuchrePlayer | null = playerSittingOut(euchreGame);
-
-  // const cardCountDuringPlay: number = sittingOutPlayer ? 3 : 4;
 
   useEffect(() => {
     if (currentHandId.current !== euchreGame.handId) {
       currentHandId.current = euchreGame.handId;
       resetStateForNewHand();
-      // playersInitDealFinished.current.clear();
-      // cardsPassedDeal.current.clear();
     }
   }, [euchreGame.handId, resetStateForNewHand]);
-
-  // const handleDealAnimationComplete = useCallback(
-  //   (playerNumber: number) => {
-  //     logConsole('*** [PLAYERCARDAREA] [handleDealAnimationComplete]');
-  //     if (playersInitDealFinished.current.values().toArray().length === 4) return;
-
-  //     playersInitDealFinished.current.add(playerNumber);
-
-  //     if (playersInitDealFinished.current.values().toArray().length === 4) {
-  //       gameContext.animationHandlers.onEndRegularDealComplete();
-  //     }
-  //   },
-  //   [gameContext.animationHandlers]
-  // );
-
-  // const handlePassDealAnimationComplete = (card: Card) => {
-  //   logConsole('*** [PLAYERCARDAREA] [handlePassDealAnimationComplete]');
-  //   // if (cardsPassedDeal.current.values().toArray().length === 20) return;
-
-  //   // cardsPassedDeal.current.add(`${card.value}${card.suit}`);
-
-  //   // if (cardsPassedDeal.current.values().toArray().length === 20) {
-  //   //   animationHandlers.onPassDealComplete();
-  //   // }
-  // };
-
-  // const handleCardPlayed = (card: Card) => {
-  //   // animationHandlers.onCardPlayed(card);
-  // };
-
-  // const handleTrickFinished = useCallback(
-  //   (card: Card) => {
-  //     logConsole('*** [PLAYERCARDAREA] [handleTrickFinished]');
-
-  //     const trick: EuchreTrick | undefined = euchreGame.currentTrick;
-  //     const trickFinished = tricksFinished.current.has(trick.trickId);
-
-  //     if (trickFinished) return;
-
-  //     const cardVals = cardsPlayedForTrick.current.get(trick.trickId) ?? new Set<string>();
-
-  //     cardVals.add(`${card.value}-${card.suit}`);
-  //     cardsPlayedForTrick.current.set(trick.trickId, cardVals);
-
-  //     if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
-  //       tricksFinished.current.add(trick.trickId);
-  //       gameContext.animationHandlers.onTrickFinished();
-  //     }
-  //   },
-  //   [cardCountDuringPlay, euchreGame.currentTrick, gameContext.animationHandlers]
-  // );
-
-  // const handleTrumpOrderedComplete = useCallback(
-  //   (playerNumber: number) => {
-  //     logConsole('*** [PLAYERCARDAREA] [handleTrickFinished]');
-
-  //     const trick: EuchreTrick | undefined = euchreGame.currentTrick;
-  //     const trickFinished = tricksFinished.current.has(trick.trickId);
-
-  //     if (trickFinished) return;
-
-  //     const cardVals = cardsPlayedForTrick.current.get(trick.trickId) ?? new Set<string>();
-
-  //     cardVals.add(`${card.value}-${card.suit}`);
-  //     cardsPlayedForTrick.current.set(trick.trickId, cardVals);
-
-  //     if (trick.playerRenege || cardVals.values().toArray().length === cardCountDuringPlay) {
-  //       tricksFinished.current.add(trick.trickId);
-  //       gameContext.animationHandlers.onTrickFinished();
-  //     }
-  //   },
-  //   [cardCountDuringPlay, euchreGame.currentTrick, gameContext.animationHandlers]
-  // );
-
-  logConsole(
-    '*** [PLAYERCARDAREA] [RENDER]',
-    ' deck visible: ',
-    gameDeckVisible,
-    ' hand visible: ',
-    gameHandVisible
-  );
 
   return (
     <GameGrid className={className} {...rest}>

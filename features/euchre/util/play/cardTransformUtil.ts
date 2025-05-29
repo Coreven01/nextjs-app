@@ -7,6 +7,7 @@ import {
   CardSpringProps,
   CardSpringTarget,
   DEFAULT_SPRING_VAL,
+  FlipSpringTarget,
   INIT_Z_INDEX,
   SpringContext
 } from '../../definitions/transform-definitions';
@@ -18,8 +19,6 @@ import { logConsole } from '../util';
 
 const CARD_HEIGHT_OFFSET = 10;
 const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.
-const INIT_ROTATION = 180;
-const INIT_OFFSET = 75;
 const INIT_OPACITY = 0.1;
 const GAME_PLAY_VARIATION = 10;
 const ROTATION_OFFSET = 6;
@@ -79,6 +78,15 @@ const createCardAnimationState = (index: number): CardAnimationState => {
   };
 };
 
+const getFaceDownSpringForLocation = (location: TableLocation) => {
+  const centerLocation: boolean = location === 'top' || location === 'bottom';
+  const value: FlipSpringTarget = {
+    rotateY: centerLocation ? 180 : 0,
+    rotateX: centerLocation ? 0 : 180
+  };
+
+  return value;
+};
 //#endregion
 
 /** Get an element's original position. Used in order to transform the card again to a new position. */
@@ -1093,7 +1101,6 @@ const getSpringToMoveToPlayer = (
 
 const getSpringsPlayerHandInitDeal = (cards: Card[], location: TableLocation): AnimationSpringsResult => {
   const retval: AnimationSpringsResult = { cardSprings: [], flipSprings: [] };
-  const centerLocation: boolean = location === 'top' || location === 'bottom';
   const initSpringValue: CardSpringTarget | undefined = {
     ...DEFAULT_SPRING_VAL,
     opacity: 0
@@ -1111,7 +1118,7 @@ const getSpringsPlayerHandInitDeal = (cards: Card[], location: TableLocation): A
     retval.flipSprings.push({
       ordinalIndex: card.index,
       cardIndex: card.index,
-      initialSpring: { rotateY: centerLocation ? 180 : 0, rotateX: centerLocation ? 0 : 180 },
+      initialSpring: getFaceDownSpringForLocation(location),
       animateSprings: []
     });
   }
@@ -1252,7 +1259,8 @@ export {
   getSpringsForBeginNewHand,
   getSpringsGroupHand,
   getTransitionForCardDeal,
-  getTransitionForCardFlipped
+  getTransitionForCardFlipped,
+  getFaceDownSpringForLocation
 };
 
 // const getSpringsForTrickTaken = (

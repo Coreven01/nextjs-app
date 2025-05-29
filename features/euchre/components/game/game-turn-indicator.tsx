@@ -36,7 +36,7 @@ const GameTurnIndicator = ({ location, className, ...rest }: DivProps) => {
   }
   return (
     <GameBorderBare className={clsx('absolute animate-bounce', locationCss, className)} {...rest}>
-      <div className="bg-white dark:bg-stone-800 p-1 flex">{icon}</div>
+      <div className="bg-white dark:bg-stone-900 p-1 flex">{icon}</div>
     </GameBorderBare>
   );
 };

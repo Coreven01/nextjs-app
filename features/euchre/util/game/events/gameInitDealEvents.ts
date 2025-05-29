@@ -1,7 +1,7 @@
-import { GameEventHandlers } from '../../hooks/common/useEventLog';
-import { createAndAddEvent } from '../util';
-import { EuchreGameValues, EuchrePlayer } from '../../definitions/game-state-definitions';
-import { getTeamColor } from './playerDataUtil';
+import { GameEventHandlers } from '../../../hooks/common/useEventLog';
+import { createAndAddEvent } from '../../util';
+import { EuchreGameValues, EuchrePlayer } from '../../../definitions/game-state-definitions';
+import { getTeamColor } from '../playerDataUtil';
 
 const addInitialDealEvent = (state: EuchreGameValues, eventHandlers: GameEventHandlers) => {
   createAndAddEvent(

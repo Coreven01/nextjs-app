@@ -21,7 +21,7 @@ import {
   addDealerPickedUpEvent,
   addDiscardEvent,
   addTrumpOrderedEvent
-} from '../../util/game/gameOrderEventsUtil';
+} from '../../util/game/events/gameOrderEventsUtil';
 import { Card, PromptType } from '../../definitions/definitions';
 
 export default function useEuchreGameOrder(

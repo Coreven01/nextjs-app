@@ -11,7 +11,8 @@ import {
   ErrorHandlers,
   EuchreGameInstance,
   EuchreGameSetters,
-  EuchreGameValues
+  EuchreGameValues,
+  EuchreSettings
 } from '../../definitions/game-state-definitions';
 import { GameEventHandlers } from '../common/useEventLog';
 
@@ -20,12 +21,12 @@ import useGameInitState from '../../../../app/hooks/euchre/phases/useGameInitSta
 import { notificationDelay } from '../../util/game/gameDataUtil';
 import {
   createDefaultEuchreGame,
-  createEuchreGame,
   createGameForInitialDeal,
   getGameStateForInitialDeal
 } from '../../util/game/gameSetupLogicUtil';
-import { addIntroEvent } from '../../util/game/gameInitEventsUtil';
+import { addIntroEvent } from '../../util/game/events/gameInitEventsUtil';
 import { PromptType } from '../../definitions/definitions';
+import { createGameForReplay } from '../../util/game/gameDebugUtil';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(
@@ -96,7 +97,7 @@ export default function useEuchreGameInit(
    *
    */
   const createGame = () => {
-    const newGame: EuchreGameInstance = createGameForInitialDeal(euchreSettings, false);
+    const newGame: EuchreGameInstance = createGameForInitialDeal(euchreSettings);
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
       euchreGameFlow,
       euchreSettings,
@@ -119,25 +120,23 @@ export default function useEuchreGameInit(
     setters.setShouldCancelGame(false);
   };
 
-  const createGameForReplay = () => {
-    if (!state.euchreReplayGame) throw new Error('Replay game not found.');
-
+  /** */
+  const setStateForReplay = (replayGame: EuchreGameInstance, autoPlay: boolean) => {
+    const newSettings: EuchreSettings = { ...euchreSettings, debugAllComputerPlayers: autoPlay };
+    const newReplayGame = { ...replayGame };
     const debugPrompt = promptValues.filter((p) => p === PromptType.DEBUG);
-    const newGame: EuchreGameInstance = createEuchreGame(euchreSettings);
-    newGame.deck = state.euchreReplayGame.originalDealDeck;
+    const newGame: EuchreGameInstance = createGameForReplay(replayGame, newSettings);
     const newGameFlowState: EuchreGameFlowState = getGameStateForInitialDeal(
       euchreGameFlow,
-      euchreSettings,
+      newSettings,
       newGame.gamePlayers
     );
 
     newGameFlowState.gameFlow = EuchreGameFlow.BEGIN_DEAL_FOR_DEALER;
-
     setters.dispatchGameFlow({
       type: EuchreFlowActionType.SET_STATE,
       state: newGameFlowState
     });
-
     setters.dispatchStateChange(
       undefined,
       EuchreAnimationActionType.SET_NONE,
@@ -145,6 +144,7 @@ export default function useEuchreGameInit(
     );
 
     setters.replacePromptValues([...debugPrompt]);
+    setters.setEuchreReplayGame(newReplayGame);
     setters.setEuchreGame(newGame);
     setters.setShouldCancelGame(false);
   };
@@ -161,5 +161,5 @@ export default function useEuchreGameInit(
     createGame();
   };
 
-  return { reset, handleBeginGame, cancelAndReset, createDefaultEuchreGame, createGameForReplay };
+  return { reset, handleBeginGame, cancelAndReset, createDefaultEuchreGame, setStateForReplay };
 }

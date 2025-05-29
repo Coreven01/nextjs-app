@@ -4,9 +4,9 @@ import { TableLocation, GameDifficulty } from '../../definitions/definitions';
 import { EuchrePlayer, EuchreGameInstance, EuchreSettings } from '../../definitions/game-state-definitions';
 import { InitDealResult, ShuffleResult } from '../../definitions/logic-definitions';
 import { createPlaceholderCards, createShuffledDeck, getSuitCount, indexCards } from './cardDataUtil';
-import { createTrick, resetForNewDeal, dealCards, copyCardsFromReplay } from './gameDataUtil';
+import { createTrick, resetForNewDeal, dealCards } from './gameDataUtil';
 import { getPlayerRotation } from './playerDataUtil';
-import { verifyDealtCards } from './gameDebugUtil';
+import { copyCardsFromReplay, verifyDealtCards } from './gameDebugUtil';
 
 const createPlayer = (
   name: string,
@@ -111,10 +111,8 @@ const getGameStateForInitialDeal = (
 };
 
 /** Initialize the game with shuffled deck and set player 1 for deal. */
-const createGameForInitialDeal = (gameSettings: EuchreSettings, cancel: boolean): EuchreGameInstance => {
+const createGameForInitialDeal = (gameSettings: EuchreSettings): EuchreGameInstance => {
   const gameInstance: EuchreGameInstance = createEuchreGame(gameSettings);
-
-  if (cancel) return gameInstance;
 
   gameInstance.currentPlayer = gameInstance.player1;
   gameInstance.dealer = gameInstance.player1;
@@ -173,19 +171,15 @@ const dealCardsForDealer = (
 const shuffleAndDealHand = (
   gameInstance: EuchreGameInstance,
   gameSettings: EuchreSettings,
-  replayGameInstance: EuchreGameInstance | null,
-  cancel: boolean
+  replayGameInstance: EuchreGameInstance | null
 ): ShuffleResult => {
   let newGame: EuchreGameInstance | undefined;
-  const retval: ShuffleResult = { game: gameInstance };
-
-  if (cancel) return retval;
-
   const difficulty: GameDifficulty = gameSettings.difficulty;
   const redealLimit: number = 10;
+  const replayHand = replayGameInstance?.handResults.find((r) => r.roundNumber === gameInstance.currentRound);
+
   let counter: number = 0;
   let shouldReDeal: boolean = true;
-  const replayHand = replayGameInstance?.handResults.find((r) => r.roundNumber === gameInstance.currentRound);
 
   while (shouldReDeal) {
     newGame = resetForNewDeal(gameInstance);
@@ -228,9 +222,7 @@ const shuffleAndDealHand = (
     throw e;
   }
 
-  retval.game = newGame;
-
-  return retval;
+  return { game: newGame };
 };
 
 export {

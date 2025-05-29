@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useEffect, useRef } from 'react';
 import { caveat } from '../../../../app/ui/fonts';
 import { motion } from 'framer-motion';
-import GameButton from '../game/game-button';
+import GameButton from '../common/game-button';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   enableDebug: boolean;

@@ -73,46 +73,6 @@ const useCardAnimationPhase = (
 
   /** ************************************************************************************************************************************* */
 
-  // const resetForNewHandInitValues = () => {
-  //   removePhaseExecuted({
-  //     phase: HandStatePhases.INIT,
-  //     action: HandStateActions.CREATE_HAND
-  //   });
-  //   removePhaseExecuted({
-  //     phase: HandStatePhases.INIT,
-  //     action: HandStateActions.CREATE_CARD
-  //   });
-  //   removePhaseCompleted({
-  //     phase: HandStatePhases.INIT,
-  //     action: HandStateActions.CREATE_CARD
-  //   });
-  //   removePhaseExecuted({
-  //     phase: HandStatePhases.INIT,
-  //     action: HandStateActions.REGROUP
-  //   });
-  //   removePhaseExecuted({
-  //     phase: HandStatePhases.INIT,
-  //     action: HandStateActions.ANIMATE_REGROUP
-  //   });
-  // };
-
-  // const resetForNewHandPlayValues = () => {
-  //   removePhaseExecuted({
-  //     phase: HandStatePhases.GAME_PLAY,
-  //     action: HandStateActions.PASS_DEAL
-  //   });
-
-  //   removePhaseExecuted({
-  //     phase: HandStatePhases.GAME_PLAY,
-  //     action: HandStateActions.RE_ORDER_HAND
-  //   });
-
-  //   removePhaseExecuted({
-  //     phase: HandStatePhases.GAME_PLAY,
-  //     action: HandStateActions.SITTING_OUT
-  //   });
-  // };
-
   const resetForNewHand = () => {
     clearStateValues();
   };

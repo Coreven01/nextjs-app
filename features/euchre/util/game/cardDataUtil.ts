@@ -17,10 +17,6 @@ const cardEqual = (card1: Card, card2: Card): boolean => {
   return card1.value === card2.value && card1.suit === card2.suit;
 };
 
-const isPlaceHolder = (card: Card): boolean => {
-  return card.value === 'P';
-};
-
 const getDisplayWidth = (location: TableLocation): number => {
   return location === 'top' || location === 'bottom' ? CARD_WIDTH : CARD_HEIGHT;
 };
@@ -287,6 +283,7 @@ const shuffleDeck = (deck: Card[]): Card[] => {
   return newDeck;
 };
 
+/** */
 const sortCardsIndices = (cards: Card[], trump: Card | null): CardPosition[] => {
   const retval: CardPosition[] = [];
   let counter: number = 0;
@@ -333,6 +330,7 @@ const sortCardsIndices = (cards: Card[], trump: Card | null): CardPosition[] => 
   return retval;
 };
 
+/** */
 const getOrderedCardsBasedOnCountAndValue = (
   suitCount: { suit: Suit; count: number }[],
   cardValues: { card: Card; value: number }[]
@@ -354,12 +352,14 @@ const getOrderedCardsBasedOnCountAndValue = (
   return suitCountAndValue;
 };
 
+/** */
 const indexCards = (cards: Card[]): Card[] => {
   const newCards = [...cards];
   newCards.forEach((c, index) => (c.index = index));
   return newCards;
 };
 
+/** */
 const getCardClassForPlayerLocation = (location: TableLocation): string => {
   let retval = '';
 
@@ -383,7 +383,6 @@ const getCardClassForPlayerLocation = (location: TableLocation): string => {
 
 export {
   cardEqual,
-  isPlaceHolder,
   getDisplayHeight,
   getDisplayWidth,
   getCardBackSrc,

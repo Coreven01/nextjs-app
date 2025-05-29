@@ -2,7 +2,6 @@ import React, { CSSProperties, forwardRef, memo, PropsWithoutRef, useCallback } 
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import Image from 'next/image';
-import { logConsole } from '../../util/util';
 import { getCardShadowSrc } from '../../util/game/cardDataUtil';
 import { Card, TableLocation, RESPONSE_CARD_SIDE, RESPONSE_CARD_CENTER } from '../../definitions/definitions';
 import { CardBaseState } from '../../definitions/game-state-definitions';
@@ -53,54 +52,14 @@ const GameCard = memo(
       }
 
       //#region Handlers
-      /** Handle the animation complete event if an event handler was passed in and the
-       * specific type of effect wasn't already handled.
-       */
-      const handleAnimationComplete = useCallback(() => {
-        //logConsole('*** [GAMECARD] [handleAnimationComplete] - card:', card);
-
-        const shouldRunEffect = false;
-        // runAnimationCompleteEffect &&
-        // onAnimationComplete &&
-        // !actionsRun.current.find((e) => e === runAnimationCompleteEffect);
-
-        if (shouldRunEffect) {
-          // fall into this block once animation is complete to update game state (onAnimationComplete).
-          //actionsRun.current.push(runAnimationCompleteEffect);
-          // logConsole(
-          //   '*** [GAMECARD] ANIMATION VALUE: ',
-          //   animationControls.controls,
-          //   ' CARD STATE: ',
-          //   cardState,
-          //   ' EXECUTE TIME: ',
-          //   performance.now()
-          // );
-          //onAnimationComplete(card);
-        }
-      }, []);
 
       /** Handle card click event. */
       const handleCardClick = useCallback(() => {
-        //logConsole('*** [GAMECARD] [handleCardClick]');
-
         if (onCardClick) {
-          //if (runAnimationCompleteEffect) actionsRun.current.push(runAnimationCompleteEffect);
-          // when card is clicked, it activates the animation to play the card.
-          // on the animation is complete, the callback handler calls the method that updates,
-          // the state the card was played.
           onCardClick(card.index);
         }
       }, [card.index, onCardClick]);
       //#endregion
-
-      // logConsole(
-      //   '*** [GAMECARD] [RENDER] key: ',
-      //   cardState.renderKey,
-      //   ' RENDER TIME: ',
-      //   performance.now(),
-      //   ' card: ',
-      //   card
-      // );
 
       return (
         <motion.div
@@ -111,7 +70,6 @@ const GameCard = memo(
           ref={ref}
           initial={animationControls.initSpring}
           animate={animationControls.controls}
-          onAnimationComplete={handleAnimationComplete}
           draggable={false}
         >
           {' '}

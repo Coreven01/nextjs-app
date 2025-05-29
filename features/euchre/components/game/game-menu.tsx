@@ -89,7 +89,7 @@ const GameMenu = ({ menuValues }: Props) => {
   return (
     <>
       <div className="flex p-1 absolute" style={{ zIndex: 100 }}>
-        <div className="bg-stone-800">
+        <div className="bg-stone-900">
           <input
             checked={showMenu}
             type="checkbox"

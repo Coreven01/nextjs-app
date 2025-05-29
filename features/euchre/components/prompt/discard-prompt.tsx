@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import GameBorder from '../game/game-border';
 import CardSelection from './card-selection';
 import PromptHeader from './prompt-header';
-import GameButton from '../game/game-button';
+import GameButton from '../common/game-button';
 import { getCardFullName, getEncodedCardSvg } from '../../util/game/cardSvgDataUtil';
 import { getDisplayHeight, getDisplayWidth } from '../../util/game/cardDataUtil';
 import { Card } from '../../definitions/definitions';

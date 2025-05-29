@@ -3,7 +3,7 @@ import GameCard from '../game/game-card';
 import clsx from 'clsx';
 
 import { getCardClassForPlayerLocation } from '../../util/game/cardDataUtil';
-import { logConsole, logError } from '../../util/util';
+import { logError } from '../../util/util';
 import { incrementSpeed } from '../../util/game/gameDataUtil';
 import useCardAnimation from '../../hooks/play/useCardAnimation';
 import { Card, TableLocation } from '../../definitions/definitions';
@@ -87,18 +87,11 @@ const PlayerHand = ({
   useEffect(() => {
     if (playedCard && !cardIndicesPlayed.current.has(euchreGame.currentTrick.trickId)) {
       cardIndicesPlayed.current.set(euchreGame.currentTrick.trickId, playedCard.index);
-      logConsole('[PLAYERHAND] [useEffect] [handlePlayCardAnimation], auto played card: ', playedCard);
-
       const playerTableElement = playerCenterTableRef?.current;
 
-      if (!playerTableElement)
-        logError(
-          '[PLAYERHAND] [useEffect] [handlePlayCardAnimation] - Invalid table element. Card animation was not handled.'
-        );
-      else {
+      if (!playerTableElement) {
+      } else {
         handlePlayCard(playedCard.index);
-        //throw new Error('not implemented');
-        //onCardPlayed(playedCard);
       }
     }
   }, [handlePlayCard, playedCard, playerCenterTableRef, euchreGame.currentTrick.trickId]);
@@ -108,13 +101,6 @@ const PlayerHand = ({
   const location = player.location;
 
   const handleCardClick = (cardIndex: number) => {
-    logConsole(
-      '[PLAYERHAND] [handleCardClick] - player: ',
-      player.name,
-      ' trick ids played: ',
-      cardIndicesPlayed.current
-    );
-
     if (!isCardClickHandled.current && !cardIndicesPlayed.current.has(euchreGame.currentTrick.trickId)) {
       isCardClickHandled.current = true;
       cardIndicesPlayed.current.set(euchreGame.currentTrick.trickId, cardIndex);
@@ -139,19 +125,6 @@ const PlayerHand = ({
       handlePlayCard(cardIndex);
     }
   };
-
-  logConsole(
-    '*** [PLAYERHAND] [RENDER] player: ',
-    player.name,
-    ' player hand: ',
-    playerCurrentHand
-    // ' card states',
-    // cardStates,
-    // ' card refs: ',
-    // cardRefs,
-    // ' animation controls: ',
-    // animationControls
-  );
 
   return (
     <>

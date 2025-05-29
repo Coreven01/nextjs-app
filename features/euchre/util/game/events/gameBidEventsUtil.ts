@@ -1,8 +1,8 @@
-import { GameEventHandlers } from '../../hooks/common/useEventLog';
-import { createAndAddEvent } from '../util';
-import { BidResult } from '../../definitions/definitions';
-import { EuchreGameValues } from '../../definitions/game-state-definitions';
-import { getTeamColor } from './playerDataUtil';
+import { GameEventHandlers } from '../../../hooks/common/useEventLog';
+import { createAndAddEvent } from '../../util';
+import { BidResult } from '../../../definitions/definitions';
+import { EuchreGameValues } from '../../../definitions/game-state-definitions';
+import { getTeamColor } from '../playerDataUtil';
 
 const EVENT_TYPE = '[BID STATE]';
 

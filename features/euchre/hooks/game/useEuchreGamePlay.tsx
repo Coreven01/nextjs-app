@@ -28,7 +28,6 @@ import {
   isTrickFinished,
   minNotificationDelay,
   notificationDelay,
-  playerSittingOut,
   updateIfHandOver,
   updateIfTrickOver
 } from '../../util/game/gameDataUtil';
@@ -39,7 +38,7 @@ import {
   addPlayCardEvent,
   addPlayerRenegedEvent,
   addTrickWonEvent
-} from '../../util/game/gamePlayEventsUtil';
+} from '../../util/game/events/gamePlayEventsUtil';
 import { determineCardToPlay } from '../../util/game/gamePlayLogicUtil';
 import { EuchreGameFlow } from '../../state/reducers/gameFlowReducer';
 import { EuchreAnimateType } from '../../state/reducers/gameAnimationFlowReducer';
@@ -348,14 +347,11 @@ const useEuchreGamePlay = (
 
     let newGame: EuchreGameInstance = { ...euchreGame };
 
-    const sittingOut = playerSittingOut(newGame);
-    const playerRotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer, sittingOut);
-
-    newGame = updateIfTrickOver(newGame, playerRotation);
+    newGame = updateIfTrickOver(newGame);
     newGame = updateIfHandOver(newGame);
 
     setters.setEuchreGame(newGame);
-    setters.dispatchPause();
+    //setters.dispatchPause();
 
     continueToAnimateEndPlayCardResult();
   }, [continueToAnimateEndPlayCardResult, euchreGame, setters, shouldEndPlayCardResult]);

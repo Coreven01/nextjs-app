@@ -6,7 +6,7 @@ import GameOverview from '../game/game-overview';
 import PromptHeader from './prompt-header';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/16/solid';
 
-import GameButton from '../game/game-button';
+import GameButton from '../common/game-button';
 import { scrollElementIntoViewIfNeeded } from '../../util/util';
 import { EuchreHandResult } from '../../definitions/definitions';
 import { EuchreGameInstance, EuchreSettings } from '../../definitions/game-state-definitions';
@@ -17,7 +17,7 @@ interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   handResults: EuchreHandResult[] | null;
   onClose: () => void;
   onNewGame: () => void;
-  onReplayGame: () => void;
+  onReplayGame: (auto: boolean) => void;
 }
 
 export default function GameResult({
@@ -80,12 +80,20 @@ export default function GameResult({
     }
   };
 
-  if (!handResults) throw new Error('No game results were found');
+  const handleAutoReplay = () => {
+    onReplayGame(true);
+  };
+
+  const handleRegularReplay = () => {
+    onReplayGame(false);
+  };
+
+  if (!handResults) return <div>No game results were found</div>;
 
   return (
-    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800 h-full w-full lg:mt-0 mt-4', className)}>
+    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-900 h-full w-full lg:mt-0 mt-2', className)}>
       <div className="p-1">
-        <div className="grid grid-cols-[85vw] grid-rows-[1fr,25px,220px,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[650px] lg:max-h-full max-h-[310px] justify-center">
+        <div className="grid grid-cols-[85vw] grid-rows-[1fr,25px,220px,auto] lg:grid-rows-[1fr,1fr,350px,auto] lg:grid-cols-[650px] lg:max-h-full max-h-[310px] justify-center overflow-auto">
           <div className="flex">
             <button className="w-8 h-8 hover:text-amber-400" ref={buttonLeft}>
               <ChevronLeftIcon />
@@ -117,15 +125,20 @@ export default function GameResult({
             <GameButton className="w-full" type="danger" onClick={onClose}>
               Main Menu
             </GameButton>
-            {settings.debugEnableDebugMenu && (
-              <GameButton className="w-full" type="warn" onClick={onReplayGame}>
-                Replay Game
-              </GameButton>
-            )}
             <GameButton className="w-full" type="success" onClick={onNewGame}>
               New Game
             </GameButton>
           </div>
+          {settings.debugEnableDebugMenu && (
+            <div className="flex gap-1 h-8 mt-3">
+              <GameButton className="w-full" type="warn" onClick={handleRegularReplay}>
+                Replay Game
+              </GameButton>
+              <GameButton className="w-full" type="warn" onClick={handleAutoReplay}>
+                Replay Game (AUTO)
+              </GameButton>
+            </div>
+          )}
         </div>
       </div>
     </GamePrompt>

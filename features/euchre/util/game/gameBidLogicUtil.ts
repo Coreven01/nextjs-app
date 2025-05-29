@@ -315,17 +315,15 @@ const determineDiscard = (
   return lowCard;
 };
 
-const orderTrump = (gameInstance: EuchreGameInstance | undefined, result: BidResult): EuchreGameInstance => {
-  const newGame: EuchreGameInstance | undefined = gameInstance ? { ...gameInstance } : undefined;
-
-  if (!newGame) throw Error('Game not found - Order Trump.');
+const orderTrump = (gameInstance: EuchreGameInstance, result: BidResult): EuchreGameInstance => {
+  const newGame: EuchreGameInstance = { ...gameInstance };
 
   newGame.maker = newGame.currentPlayer;
   newGame.loner = result.loner;
   newGame.currentTrick = createTrick(newGame.currentRound);
 
   if (result.calledSuit) {
-    newGame.turnedDown = newGame.trump;
+    newGame.turnedDown = { ...newGame.trump };
     newGame.trump = { suit: result.calledSuit, value: 'JK', index: 0 };
   }
 

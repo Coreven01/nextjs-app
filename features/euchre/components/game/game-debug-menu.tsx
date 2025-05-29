@@ -3,7 +3,7 @@ import { RefObject, useRef } from 'react';
 import Draggable from 'react-draggable';
 import GameBorder from './game-border';
 import PromptHeader from '../prompt/prompt-header';
-import GameButton from './game-button';
+import GameButton from '../common/game-button';
 import { EuchreDebugHandlers } from '../../definitions/game-state-definitions';
 
 interface Props {

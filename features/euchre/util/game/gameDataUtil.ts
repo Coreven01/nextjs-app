@@ -35,7 +35,7 @@ const createTrick = (round: number): EuchreTrick => {
     round: round
   };
 };
-/** If the maker went alone, return the player who's sitting out. */
+/** If the maker went alone, return reference to the player the player who's sitting out. */
 const playerSittingOut = (game: EuchreGameInstance): EuchrePlayer | null => {
   if (game.maker && game.loner)
     return (
@@ -132,52 +132,6 @@ const dealCards = (game: EuchreGameInstance): EuchreGameInstance => {
   return newGame;
 };
 
-/** Copy cards that were dealt from the passed game instance. */
-const copyCardsFromReplay = (game: EuchreGameInstance, replayHand: EuchreHandResult): EuchreGameInstance => {
-  const newGame: EuchreGameInstance = { ...game };
-  const players: EuchrePlayer[] = newGame.gamePlayers;
-
-  for (const player of players) {
-    player.hand = replayHand.allPlayerCards
-      .filter((p) => p.player.playerNumber === player.playerNumber)
-      .map((p) => {
-        return { ...p.card };
-      });
-
-    if (player.hand.length < 5) {
-      throw new Error('Invalid card count for player after copy from replay.');
-    }
-
-    if (player.hand.find((c) => c.value === 'P')) {
-      throw new Error('Invalid card found for player after copy from replay.');
-    }
-  }
-
-  newGame.kitty = replayHand.kitty.map((c) => {
-    return { ...c };
-  });
-
-  if (replayHand.turnedDown) {
-    newGame.trump = { ...replayHand.turnedDown };
-  } else {
-    newGame.trump = { ...replayHand.trump };
-  }
-
-  const tempTrump = newGame.trump;
-  if (replayHand.discard && !newGame.turnedDown && newGame.dealer) {
-    newGame.dealer.hand = [
-      ...newGame.dealer.hand.filter((c) => !cardEqual(c, tempTrump)),
-      { ...replayHand.discard }
-    ];
-
-    if (newGame.dealer.hand.length < 5) {
-      throw new Error('Invalid card count for dealer after copy from replay.');
-    }
-  }
-
-  return newGame;
-};
-
 /** Create a hand result for the current round of play. Determines and sets the winning team and points. */
 const getHandResult = (game: EuchreGameInstance): EuchreHandResult => {
   if (!game.maker) throw new Error('Maker not found for hand result.');
@@ -208,7 +162,7 @@ const getHandResult = (game: EuchreGameInstance): EuchreHandResult => {
   const allPlayerCards: EuchreCard[] = game.gamePlayers
     .map((p) => [
       ...p.hand.map((c) => {
-        return { card: c, player: p };
+        return { card: { ...c }, player: p };
       })
     ])
     .flat();
@@ -217,14 +171,13 @@ const getHandResult = (game: EuchreGameInstance): EuchreHandResult => {
     tricks: [...game.currentTricks],
     points: points,
     teamWon: teamWon,
-    dealer: game.dealer,
-    maker: game.maker,
+    dealerPlayerNumber: game.dealer.playerNumber,
+    makerPlayerNumber: game.maker.playerNumber,
     roundNumber: game.currentRound,
     loner: game.loner,
-    trump: game.trump,
-    turnedDown: game.turnedDown,
-    discard: game.discard,
-    defenders: game.gamePlayers.filter((p) => p.team !== game.maker?.team),
+    trump: { ...game.trump },
+    turnedDown: game.turnedDown ? { ...game.turnedDown } : null,
+    discard: game.discard ? { ...game.discard } : null,
     allPlayerCards: allPlayerCards,
     kitty: [...game.kitty]
   };
@@ -269,10 +222,12 @@ const validateHandResult = (result: EuchreHandResult): void => {
  * Sets the new current player in the rotation if the trick is not finished.
  *
  */
-const updateIfTrickOver = (game: EuchreGameInstance, playerRotation: EuchrePlayer[]): EuchreGameInstance => {
+const updateIfTrickOver = (game: EuchreGameInstance): EuchreGameInstance => {
   const newGame: EuchreGameInstance = { ...game };
   let playerFollowedSuit = true;
   const lastCardPlayed = newGame.currentTrick.cardsPlayed.at(-1);
+  const sittingOut = playerSittingOut(newGame);
+  const playerRotation = getPlayerRotation(newGame.gamePlayers, newGame.currentPlayer, sittingOut);
 
   // determine if the player followed suit when possible. if not, then the hand/trick is over and the
   // other team wins the hand.
@@ -287,17 +242,20 @@ const updateIfTrickOver = (game: EuchreGameInstance, playerRotation: EuchrePlaye
     if (!trickWinner.card?.player) throw new Error('Trick winner not found.');
     newGame.currentTrick.taker = trickWinner.card.player;
 
-    const player = playerSittingOut(newGame);
-    if (newGame.loner && player) {
-      const availableCards = availableCardsToPlay(player);
-      const cardToPlay = availableCards[0];
-      player.playedCards.push(cardToPlay);
-      newGame.currentTrick.playerSittingOut = { card: cardToPlay, player: player };
+    if (newGame.loner && sittingOut) {
+      // push game card from the player sitting out when trick is over.
+      const availableCards = availableCardsToPlay(sittingOut);
+      const cardToPlay = { ...availableCards[0] };
+
+      sittingOut.playedCards.push(cardToPlay);
+      newGame.currentTrick.playerSittingOut = { card: cardToPlay, player: sittingOut };
     }
 
     if (!playerFollowedSuit) {
+      // set the player who reneged for the trick.
       newGame.currentTrick.playerRenege = newGame.currentPlayer;
     } else if (newGame.currentTricks.length < 5) {
+      // if trick is complete, the new current player will be the trick winner.
       newGame.currentPlayer = trickWinner.card.player;
     }
 
@@ -343,7 +301,7 @@ function determineCurrentWinnerForTrick(
 
     const cardValue = getCardValue(card.card, trump);
     if (cardValue > winningCard.value) {
-      winningCard.card = card;
+      winningCard.card = { ...card };
       winningCard.value = cardValue;
     }
   }
@@ -357,7 +315,7 @@ function determineCurrentWinnerForTrick(
 const updateIfHandOver = (game: EuchreGameInstance): EuchreGameInstance => {
   const newGame: EuchreGameInstance = { ...game };
   const handOver: boolean =
-    (newGame.currentTrick && newGame.currentTrick.playerRenege !== null) ||
+    newGame.currentTrick.playerRenege !== null ||
     (newGame.currentTricks.length === 5 &&
       newGame.currentTricks.filter((t) => t.taker !== null).length === 5);
 
@@ -365,16 +323,27 @@ const updateIfHandOver = (game: EuchreGameInstance): EuchreGameInstance => {
     // if hand is over update the game results.
     newGame.handResults.push(getHandResult(newGame));
   }
+
   return newGame;
 };
 
 const getTeamOverviewStats = (game: EuchreGameInstance, team: 1 | 2): EuchreTeamOverview => {
+  const players = game.gamePlayers;
   const handResults = game.handResults;
   const teamScore = Math.min(teamPoints(game, team), 10);
+
   const teamLoners = handResults.filter(
-    (r) => r.maker.team === team && r.loner && r.teamWon === team && r.points === 4
+    (r) =>
+      players.find((p) => p.playerNumber === r.makerPlayerNumber)?.team === team &&
+      r.loner &&
+      r.teamWon === team &&
+      r.points === 4
   ).length;
-  const teamEuchred = handResults.filter((r) => r.maker.team === team && r.teamWon !== team).length;
+
+  const teamEuchred = handResults.filter(
+    (r) => players.find((p) => p.playerNumber === r.makerPlayerNumber)?.team === team && r.teamWon !== team
+  ).length;
+
   const teamTotalTricks = handResults
     .map((r) => r.tricks)
     .flat()
@@ -390,7 +359,7 @@ const getTeamOverviewStats = (game: EuchreGameInstance, team: 1 | 2): EuchreTeam
 
 const getPlayerOverviewStats = (game: EuchreGameInstance, player: EuchrePlayer) => {
   const gameResults = game.handResults;
-  const trumpOrdered = gameResults.filter((r) => playerEqual(r.maker, player)).length;
+  const trumpOrdered = gameResults.filter((r) => r.makerPlayerNumber === player.playerNumber).length;
   const tricksWon = gameResults
     .map((r) => r.tricks)
     .flat()
@@ -400,7 +369,7 @@ const getPlayerOverviewStats = (game: EuchreGameInstance, player: EuchrePlayer) 
     .flat()
     .map((t) => t.cardsPlayed[0])
     .filter((c) => playerEqual(c.player, player) && c.card.value === 'A').length;
-  const lonerCount = gameResults.filter((r) => playerEqual(r.maker, player) && r.loner).length;
+  const lonerCount = gameResults.filter((r) => r.makerPlayerNumber === player.playerNumber && r.loner).length;
 
   const gameHandsForPlayer = gameResults.map((r) => {
     return {
@@ -439,6 +408,12 @@ const getPlayerOverviewStats = (game: EuchreGameInstance, player: EuchrePlayer) 
  * Returns true in all other cases.
  */
 const didPlayerFollowSuit = (game: EuchreGameInstance, playedCard: Card): boolean => {
+  const leadCard: EuchreCard | null = game.currentTrick.cardsPlayed.at(0) ?? null;
+  if (!leadCard) return true;
+
+  // if the card has already been pushed to the played cards array, then make sure it's not for the current player.
+  if (playerEqual(leadCard.player, game.currentPlayer)) return true;
+
   const cardsAvailableToBePlayed = availableCardsToPlay(game.currentPlayer);
 
   // make sure the played card is in the original array of cards available to be played
@@ -446,13 +421,9 @@ const didPlayerFollowSuit = (game: EuchreGameInstance, playedCard: Card): boolea
     cardsAvailableToBePlayed.push(playedCard);
   }
 
-  const leadCard: EuchreCard | null = game.currentTrick.cardsPlayed.at(0) ?? null;
-
-  // player does not need to follow suit if no card has yet been lead.
-  if (!leadCard || playerEqual(leadCard.player, game.currentPlayer)) return true;
-
   const cardsThatCanBePlayed = getCardsAvailableToPlay(game.trump, leadCard.card, cardsAvailableToBePlayed);
   const cardFound = cardsThatCanBePlayed.find((c) => cardEqual(c.card, playedCard));
+
   if (!cardFound) return false;
 
   return true;
@@ -575,7 +546,6 @@ export {
   determineCurrentWinnerForTrick,
   resetForNewDeal,
   dealCards,
-  copyCardsFromReplay,
   playerSittingOut,
   getRandomScoreForDifficulty,
   incrementSpeed,

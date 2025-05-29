@@ -4,7 +4,6 @@ import GameCard from './game-card';
 import clsx from 'clsx';
 import { AnimationControls, motion, TargetAndTransition } from 'framer-motion';
 import DummyCard from '../common/dummy-card';
-import { logConsole } from '../../util/util';
 import { TableLocation, Card, RESPONSE_CARD_SIDE, RESPONSE_CARD_CENTER } from '../../definitions/definitions';
 import { CardBaseState } from '../../definitions/game-state-definitions';
 import { CardAnimationControls } from '../../definitions/transform-definitions';
@@ -37,7 +36,6 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
       controls,
       width,
       height,
-      handId,
       showPosition,
       onFirstRender
     }: Props,
@@ -55,8 +53,6 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         if (localOnFirstRender) localOnFirstRender(false);
       };
     }, [onFirstRender]);
-
-    logConsole('*** [GAMEDECK] [RENDER]. handId: ', handId);
 
     return (
       <motion.div

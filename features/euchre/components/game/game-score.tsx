@@ -33,7 +33,7 @@ const GameScore = ({ className, game, settings, showScore, ...rest }: DivProps) 
       onDrag={handleDrag}
     >
       <div ref={draggableRef} className="cursor-move flex max-h-64" {...rest}>
-        <GameBorderBare className="bg-white dark:bg-stone-800 shadow-md shadow-black lg:w-36 w-32">
+        <GameBorderBare className="bg-white dark:bg-stone-900 shadow-md shadow-black lg:w-36 w-32">
           {showScore && (
             <>
               <h3 className="text-red-800 dark:text-yellow-200 font-bold text-center lg:text-base text-sm">

@@ -90,7 +90,7 @@ export default function useEuchreGame() {
   );
 
   //#region Game play hooks
-  const { reset, handleBeginGame, cancelAndReset, createGameForReplay } = useEuchreGameInit(
+  const { reset, handleBeginGame, cancelAndReset, setStateForReplay } = useEuchreGameInit(
     stateValues,
     setters,
     eventHandlers,
@@ -165,11 +165,12 @@ export default function useEuchreGame() {
   }, [setters, state.euchreGame, state.euchreGameFlow, state.euchreSettings]);
 
   const handleReplayGame = useCallback(
-    (gameToReplay: EuchreGameInstance) => {
-      setters.setEuchreReplayGame(gameToReplay);
-      createGameForReplay();
+    (gameToReplay: EuchreGameInstance, autoPlay: boolean) => {
+      const newSettings: EuchreSettings = { ...state.euchreSettings, debugAllComputerPlayers: autoPlay };
+      setStateForReplay(gameToReplay, autoPlay);
+      handleSaveSettings(newSettings);
     },
-    [createGameForReplay, setters]
+    [handleSaveSettings, setStateForReplay, state.euchreSettings]
   );
 
   const gameHandlers: EuchreGamePlayHandlers = useMemo(

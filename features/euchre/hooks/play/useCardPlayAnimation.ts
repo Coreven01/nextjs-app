@@ -20,6 +20,7 @@ import {
 import {
   getDestinationOffset,
   getDurationSeconds,
+  getFaceDownSpringForLocation,
   getSpringMoveElement,
   getSpringsForCardPlayed,
   getSpringsGroupHand,
@@ -32,6 +33,7 @@ import { cardEqual } from '../../util/game/cardDataUtil';
 
 const ERR_ID: string = '[CARD PLAY ANIMATION]';
 
+/** Handlers for animating cards during regular game play.  */
 const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
   /** Map of trick id to card played for that trick. Used when rendering cards to be displayed. */
   const cardPlayedForTrickRef = useRef<Map<string, Card>>(new Map<string, Card>());
@@ -280,12 +282,13 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
 
     const animationState = animationStates.find((s) => s.cardIndex === discard.index);
     const animationControl = newAnimationControls.find((s) => s.cardIndex === discard.index);
-    const lastAnimationSpring = animationControl?.animateSprings.at(-1);
+    let lastAnimationSpring = animationControl?.animateSprings.at(-1);
 
     if (!lastAnimationSpring) throw new Error(`${ERR_ID} - Animation spring not found for animate discard.`);
     if (!animationState) throw new Error(`${ERR_ID} - Animation state not found for animate discard.`);
     if (!animationControl) throw new Error(`${ERR_ID} - Animation control not found for animate discard.`);
 
+    lastAnimationSpring = { ...lastAnimationSpring };
     const offsets = getDestinationOffset(dealerLocation);
     const springContext: SpringContext = {
       sourceElement: cardElement,
@@ -295,13 +298,13 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
     };
 
     if (cardElement && destinationElement) {
+      const transitionDurationSec = getDurationSeconds(euchreSettings.gameSpeed) / 2;
       const moveSpring = getSpringToMoveToPlayer(
         springContext,
         discard.index,
         animationState,
         animationControl,
-        true,
-        'low'
+        false
       );
 
       moveSpring.animateSprings.forEach((s) => {
@@ -309,17 +312,36 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
         s.y += offsets.y;
       });
 
-      lastAnimationSpring.transition = {
-        delay: 0.25,
-        duration: getDurationSeconds(euchreSettings.gameSpeed)
-      };
+      if (handState?.shouldShowCardValue) {
+        const flipDownSpring = getFaceDownSpringForLocation(dealerLocation);
+
+        flipDownSpring.transition = { duration: transitionDurationSec };
+        moveSpring.animateSprings[0].transition = {
+          delay: transitionDurationSec,
+          duration: transitionDurationSec
+        };
+        lastAnimationSpring.transition = {
+          delay: transitionDurationSec * 2,
+          duration: transitionDurationSec
+        };
+
+        animationControl.animateFlipSprings = [flipDownSpring];
+      } else {
+        moveSpring.animateSprings[0].transition = {
+          delay: transitionDurationSec,
+          duration: transitionDurationSec
+        };
+        lastAnimationSpring.transition = {
+          delay: transitionDurationSec * 2,
+          duration: transitionDurationSec
+        };
+      }
 
       animationControl.animateSprings = moveSpring.animateSprings;
-      animationControl.animateSprings?.push({ ...lastAnimationSpring });
-
-      await runCardAnimations([animationControl]);
+      animationControl.animateSprings?.push(lastAnimationSpring);
     }
 
+    await runCardAnimations([animationControl]);
     setCardAnimationControls(newAnimationControls);
   };
 
@@ -335,8 +357,8 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
     if (!cardElement) throw new Error(`${ERR_ID} - Card element not found for reorder hand.`);
 
     const calculatedWidth = getWidth(cardElement, false);
-
     const regroupSprings: CardSpringProps[] = getSpringsGroupHand(location, calculatedWidth, currentProps);
+    const showPlayerCards = handState?.shouldShowCardValue;
 
     for (const newSpring of regroupSprings) {
       const control = newAnimationControls.find((c) => c.cardIndex === newSpring.cardIndex);
@@ -345,6 +367,15 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
 
       control.animateSprings = newSpring.animateSprings;
       control.animateSprings[0].transition = { duration: duration };
+
+      if (showPlayerCards && control.animateFlipSprings?.length) {
+        const flipSpring = control.animateFlipSprings[0];
+        if (flipSpring.rotateX === 180 || flipSpring.rotateY === 180) {
+          control.animateFlipSprings = [
+            { rotateX: 0, rotateY: 0, transition: { delay: duration, duration } }
+          ];
+        }
+      }
     }
 
     setCardAnimationControls(newAnimationControls);
@@ -354,6 +385,7 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
     euchreSettings.gameSpeed,
     getAvailableCardsAndState,
     getWidth,
+    handState?.shouldShowCardValue,
     initializeSortOrder,
     player.location,
     setCardAnimationControls
@@ -503,13 +535,7 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
 
     animateReorderHand();
     updateCardStateForTurn(false);
-  }, [
-    animateReorderHand,
-    handState?.shouldShowCardValue,
-    onTrumpOrderedComplete,
-    player.playerNumber,
-    updateCardStateForTurn
-  ]);
+  }, [animateReorderHand, euchreGame, handState?.shouldShowCardValue, updateCardStateForTurn]);
 
   const handleAnimateReorder = async () => {
     if (euchreGame.loner) {

@@ -3,7 +3,7 @@ import HandResult from './hand-result';
 import clsx from 'clsx';
 import PromptHeader from './prompt-header';
 
-import GameButton from '../game/game-button';
+import GameButton from '../common/game-button';
 import { EuchreHandResult } from '../../definitions/definitions';
 import { EuchreGameInstance, EuchreSettings } from '../../definitions/game-state-definitions';
 
@@ -25,7 +25,7 @@ export default function HandResults({
   ...rest
 }: Props) {
   return (
-    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-800', className)}>
+    <GamePrompt zIndex={50} {...rest} className={clsx('bg-stone-900', className)}>
       <div className="p-1">
         <PromptHeader>Hand Results</PromptHeader>
         <div className="p-1">

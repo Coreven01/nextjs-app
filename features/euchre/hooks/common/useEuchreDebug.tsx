@@ -1,7 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-
 import { GameEventHandlers } from './useEventLog';
-
 import { EuchreGameFlow } from '../../state/reducers/gameFlowReducer';
 import { NotificationAction, NotificationActionType } from '../../state/reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../components/game/game-play-indicator';
@@ -20,6 +18,7 @@ import {
 } from '../../definitions/game-state-definitions';
 import { createLonerHandResult } from '../../util/game/gameDebugUtil';
 import { createShuffledDeck } from '../../util/game/cardDataUtil';
+import { isGameOver } from '../../util/game/gameDataUtil';
 
 const useEuchreDebug = (
   state: EuchreGameValues,
@@ -28,7 +27,7 @@ const useEuchreDebug = (
   eventHandlers: GameEventHandlers,
   errorHandlers: ErrorHandlers
 ) => {
-  const { runFullGame, runFullGameLoop } = useEuchreGameAuto();
+  const { runFullGame, runFullGameLoop } = useEuchreGameAuto(errorHandlers);
   const [fullGameInstance, setFullGameInstance] = useState<EuchreGameInstance | null>(null);
 
   const getNotification = useCallback(
@@ -98,14 +97,19 @@ const useEuchreDebug = (
   /** */
   const handleRunFullGame = useCallback(() => {
     fullStateReset();
+
     const game = runFullGame(state.euchreSettings, 10);
-    setters.setEuchreDebug(undefined);
-    setters.setEuchreGame(game);
-    setters.dispatchStateChange(
-      EuchreGameFlow.TRICK_FINISHED,
-      EuchreAnimationActionType.SET_ANIMATE,
-      EuchrePauseActionType.SET_NONE
-    );
+    const gameOver = isGameOver(game, 10);
+
+    if (gameOver) {
+      setters.setEuchreDebug(undefined);
+      setters.setEuchreGame(game);
+      setters.dispatchStateChange(
+        EuchreGameFlow.TRICK_FINISHED,
+        EuchreAnimationActionType.SET_ANIMATE,
+        EuchrePauseActionType.SET_NONE
+      );
+    }
   }, [fullStateReset, runFullGame, setters, state.euchreSettings]);
 
   /** */
@@ -138,14 +142,14 @@ const useEuchreDebug = (
     }
   }, [getNotification, setters, state.euchreSettings.notificationSpeed]);
 
-  const handleRunPlayerLonerCalled = () => {
+  const handleRunPlayerLonerCalled = useCallback(() => {
     const game = createEuchreGame(state.euchreSettings);
     game.deck = createShuffledDeck(1);
     const handResult = createLonerHandResult(game);
     game.handResults.push(handResult);
     setters.setEuchreGame(game);
     gameHandlers.onReplayHand();
-  };
+  }, [gameHandlers, setters, state.euchreSettings]);
 
   const debugHandlers: EuchreDebugHandlers = useMemo(
     () => ({
@@ -163,6 +167,7 @@ const useEuchreDebug = (
       handleRunFullGameLoop,
       handleRunInitAndShuffleGame,
       handleRunInitDeal,
+      handleRunPlayerLonerCalled,
       handleRunTrickNotification
     ]
   );

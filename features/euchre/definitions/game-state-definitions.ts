@@ -150,7 +150,7 @@ export interface EuchreGamePlayHandlers {
   onCloseHandResults: () => void;
   onReplayHand: () => void;
   onCancelAndReset: () => void;
-  onReplayGame: (replayGame: EuchreGameInstance) => void;
+  onReplayGame: (replayGame: EuchreGameInstance, autoPlay: boolean) => void;
 }
 
 export interface EuchreDebugHandlers {

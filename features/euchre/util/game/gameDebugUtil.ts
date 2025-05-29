@@ -1,7 +1,14 @@
 import { Card, EuchreHandResult } from '../../definitions/definitions';
-import { EuchreCard, EuchreGameInstance, EuchreTrick } from '../../definitions/game-state-definitions';
-import { cardEqual, createShuffledDeck, indexCards } from './cardDataUtil';
+import {
+  EuchreCard,
+  EuchreGameInstance,
+  EuchrePlayer,
+  EuchreSettings,
+  EuchreTrick
+} from '../../definitions/game-state-definitions';
+import { cardEqual, indexCards } from './cardDataUtil';
 import { createTrick, resetForNewDeal } from './gameDataUtil';
+import { createEuchreGame } from './gameSetupLogicUtil';
 import { getPlayerRotation, playerEqual } from './playerDataUtil';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -51,6 +58,10 @@ const reverseLastHandPlayed = (game: EuchreGameInstance): EuchreGameInstance => 
 
   if (!lastHandResult) throw new Error('Hand result not found for replay.');
 
+  const dealer = game.gamePlayers.find((p) => p.playerNumber === lastHandResult.dealerPlayerNumber);
+
+  if (!dealer) throw new Error();
+
   const discard: Card | null = newGame.discard ? { ...newGame.discard } : null;
   const allCards: EuchreCard[] = lastHandResult.allPlayerCards;
   const currentKitty: Card[] = [
@@ -88,7 +99,7 @@ const reverseLastHandPlayed = (game: EuchreGameInstance): EuchreGameInstance => 
   newGame.player2.hand = player2Hand.map((c) => ({ ...c }));
   newGame.player3.hand = player3Hand.map((c) => ({ ...c }));
   newGame.player4.hand = player4Hand.map((c) => ({ ...c }));
-  newGame.dealer = lastHandResult.dealer;
+  newGame.dealer = dealer;
   newGame.currentPlayer = getPlayerRotation(newGame.gamePlayers, newGame.dealer)[0];
   newGame.handId = uuidv4();
   newGame.currentTrick = createTrick(lastHandResult.roundNumber);
@@ -171,13 +182,12 @@ const createLonerHandResult = (game: EuchreGameInstance) => {
   const handResult: EuchreHandResult = {
     tricks: tricks,
     points: 2,
-    maker: game.player1,
+    makerPlayerNumber: dealer.playerNumber,
     teamWon: 1,
     loner: true,
     discard: null,
     turnedDown: null,
-    defenders: [game.player3, game.player4],
-    dealer: game.player1,
+    dealerPlayerNumber: dealer.playerNumber,
     roundNumber: 1,
     kitty: kitty,
     trump: kitty[0],
@@ -187,4 +197,66 @@ const createLonerHandResult = (game: EuchreGameInstance) => {
   return handResult;
 };
 
-export { reverseLastHandPlayed, verifyDealtCards, createLonerHandResult };
+/** Copy cards that were dealt from the passed game instance. */
+const copyCardsFromReplay = (game: EuchreGameInstance, replayHand: EuchreHandResult): EuchreGameInstance => {
+  const newGame: EuchreGameInstance = { ...game };
+  const players: EuchrePlayer[] = [...newGame.gamePlayers];
+
+  newGame.cardDealCount = [2, 3];
+
+  if (replayHand.turnedDown) {
+    newGame.trump = { ...replayHand.turnedDown };
+  } else {
+    newGame.trump = { ...replayHand.trump };
+  }
+
+  newGame.kitty = replayHand.kitty.map((c) => {
+    return { ...c };
+  });
+
+  for (let i = 0; i < 4; i++) {
+    const player = players[i];
+    const playerIsDealer = player.playerNumber === replayHand.dealerPlayerNumber;
+    const addDiscardToPlayerHand = playerIsDealer && replayHand.discard;
+    const cardsForPlayer = replayHand.allPlayerCards
+      .filter((p) => p.player.playerNumber === player.playerNumber)
+      .map((c) => ({ ...c.card }));
+
+    if (addDiscardToPlayerHand && replayHand.discard) {
+      const dealerOriginalHand: Card[] = cardsForPlayer.filter((c) => !cardEqual(c, newGame.trump));
+      player.hand = indexCards([...dealerOriginalHand, { ...replayHand.discard }]);
+    } else {
+      player.hand = indexCards(cardsForPlayer);
+    }
+
+    if (player.hand.length !== 5) {
+      throw new Error('Invalid card count for player after copy from replay.');
+    }
+
+    if (player.hand.find((c) => c.value === 'P')) {
+      throw new Error('Invalid card found for player after copy from replay.');
+    }
+  }
+
+  newGame.deck = indexCards([...replayHand.allPlayerCards.map((c) => c.card), ...replayHand.kitty]);
+  return newGame;
+};
+
+const createGameForReplay = (replayGame: EuchreGameInstance, gameSettings: EuchreSettings) => {
+  const gameInstance: EuchreGameInstance = createEuchreGame(gameSettings);
+
+  gameInstance.currentPlayer = gameInstance.player1;
+  gameInstance.dealer = gameInstance.player1;
+  gameInstance.deck = indexCards(replayGame.originalDealDeck.map((c) => ({ ...c })));
+  gameInstance.originalDealDeck = replayGame.originalDealDeck.map((c) => ({ ...c }));
+
+  return gameInstance;
+};
+
+export {
+  reverseLastHandPlayed,
+  verifyDealtCards,
+  createLonerHandResult,
+  copyCardsFromReplay,
+  createGameForReplay
+};

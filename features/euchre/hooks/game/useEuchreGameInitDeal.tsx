@@ -13,7 +13,7 @@ import {
 } from '../../state/reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../components/game/game-play-indicator';
 import useGameInitDealState from '../../../../app/hooks/euchre/phases/useGameInitDealState';
-import { addInitialDealerSetEvent, addInitialDealEvent } from '../../util/game/gameInitDealEvents';
+import { addInitialDealerSetEvent, addInitialDealEvent } from '../../util/game/events/gameInitDealEvents';
 import { dealCardsForDealer } from '../../util/game/gameSetupLogicUtil';
 import { notificationDelay } from '../../util/game/gameDataUtil';
 import { InitDealResult } from '../../definitions/logic-definitions';
@@ -63,19 +63,17 @@ export default function useEuchreGameInitDeal(
 
     addInitialDealEvent(state, eventHandlers);
 
+    const dealResult: InitDealResult | null = dealCardsForDealer(euchreGame, euchreGameFlow);
+    if (!dealResult?.newDealer) throw Error('[INIT DEAL] - Unable to determine dealer for initial dealer.');
+    setters.setInitialDealerResult(dealResult);
+
     if (euchreSettings.shouldAnimateDeal) {
-      const dealResult: InitDealResult | null = dealCardsForDealer(euchreGame, euchreGameFlow);
-
-      if (!dealResult?.newDealer) throw Error('[INIT DEAL] - Unable to determine dealer for initial dealer.');
-
-      setters.setInitialDealerResult(dealResult);
       pauseForAnimateBeginDealCardsForDealer();
     } else {
-      continueToShuffleCards();
-      //continueToSkipInitDealAnimation();
+      continueToEndDealCardsForDealer();
     }
   }, [
-    continueToShuffleCards,
+    continueToEndDealCardsForDealer,
     euchreGame,
     euchreGameFlow,
     euchreSettings.shouldAnimateDeal,
@@ -130,10 +128,17 @@ export default function useEuchreGameInitDeal(
     addInitialDealerSetEvent(newGame.dealer, state, eventHandlers);
 
     setters.setEuchreGame(newGame);
-    continueToAnimateEndDealCardsForDealer();
+
+    if (euchreSettings.shouldAnimateDeal) {
+      continueToAnimateEndDealCardsForDealer();
+    } else {
+      continueToShuffleCards();
+    }
   }, [
     continueToAnimateEndDealCardsForDealer,
+    continueToShuffleCards,
     euchreGame,
+    euchreSettings.shouldAnimateDeal,
     eventHandlers,
     initDealer,
     setters,

@@ -7,7 +7,7 @@ import PromptHeader from '../prompt/prompt-header';
 import Switch from '@mui/material/Switch';
 import { useState } from 'react';
 import GameEventLine from './game-event-line';
-import GameButton from './game-button';
+import GameButton from '../common/game-button';
 
 interface Props {
   className?: string;
@@ -66,7 +66,7 @@ const GameEvents = ({ className, events, onClear, onClose }: Props) => {
       nodeRef={draggableRef}
     >
       <div ref={draggableRef} className="flex" style={{ zIndex: 1000 }}>
-        <GameBorder className="relative" innerClass=" lg:w-[600px] w-[550px] bg-stone-800">
+        <GameBorder className="relative" innerClass=" lg:w-[550px] w-[500px] bg-stone-900">
           <PromptHeader className="cursor-move ">Events</PromptHeader>
           <GameEventOptions
             showDebugEvents={showDebugEvents}

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { createCardStatesFromGameDeck } from '../../../../features/euchre/util/game/cardStateUtil';
-import useCardAnimationControls from './useCardAnimationControls';
+import useCardAnimationControls from '../../../../features/euchre/state/useCardAnimationControls';
 import {
   CardAnimationControls,
   CardAnimationState,

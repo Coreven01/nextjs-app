@@ -1,8 +1,8 @@
-import { GameEventHandlers, SUB_CARD } from '../../hooks/common/useEventLog';
+import { GameEventHandlers, SUB_CARD } from '../../../hooks/common/useEventLog';
 
-import { createAndAddEvent } from '../util';
-import { EuchreGameValues } from '../../definitions/game-state-definitions';
-import { getTeamColor } from './playerDataUtil';
+import { createAndAddEvent } from '../../util';
+import { EuchreGameValues } from '../../../definitions/game-state-definitions';
+import { getTeamColor } from '../playerDataUtil';
 
 //const EVENT_TYPE = '[SHUFFLE STATE]';
 

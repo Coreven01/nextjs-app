@@ -2,7 +2,7 @@ import { ChangeEvent, useState } from 'react';
 import Switch from '@mui/material/Switch';
 import PromptHeader from '../prompt/prompt-header';
 
-import GameButton from './game-button';
+import GameButton from '../common/game-button';
 import {
   TeamColor,
   TEAM_COLOR_MAP,
@@ -81,6 +81,20 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
     onApplySettings({ ...settings, [e.target.name]: e.target.checked });
   };
 
+  const handleDebugMenuChangedChanged = (e: ChangeEvent<HTMLInputElement>) => {
+    const newSettings = { ...settings };
+    if (!e.target.checked) {
+      newSettings.debugAllComputerPlayers = false;
+      newSettings.debugAlwaysPass = false;
+      newSettings.debugLogDebugEvents = false;
+      newSettings.debugShowHandsWhenPassed = false;
+      newSettings.debugShowPlayersHand = false;
+      newSettings.debugShowPositionElements = false;
+    }
+
+    onApplySettings({ ...newSettings, [e.target.name]: e.target.checked });
+  };
+
   const handleSelectionChanged = (event: ChangeEvent<HTMLSelectElement>) => {
     onApplySettings({ ...settings, [event.target.name]: event.target.value });
   };
@@ -96,7 +110,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
   //#endregion
 
   return (
-    <div className="bg-stone-800 text-white lg:p-2 p-1 lg:min-w-[700px] max-h-[85vh] overflow-auto">
+    <div className="bg-stone-900 text-white lg:p-2 p-1 lg:min-w-[700px] max-h-[85vh] overflow-auto">
       <PromptHeader>Settings</PromptHeader>
       <div className="flex items-center jusitify-center gap-4 my-2 lg:text-base text-sm">
         <div className="grow">
@@ -199,7 +213,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
             checked={settings.debugEnableDebugMenu}
             name="debugEnableDebugMenu"
             color="success"
-            onChange={(e) => handleCheckChanged(e)}
+            onChange={(e) => handleDebugMenuChangedChanged(e)}
           />
         </div>
         <div>
@@ -218,7 +232,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
       {isDebugMode && (
         <div className="grid gap-2 grid-cols-2 my-2 lg:text-base text-sm bg-stone-700 p-2 border border-white">
           <div>
-            <label htmlFor="debugAlwaysPass">Debug Always Pass: </label>
+            <label htmlFor="debugAlwaysPass">[Debug] Always Pass: </label>
             <Switch
               id="debugAlwaysPass"
               size="small"
@@ -228,19 +242,21 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
               onChange={(e) => handleCheckChanged(e)}
             />
           </div>
+          {false && (
+            <div>
+              <label htmlFor="debugShowHandsWhenPassed">[Debug] Show Hands When Passed: </label>
+              <Switch
+                id="debugShowHandsWhenPassed"
+                size="small"
+                checked={settings.debugShowHandsWhenPassed}
+                name="debugShowHandsWhenPassed"
+                color="success"
+                onChange={(e) => handleCheckChanged(e)}
+              />
+            </div>
+          )}
           <div>
-            <label htmlFor="debugShowHandsWhenPassed">Debug Show Hands When Passed: </label>
-            <Switch
-              id="debugShowHandsWhenPassed"
-              size="small"
-              checked={settings.debugShowHandsWhenPassed}
-              name="debugShowHandsWhenPassed"
-              color="success"
-              onChange={(e) => handleCheckChanged(e)}
-            />
-          </div>
-          <div>
-            <label htmlFor="debugShowPlayersHand">Debug Show Player Hands: </label>
+            <label htmlFor="debugShowPlayersHand">[Debug] Show Player Hands: </label>
             <Switch
               id="debugShowPlayersHand"
               size="small"
@@ -252,7 +268,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
           </div>
           <div>
             {' '}
-            <label htmlFor="debugAllComputerPlayers">Debug All Computer Players: </label>
+            <label htmlFor="debugAllComputerPlayers">[Debug] All Computer Players: </label>
             <Switch
               id="debugAllComputerPlayers"
               size="small"
@@ -264,7 +280,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
           </div>
           <div>
             {' '}
-            <label htmlFor="debugShowPositionElements">Debug Show Position Elements: </label>
+            <label htmlFor="debugShowPositionElements">[Debug] Show Position Elements: </label>
             <Switch
               id="debugShowPositionElements"
               size="small"
@@ -276,7 +292,7 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
           </div>
           <div>
             {' '}
-            <label htmlFor="debugLogDebugEvents">Debug Log Debug Events: </label>
+            <label htmlFor="debugLogDebugEvents">[Debug] Log Debug Events: </label>
             <Switch
               id="debugLogDebugEvents"
               size="small"

@@ -18,14 +18,20 @@ interface Props extends React.HtmlHTMLAttributes<HTMLDivElement> {
 export default function HandResult({ game, settings, handResult, className, ...rest }: Props) {
   const [selectedHighlight, setSelectedHighlight] = useState<ResultHighlight>('winner');
 
-  if (!handResult) throw new Error('No hand result was found');
+  if (!handResult) return <div>Error - No hand result was found.</div>;
+
+  const maker = game.gamePlayers.find((p) => p.playerNumber === handResult.makerPlayerNumber);
+  const dealer = game.gamePlayers.find((p) => p.playerNumber === handResult.dealerPlayerNumber);
+
+  if (!maker) return <div>Error - Game maker not found for hand result.</div>;
+  if (!dealer) return <div>Error - Game dealer not found for hand result.</div>;
 
   let pointsDisplay: string = `Points for Team ${handResult.teamWon}: ${handResult.points}`;
   const BASE_CLASS: string = 'text-center dark:bg-stone-800 dark:text-white mb-1';
   const winningTeamPlayer: EuchrePlayer = game.gamePlayers.filter((p) => p.team === handResult.teamWon)[0];
   const playerReneged: boolean = handResult.tricks.find((t) => t.playerRenege !== null) !== undefined;
 
-  if (handResult.teamWon === handResult.maker.team) {
+  if (handResult.teamWon === maker.team) {
     pointsDisplay = `Points for Maker: ${handResult.points}`;
   } else {
     pointsDisplay = `Points for Defenders: ${handResult.points}`;
@@ -49,19 +55,13 @@ export default function HandResult({ game, settings, handResult, className, ...r
       <div className="flex gap-1 overflow-auto">
         <div className="lg:min-w-48">
           <div className="mb-1">
-            <PlayerColor
-              className="lg:text-base text-xs"
-              teamColor={getTeamColor(handResult.maker, settings)}
-            >
-              <div className="bg-stone-800 p-1 text-center">Maker: {handResult.maker.name}</div>
+            <PlayerColor className="lg:text-base text-xs" teamColor={getTeamColor(maker, settings)}>
+              <div className="bg-stone-800 p-1 text-center">Maker: {maker.name}</div>
             </PlayerColor>
           </div>
           <div className=" mb-1">
-            <PlayerColor
-              className="lg:text-base text-xs"
-              teamColor={getTeamColor(handResult.dealer, settings)}
-            >
-              <div className="bg-stone-800 p-1 text-center">Dealer: {handResult.dealer.name}</div>
+            <PlayerColor className="lg:text-base text-xs" teamColor={getTeamColor(dealer, settings)}>
+              <div className="bg-stone-800 p-1 text-center">Dealer: {dealer.name}</div>
             </PlayerColor>
           </div>
           <div className="mb-1">

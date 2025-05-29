@@ -110,7 +110,7 @@ const PlayerInfo = ({ player, state, ...rest }: Props) => {
     >
       <GameBorderBare className="min-w-28" {...rest}>
         <PlayerColor teamColor={getTeamColor(player, euchreSettings)}>
-          <div className="bg-white dark:bg-stone-800 p-1">{infoToRender}</div>
+          <div className="bg-white dark:bg-stone-900 p-1">{infoToRender}</div>
         </PlayerColor>
       </GameBorderBare>
       {showTurnIndicator && <GameTurnIndicator location={player.location} title={`${player.name} Turn`} />}
