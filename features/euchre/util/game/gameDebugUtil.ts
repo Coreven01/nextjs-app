@@ -140,13 +140,16 @@ const createLonerHandResult = (game: EuchreGameInstance) => {
   game.dealer = dealer;
   const rotation = getPlayerRotation(game.gamePlayers, game.dealer);
 
-  const suitedHand = [
-    ...deck.filter((c) => c.suit === '♦' && c.value === 'J'),
-    ...deck.filter((c) => c.suit === '♥')
+  const suitedHand: Card[] = [
+    { value: 'J', suit: '♥', index: 0 },
+    { value: 'J', suit: '♦', index: 0 },
+    { value: 'A', suit: '♥', index: 0 },
+    { value: 'K', suit: '♥', index: 0 },
+    { value: 'Q', suit: '♥', index: 0 }
   ];
 
   const hands = new Map<number, Card[]>();
-  hands.set(rotation[0].playerNumber, suitedHand.slice(0, 5));
+  hands.set(rotation[0].playerNumber, suitedHand);
   let dealtCards: Card[] = [];
   dealtCards = hands.values().toArray().flat();
   let availableCards: Card[];

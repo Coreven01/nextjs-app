@@ -11,7 +11,7 @@ const GameButton = ({ type, children, className, disabled, ...rest }: Props) => 
 
   switch (type) {
     case 'primary':
-      btnColor = 'dark:bg-gray-800 dark:text-white';
+      btnColor = 'dark:bg-stone-800 dark:text-white';
       break;
     case 'success':
       btnColor = 'bg-green-950';

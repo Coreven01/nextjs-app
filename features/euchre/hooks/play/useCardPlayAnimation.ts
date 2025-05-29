@@ -522,25 +522,24 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
   /** */
   const handleReorderHand = useCallback(async () => {
     if (!handState?.shouldShowCardValue) {
-      //onTrumpOrderedComplete(player.playerNumber);
       return;
     }
 
     if (euchreGame.loner) {
       const sittingOut = playerSittingOut(euchreGame);
-      if (sittingOut && playerEqual(sittingOut, euchreGame.dealer)) {
+      if (sittingOut && playerEqual(sittingOut, player)) {
         return;
       }
     }
 
     animateReorderHand();
     updateCardStateForTurn(false);
-  }, [animateReorderHand, euchreGame, handState?.shouldShowCardValue, updateCardStateForTurn]);
+  }, [animateReorderHand, euchreGame, handState?.shouldShowCardValue, player, updateCardStateForTurn]);
 
-  const handleAnimateReorder = async () => {
+  const handleAnimateReorder = useCallback(async () => {
     if (euchreGame.loner) {
       const sittingOut = playerSittingOut(euchreGame);
-      if (sittingOut && playerEqual(sittingOut, euchreGame.dealer)) {
+      if (sittingOut && playerEqual(sittingOut, player)) {
         onTrumpOrderedComplete(player.playerNumber);
         return;
       }
@@ -551,7 +550,7 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
     }
 
     onTrumpOrderedComplete(player.playerNumber);
-  };
+  }, [animationControls, euchreGame, handState?.shouldShowCardValue, onTrumpOrderedComplete, player]);
 
   /** Sets the animation for the card to be played. On the callback when the animation is finished is when the state is updated with
    * the card that was played.

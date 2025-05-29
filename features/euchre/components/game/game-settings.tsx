@@ -10,7 +10,8 @@ import {
   NOTIFICATION_SPEED_MAP,
   DIFFICULTY_MAP,
   DEFAULT_GAME_SETTINGS,
-  GameSpeed
+  GameSpeed,
+  DEBUG_ENABLED
 } from '../../definitions/definitions';
 import { EuchreSettings } from '../../definitions/game-state-definitions';
 
@@ -205,17 +206,19 @@ const GameSettings = ({ settings, onReturn, onApplySettings }: Props) => {
             onChange={(e) => handleCheckChanged(e)}
           />
         </div>
-        <div>
-          <label htmlFor="debugEnableDebugMenu">Enable Debug Menu: </label>
-          <Switch
-            id="debugEnableDebugMenu"
-            size="small"
-            checked={settings.debugEnableDebugMenu}
-            name="debugEnableDebugMenu"
-            color="success"
-            onChange={(e) => handleDebugMenuChangedChanged(e)}
-          />
-        </div>
+        {DEBUG_ENABLED && (
+          <div>
+            <label htmlFor="debugEnableDebugMenu">Enable Debug Menu: </label>
+            <Switch
+              id="debugEnableDebugMenu"
+              size="small"
+              checked={settings.debugEnableDebugMenu}
+              name="debugEnableDebugMenu"
+              color="success"
+              onChange={(e) => handleDebugMenuChangedChanged(e)}
+            />
+          </div>
+        )}
         <div>
           <label htmlFor="shouldAnimateDeal">Animate Deal Cards: </label>
           <Switch

@@ -4,7 +4,7 @@ import {
   EuchreGameFlowState,
   INIT_GAME_FLOW_STATE
 } from '../../state/reducers/gameFlowReducer';
-import { NotificationActionType } from '../../state/reducers/playerNotificationReducer';
+import { NotificationAction, NotificationActionType } from '../../state/reducers/playerNotificationReducer';
 import { EuchreAnimationActionType } from '../../state/reducers/gameAnimationFlowReducer';
 import { useCallback, useEffect } from 'react';
 import {
@@ -27,6 +27,7 @@ import {
 import { addIntroEvent } from '../../util/game/events/gameInitEventsUtil';
 import { PromptType } from '../../definitions/definitions';
 import { createGameForReplay } from '../../util/game/gameDebugUtil';
+import CenterInfo from '../../components/common/center-info';
 
 /** Handles game initialization. */
 export default function useEuchreGameInit(
@@ -50,7 +51,18 @@ export default function useEuchreGameInit(
 
       setters.dispatchPause();
       addIntroEvent(state, eventHandlers);
+
+      const notification: NotificationAction = {
+        type: NotificationActionType.CENTER,
+        payload: (
+          <CenterInfo settings={euchreSettings} delayMs={2000}>
+            Have Fun!
+          </CenterInfo>
+        )
+      };
+
       await notificationDelay(euchreSettings);
+      setters.dispatchPlayerNotification(notification);
 
       continueToBeginDealCardsForDealer();
     };

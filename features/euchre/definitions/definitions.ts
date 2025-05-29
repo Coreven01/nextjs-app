@@ -94,6 +94,7 @@ export type CardColor = 'R' | 'B';
 /** Initial game settings. */
 export const DEFAULT_GAME_SETTINGS = {
   gameSpeed: 700 as GameSpeed,
+  notificationSpeed: MINIMUM_NOTIFICATION_SPEED,
   showHandResult: true,
   enforceFollowSuit: false,
   autoFollowSuit: false,
@@ -113,7 +114,6 @@ export const DEFAULT_GAME_SETTINGS = {
 /** Initial game settings. */
 export const INIT_GAME_SETTINGS: EuchreSettings = {
   shouldAnimateDeal: true,
-  notificationSpeed: MINIMUM_NOTIFICATION_SPEED,
   teamOneColor: 'green',
   teamTwoColor: 'red',
   cardColor: 'black',
