@@ -10,7 +10,7 @@ import {
 } from '../../definitions/definitions';
 import { CardPosition } from '../../definitions/transform-definitions';
 
-const CARD_WIDTH = 100;
+const CARD_WIDTH = 107;
 const CARD_HEIGHT = 150;
 
 const cardEqual = (card1: Card, card2: Card): boolean => {
@@ -34,6 +34,11 @@ const getCardBackSrc = (location: TableLocation) => {
 const getCardShadowSrc = (location: TableLocation) => {
   const cardBackSvgSrc: string =
     location === 'top' || location === 'bottom' ? '/card-shadow.png' : '/card-shadow-side.png';
+  return cardBackSvgSrc;
+};
+
+const getCardShadowSrcByRotation = (rotate: boolean) => {
+  const cardBackSvgSrc: string = !rotate ? '/card-shadow.png' : '/card-shadow-side.png';
   return cardBackSvgSrc;
 };
 
@@ -402,5 +407,6 @@ export {
   sortCardsIndices,
   indexCards,
   getCardClassForPlayerLocation,
-  getCardShadowSrc
+  getCardShadowSrc,
+  getCardShadowSrcByRotation
 };

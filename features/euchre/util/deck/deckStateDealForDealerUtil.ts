@@ -1,4 +1,4 @@
-import { DeckPhase } from '../../../../app/hooks/euchre/phases/useDeckAnimationPhase';
+import { DeckPhase } from '../../hooks/phases/useDeckAnimationPhase';
 import {
   DealForDealerHandlers,
   DeckStateActions,

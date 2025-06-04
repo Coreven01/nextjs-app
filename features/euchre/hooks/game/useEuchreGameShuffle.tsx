@@ -7,7 +7,7 @@ import {
   EuchreGameSetters,
   EuchreGameValues
 } from '../../definitions/game-state-definitions';
-import useGameShuffleState from '../../../../app/hooks/euchre/phases/useGameShuffleState';
+import useGameShuffleState from '../phases/useGameShuffleState';
 import { addBeginShuffleEvent, addTrumpCardFlippedEvent } from '../../util/game/events/gameShuffleEventsUtil';
 import { getPlayerRotation } from '../../util/game/playerDataUtil';
 import { shuffleAndDealHand } from '../../util/game/gameSetupLogicUtil';

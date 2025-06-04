@@ -1,36 +1,29 @@
 import { useCallback, useMemo, useReducer, useState } from 'react';
 
-import useGameSettings from '../../../../features/euchre/state/useGameSettings';
+import useGameSettings from './useGameSettings';
 import {
   EuchreFlowActionType,
   EuchreGameFlow,
   gameFlowStateReducer,
   INIT_GAME_FLOW_STATE
-} from '../../../../features/euchre/state/reducers/gameFlowReducer';
+} from './reducers/gameFlowReducer';
 import {
   EuchreAnimationActionType,
   gameAnimationFlowReducer,
   INIT_GAME_ANIMATION_STATE
-} from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
-import {
-  EuchrePauseActionType,
-  gamePauseFlowReducer,
-  INIT_PAUSE_STATE
-} from '../../../../features/euchre/state/reducers/gamePauseReducer';
-import {
-  INIT_PLAYER_NOTIFICATION,
-  playerNotificationReducer
-} from '../../../../features/euchre/state/reducers/playerNotificationReducer';
-import { createDefaultEuchreGame } from '../../../../features/euchre/util/game/gameSetupLogicUtil';
-import { PromptType, Card, BidResult } from '../../../../features/euchre/definitions/definitions';
+} from './reducers/gameAnimationFlowReducer';
+import { EuchrePauseActionType, gamePauseFlowReducer, INIT_PAUSE_STATE } from './reducers/gamePauseReducer';
+import { INIT_PLAYER_NOTIFICATION, playerNotificationReducer } from './reducers/playerNotificationReducer';
+import { createDefaultEuchreGame } from '../util/game/gameSetupLogicUtil';
+import { PromptType, Card, BidResult } from '../definitions/definitions';
 import {
   EuchreGameInstance,
   EuchreGameState,
   EuchreGameValues,
   EuchreGameSetters,
   EuchreSettings
-} from '../../../../features/euchre/definitions/game-state-definitions';
-import { InitDealResult } from '../../../../features/euchre/definitions/logic-definitions';
+} from '../definitions/game-state-definitions';
+import { InitDealResult } from '../definitions/logic-definitions';
 
 const useEuchreGameState = () => {
   const [euchreGame, setEuchreGame] = useState<EuchreGameInstance>(createDefaultEuchreGame());

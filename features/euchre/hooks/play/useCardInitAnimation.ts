@@ -159,6 +159,14 @@ const useCardInitAnimation = (cardPlayState: CardInitAnimationState) => {
     if (!destElement) throw new Error(`${ERR_ID} - Invalid destination element for initialize card state.`);
     if (!relativeElement) throw new Error(`${ERR_ID} - Invalid relative element for initialize card state.`);
 
+    const calcWidthTrue = getWidth(cardElements[0], true);
+    const calcWidthFalse = getWidth(cardElements[0], true);
+
+    if (calcWidthTrue > 60) {
+      console.log('calculated width: ', calcWidthTrue, calcWidthFalse);
+      debugger;
+    }
+
     const duration = getDurationSeconds(euchreSettings.gameSpeed);
     const currentProps: CardSpringProps[] = getAvailableCardsAndState(true);
     const springs = getSpringsForBeginNewHand(
@@ -239,6 +247,7 @@ const useCardInitAnimation = (cardPlayState: CardInitAnimationState) => {
     if (!handState) throw new Error(`${ERR_ID} - Invalid hand state for regroup player cards.`);
 
     addInitializeCardRegroupEvent(state, eventHandlers, player);
+
     const newStates = getCardStateForRegroupHand();
     const newAnimationControls = getUpdatedCardAnimationSprings(
       animationControls,

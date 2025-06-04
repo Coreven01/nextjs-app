@@ -1,9 +1,9 @@
-import { EuchreGameFlow } from '../../../../features/euchre/state/reducers/gameFlowReducer';
-import { EuchreAnimateType } from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
-import { EuchrePauseType } from '../../../../features/euchre/state/reducers/gamePauseReducer';
-import { playerSittingOut } from '../../../../features/euchre/util/game/gameDataUtil';
-import { playerEqual } from '../../../../features/euchre/util/game/playerDataUtil';
-import useCardAnimationPhaseState from '../state/useCardAnimationPhaseState';
+import { EuchreGameFlow } from '../../state/reducers/gameFlowReducer';
+import { EuchreAnimateType } from '../../state/reducers/gameAnimationFlowReducer';
+import { EuchrePauseType } from '../../state/reducers/gamePauseReducer';
+import { playerSittingOut } from '../../util/game/gameDataUtil';
+import { playerEqual } from '../../util/game/playerDataUtil';
+import useCardAnimationPhaseState from '../../state/useCardAnimationPhaseState';
 import {
   EuchreGameState,
   HandState,
@@ -11,7 +11,7 @@ import {
   HandStateActions,
   HandStatePhase,
   HandStatePhases
-} from '../../../../features/euchre/definitions/game-state-definitions';
+} from '../../definitions/game-state-definitions';
 
 export interface HandPhase {
   phase: HandStatePhase;
@@ -123,8 +123,8 @@ const useCardAnimationPhase = (
       handState !== undefined && handState.handId !== euchreGame.handId && handStateCreated;
     const createHandState = gameState.shouldCreateHandState && !handStateCreated;
     const createCardState = gameState.shouldCreateCardState && handState !== undefined && !cardStateCreated;
-    const regroup = cardStateCreateCompleted && !cardsRegrouped;
-    const animateRegroup = cardRefsReady && cardsRegrouped && !cardsRegroupAnimated;
+    const regroup = cardRefsReady && cardStateCreateCompleted && !cardsRegrouped;
+    const animateRegroup = cardsRegrouped && !cardsRegroupAnimated;
 
     if (resetHandState) return { phase: HandStatePhases.INIT, action: HandStateActions.RESET };
     if (createHandState) return { phase: HandStatePhases.INIT, action: HandStateActions.CREATE_HAND };

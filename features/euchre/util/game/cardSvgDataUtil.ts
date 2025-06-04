@@ -83,18 +83,18 @@ const getCardSvg = (
 };
 
 /** */
-const getEncodedCardSvg = (
-  card: Card,
-  location: TableLocation,
-  addOpaqueOverlay?: boolean,
-  color?: string,
-  opacity?: number
-) => {
-  const cardSvg = getCardSvg(card, location, addOpaqueOverlay, color, opacity);
-  const dynamicSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cardSvg)}`;
+// const getEncodedCardSvg = (
+//   card: Card,
+//   location: TableLocation,
+//   addOpaqueOverlay?: boolean,
+//   color?: string,
+//   opacity?: number
+// ) => {
+//   const cardSvg = getCardSvg(card, location, addOpaqueOverlay, color, opacity);
+//   const dynamicSvg = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(cardSvg)}`;
 
-  return dynamicSvg;
-};
+//   return dynamicSvg;
+// };
 
 /** Get text element for svg for a card value.
  *
@@ -111,7 +111,6 @@ function getCardText(text: TextData, color: string, displayValue: string): strin
               font-family="Helvetica ,Arial, sans-serif"
               font-size="${text.fontsize}"
               fill="${color}"
-              id="${text}"
               transform="${text.transform}"
               style="${text.style}">${displayValue}</text>
            `;
@@ -172,4 +171,4 @@ const getCardFullName = (card: Card): string => {
   return `${cardName ? cardName + ' of ' : ''}${getSuitName(card.suit)}s`;
 };
 
-export { getEncodedCardSvg, getCardFullName, getSuitName, getCardClassColorFromSuit };
+export { getCardFullName, getSuitName, getCardClassColorFromSuit };

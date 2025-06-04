@@ -12,7 +12,7 @@ import {
   NotificationAction
 } from '../../state/reducers/playerNotificationReducer';
 import GamePlayIndicator from '../../components/game/game-play-indicator';
-import useGameInitDealState from '../../../../app/hooks/euchre/phases/useGameInitDealState';
+import useGameInitDealState from '../phases/useGameInitDealState';
 import { addInitialDealerSetEvent, addInitialDealEvent } from '../../util/game/events/gameInitDealEvents';
 import { dealCardsForDealer } from '../../util/game/gameSetupLogicUtil';
 import { notificationDelay } from '../../util/game/gameDataUtil';

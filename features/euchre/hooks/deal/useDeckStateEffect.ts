@@ -1,4 +1,4 @@
-import useDeckAnimationPhase from '../../../../app/hooks/euchre/phases/useDeckAnimationPhase';
+import useDeckAnimationPhase from '../phases/useDeckAnimationPhase';
 import getEffectForInitDeckState from '../../util/deck/deckStateInitializeUtil';
 import getEffectForDealForDealer from '../../util/deck/deckStateDealForDealerUtil';
 import getEffectForRegularDeal from '../../util/deck/deckStateRegularDealUtil';

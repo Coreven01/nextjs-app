@@ -273,8 +273,9 @@ export interface CardIndex {
 }
 export interface CardBaseState extends CardIndex {
   renderKey: string;
-  src?: string;
   cardFullName: string;
+  cardOverlay?: boolean;
+  valueVisible?: boolean;
   location?: TableLocation;
   enabled: boolean;
 }

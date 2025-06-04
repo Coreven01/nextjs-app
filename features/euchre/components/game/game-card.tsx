@@ -1,11 +1,12 @@
 import React, { CSSProperties, forwardRef, memo, PropsWithoutRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import clsx from 'clsx';
-import Image from 'next/image';
-import { getCardShadowSrc } from '../../util/game/cardDataUtil';
 import { Card, TableLocation, RESPONSE_CARD_SIDE, RESPONSE_CARD_CENTER } from '../../definitions/definitions';
 import { CardBaseState } from '../../definitions/game-state-definitions';
-import { CardAnimationControls } from '../../definitions/transform-definitions';
+import { CardAnimationControls, ZTransition } from '../../definitions/transform-definitions';
+import PlayingCardShadow from '../common/playing-card-shadow';
+import PlayingCardFace from '../common/playing-card-face';
+import PlayingCardBack from '../common/playing-card-back';
 
 interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   renderKey: string;
@@ -16,6 +17,8 @@ interface Props extends React.HtmlHTMLAttributes<HTMLImageElement> {
   height: number;
   location: TableLocation;
   responsive?: boolean;
+  zTransition?: ZTransition;
+
   /** */
   onCardClick?: (cardIndex: number) => void;
 }
@@ -33,14 +36,17 @@ const GameCard = memo(
         className,
         location,
         responsive,
+        zTransition,
         onCardClick
       }: Props,
       ref
     ) => {
-      const sideLocation = location === 'left' || location === 'right';
+      const rotate = location === 'left' || location === 'right';
       const useHoverEffect: boolean = onCardClick !== undefined && cardState.enabled;
-      const cssValues: CSSProperties = {};
-      const cardBackSrc = sideLocation ? '/card-back-side.svg' : '/card-back.svg';
+      const cssValues: CSSProperties = { backfaceVisibility: 'visible' };
+      const cssContainerValues: CSSProperties = { perspective: 1000 };
+      const displayCard: Card = cardState.valueVisible ? card : { suit: '♠', value: 'P', index: card.index };
+
       if (responsive) {
         cssValues.width = '100%';
         cssValues.height = '100%';
@@ -51,6 +57,7 @@ const GameCard = memo(
         cssValues.maxWidth = width;
       }
 
+      if (zTransition?.startZ) cssContainerValues.zIndex = zTransition.startZ;
       //#region Handlers
 
       /** Handle card click event. */
@@ -63,8 +70,8 @@ const GameCard = memo(
 
       return (
         <motion.div
-          style={{ perspective: 1000 }}
-          className={clsx('pointer-events-none overflow-visible', className)}
+          style={cssContainerValues}
+          className={clsx('pointer-events-none overflow-visible select-none', className)}
           title={cardState.cardFullName}
           id={id}
           ref={ref}
@@ -72,24 +79,20 @@ const GameCard = memo(
           animate={animationControls.controls}
           draggable={false}
         >
-          {' '}
           <motion.div
             initial={animationControls.initFlipSpring}
             animate={animationControls.flipControls}
             style={{ transformStyle: 'preserve-3d' }}
-            className={clsx(sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER)}
+            className={clsx(rotate ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER)}
           >
-            <Image
-              className={clsx(`relative`, getShadowOffsetForPlayer(location))}
-              quality={50}
-              width={width}
-              height={height}
-              src={getCardShadowSrc(location)}
-              alt={'Card Shadow'}
-              style={{ ...cssValues, backfaceVisibility: 'visible' }}
-              draggable={false}
-            />
-            <Image
+            <PlayingCardShadow location={location} style={cssValues} rotate={rotate} />
+            <PlayingCardFace
+              rotate={rotate}
+              suit={displayCard.suit}
+              value={displayCard.value}
+              addOverlay={cardState.cardOverlay}
+              style={cssValues}
+              onClick={handleCardClick}
               className={clsx(
                 'absolute top-0 left-0 pointer-events-auto',
                 { 'cursor-not-allowed': !useHoverEffect },
@@ -98,33 +101,15 @@ const GameCard = memo(
                     useHoverEffect
                 }
               )}
-              quality={100}
-              width={width}
-              height={height}
-              src={cardState.src ?? cardBackSrc}
-              alt={cardState.cardFullName}
-              unoptimized={true}
-              onClick={handleCardClick}
-              style={{
-                ...cssValues,
-                backfaceVisibility: 'visible'
-              }}
-              draggable={false}
             />
-            <Image
-              className={clsx('absolute top-0 left-0')}
-              quality={100}
-              width={width}
-              height={height}
-              src={cardBackSrc}
-              alt={'Card Back'}
-              unoptimized={true}
+            <PlayingCardBack
+              rotate={rotate}
+              className="absolute top-0 left-0 pointer-events-auto"
               style={{
                 ...cssValues,
-                transform: sideLocation ? 'rotateX(180deg)' : 'rotateY(180deg)',
-                backfaceVisibility: 'hidden'
+                backfaceVisibility: 'hidden',
+                transform: rotate ? 'rotateX(180deg)' : 'rotateY(180deg)'
               }}
-              draggable={false}
             />
           </motion.div>
         </motion.div>
@@ -135,19 +120,6 @@ const GameCard = memo(
     return prevProps.renderKey === nextProps.renderKey;
   }
 );
-
-const getShadowOffsetForPlayer = (sideLocation: TableLocation): string => {
-  switch (sideLocation) {
-    case 'bottom':
-      return 'top-2 left-2';
-    case 'top':
-      return '-top-2 left-2';
-    case 'left':
-      return 'top-2 -left-2';
-    case 'right':
-      return 'top-2 -right-2';
-  }
-};
 
 GameCard.displayName = 'GameCard';
 

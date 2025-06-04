@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { forwardRef, PropsWithoutRef, useEffect, useMemo, useRef } from 'react';
 import GameFlippedCard from './game-flipped-card';
 import GameTrumpIndicator from './game-trump-indicator';
-import { getCardFullName, getEncodedCardSvg } from '../../util/game/cardSvgDataUtil';
+import { getCardFullName } from '../../util/game/cardSvgDataUtil';
 import { GAME_STATES_FOR_BID, GAME_STATES_INIT_GAMEPLAY } from '../../util/game/gameStateLogicUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { useAnimation } from 'framer-motion';
@@ -154,7 +154,7 @@ const GameTable = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
 
     const cardState: CardBaseState = useMemo(
       () => ({
-        src: getEncodedCardSvg(game.trump, 'top'),
+        valueVisible: true,
         cardFullName: gameBidding ? getCardFullName(game.trump) : 'Turned Down',
         cardIndex: 0,
         enabled: false,

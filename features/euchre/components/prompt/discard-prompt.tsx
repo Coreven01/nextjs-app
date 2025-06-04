@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { useState } from 'react';
 import GamePrompt from './game-prompt';
 import clsx from 'clsx';
@@ -6,9 +5,8 @@ import GameBorder from '../game/game-border';
 import CardSelection from './card-selection';
 import PromptHeader from './prompt-header';
 import GameButton from '../common/game-button';
-import { getCardFullName, getEncodedCardSvg } from '../../util/game/cardSvgDataUtil';
-import { getDisplayHeight, getDisplayWidth } from '../../util/game/cardDataUtil';
 import { Card } from '../../definitions/definitions';
+import PlayingCardFace from '../common/playing-card-face';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   pickedUpCard: Card;
@@ -53,21 +51,13 @@ export default function DiscardPrompt({
           </div>
           <div>
             <div className="mb-2 text-center lg:text-base text-xs">Picked up card</div>
-            <GameBorder innerClass="w-20 lg:w-full" size="small">
+            <GameBorder className="w-full min-w-28 lg:w-32" size="small">
               <div className="p-2 bg-green-950 flex items-center justify-center">
-                <Image
-                  className={`contain row-span-1 col-span-1`}
-                  quality={100}
-                  width={getDisplayWidth('top')}
-                  height={getDisplayHeight('top')}
-                  src={getEncodedCardSvg(pickedUpCard, 'top')}
-                  alt={getCardFullName(pickedUpCard)}
-                  title={getCardFullName(pickedUpCard)}
-                  style={{
-                    width: '100%',
-                    height: 'auto'
-                  }}
-                  draggable={false}
+                <PlayingCardFace
+                  suit={pickedUpCard.suit}
+                  value={pickedUpCard.value}
+                  addOverlay={false}
+                  className="block"
                 />
               </div>
             </GameBorder>

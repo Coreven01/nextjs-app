@@ -1,7 +1,6 @@
 import { RefObject, useEffect, useRef } from 'react';
 import GameCard from '../game/game-card';
 import clsx from 'clsx';
-
 import { getCardClassForPlayerLocation } from '../../util/game/cardDataUtil';
 import { logError } from '../../util/util';
 import { incrementSpeed } from '../../util/game/gameDataUtil';

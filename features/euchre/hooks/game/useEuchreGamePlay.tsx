@@ -16,7 +16,7 @@ import {
   EuchreTrick
 } from '../../definitions/game-state-definitions';
 import GamePlayIndicator from '../../components/game/game-play-indicator';
-import useGamePlayState from '../../../../app/hooks/euchre/phases/useGamePlayState';
+import useGamePlayState from '../phases/useGamePlayState';
 import { EuchrePauseType } from '../../state/reducers/gamePauseReducer';
 import {
   createTrick,

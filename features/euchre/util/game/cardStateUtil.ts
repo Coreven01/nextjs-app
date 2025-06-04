@@ -9,7 +9,7 @@ import {
   DEFAULT_SPRING_VAL,
   CardAnimationStateContext
 } from '../../definitions/transform-definitions';
-import { getEncodedCardSvg, getCardFullName } from './cardSvgDataUtil';
+import { getCardFullName } from './cardSvgDataUtil';
 
 /** Run the animations for the given controls */
 const runCardAnimations = async (animationControls: CardAnimationControls[]) => {
@@ -96,7 +96,7 @@ const createCardBaseState = (card: Card, location: TableLocation, includeCardVal
   const cardState: CardBaseState = {
     renderKey: uuidv4(),
     cardIndex: card.index,
-    src: includeCardValue ? getEncodedCardSvg(card, location) : undefined,
+    valueVisible: includeCardValue,
     cardFullName: includeCardValue ? getCardFullName(card) : 'Player Card',
     enabled: false,
     location: location

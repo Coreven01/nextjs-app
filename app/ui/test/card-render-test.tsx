@@ -11,7 +11,6 @@ import {
   useRef,
   useState
 } from 'react';
-import { getEncodedCardSvg } from '../../../features/euchre/util/game/cardSvgDataUtil';
 import clsx from 'clsx';
 import { getCardShadowSrc } from '../../../features/euchre/util/game/cardDataUtil';
 import {
@@ -21,11 +20,26 @@ import {
   RESPONSE_CARD_CENTER
 } from '../../../features/euchre/definitions/definitions';
 import { CardBaseState } from '../../../features/euchre/definitions/game-state-definitions';
-import { CardAnimationControls } from '../../../features/euchre/definitions/transform-definitions';
+import {
+  CardAnimationControls,
+  CardAnimationState,
+  SpringContext,
+  ZTransition
+} from '../../../features/euchre/definitions/transform-definitions';
+import {
+  createCardAnimationState,
+  getSpringMoveElement,
+  getSpringToMoveToPlayer
+} from '../../../features/euchre/util/play/cardTransformUtil';
+import GameCard from '../../../features/euchre/components/game/game-card';
+import zIndex from '@mui/material/styles/zIndex';
 
 const CardRenderTest = () => {
   const [toggleAnimation, setToggleAnimation] = useState(false);
+  const [toggleDeal, setToggleDeal] = useState(false);
+
   const runAnimationRef = useRef(false);
+  const runDealAnimationRef = useRef(false);
 
   const destRef = useRef<HTMLDivElement>(null);
   const cardRef1 = useRef<HTMLDivElement>(null);
@@ -47,12 +61,12 @@ const CardRenderTest = () => {
   const flipControl5 = useAnimation();
 
   const cardSpace = 50;
-  const ctrl1: CardAnimationControls = useMemo(
+  const ctrl1: CardAnimationControls = useMemo<CardAnimationControls>(
     () => ({
       cardIndex: 1,
       controls: animationControl1,
-      flipControl: flipControl1,
-      initSpringValue: { x: 0, y: 10 },
+      flipControls: flipControl1,
+      initSpring: { x: 0, y: 10 },
       animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
@@ -63,8 +77,8 @@ const CardRenderTest = () => {
     () => ({
       cardIndex: 2,
       controls: animationControl2,
-      flipControl: flipControl2,
-      initSpringValue: { x: cardSpace * 1, y: 5 },
+      flipControls: flipControl2,
+      initSpring: { x: cardSpace * 1, y: 5 },
       animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
@@ -75,8 +89,8 @@ const CardRenderTest = () => {
     () => ({
       cardIndex: 3,
       controls: animationControl3,
-      flipControl: flipControl3,
-      initSpringValue: { x: cardSpace * 2, y: 0 },
+      flipControls: flipControl3,
+      initSpring: { x: cardSpace * 2, y: 0 },
       animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
@@ -86,9 +100,9 @@ const CardRenderTest = () => {
   const ctrl4: CardAnimationControls = useMemo(
     () => ({
       cardIndex: 4,
-      flipControl: flipControl4,
+      flipControls: flipControl4,
       controls: animationControl4,
-      initSpringValue: { x: cardSpace * 3, y: 5 },
+      initSpring: { x: cardSpace * 3, y: 5 },
       animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
@@ -99,49 +113,19 @@ const CardRenderTest = () => {
     () => ({
       cardIndex: 5,
       controls: animationControl5,
-      flipControl: flipControl5,
-      initSpringValue: { x: cardSpace * 4, y: 10 },
+      flipControls: flipControl5,
+      initSpring: { x: cardSpace * 4, y: 10 },
       animateSprings: [],
       initFlipSpring: { rotateY: 180, rotateX: 0 }
     }),
     [animationControl5, flipControl5]
   );
 
-  // const flipctrl1: CardAnimationControls = useMemo(
-  //   () => ({
-  //     cardIndex: 1,
-  //     controls: flipControl1,
-  //     initSpringValue: { x: 0, y: 0, rotateY: 180 },
-  //     animateValues: []
-  //   }),
-  //   [flipControl1]
-  // );
-
-  // const flipctrl2: CardAnimationControls = {
-  //   cardIndex: 2,
-  //   controls: flipControl2,
-  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
-  //   animateValues: []
-  // };
-
-  // const flipctrl3: CardAnimationControls = {
-  //   cardIndex: 3,
-  //   controls: flipControl3,
-  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
-  //   animateValues: []
-  // };
-  // const flipctrl4: CardAnimationControls = {
-  //   cardIndex: 4,
-  //   controls: flipControl4,
-  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
-  //   animateValues: []
-  // };
-  // const flipctrl5: CardAnimationControls = {
-  //   cardIndex: 5,
-  //   controls: flipControl5,
-  //   initSpringValue: { x: 0, y: 0, rotateY: 180 },
-  //   animateValues: []
-  // };
+  const animationState1: CardAnimationState = useMemo(() => createCardAnimationState(0), []);
+  const animationState2: CardAnimationState = useMemo(() => createCardAnimationState(0), []);
+  const animationState3: CardAnimationState = useMemo(() => createCardAnimationState(0), []);
+  const animationState4: CardAnimationState = useMemo(() => createCardAnimationState(0), []);
+  const animationState5: CardAnimationState = useMemo(() => createCardAnimationState(0), []);
 
   const card1: Card = { value: '10', suit: '♠', index: 1 };
   const card2: Card = { value: 'J', suit: '♠', index: 2 };
@@ -154,63 +138,132 @@ const CardRenderTest = () => {
     enabled: false,
     cardIndex: 1,
     cardFullName: 'card1',
-    src: getEncodedCardSvg(card1, 'bottom')
+    valueVisible: true
   };
   const state2: CardBaseState = {
     renderKey: '2',
     enabled: false,
     cardIndex: 2,
     cardFullName: 'card2',
-    src: getEncodedCardSvg(card2, 'bottom')
+    valueVisible: true
   };
   const state3: CardBaseState = {
     renderKey: '3',
     enabled: false,
     cardIndex: 3,
     cardFullName: 'card3',
-    src: getEncodedCardSvg(card3, 'bottom')
+    valueVisible: true
   };
   const state4: CardBaseState = {
     renderKey: '4',
     enabled: false,
     cardIndex: 4,
     cardFullName: 'card4',
-    src: getEncodedCardSvg(card4, 'bottom')
+    valueVisible: true
   };
   const state5: CardBaseState = {
     renderKey: '5',
     enabled: false,
     cardIndex: 5,
     cardFullName: 'card5',
-    src: getEncodedCardSvg(card5, 'bottom')
+    valueVisible: true
   };
 
   const cardkeys = [
-    { key: 'card1', ref: cardRef1, control: ctrl1, card: card1, state: state1 },
-    { key: 'card2', ref: cardRef2, control: ctrl2, card: card2, state: state2 },
-    { key: 'card3', ref: cardRef3, control: ctrl3, card: card3, state: state3 },
-    { key: 'card4', ref: cardRef4, control: ctrl4, card: card4, state: state4 },
-    { key: 'card5', ref: cardRef5, control: ctrl5, card: card5, state: state5 }
+    {
+      key: 'card1',
+      ref: cardRef1,
+      control: ctrl1,
+      card: card1,
+      state: state1,
+      zTransition: { startZ: 34, endZ: 30, delayMs: 0.5 }
+    },
+    {
+      key: 'card2',
+      ref: cardRef2,
+      control: ctrl2,
+      card: card2,
+      state: state2,
+      zTransition: { startZ: 33, endZ: 31, delayMs: 0.5 }
+    },
+    {
+      key: 'card3',
+      ref: cardRef3,
+      control: ctrl3,
+      card: card3,
+      state: state3,
+      zTransition: { startZ: 32, endZ: 32, delayMs: 0.5 }
+    },
+    {
+      key: 'card4',
+      ref: cardRef4,
+      control: ctrl4,
+      card: card4,
+      state: state4,
+      zTransition: { startZ: 31, endZ: 33, delayMs: 0.5 }
+    },
+    {
+      key: 'card5',
+      ref: cardRef5,
+      control: ctrl5,
+      card: card5,
+      state: state5,
+      zTransition: { startZ: 30, endZ: 34, delayMs: 0.5 }
+    }
   ];
 
   useEffect(() => {
     const runCardAnimation = async () => {
+      if (!destRef.current) return;
+      if (!cardRef1.current) return;
+      if (!cardRef2.current) return;
+      if (!cardRef3.current) return;
+      if (!cardRef4.current) return;
+      if (!cardRef5.current) return;
+
+      const springContext1: SpringContext = {
+        sourceElement: cardRef1.current,
+        destinationElement: destRef.current
+      };
+      const springContext2: SpringContext = {
+        sourceElement: cardRef2.current,
+        destinationElement: destRef.current
+      };
+      const springContext3: SpringContext = {
+        sourceElement: cardRef3.current,
+        destinationElement: destRef.current
+      };
+      const springContext4: SpringContext = {
+        sourceElement: cardRef4.current,
+        destinationElement: destRef.current
+      };
+      const springContext5: SpringContext = {
+        sourceElement: cardRef5.current,
+        destinationElement: destRef.current
+      };
+
       while (runAnimationRef.current) {
         const animations: Promise<void>[] = [];
+        animations.push(new Promise((resolve) => setTimeout(resolve, 25)));
+        animations.push(runMoveTo(springContext1, ctrl1));
         animations.push(runAnimation(ctrl1));
-        animations.push(runFlipAnimation(ctrl1));
+        // animations.push(runFlipAnimation(ctrl1));
 
+        animations.push(runMoveTo(springContext2, ctrl2));
         animations.push(runAnimation(ctrl2));
-        animations.push(runFlipAnimation(ctrl2));
+        // animations.push(runFlipAnimation(ctrl2));
 
+        animations.push(runMoveTo(springContext3, ctrl3));
         animations.push(runAnimation(ctrl3));
-        animations.push(runFlipAnimation(ctrl3));
+        // animations.push(runFlipAnimation(ctrl3));
 
+        animations.push(runMoveTo(springContext4, ctrl4));
         animations.push(runAnimation(ctrl4));
-        animations.push(runFlipAnimation(ctrl4));
+        // animations.push(runFlipAnimation(ctrl4));
 
+        animations.push(runMoveTo(springContext5, ctrl5));
         animations.push(runAnimation(ctrl5));
-        animations.push(runFlipAnimation(ctrl5));
+        // animations.push(runFlipAnimation(ctrl5));
 
         await Promise.all(animations);
       }
@@ -219,6 +272,132 @@ const CardRenderTest = () => {
     runCardAnimation();
   }, [ctrl1, ctrl2, ctrl3, ctrl4, ctrl5, toggleAnimation]);
 
+  useEffect(() => {
+    const runDealCardAnimation = async () => {
+      if (!destRef.current) return;
+      if (!cardRef1.current) return;
+      if (!cardRef2.current) return;
+      if (!cardRef3.current) return;
+      if (!cardRef4.current) return;
+      if (!cardRef5.current) return;
+
+      const springContext1: SpringContext = {
+        sourceElement: cardRef1.current,
+        destinationElement: destRef.current
+      };
+      const springContext2: SpringContext = {
+        sourceElement: cardRef2.current,
+        destinationElement: destRef.current
+      };
+      const springContext3: SpringContext = {
+        sourceElement: cardRef3.current,
+        destinationElement: destRef.current
+      };
+      const springContext4: SpringContext = {
+        sourceElement: cardRef4.current,
+        destinationElement: destRef.current
+      };
+      const springContext5: SpringContext = {
+        sourceElement: cardRef5.current,
+        destinationElement: destRef.current
+      };
+
+      while (runDealAnimationRef.current) {
+        await runDealTo(springContext1, ctrl1, { endZ: 30, delayMs: 500 });
+        await runDealTo(springContext2, ctrl2, { endZ: 31, delayMs: 500 });
+        await runDealTo(springContext3, ctrl3, { endZ: 32, delayMs: 500 });
+        await runDealTo(springContext4, ctrl4, { endZ: 33, delayMs: 500 });
+        await runDealTo(springContext5, ctrl5, { endZ: 34, delayMs: 500 });
+
+        await runReset(ctrl1);
+        await runReset(ctrl2);
+        await runReset(ctrl3);
+        await runReset(ctrl4);
+        await runReset(ctrl5);
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    };
+
+    runDealCardAnimation();
+  }, [ctrl1, ctrl2, ctrl3, ctrl4, ctrl5, toggleDeal]);
+
+  const runMoveTo = async (springContext: SpringContext, cardAnimation: CardAnimationControls) => {
+    if (!cardAnimation.flipControls) return;
+    if (!cardAnimation.controls) return;
+
+    const moveFlipAnimation: Promise<void>[] = [];
+    const duration: number = Math.random() * 2 + 1;
+    const flipDuration: number = Math.random() * 2 + 1;
+    const wait: number = Math.random() + 1;
+    const moveSpring = getSpringMoveElement(springContext, false);
+    const flipFaceDown = (Math.round(Math.random() * 2) - 1) % 2 === 0;
+
+    if (moveSpring) {
+      const val1: TargetAndTransition = {
+        ...moveSpring,
+        transition: { duration: duration + flipDuration }
+      };
+
+      moveFlipAnimation.push(cardAnimation.controls.start(val1));
+      moveFlipAnimation.push(
+        cardAnimation.flipControls.start({
+          rotateY: flipFaceDown ? 180 : 0,
+          transition: { delay: duration, duration: flipDuration }
+        })
+      );
+
+      await Promise.all(moveFlipAnimation);
+
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, wait));
+    // await control.controls.start(endValue);
+    // await new Promise((resolve) => setTimeout(resolve, wait));
+  };
+
+  const runDealTo = async (
+    springContext: SpringContext,
+    cardAnimation: CardAnimationControls,
+    zTransition: ZTransition
+  ) => {
+    if (!cardAnimation.flipControls) return;
+    if (!cardAnimation.controls) return;
+
+    const moveFlipAnimation: Promise<void>[] = [];
+    const duration: number = 1.5;
+    const flipDuration: number = 0.5;
+    const wait: number = Math.random() + 1;
+    const moveSpring = getSpringMoveElement(springContext, false);
+
+    if (moveSpring) {
+      const val1: TargetAndTransition = {
+        ...moveSpring,
+        rotate: 180 + Math.round(Math.random() * 90),
+        transition: { duration: duration + flipDuration }
+      };
+
+      moveFlipAnimation.push(cardAnimation.controls.start(val1));
+      moveFlipAnimation.push(
+        cardAnimation.flipControls.start({
+          rotateY: 0,
+          transition: { delay: duration, duration: flipDuration }
+        })
+      );
+
+      const startZIndexDelay = async () => {
+        await new Promise((resolve) => setTimeout(resolve, zTransition.delayMs));
+        springContext.sourceElement.style.zIndex = String(zTransition.endZ);
+      };
+      moveFlipAnimation.push(startZIndexDelay());
+
+      await Promise.all(moveFlipAnimation);
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+    await new Promise((resolve) => setTimeout(resolve, wait));
+  };
+
   const runAnimation = async (control: CardAnimationControls) => {
     if (!control.controls) return;
 
@@ -226,7 +405,7 @@ const CardRenderTest = () => {
     const wait: number = Math.random() + 1;
     const val1: TargetAndTransition = {
       ...control.initSpring,
-      opacity: 0,
+      opacity: 0.25,
       rotate: 180,
       transition: { duration: duration }
     };
@@ -243,27 +422,40 @@ const CardRenderTest = () => {
     await new Promise((resolve) => setTimeout(resolve, wait));
   };
 
-  const runFlipAnimation = async (control: CardAnimationControls) => {
+  const runReset = async (control: CardAnimationControls) => {
     if (!control.flipControls) return;
+    if (!control.controls) return;
+    if (!control.initSpring) return;
 
-    const duration: number = Math.random() * 2 + 1;
-    const wait: number = Math.random() + 1;
-    const val1: TargetAndTransition = {
-      ...control.initFlipSpring,
-      rotateY: 0,
-      transition: { duration: duration }
-    };
-    const endValue = { ...control.initFlipSpring, transition: { duration: duration } };
-
-    await control.flipControls.start(val1);
-    await new Promise((resolve) => setTimeout(resolve, wait));
-    await control.flipControls.start(endValue);
-    await new Promise((resolve) => setTimeout(resolve, wait));
+    await control.controls.start({ ...control.initSpring, rotate: 0, transition: { duration: 0.25 } });
+    await control.flipControls.start({ rotateY: 180, transition: { duration: 0.25 } });
   };
+  // const runFlipAnimation = async (control: CardAnimationControls) => {
+  //   if (!control.flipControls) return;
+
+  //   const duration: number = Math.random() * 2 + 1;
+  //   const wait: number = Math.random() + 1;
+  //   const val1: TargetAndTransition = {
+  //     ...control.initFlipSpring,
+  //     rotateY: 0,
+  //     transition: { duration: duration }
+  //   };
+  //   const endValue = { ...control.initFlipSpring, transition: { duration: duration } };
+
+  //   await control.flipControls.start(val1);
+  //   await new Promise((resolve) => setTimeout(resolve, wait));
+  //   await control.flipControls.start(endValue);
+  //   await new Promise((resolve) => setTimeout(resolve, wait));
+  // };
 
   const handleAnimate = () => {
     setToggleAnimation((prev) => !prev);
     runAnimationRef.current = !runAnimationRef.current;
+  };
+
+  const handleRunDeal = () => {
+    setToggleDeal((prev) => !prev);
+    runDealAnimationRef.current = !runDealAnimationRef.current;
   };
 
   const handleStop = () => {
@@ -272,29 +464,40 @@ const CardRenderTest = () => {
     animationControl3.stop();
     animationControl4.stop();
     animationControl5.stop();
+    runAnimationRef.current = false;
+    runDealAnimationRef.current = false;
   };
 
   return (
-    <div className="m-4 border p-4">
-      <div className="flex m-4">
+    <div className="m-4 border p-4 max-w-5xl">
+      <div className="flex m-4 relative">
         <div className="grow"></div>
-        <div ref={destRef} className="bg-slate-400 w-[100px] h-[150px]"></div>
+        <div ref={destRef} className="bg-slate-400 w-[100px] h-[150px]">
+          DESTINATION
+        </div>
         {cardkeys.map((v) => {
           return (
-            <div key={v.key} className="absolute left-1/2">
-              <TestGameCard
-                animationControls={v.control}
-                location="bottom"
-                ref={v.ref}
-                width={100}
-                height={150}
-                cardState={v.state}
-              />
-            </div>
+            <GameCard
+              key={v.key}
+              className="absolute left-0"
+              renderKey={v.key}
+              animationControls={v.control}
+              location="bottom"
+              ref={v.ref}
+              width={107}
+              height={150}
+              cardState={v.state}
+              card={v.card}
+              zTransition={v.zTransition}
+              responsive
+            />
           );
         })}
       </div>
       <div className="flex justify-center gap-2">
+        <motion.button onClick={handleRunDeal} className="p-2 bg-white text-black">
+          Run Deal
+        </motion.button>
         <motion.button onClick={handleAnimate} className="p-2 bg-white text-black">
           Start
         </motion.button>
@@ -396,7 +599,7 @@ const TestGameCard = memo(
               quality={100}
               width={width}
               height={height}
-              src={cardState.src ?? cardBackSrc}
+              src={cardBackSrc}
               alt={cardState.cardFullName}
               unoptimized={true}
               style={{

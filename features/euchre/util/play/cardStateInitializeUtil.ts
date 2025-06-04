@@ -1,4 +1,4 @@
-import { HandPhase } from '../../../../app/hooks/euchre/phases/useCardAnimationPhase';
+import { HandPhase } from '../../hooks/phases/useCardAnimationPhase';
 import {
   InitHandHandlers,
   HandStateEffect,

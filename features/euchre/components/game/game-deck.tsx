@@ -1,47 +1,28 @@
 import React, { forwardRef, PropsWithoutRef, RefObject, useEffect } from 'react';
 import GameCard from './game-card';
-
 import clsx from 'clsx';
-import { AnimationControls, motion, TargetAndTransition } from 'framer-motion';
+import { AnimationControls, motion } from 'framer-motion';
 import DummyCard from '../common/dummy-card';
-import { TableLocation, Card, RESPONSE_CARD_SIDE, RESPONSE_CARD_CENTER } from '../../definitions/definitions';
-import { CardBaseState } from '../../definitions/game-state-definitions';
+import { RESPONSE_CARD_SIDE, RESPONSE_CARD_CENTER } from '../../definitions/definitions';
+import { CardBaseState, DeckState } from '../../definitions/game-state-definitions';
 import { CardAnimationControls } from '../../definitions/transform-definitions';
 
 interface Props {
-  location: TableLocation;
-  playerNumber: number;
-  deck?: Card[];
+  deckState: DeckState;
   cardStates: CardBaseState[] | undefined;
   animationControls: CardAnimationControls[];
   deckCardRefs?: Map<number, RefObject<HTMLDivElement | null>>;
-  initDeckState?: TargetAndTransition;
   controls?: AnimationControls;
-  width: number;
-  height: number;
-  handId: string;
   showPosition: boolean;
   onFirstRender?: (ready: boolean) => void;
 }
 
 const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
   (
-    {
-      deck,
-      cardStates,
-      animationControls,
-      deckCardRefs,
-      location,
-      initDeckState,
-      controls,
-      width,
-      height,
-      showPosition,
-      onFirstRender
-    }: Props,
+    { deckState, cardStates, animationControls, deckCardRefs, controls, showPosition, onFirstRender }: Props,
     ref
   ) => {
-    const sideLocation = location === 'left' || location === 'right';
+    const sideLocation = deckState.location === 'left' || deckState.location === 'right';
 
     /** Notify parent component that component rendered and refs should be set. */
     useEffect(() => {
@@ -59,19 +40,24 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
         style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
         className={clsx(
           'absolute z-20 overflow-visible',
-          { invisible: deck === undefined || cardStates === undefined },
+          { invisible: cardStates === undefined },
           sideLocation ? RESPONSE_CARD_SIDE : RESPONSE_CARD_CENTER
         )}
         ref={ref}
         id="game-deck"
-        initial={initDeckState}
+        initial={deckState.initSpringValue}
         animate={controls}
       >
-        <DummyCard visible={showPosition} responsive width={width} height={height} location={location} />
-        {deck &&
-          cardStates &&
+        <DummyCard
+          visible={showPosition}
+          responsive
+          width={deckState.width}
+          height={deckState.height}
+          location={deckState.location}
+        />
+        {cardStates &&
           deckCardRefs &&
-          deck.map((card) => {
+          deckState.deck.map((card) => {
             const cardState = cardStates[card.index];
             const cardRef = deckCardRefs.get(card.index);
             const animationControl = animationControls[card.index];
@@ -82,13 +68,13 @@ const GameDeck = forwardRef<HTMLDivElement, PropsWithoutRef<Props>>(
                 id={`game-deck-card-${card.index}`}
                 key={`${card.index}`}
                 ref={cardRef}
-                location={location}
+                location={deckState.location}
                 className="absolute top-0"
                 card={card}
                 cardState={cardState}
                 animationControls={animationControl}
-                width={width}
-                height={height}
+                width={deckState.width}
+                height={deckState.height}
                 responsive={true}
               />
             );

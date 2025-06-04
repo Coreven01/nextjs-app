@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { HandPhase } from '../phases/useCardAnimationPhase';
+import { HandPhase } from '../hooks/phases/useCardAnimationPhase';
 
 const getPhaseKey = (phase: HandPhase) => `${phase.phase}__${phase.action}` as const;
 

@@ -1,7 +1,15 @@
 import { AnimationControls, TargetAndTransition, Transition } from 'framer-motion';
 import { Card, GameSpeed, TableLocation } from './definitions';
-import { CardBaseState, CardIndex, EuchrePlayer, GamePlayContext, HandState } from './game-state-definitions';
+import {
+  CardBaseState,
+  CardIndex,
+  DeckState,
+  EuchrePlayer,
+  GamePlayContext,
+  HandState
+} from './game-state-definitions';
 import { Dispatch, RefObject, SetStateAction } from 'react';
+import { InitDealResult } from './logic-definitions';
 
 export const INIT_Z_INDEX = 30;
 export const DEFAULT_SPRING_VAL: CardSpringTarget = {
@@ -74,6 +82,12 @@ export interface CardAnimationControls extends CardIndex {
   flipControls?: AnimationControls | undefined;
   initFlipSpring?: FlipSpringTarget;
   animateFlipSprings?: FlipSpringTarget[];
+}
+
+export interface ZTransition {
+  startZ?: number;
+  endZ: number;
+  delayMs: number;
 }
 
 export interface CardAnimationStateContext {
@@ -158,4 +172,62 @@ export interface CardInitAnimationState {
   getWidth: (element: HTMLElement, reset: boolean) => number;
   getAvailableCardsAndState: (useInitSortOrder: boolean) => CardSpringProps[];
   onDealComplete: (playerNumber: number) => void;
+}
+
+export interface DeckInitAnimationState {
+  gameContext: GamePlayContext;
+  stateContext: CardAnimationStateContext;
+  dispatchAnimationState: DispatchCardAnimation;
+  deckAnimationControls: AnimationControls;
+  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  createStates: (
+    cards: Card[],
+    location: TableLocation,
+    includeCardValue: boolean,
+    initValues: CardSpringProps[],
+    initFlipValues: FlipSpringProps[],
+    reverseIndex: boolean
+  ) => CardAnimationStateContext;
+}
+
+export interface DealForDealerAnimationState {
+  gameContext: GamePlayContext;
+  stateContext: CardAnimationStateContext;
+  deckAnimationControls: AnimationControls;
+  centerHorizontalElement: HTMLElement | null;
+  centerVerticalElement: HTMLElement | null;
+  outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  initDealer: InitDealResult | null;
+  getMoveCardsIntoPositionState: () => {
+    initMoveToDealer: CardSpringTarget;
+    moveIntoView: CardSpringTarget;
+  };
+  updateCardBaseAndAnimationSprings: (
+    stateContext: CardAnimationStateContext,
+    cardSprings: CardSpringProps[],
+    flipSprings: FlipSpringProps[]
+  ) => void;
+}
+
+export interface RegularDealAnimationState {
+  deckState: DeckState | undefined;
+  gameContext: GamePlayContext;
+  stateContext: CardAnimationStateContext;
+  deckAnimationControls: AnimationControls;
+  centerHorizontalElement: HTMLElement | null;
+  centerVerticalElement: HTMLElement | null;
+  outerTableRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  cardRefs: Map<number, RefObject<HTMLDivElement | null>>;
+  playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>;
+  getMoveCardsIntoPositionState: () => {
+    initMoveToDealer: CardSpringTarget;
+    moveIntoView: CardSpringTarget;
+  };
+  updateCardBaseAndAnimationSprings: (
+    stateContext: CardAnimationStateContext,
+    cardSprings: CardSpringProps[],
+    flipSprings: FlipSpringProps[]
+  ) => void;
 }

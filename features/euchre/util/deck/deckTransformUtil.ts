@@ -4,6 +4,7 @@ import {
   getDurationSeconds,
   getElementOffset,
   getElementOriginalPosition,
+  getFaceDownSpringForLocation,
   getSpringMoveElement,
   getSpringsForDealForDealer,
   getSpringsForDealForRegularPlay,
@@ -19,11 +20,13 @@ import {
   AnimationSpringsResult,
   CardAnimationState,
   CardAnimationStateContext,
-  CardSpringProps
+  CardSpringProps,
+  CardSpringTarget,
+  FlipSpringProps
 } from '../../definitions/transform-definitions';
 import { CardBaseState, EuchreGameInstance, EuchrePlayer } from '../../definitions/game-state-definitions';
 import { getPlayerRotation } from '../game/playerDataUtil';
-import { getCardFullName, getEncodedCardSvg } from '../game/cardSvgDataUtil';
+import { getCardFullName } from '../game/cardSvgDataUtil';
 import { InitDealResult } from '../../definitions/logic-definitions';
 
 /** Move cards from their current location to the destination location of the card state. This is usually the player's
@@ -129,20 +132,25 @@ const getSpringInitialMoveForDeal = (
 
   // initial move from its absolute postion to the dealer's player location.
   // the deck position should be positioned absolute in the game area (top left),
-  const initMoveToDealer = {
+  const initMoveToDealer: CardSpringTarget = {
     ...moveToElementSpring,
     opacity: 0,
     x: moveToElementSpring.x + offsets.x,
-    y: moveToElementSpring.y + offsets.y
+    y: moveToElementSpring.y + offsets.y,
+    transition: { opacity: { duration: 0 }, x: { duration: 0.1 }, y: { duration: 0.1 } }
   };
 
   // slide the cards into view after moving the deck.
-  const moveIntoView = {
+  const moveIntoView: CardSpringTarget = {
     ...initMoveToDealer,
     opacity: 1,
     x: initMoveToDealer.x - offsets.x * 1.2,
     y: initMoveToDealer.y - offsets.y * 1.2,
-    transition: { opacity: { duration: duration }, x: { duration: duration }, y: { duration: duration } }
+    transition: {
+      opacity: { delay: 0.1, duration: duration },
+      x: { duration: duration },
+      y: { duration: duration }
+    }
   };
 
   return { initMoveToDealer, moveIntoView };
@@ -200,7 +208,7 @@ const getStatesAnimateDealForDealer = (
 
       updatedSpring.animateSprings[0].transition = transition;
       updatedFlipSpring.animateSprings[0].transition = flipTransition;
-      cardState.src = getEncodedCardSvg(card, cardState.location);
+      cardState.valueVisible = true;
       cardState.cardFullName = getCardFullName(card);
       cardState.renderKey = uuidv4();
     }
@@ -270,6 +278,7 @@ const getStatesMoveAllCardsToPlayer = (
   gameSpeed: GameSpeed,
   delayVariation: 'none' | 'low' | 'med' | 'high'
 ) => {
+  const flipSpringsForMove: FlipSpringProps[] = [];
   const springsToMove = getSpringsToMoveToPlayer(
     stateContext,
     deckCardRefs,
@@ -280,13 +289,27 @@ const getStatesMoveAllCardsToPlayer = (
     delayVariation
   );
 
+  const durationSec = getDurationSeconds(gameSpeed);
   const newCardStates = [...stateContext.cardStates];
   for (const cardState of newCardStates) {
+    const flipSpring: FlipSpringProps = {
+      cardIndex: cardState.cardIndex,
+      ordinalIndex: cardState.cardIndex,
+      initialSpring: undefined,
+      animateSprings: [
+        {
+          ...getFaceDownSpringForLocation(destinationLocation),
+          transition: { delay: durationSec, duration: 0.01 }
+        }
+      ]
+    };
+
+    flipSpringsForMove.push(flipSpring);
     cardState.renderKey = uuidv4();
     cardState.location = destinationLocation;
   }
 
-  return { newCardStates, springsToMove };
+  return { newCardStates, springsToMove, flipSpringsForMove };
 };
 
 export {

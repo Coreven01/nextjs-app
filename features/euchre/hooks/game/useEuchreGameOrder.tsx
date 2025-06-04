@@ -11,7 +11,7 @@ import {
   EuchreGameSetters,
   EuchreGameValues
 } from '../../definitions/game-state-definitions';
-import useGameOrderState from '../../../../app/hooks/euchre/phases/useGameOrderState';
+import useGameOrderState from '../phases/useGameOrderState';
 import { EuchrePauseType } from '../../state/reducers/gamePauseReducer';
 import { incrementSpeed, notificationDelay, playerSittingOut } from '../../util/game/gameDataUtil';
 import { discard, getPlayerRotation, playerEqual } from '../../util/game/playerDataUtil';

@@ -1,6 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import useCardRefs from '../common/useCardRefs';
-import useCardState from '../../../../app/hooks/euchre/state/useCardState';
+import useCardState from '../../state/useCardState';
 import { availableCardsToPlay } from '../../util/game/playerDataUtil';
 import { sortCardsIndices } from '../../util/game/cardDataUtil';
 import { getCalculatedWidthOffset } from '../../util/play/cardTransformUtil';

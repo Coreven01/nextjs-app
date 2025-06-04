@@ -1,20 +1,10 @@
-import { PromptType } from '../../../../features/euchre/definitions/definitions';
-import {
-  EuchreGameValues,
-  EuchreGameSetters,
-  ErrorHandlers
-} from '../../../../features/euchre/definitions/game-state-definitions';
-import { getGameStateForNextHand } from '../../../../features/euchre/util/game/gamePlayLogicUtil';
-import { isGameStateValidToContinue } from '../../../../features/euchre/util/game/gameStateLogicUtil';
-import {
-  EuchreAnimateType,
-  EuchreAnimationActionType
-} from '../../../../features/euchre/state/reducers/gameAnimationFlowReducer';
-import {
-  EuchreFlowActionType,
-  EuchreGameFlow
-} from '../../../../features/euchre/state/reducers/gameFlowReducer';
-import { EuchrePauseActionType } from '../../../../features/euchre/state/reducers/gamePauseReducer';
+import { PromptType } from '../../definitions/definitions';
+import { EuchreGameValues, EuchreGameSetters, ErrorHandlers } from '../../definitions/game-state-definitions';
+import { getGameStateForNextHand } from '../../util/game/gamePlayLogicUtil';
+import { isGameStateValidToContinue } from '../../util/game/gameStateLogicUtil';
+import { EuchreAnimateType, EuchreAnimationActionType } from '../../state/reducers/gameAnimationFlowReducer';
+import { EuchreFlowActionType, EuchreGameFlow } from '../../state/reducers/gameFlowReducer';
+import { EuchrePauseActionType } from '../../state/reducers/gamePauseReducer';
 
 const useGamePlayState = (state: EuchreGameValues, setters: EuchreGameSetters, handlers: ErrorHandlers) => {
   const shouldBeginPlayCard = isGameStateValidToContinue(

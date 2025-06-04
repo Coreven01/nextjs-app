@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import Image from 'next/image';
 import React, { useState } from 'react';
 import PromptSelection from './prompt-selection';
 import GamePrompt from './game-prompt';
@@ -11,11 +10,11 @@ import PromptHeader from './prompt-header';
 import GameWarning from '../game/game-warning';
 
 import GameButton from '../common/game-button';
-import { getCardFullName, getEncodedCardSvg, getSuitName } from '../../util/game/cardSvgDataUtil';
+import { getCardFullName, getSuitName } from '../../util/game/cardSvgDataUtil';
 import { getTeamColor, playerEqual } from '../../util/game/playerDataUtil';
-import { getDisplayHeight, getDisplayWidth } from '../../util/game/cardDataUtil';
 import { EuchreGameInstance, EuchreSettings } from '../../definitions/game-state-definitions';
 import { BidResult, Suit } from '../../definitions/definitions';
+import PlayingCardFace from '../common/playing-card-face';
 
 interface DivProps extends React.HtmlHTMLAttributes<HTMLDivElement> {
   firstRound: boolean;
@@ -128,22 +127,14 @@ const BidPrompt = ({ firstRound, game, settings, onBidSubmit, className, ...rest
               {firstRound ? 'Trump Card' : 'Select Suit'}
             </div>
             <div className="grow flex items-center">
-              <GameBorder innerClass="w-20 lg:w-full" size="small">
-                <div className="p-2 bg-green-950 flex items-center justify-center">
+              <GameBorder className="w-full min-w-28" size="small">
+                <div className={clsx('p-2 bg-green-950 flex items-center justify-center')}>
                   {firstRound ? (
-                    <Image
-                      draggable={false}
-                      className={`contain`}
-                      quality={100}
-                      width={getDisplayWidth('top')}
-                      height={getDisplayHeight('top')}
-                      src={getEncodedCardSvg(game.trump, 'top')}
-                      alt={getCardFullName(game.trump)}
-                      title={getCardFullName(game.trump)}
-                      style={{
-                        width: '100%',
-                        height: 'auto'
-                      }}
+                    <PlayingCardFace
+                      suit={game.trump.suit}
+                      value={game.trump.value}
+                      addOverlay={false}
+                      className="block"
                     />
                   ) : (
                     <SuitSelection

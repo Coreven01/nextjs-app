@@ -2,7 +2,6 @@ import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/16/solid';
 import EphemeralModal from '../common/ephemeral-modal';
 import UserInfo from './user-info';
 import clsx from 'clsx';
-
 import { playerEqual } from '../../util/game/playerDataUtil';
 import { Suit, GameSpeed } from '../../definitions/definitions';
 import { EuchrePlayer, EuchreSettings } from '../../definitions/game-state-definitions';

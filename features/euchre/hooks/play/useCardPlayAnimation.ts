@@ -26,7 +26,7 @@ import {
   getSpringsGroupHand,
   getSpringToMoveToPlayer
 } from '../../util/play/cardTransformUtil';
-import { getCardFullName, getEncodedCardSvg } from '../../util/game/cardSvgDataUtil';
+import { getCardFullName } from '../../util/game/cardSvgDataUtil';
 import { runCardAnimations } from '../../util/game/cardStateUtil';
 import { v4 as uuidv4 } from 'uuid';
 import { cardEqual } from '../../util/game/cardDataUtil';
@@ -431,7 +431,8 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
         if (handState.shouldShowCardValue) {
           cardState.enabled = cardEnabled;
           cardState.cardFullName = getCardFullName(player.hand[cardState.cardIndex]);
-          cardState.src = getEncodedCardSvg(player.hand[cardState.cardIndex], handState.location, addOverlay);
+          cardState.valueVisible = true;
+          cardState.cardOverlay = addOverlay;
           cardState.renderKey = uuidv4();
         }
       }
@@ -489,14 +490,13 @@ const useCardPlayAnimation = (cardPlayState: CardPlayAnimationState) => {
 
     cardState.renderKey = uuidv4();
     cardState.cardFullName = getCardFullName(card);
-    cardState.src = getEncodedCardSvg(card, player.location);
+    cardState.valueVisible = true;
+    cardState.cardOverlay = false;
 
     const trickId: string = euchreGame.currentTrick.trickId;
     cardPlayedForTrickRef.current.set(trickId, card);
 
     return { newCardStates, newAnimationControls };
-    // setCardStates(newCardStates);
-    // setCardAnimationControls(newAnimationControls);
   };
 
   //#region Game Play Handlers

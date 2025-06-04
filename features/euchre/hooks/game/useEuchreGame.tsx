@@ -8,7 +8,7 @@ import useEuchreGameOrder from './useEuchreGameOrder';
 import { v4 as uuidv4 } from 'uuid';
 import { EuchrePauseActionType } from '../../state/reducers/gamePauseReducer';
 import { getGameStateForNextHand } from '../../util/game/gamePlayLogicUtil';
-import useEuchreGameState from '../../../../app/hooks/euchre/state/useEuchreGameState';
+import useEuchreGameState from '../../state/useEuchreGameState';
 import {
   ErrorHandlers,
   EuchreAnimationHandlers,

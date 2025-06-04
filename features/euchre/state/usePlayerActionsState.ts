@@ -1,11 +1,7 @@
 import { useCallback, useRef } from 'react';
-import { playerSittingOut } from '../../../../features/euchre/util/game/gameDataUtil';
-import {
-  EuchrePlayer,
-  EuchreTrick,
-  GamePlayContext
-} from '../../../../features/euchre/definitions/game-state-definitions';
-import { Card } from '../../../../features/euchre/definitions/definitions';
+import { playerSittingOut } from '../util/game/gameDataUtil';
+import { EuchrePlayer, EuchreTrick, GamePlayContext } from '../definitions/game-state-definitions';
+import { Card } from '../definitions/definitions';
 
 const usePlayerActionState = (gameContext: GamePlayContext) => {
   const playersInitDealFinished = useRef<Set<number>>(new Set<number>());

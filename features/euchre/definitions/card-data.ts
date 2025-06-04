@@ -79,29 +79,29 @@ export type TextData = {
   x: number;
   y: number;
   fontsize: string;
-  transform: string;
-  style: string;
+  transform?: string;
+  style?: string;
 };
 
 /** Map of svg values that should be used when rendering a card. Keyed on values where the first number is the column and second number is the row. */
 const centerSvgVals = new Map<string, TextData>([
-  ['s1-1', { x: 21, y: 42.2, fontsize: '34px', transform: '', style: '' }],
-  ['s1-2', { x: 21, y: 71.2, fontsize: '34px', transform: '', style: '' }],
-  ['s1-3', { x: 21, y: 84.2, fontsize: '34px', transform: '', style: '' }],
-  ['s1-4', { x: -38, y: -82, fontsize: '34px', transform: 'scale(-1)', style: '' }],
-  ['s1-5', { x: -38, y: -110, fontsize: '34px', transform: 'scale(-1)', style: '' }],
-  ['s2-1', { x: 41, y: 42.2, fontsize: '34px', transform: '', style: '' }],
-  ['s2-2', { x: 41, y: 59.2, fontsize: '34px', transform: '', style: '' }],
-  ['s2-3', { x: 41, y: 86.7, fontsize: '34px', transform: '', style: '' }],
-  ['s2-4', { x: -58, y: -93, fontsize: '34px', transform: 'scale(-1)', style: '' }],
-  ['s2-5', { x: -58, y: -110, fontsize: '34px', transform: 'scale(-1)', style: '' }],
-  ['s2-b', { x: 30, y: 95.5, fontsize: '48px', transform: '', style: '' }],
-  ['s2-a', { x: 31, y: 99.5, fontsize: '72px', transform: '', style: '' }],
-  ['s3-1', { x: 62, y: 42.2, fontsize: '34px', transform: '', style: '' }],
-  ['s3-2', { x: 62, y: 71.2, fontsize: '34px', transform: '', style: '' }],
-  ['s3-3', { x: 62, y: 84.2, fontsize: '34px', transform: '', style: '' }],
-  ['s3-4', { x: -79, y: -82, fontsize: '34px', transform: 'scale(-1)', style: '' }],
-  ['s3-5', { x: -79, y: -110, fontsize: '34px', transform: 'scale(-1)', style: '' }]
+  ['s1-1', { x: 21, y: 42.2, fontsize: '34px' }],
+  ['s1-2', { x: 21, y: 71.2, fontsize: '34px' }],
+  ['s1-3', { x: 21, y: 84.2, fontsize: '34px' }],
+  ['s1-4', { x: -39, y: -82, fontsize: '34px', transform: 'scale(-1)' }],
+  ['s1-5', { x: -39, y: -110, fontsize: '34px', transform: 'scale(-1)' }],
+  ['s2-1', { x: 41, y: 42.2, fontsize: '34px' }],
+  ['s2-2', { x: 41, y: 59.2, fontsize: '34px' }],
+  ['s2-3', { x: 41, y: 86.7, fontsize: '34px' }],
+  ['s2-4', { x: -59, y: -93, fontsize: '34px', transform: 'scale(-1)' }],
+  ['s2-5', { x: -59, y: -110, fontsize: '34px', transform: 'scale(-1)' }],
+  ['s2-b', { x: 30, y: 95.5, fontsize: '48px' }],
+  ['s2-a', { x: 31, y: 99.5, fontsize: '72px' }],
+  ['s3-1', { x: 61, y: 42.2, fontsize: '34px' }],
+  ['s3-2', { x: 61, y: 71.2, fontsize: '34px' }],
+  ['s3-3', { x: 61, y: 84.2, fontsize: '34px' }],
+  ['s3-4', { x: -79, y: -82, fontsize: '34px', transform: 'scale(-1)' }],
+  ['s3-5', { x: -79, y: -110, fontsize: '34px', transform: 'scale(-1)' }]
 ]);
 
 const sideSvgVals = new Map<string, TextData>([

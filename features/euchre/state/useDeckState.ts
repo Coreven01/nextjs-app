@@ -1,17 +1,18 @@
 import { useCallback, useState } from 'react';
-import { createCardStatesFromGameDeck } from '../../../../features/euchre/util/game/cardStateUtil';
+import { createCardStatesFromGameDeck } from '../util/game/cardStateUtil';
 
-import useDeckAnimationControls from '../../../../features/euchre/state/useDeckAnimationControls';
-import { Card, TableLocation } from '../../../../features/euchre/definitions/definitions';
-import { CardBaseState } from '../../../../features/euchre/definitions/game-state-definitions';
+import useDeckAnimationControls from './useDeckAnimationControls';
+import { Card, TableLocation } from '../definitions/definitions';
+import { CardBaseState } from '../definitions/game-state-definitions';
 import {
   CardAnimationControls,
   CardAnimationState,
   CardAnimationStateContext,
   CardSpringProps,
   FlipSpringProps,
-  CreateCardStatesContext
-} from '../../../../features/euchre/definitions/transform-definitions';
+  CreateCardStatesContext,
+  DispatchCardAnimation
+} from '../definitions/transform-definitions';
 
 /** State values used to animate dealing cards to players. */
 const useDeckState = () => {
@@ -74,11 +75,15 @@ const useDeckState = () => {
     [animationControls, flipAnimiationControls]
   );
 
+  const dispatchAnimationState: DispatchCardAnimation = {
+    setCardStates: setDeckCardStates,
+    setCardAnimationStates: setDeckCardsAnimationStates,
+    setCardAnimationControls: setDeckCardsAnimationControls
+  };
+
   return {
     stateContext,
-    setDeckCardsAnimationControls,
-    setDeckCardStates,
-    setDeckCardsAnimationStates,
+    dispatchAnimationState,
     createStates,
     recreateAnimationControls
   };

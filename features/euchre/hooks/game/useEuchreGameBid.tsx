@@ -17,7 +17,7 @@ import {
 } from '../../definitions/game-state-definitions';
 import { GameEventHandlers } from '../common/useEventLog';
 import { EuchrePauseType } from '../../state/reducers/gamePauseReducer';
-import useGameBidState from '../../../../app/hooks/euchre/phases/useGameBidState';
+import useGameBidState from '../phases/useGameBidState';
 import { determineBid } from '../../util/game/gameBidLogicUtil';
 import { notificationDelay } from '../../util/game/gameDataUtil';
 import { getPlayerRotation } from '../../util/game/playerDataUtil';

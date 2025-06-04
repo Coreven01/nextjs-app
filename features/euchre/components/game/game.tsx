@@ -3,25 +3,19 @@
 import React from 'react';
 import { SECTION_STYLE } from '../../../../app/ui/home/home-description';
 import { inter } from '../../../../app/ui/fonts';
-import GameSettings from './game-settings';
 import useEuchreGame from '@/features/euchre/hooks/game/useEuchreGame';
-import GameScore from './game-score';
 import GameBorder from './game-border';
-import BidPrompt from '../prompt/bid-prompt';
-import DiscardPrompt from '../prompt/discard-prompt';
-import HandResults from '../prompt/hand-results';
 import GameResult from '../prompt/game-result';
 import GameEvents from './game-events';
 import GameArea from './game-area';
 import GamePrompt from '../prompt/game-prompt';
 import useMenuItems from '@/features/euchre/hooks/common/useMenuItems';
 import clsx from 'clsx';
-import GameErrorPrompt from '../prompt/game-error-prompt';
-import GameIntro from '../prompt/game-intro';
 import GameDebugMenu from './game-debug-menu';
 import useEuchreDebug from '../../hooks/common/useEuchreDebug';
 import { PromptType } from '../../definitions/definitions';
-import { EuchreSettings, EuchreGameInstance } from '../../definitions/game-state-definitions';
+import { EuchreGameInstance } from '../../definitions/game-state-definitions';
+import GamePrompts from '../prompt/game-prompts';
 
 export default function EuchreGame() {
   //#region Hooks
@@ -36,41 +30,16 @@ export default function EuchreGame() {
   );
 
   const menuValues = useMenuItems(gameHandlers.onCancelAndReset, gameHandlers.onSettingsChange);
-  const { isFullScreen, onToggleEvents, onToggleSettings, showEvents, showScore, showSettings } = menuValues;
+  const { isFullScreen, onToggleEvents, onToggleSettings, showEvents, showSettings } = menuValues;
 
   const enableFullScreen = stateValues.euchreGame && isFullScreen;
   // #endregion
 
   //#region Event Handlers
-  const changeSettings = (settings: EuchreSettings) => {
-    gameHandlers.onSettingsChange(settings);
-  };
-
-  const handleStartNewGame = () => {
-    onToggleSettings(false);
-    gameHandlers.onBeginNewGame();
-  };
-
-  const handleReturnFromSettings = () => {
-    onToggleSettings(false);
-  };
 
   const handleBeginReplayGame = (gameToReplay: EuchreGameInstance, autoPlay: boolean) => {
     onToggleSettings(false);
     gameHandlers.onReplayGame({ ...gameToReplay }, autoPlay);
-  };
-
-  const handleShowSettings = () => {
-    onToggleSettings(true);
-  };
-
-  const handleCloseGameResults = () => {
-    setters.clearPromptValues();
-    gameHandlers.reset(true);
-  };
-
-  const handleOpenDebugMenu = () => {
-    handleStartGameForDebug();
   };
 
   const handleCloseDebugMenu = () => {
@@ -98,82 +67,7 @@ export default function EuchreGame() {
     />
   );
 
-  const renderErrorMessage = errorState && stateValues.euchreGame && (
-    <GameErrorPrompt
-      key={stateValues.euchreGame !== null ? 'modal' : 'init'}
-      errorState={errorState}
-      onAttemptToRecover={gameContext.errorHandlers.onResetError}
-    />
-  );
-
-  const renderSettings = showSettings && (
-    <GamePrompt zIndex={90}>
-      <GameSettings
-        key={stateValues.euchreGame !== null ? 'modal' : 'init'}
-        settings={stateValues.euchreSettings}
-        onReturn={handleReturnFromSettings}
-        onApplySettings={changeSettings}
-      />
-    </GamePrompt>
-  );
-
-  const renderIntro = !showSettings && stateValues.promptValues.includes(PromptType.INTRO) && (
-    <GamePrompt innerClass="bg-green-300 bg-opacity-10" className="mt-8" id="game-intro" zIndex={90}>
-      <GameIntro
-        enableDebug={stateValues.euchreSettings.debugEnableDebugMenu}
-        onRunDebug={handleOpenDebugMenu}
-        onBegin={handleStartNewGame}
-        onSettings={handleShowSettings}
-      />
-    </GamePrompt>
-  );
-
-  const renderBidPrompt = stateValues.promptValues.includes(PromptType.BID) &&
-    stateValues.euchreGame?.trump && (
-      <BidPrompt
-        game={stateValues.euchreGame}
-        firstRound={!stateValues.euchreGameFlow.hasFirstBiddingPassed}
-        onBidSubmit={gameHandlers.onBidSubmit}
-        settings={stateValues.euchreSettings}
-      />
-    );
-
-  const renderDiscardPrompt = stateValues.promptValues.includes(PromptType.DISCARD) &&
-    stateValues.euchreGame?.trump &&
-    stateValues.euchreGame.dealer && (
-      <DiscardPrompt
-        pickedUpCard={stateValues.euchreGame.trump}
-        playerHand={stateValues.euchreGame.dealer.hand}
-        onDiscardSubmit={gameHandlers.onDiscardSubmit}
-      />
-    );
-
-  const renderHandResults = stateValues.promptValues.includes(PromptType.HAND_RESULT) &&
-    stateValues.euchreGame &&
-    stateValues.euchreGame.handResults.length > 0 && (
-      <HandResults
-        game={stateValues.euchreGame}
-        settings={stateValues.euchreSettings}
-        handResult={stateValues.euchreGame.handResults.at(-1) ?? null}
-        onClose={gameHandlers.onCloseHandResults}
-        onReplayHand={gameHandlers.onReplayHand}
-      />
-    );
-
-  const renderGameResults = stateValues.promptValues.includes(PromptType.GAME_RESULT) &&
-    stateValues.euchreGame &&
-    stateValues.euchreGame.handResults.length > 0 && (
-      <GameResult
-        game={stateValues.euchreGame}
-        settings={stateValues.euchreSettings}
-        handResults={stateValues.euchreGame.handResults}
-        onClose={handleCloseGameResults}
-        onNewGame={gameHandlers.onBeginNewGame}
-        onReplayGame={(autoPlay: boolean) => handleBeginReplayGame(stateValues.euchreGame, autoPlay)}
-      />
-    );
-
-  const renderFullGameResults = fullGameInstance && (
+  const renderFullGameResults = showSettings && fullGameInstance && (
     <GamePrompt zIndex={90} className="m-auto">
       <GameResult
         game={fullGameInstance}
@@ -185,6 +79,8 @@ export default function EuchreGame() {
       />
     </GamePrompt>
   );
+
+  const renderIntro = !showSettings && stateValues.promptValues.includes(PromptType.INTRO);
 
   //#endregion
 
@@ -220,22 +116,18 @@ export default function EuchreGame() {
               initDealer={stateValues.initDealer}
               menuValues={menuValues}
             />
-            {renderSettings}
-            {renderIntro}
-            {renderBidPrompt}
-            {renderDiscardPrompt}
-            {renderHandResults}
-            {renderGameResults}
-            {renderErrorMessage}
-            {showSettings && renderFullGameResults}
-            {stateValues.euchreGameFlow.hasGameStarted && (
-              <GameScore
-                game={stateValues.euchreGame}
-                settings={stateValues.euchreSettings}
-                showScore={showScore}
-                className="lg:min-h-16 lg:min-w-16 absolute top-2 lg:right-4 lg:left-auto left-8"
-              />
-            )}
+            <GamePrompts
+              gameContext={gameContext}
+              stateValues={stateValues}
+              setters={setters}
+              gameHandlers={gameHandlers}
+              menuValues={menuValues}
+              onOpenDebugMenu={handleStartGameForDebug}
+              errorState={errorState}
+              showSettings={showSettings}
+              showScore={stateValues.euchreGameFlow.hasGameStarted}
+            />
+            {renderFullGameResults}
           </div>
         </GameBorder>
         {renderDebugMenu}

@@ -3,8 +3,9 @@
 import { motion, TargetAndTransition } from 'framer-motion';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
-import { getEncodedCardSvg } from '../../../features/euchre/util/game/cardSvgDataUtil';
+
 import CardRenderTest from './card-render-test';
+import RenderCards from '../../../features/euchre/components/common/render-cards';
 
 const TestPage = () => {
   const destRef = useRef<HTMLDivElement>(null);
@@ -69,7 +70,7 @@ const TestPage = () => {
             style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
           >
             <Image
-              src={getEncodedCardSvg({ suit: '♠', value: '2', index: 0 }, 'top')}
+              src={'/card-back.svg'}
               alt=""
               width={100}
               height={150}
@@ -97,6 +98,7 @@ const TestPage = () => {
         </div>
       </div>
       <CardRenderTest />
+      <RenderCards rotate={false} />
     </div>
   );
 };

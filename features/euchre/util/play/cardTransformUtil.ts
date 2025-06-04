@@ -15,7 +15,6 @@ import { Card, GameSpeed, TableLocation } from '../../definitions/definitions';
 import { RefObject } from 'react';
 import { CardBaseState, EuchrePlayer } from '../../definitions/game-state-definitions';
 import { InitDealResult } from '../../definitions/logic-definitions';
-import { logConsole } from '../util';
 
 const CARD_HEIGHT_OFFSET = 10;
 const CARD_WIDTH_OFFSET = 70; //percentage of width of the card used when fanning player hand.
@@ -949,37 +948,37 @@ const getDestinationOffset = (location?: TableLocation): { x: number; y: number 
 /** After cards have been dealt, move cards to outside the bound of the game area, as if the
  * player picked them up.
  */
-const moveCardsToPlayerArea = (
-  cardStates: CardBaseState[],
-  playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
-  cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
-  gameSpeed: GameSpeed
-): CardBaseState[] => {
-  const newState = [...cardStates];
+// const moveCardsToPlayerArea = (
+//   cardStates: CardBaseState[],
+//   playerDeckRefs: Map<TableLocation, RefObject<HTMLDivElement | null>>,
+//   cardRefs: Map<number, RefObject<HTMLDivElement | null>>,
+//   gameSpeed: GameSpeed
+// ): CardBaseState[] => {
+//   const newState = [...cardStates];
 
-  for (const cardState of newState) {
-    if (cardState.location) {
-      const destRef = playerDeckRefs.get(cardState.location);
-      const cardRef = cardRefs.get(cardState.cardIndex);
-      const offsets = getDestinationOffset(cardState.location);
+//   for (const cardState of newState) {
+//     if (cardState.location) {
+//       const destRef = playerDeckRefs.get(cardState.location);
+//       const cardRef = cardRefs.get(cardState.cardIndex);
+//       const offsets = getDestinationOffset(cardState.location);
 
-      if (destRef?.current && cardRef?.current) {
-        const spring = getSpringMoveElement(
-          { sourceElement: cardRef.current, destinationElement: destRef.current, relativeElement: undefined }
-          //cardState.springValue
-        );
+//       if (destRef?.current && cardRef?.current) {
+//         const spring = getSpringMoveElement(
+//           { sourceElement: cardRef.current, destinationElement: destRef.current, relativeElement: undefined }
+//           //cardState.springValue
+//         );
 
-        spring.x += offsets.x;
-        spring.y += offsets.y;
+//         spring.x += offsets.x;
+//         spring.y += offsets.y;
 
-        // cardState.transition = getTransitionForCardMoved(cardState, gameSpeed);
-        // cardState.springValue = spring;
-      }
-    }
-  }
+//         // cardState.transition = getTransitionForCardMoved(cardState, gameSpeed);
+//         // cardState.springValue = spring;
+//       }
+//     }
+//   }
 
-  return newState;
-};
+//   return newState;
+// };
 
 //#endregion
 
@@ -1159,7 +1158,6 @@ const getSpringsForBeginNewHand = (
     moveIntoView.transition = { delay: Math.random() * duration, duration: duration };
     regroupSpring.forEach((v) => (v.transition = { delay: Math.random() * 0.25, duration: duration }));
 
-    logConsole('[BEGIN HAND MOVE] new hand initial moves : ', initialMoveOffScreen, moveIntoView);
     const moveSpringsForNewDeal: CardSpringProps = {
       ordinalIndex: card.index,
       cardIndex: card.index,
@@ -1242,7 +1240,7 @@ export {
   createCardAnimationState,
   getRandomRotation,
   groupHand,
-  moveCardsToPlayerArea,
+  // moveCardsToPlayerArea,
   getTransitionForCardMoved,
   getSpringsForDealForDealer,
   getSpringsToMoveToPlayer,
@@ -1262,49 +1260,3 @@ export {
   getTransitionForCardFlipped,
   getFaceDownSpringForLocation
 };
-
-// const getSpringsForTrickTaken = (
-//   springContext: SpringContext,
-//   cardIndex: number,
-//   cardAnimations: CardSpringProps[],
-//   destinationLocation: TableLocation,
-//   destinationElement: HTMLElement,
-//   sourceElement: HTMLElement,
-//   gameSpeed: GameSpeed
-// ) => {
-//   // const newCardStates = [...cardStates];
-
-//   // newCardState.forEach((s) => (s.runEffectForState = undefined));
-//   // const stateToUpdate = newCardStates.find((c) => c.cardIndex === cardPlayed.index);
-
-//   if (!stateToUpdate) throw new Error('Card state not found for trick taken.');
-
-//   const newSpring = getSpringToMoveToPlayer(
-//     sourceElement,
-//     destinationElement,
-//     destinationLocation,
-//     stateToUpdate,
-//     false,
-//     gameSpeed
-//   ).animateValues;
-
-//   const duration = gameSpeed / 100;
-//   const transition: Transition = {
-//     x: { duration: duration },
-//     y: { duration: duration },
-//     rotate: { duration: duration }
-//   };
-
-//   stateToUpdate.useInitValue = false;
-//   stateToUpdate.renderKey = uuidv4();
-//   stateToUpdate.springValue = {
-//     x: newSpring.x,
-//     y: newSpring.y,
-//     rotate: newSpring.rotate
-//   };
-
-//   stateToUpdate.transition = transition;
-//   stateToUpdate.runEffectForState = EuchreGameFlow.TRICK_FINISHED;
-
-//   return newCardStates;
-// };

@@ -1,4 +1,4 @@
-import useCardAnimationPhase from '../../../../app/hooks/euchre/phases/useCardAnimationPhase';
+import useCardAnimationPhase from '../phases/useCardAnimationPhase';
 import getEffectForInitHandState from '../../util/play/cardStateInitializeUtil';
 import getEffectForPlayHandState from '../../util/play/cardStatePlayUtil';
 import {

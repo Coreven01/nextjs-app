@@ -17,7 +17,7 @@ import {
 import { GameEventHandlers } from '../common/useEventLog';
 
 import { EuchrePauseActionType } from '../../state/reducers/gamePauseReducer';
-import useGameInitState from '../../../../app/hooks/euchre/phases/useGameInitState';
+import useGameInitState from '../phases/useGameInitState';
 import { notificationDelay } from '../../util/game/gameDataUtil';
 import {
   createDefaultEuchreGame,

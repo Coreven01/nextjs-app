@@ -6,7 +6,7 @@ import GameDeck from '../game/game-deck';
 import PlayerHand from './player-hand';
 import { getPlayerGridLayoutInfo, playerEqual } from '../../util/game/playerDataUtil';
 import { getCardClassForPlayerLocation } from '../../util/game/cardDataUtil';
-import usePlayerActionState from '../../../../app/hooks/euchre/state/usePlayerActionsState';
+import usePlayerActionState from '../../state/usePlayerActionsState';
 import { Card } from '../../definitions/definitions';
 import { GamePlayContext } from '../../definitions/game-state-definitions';
 import { InitDealResult } from '../../definitions/logic-definitions';
@@ -127,18 +127,12 @@ const PlayerCardArea = ({
       {deckState && gameDeckVisible && (
         <GameDeck
           ref={gameDeckRef}
-          deck={deckState.deck}
+          deckState={deckState}
           deckCardRefs={deckCardRefs}
-          location={deckState.location}
-          playerNumber={deckState.playerNumber}
           cardStates={cardStates}
           animationControls={animationControls}
-          initDeckState={deckState.initSpringValue}
           controls={deckAnimationControls}
-          width={deckState.width}
-          height={deckState.height}
-          handId={deckState.handId}
-          showPosition={euchreSettings.debugShowPositionElements}
+          showPosition={false}
           onFirstRender={handleRefChange}
         />
       )}
